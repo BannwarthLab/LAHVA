@@ -1,0 +1,40 @@
+project(
+  'tcgm-c-blas',
+  'c',
+  'cpp',
+  
+  version: '0.0.0',
+  license: 'LGPL-3.0-or-later',
+  meson_version: '>=0.57.2',
+  default_options: [
+    'buildtype=debugoptimized',
+    'default_library=both',
+    'cpp_std=c++11'
+  ],
+)
+install = not (meson.is_subproject() and get_option('default_library') == 'static')
+
+lib_deps = []
+inc_dirs = []
+subdir('config')
+
+inc_dirs += include_directories('include') 
+inc_dirs += include_directories('include/impl/cpu')
+
+# Collect source of the project
+srcs = []
+subdir('src')
+
+add_project_arguments('-fPIE',language: 'cpp')
+
+#lib_deps += [dependency('boost'), dependency('cuda', version : '>=10', modules : ['cublas'])]
+# Library target
+sqmbox_lib = library(
+  meson.project_name(),
+  sources: srcs,
+  #version: meson.project_version(),
+  dependencies: lib_deps,
+  include_directories: inc_dirs,
+  install: install,
+)
+
