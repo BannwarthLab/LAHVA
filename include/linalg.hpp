@@ -13,6 +13,8 @@ typedef unsigned short ushort;
 
 template<class T>
 class vector : public std::vector<T>{
+  protected:
+    bool is_on_device_ = false;
   public:
     using size_type              = std::size_t;
     using Allocator              = std::allocator<T>;
@@ -49,7 +51,7 @@ class Matrix {
     uint n_rows_;
     uint n_cols_;
     T* data_;
-
+    bool is_on_device_ = false;
     // indicates whether the Matrix object owns the data and consequently is 
     // responsible for freeing it
     bool is_owner_ = true;
@@ -134,7 +136,7 @@ class LowTriMatrix {
     // shape in each dimension, i.e. data_ has length n_rows_^2
     uint n_;
     T* data_;
-
+    bool is_on_device_ = false;
     inline size_t data_id_(uint i, uint j) const{
       // deactivated if NDEBUG is defined
       assert(i <= n_ && j <= n_);

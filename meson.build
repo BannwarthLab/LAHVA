@@ -9,7 +9,7 @@ project(
   default_options: [
     'buildtype=debugoptimized',
     'default_library=both',
-    'cpp_std=c++11'
+    'cpp_std=c++17'
   ],
 )
 install = not (meson.is_subproject() and get_option('default_library') == 'static')
@@ -29,7 +29,7 @@ add_project_arguments('-fPIE',language: 'cpp')
 
 #lib_deps += [dependency('boost'), dependency('cuda', version : '>=10', modules : ['cublas'])]
 # Library target
-sqmbox_lib = library(
+tcgmblas_lib = library(
   meson.project_name(),
   sources: srcs,
   #version: meson.project_version(),
@@ -37,4 +37,12 @@ sqmbox_lib = library(
   include_directories: inc_dirs,
   install: install,
 )
+tcgmblas_dep = declare_dependency(
+  link_with: tcgmblas_lib,
+  include_directories: inc_dirs,
+  dependencies: lib_deps,
+  variables: {'includedir': meson.current_source_dir() / 'include'},
+)
 
+install = not (meson.is_subproject() and get_option('default_library') == 'static')
+subdir('test')

@@ -1,13 +1,13 @@
 
 #ifdef W_MKL
 #include <mkl.h>
-    typedef MKL_INT BLAS_INT;
 #else
     #include <cblas.h>
-    typedef size_t BLAS_INT;
 #endif
 #include "tcgmblas.h"
 #include  "level1.h"
+
+
 namespace tcgmtensor{
     /*! @brief Take inner product of two vectors of doubles
         \param[in] nelemXY number of elements in vectors X and Y

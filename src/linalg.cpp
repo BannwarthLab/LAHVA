@@ -285,7 +285,7 @@ template<typename T>
 void LowTriMatrix<T>::print() const {
   for (uint i = 0; i < n_; i++) {
     for(uint j = 0; j <= i; j++) {
-      std::cout << i << " " << j << " " << data_[data_id_(i,j)] << std::endl;
+      std::cout << data_[data_id_(i,j)] ;
     }
     printf("\n");
   }

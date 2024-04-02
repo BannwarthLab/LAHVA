@@ -1,11 +1,6 @@
 #ifndef TCGMBLAS_C_LEVEL1_H
 #define TCGMBLAS_C_LEVEL1_H
-#include <stddef.h>
-#ifdef W_MKL
-typedef MKL_INT BLAS_INT;
-#else
-typedef size_t BLAS_INT;
-#endif
+#include "const.h"
 
 namespace tcgmtensor{
     
@@ -33,6 +28,6 @@ namespace tcgmtensor{
     void ScaleVector(const size_t ndim, const float a, float* x);
     void ScaleVector(const size_t ndim, const double a, double* x, size_t ix);
     void ScaleVector(const size_t ndim, const float a, float* x, size_t ix);
-} 
+}
 
 #endif

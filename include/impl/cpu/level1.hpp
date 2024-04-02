@@ -1,12 +1,7 @@
 #ifndef TCGMBLAS_C_LEVEL1_HPP
 #define TCGMBLAS_C_LEVEL1_HPP
-#include <stddef.h>
+#include "const.h"
 #include "linalg.hpp"
-#ifdef W_MKL
-typedef MKL_INT BLAS_INT;
-#else
-typedef size_t BLAS_INT;
-#endif
 
 namespace tcgmtensor{
     
@@ -30,10 +25,10 @@ namespace tcgmtensor{
     void SwapVectors(vector<double>& X, const size_t strideX, vector<double>& Y, const size_t strideY);
     void SwapVectors(vector<float>& X, const size_t strideX, vector<float>& Y, const size_t strideY);
 
-    void ScaleVectors(const double a, vector<double>& x);
-    void ScaleVectors(const float a, vector<float>& x);
-    void ScaleVectors(const double a, vector<double>& x, size_t ix);
-    void ScaleVectors(const float a, vector<float>& x, size_t ix);
+    void ScaleVector(const double a, vector<double>& x);
+    void ScaleVector(const float a, vector<float>& x);
+    void ScaleVector(const double a, vector<double>& x, size_t ix);
+    void ScaleVector(const float a, vector<float>& x, size_t ix);
 } 
 
 #endif

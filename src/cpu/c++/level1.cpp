@@ -1,16 +1,8 @@
-
-#ifdef W_MKL
-#include <mkl.h>
-    typedef MKL_INT BLAS_INT;
-#else
-    #include <cblas.h>
-    typedef size_t BLAS_INT;
-#endif
 #include "linalg.hpp"
-#include "tcgmblas.hpp"
-#include "tcgmblas.h"
-#include "utils.hpp"
+#include "../../utils/utils.hpp"
 #include "level1.hpp"
+#include "level1.h"
+
 namespace tcgmtensor{
 
     /*! @brief Take inner product of two vectors of doubles
@@ -61,7 +53,7 @@ namespace tcgmtensor{
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
     */
-    void AddVectors(const size_t ndim, const float a, const vector<float>& x, vector<float>& y) {
+    void AddVectors(const float a, const vector<float>& x, vector<float>& y) {
         check_equal_size(x,y);
         AddVectors(x.size(), a, x.data(), y.data());
     }
@@ -139,7 +131,7 @@ namespace tcgmtensor{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void SwapVectors(const size_t ndim, vector<double>& x, vector<double>& y) {
+    void SwapVectors(vector<double>& x, vector<double>& y) {
         check_equal_size(x,y);
         SwapVectors(x.size(), x.data(), y.data());
     }
@@ -154,25 +146,24 @@ namespace tcgmtensor{
     }
 
 
-    /*! Simple interface to DSWAP \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
+    /*! Simple interface to DSWAP \f$\vec{y}<=>\vec{x}\f$ for specified stride
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void SwapVectors(const size_t ndim, vector<double>& x, size_t ix, vector<double>& y, size_t iy) {
+    void SwapVectors(vector<double>& x, size_t ix, vector<double>& y, size_t iy) {
         check_equal_size(x,y);
         SwapVectors(x.size(), x.data(), ix, y.data(), iy);
     }
 
-    /*! Simple interface to SSWAP \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
+    /*! Simple interface to SSWAP \f$\vec{y}<=>\vec{x}\f$ for specified stride
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
-        \param[in] a \f$\alpha\f$
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void SwapVectors(const size_t ndim, vector<float>& x, size_t ix, vector<float>& y, size_t iy) {
+    void SwapVectors(vector<float>& x, size_t ix, vector<float>& y, size_t iy) {
         check_equal_size(x,y);
         SwapVectors(x.size(), x.data(), ix, y.data(), iy);
     } 
