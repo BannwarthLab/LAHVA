@@ -25,7 +25,7 @@ inc_dirs += include_directories('include/impl/cpu')
 srcs = []
 subdir('src')
 
-add_project_arguments('-fPIE',language: 'cpp')
+add_project_arguments(['-fPIE'],language: 'cpp')
 
 #lib_deps += [dependency('boost'), dependency('cuda', version : '>=10', modules : ['cublas'])]
 # Library target
