@@ -14,7 +14,17 @@ project(
 )
 install = not (meson.is_subproject() and get_option('default_library') == 'static')
 
+gpu = get_option('gpu')
+
 lib_deps = []
+
+if gpu == true
+  has_nvcc = add_languages('cuda', native: false)
+  lib_deps += dependency('cuda', modules: ['cudart', 'cublas'])
+  add_project_arguments(['-D_CUDA'], language: 'cpp')
+endif
+
+
 inc_dirs = []
 subdir('config')
 

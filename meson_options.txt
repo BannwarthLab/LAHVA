@@ -31,3 +31,9 @@ option(
   description: 'libraries to load for custom linear algebra backend',
 )
 
+option(
+  'gpu',
+  type: 'boolean',
+  value: false,
+  description: 'Compile with cuBLAS wrapper for capable GPUs only.',
+)

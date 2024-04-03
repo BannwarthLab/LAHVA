@@ -12,26 +12,30 @@ typedef unsigned int uint;
 typedef unsigned short ushort;
 
 template<class T>
-class vector : public std::vector<T>{
+class Vector : public std::vector<T>{
   protected:
+    void** device_ptr_ = nullptr;
     bool is_on_device_ = false;
+    size_t inc_ = 1;
   public:
     using size_type              = std::size_t;
     using Allocator              = std::allocator<T>;
     
-    vector() : std::vector<T>::vector() {};
-    vector( size_type count ) : std::vector<T>::vector(count) {};
-    vector(const vector& x) : std::vector<T>::vector(x) {};
-    vector( size_type count,
+    Vector() : std::vector<T>::vector() {};
+    Vector( size_type count ) : std::vector<T>::vector(count) {};
+    Vector(const Vector& x) : std::vector<T>::vector(x) {};
+    Vector( size_type count,
             const T& value) 
             : std::vector<T>::vector(count, value) {};
     template< class InputIt >
-    vector( InputIt first, InputIt last) :
+    Vector( InputIt first, InputIt last) :
             std::vector<T>::vector(first, last) {};
-    //vector( vector&& other ) : std::vector<T>::vector(other) {};
-    vector( std::initializer_list<T> init,
+    //Vector( Vector&& other ) : std::Vector<T>::Vector(other) {};
+    Vector( std::initializer_list<T> init,
         const Allocator& alloc = Allocator() ) : std::vector<T>::vector(init, alloc) {};
-    ~vector()   {}; 
+    ~Vector();
+    void copy2device();
+    void copy2host();
 
 };
 
@@ -51,7 +55,9 @@ class Matrix {
     uint n_rows_;
     uint n_cols_;
     T* data_;
+    void** device_ptr_ = nullptr;
     bool is_on_device_ = false;
+
     // indicates whether the Matrix object owns the data and consequently is 
     // responsible for freeing it
     bool is_owner_ = true;
@@ -70,7 +76,7 @@ class Matrix {
     }
 
     // raises an error, if the shape is not valid
-    // vector uses size_t as shape, so the check shape function has to be able 
+    // Vector uses size_t as shape, so the check shape function has to be able 
     // to deal with that
     static void check_size_(size_t, size_t);
   public:
@@ -94,7 +100,7 @@ class Matrix {
       is_owner_{take_ownership} {}
 
 
-    Matrix(const tcgmtensor::vector<tcgmtensor::vector<T>>& data);
+    Matrix(const tcgmtensor::Vector<tcgmtensor::Vector<T>>& data);
 
     Matrix(const Matrix&);
     Matrix(Matrix&&);
@@ -153,7 +159,7 @@ class LowTriMatrix {
     }
 
     // raises an error, if the shape is not valid
-    // vector uses ulong as shape, so the check shape function has to be able 
+    // Vector uses ulong as shape, so the check shape function has to be able 
     // to deal with that
     static void check_size_(long unsigned int shape);
   public:
@@ -162,8 +168,8 @@ class LowTriMatrix {
     LowTriMatrix(uint n);
     //! construct an n x n matrix initialized with value val
     LowTriMatrix(uint n, T val);
-    //! give dimension n and data as a vector conatining the values of the lower traingular Matrix
-    LowTriMatrix(uint n, const tcgmtensor::vector<T>& data);
+    //! give dimension n and data as a Vector conatining the values of the lower traingular Matrix
+    LowTriMatrix(uint n, const tcgmtensor::Vector<T>& data);
     //! create a matrix with shape (shape must be square)
     //! It is not guaranteed that the values will be initialized
     LowTriMatrix(const Shape& shape);
@@ -176,11 +182,11 @@ class LowTriMatrix {
     LowTriMatrix(uint n, T* data) : n_{n},
       data_{data} {}
 
-    //! @brief construct a matrix from a 2D vector
+    //! @brief construct a matrix from a 2D Vector
     //!
-    //! The first element of data must be a vector of length one, the second
+    //! The first element of data must be a Vector of length one, the second
     //! element must have length two and so on
-    LowTriMatrix(const tcgmtensor::vector<tcgmtensor::vector<T>>& data);
+    LowTriMatrix(const tcgmtensor::Vector<tcgmtensor::Vector<T>>& data);
 
     LowTriMatrix(const LowTriMatrix&);
     LowTriMatrix(LowTriMatrix&&);
@@ -270,14 +276,14 @@ LowTriMatrix<T> symmetrize(const Matrix<T>& A) {
 }
 
 template<typename T>
-void move_vector_into_vector(tcgmtensor::vector<T>& vec1, tcgmtensor::vector<T>& vec2)
+void move_Vector_into_Vector(tcgmtensor::Vector<T>& vec1, tcgmtensor::Vector<T>& vec2)
 {
   vec2.insert(vec2.end(), std::make_move_iterator(vec1.begin()), std::make_move_iterator(vec1.end()));
   vec1.erase(vec1.begin(),vec1.end());
 }
 
 template<typename T>
-void copy_vector_into_vector(tcgmtensor::vector<T>& vec1, tcgmtensor::vector<T>& vec2)
+void copy_Vector_into_Vector(tcgmtensor::Vector<T>& vec1, tcgmtensor::Vector<T>& vec2)
 {
   vec2.insert(vec2.end(), vec1.begin(), vec1.end());
   //vec1.erase(vec1.begin(),vec1.end());

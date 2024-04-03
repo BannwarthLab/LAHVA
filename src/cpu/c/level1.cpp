@@ -9,10 +9,10 @@
 
 
 namespace tcgmtensor{
-    /*! @brief Take inner product of two vectors of doubles
-        \param[in] nelemXY number of elements in vectors X and Y
-        \param[in] X vector
-        \param[in] Y vector
+    /*! @brief Take inner product of two Vectors of doubles
+        \param[in] nelemXY number of elements in Vectors X and Y
+        \param[in] X Vector
+        \param[in] Y Vector
     */ 
     double InnerVectorProduct(const size_t nelemXY, const double* X, const double* Y)
     {
@@ -24,10 +24,10 @@ namespace tcgmtensor{
     return  cblas_ddot(nXY, X, incx, Y, incy);
     }
 
-    /*! @brief Take inner product of two vectors of float
-        \param[in] nelemXY number of elements in vectors X and Y
-        \param[in] X vector
-        \param[in] Y vector
+    /*! @brief Take inner product of two Vectors of float
+        \param[in] nelemXY number of elements in Vectors X and Y
+        \param[in] X Vector
+        \param[in] Y Vector
     */ 
     float InnerVectorProduct(const size_t nelemXY, const float* X, const float* Y)
     {
@@ -40,7 +40,7 @@ namespace tcgmtensor{
     return cblas_sdot(nXY, X, incx, Y, incy);
     }
 
-    // strided vector product
+    // strided Vector product
     double InnerVectorProduct(const size_t nelemXY, const double* X, const size_t strideX, const double* Y, const size_t strideY)
     {
     if(nelemXY == 0) return 0.0;
@@ -62,7 +62,7 @@ namespace tcgmtensor{
 
 
     /*! Simple interface to DAXPY \f$\vec{y}=\alpha\vec{x}+\vec{y}\f$ assuming unit stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
@@ -74,7 +74,7 @@ namespace tcgmtensor{
     }
 
     /*! Simple interface to SAXPY \f$\vec{y}=\alpha\vec{x}+\vec{y}\f$ assuming unit stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
@@ -87,7 +87,7 @@ namespace tcgmtensor{
 
 
     /*! Simple interface to DAXPY \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
@@ -102,7 +102,7 @@ namespace tcgmtensor{
     }
 
     /*! Simple interface to sAXPY \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
@@ -119,7 +119,7 @@ namespace tcgmtensor{
     //Copy routines////////////////////////////////////////////////////////////////////
 
     /*! Simple interface to DCOPY \f$\vec{y}=\vec{x}\f$ assuming unit stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
@@ -130,7 +130,7 @@ namespace tcgmtensor{
     }
 
     /*! Simple interface to SCOPY \f$\vec{y}=\vec{x}\f$ assuming unit stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
@@ -142,7 +142,7 @@ namespace tcgmtensor{
 
 
     /*! Simple interface to DCOPY \f$\vec{y}=\vec{x}\f$ for specified stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
@@ -156,7 +156,7 @@ namespace tcgmtensor{
     }
 
     /*! Simple interface to SCOPY \f$\vec{y}=\vec{x}\f$ for specified stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
@@ -172,7 +172,7 @@ namespace tcgmtensor{
     //Swap routines////////////////////////////////////////////////////////////////////
 
     /*! Simple interface to DSWAP \f$\vec{y}<=>\vec{x}\f$ assuming unit stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
@@ -183,7 +183,7 @@ namespace tcgmtensor{
     }
 
     /*! Simple interface to SSWAP \f$\vec{y}<=>\vec{x}\f$ assuming unit stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
@@ -195,7 +195,7 @@ namespace tcgmtensor{
 
 
     /*! Simple interface to DSWAP \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
@@ -209,7 +209,7 @@ namespace tcgmtensor{
     }
 
     /*! Simple interface to SSWAP \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
@@ -226,7 +226,7 @@ namespace tcgmtensor{
     //Scale routines////////////////////////////////////////////////////////////////////
 
     /*! Simple interface to DSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in, out] x \f$\vec{x}\f$
         \param[in,out] a \f$\alpha\f$
     */
@@ -236,7 +236,7 @@ namespace tcgmtensor{
         cblas_dscal(n, a, x, one);
     }
      /*! Simple interface to SSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in, out] x \f$\vec{x}\f$
         \param[in,out] a \f$\alpha\f$
     */
@@ -252,7 +252,7 @@ namespace tcgmtensor{
         cblas_dscal(n, a, x, incx);
     }
      /*! Simple interface to SSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
-        \param[in] n size of vectors \f$x\f$ and \f$y\f$
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
         \param[in, out] x \f$\vec{x}\f$
         \param[in,out] a \f$\alpha\f$
         stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$

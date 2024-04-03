@@ -19,11 +19,11 @@ namespace tcgmtensor{
         @param[in] n column size of the matrix A
         @param[in] alpha double value by which A*x is scaled 
         @param[in] a pointer to the A matrix in column-major ordering
-        @param[in] x pointer to the vector x
-        @param[in] incx stride of vector x
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
         @param[in] beta double value by which y is scaled
-        @param[in,out] y pointer to the y vector values
-        @param[in] incy stride of vector y
+        @param[in,out] y pointer to the y Vector values
+        @param[in] incy stride of Vector y
     */
     void MatrixVectorProduct(const char* T, const size_t m, const size_t n, const double alpha, const double* a, 
                              const double* x, const size_t incx, const double beta, double* y, const size_t incy)
@@ -44,13 +44,13 @@ namespace tcgmtensor{
         @param[in] m row size of the matrix A
         @param[in] n column size of the matrix A
         @param[in] a pointer to the A matrix in column-major ordering
-        @param[in] x pointer to the vector x
-        @param[in,out] y pointer to the y vector values
+        @param[in] x pointer to the Vector x
+        @param[in,out] y pointer to the y Vector values
         @param[in] T (optional, default value "N") character representing the equation execute "N", "T", or "C"
         @param[in] alpha (optional, default 1.0) double value by which A*x is scaled
         @param[in] beta (optional, default 0.0) double value by which y is scaled
-        @param[in] incx (optional, default 1) stride of vector x
-        @param[in] incy (optional, default 1) stride of vector y
+        @param[in] incx (optional, default 1) stride of Vector x
+        @param[in] incy (optional, default 1) stride of Vector y
     */
     void MatrixVectorProduct(const size_t m, const size_t n,  const double* a, const double* x, double* y,
                              const char* T, const double alpha, const double beta, const size_t incx, const size_t incy)
@@ -73,11 +73,11 @@ namespace tcgmtensor{
         @param[in] n column size of the matrix A
         @param[in] alpha float value by which A*x is scaled 
         @param[in] a pointer to the A matrix in column-major ordering
-        @param[in] x pointer to the vector x
-        @param[in] incx stride of vector x
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
         @param[in] beta float value by which y is scaled
-        @param[in,out] y pointer to the y vector values
-        @param[in] incy stride of vector y
+        @param[in,out] y pointer to the y Vector values
+        @param[in] incy stride of Vector y
     */
     void MatrixVectorProduct(const char* T, const size_t m, const size_t n, const float alpha, const float* a, 
                              const float* x, const size_t incx, const float beta, float* y, const size_t incy)
@@ -98,13 +98,13 @@ namespace tcgmtensor{
         @param[in] m row size of the matrix A
         @param[in] n column size of the matrix A
         @param[in] a pointer to the A matrix in column-major ordering
-        @param[in] x pointer to the vector x
-        @param[in,out] y pointer to the y vector values
+        @param[in] x pointer to the Vector x
+        @param[in,out] y pointer to the y Vector values
         @param[in] T (optional, default value "N") character representing the equation execute "N", "T", or "C"
         @param[in] alpha (optional, default 1.0) float value by which A*x is scaled
         @param[in] beta (optional, default 0.0) float value by which y is scaled
-        @param[in] incx (optional, default 1) stride of vector x
-        @param[in] incy (optional, default 1) stride of vector y
+        @param[in] incx (optional, default 1) stride of Vector x
+        @param[in] incy (optional, default 1) stride of Vector y
     */ 
     void MatrixVectorProduct(const size_t m, const size_t n,  const float* a, const float* x, float* y,
                              const char* T, const float alpha, const float beta, const size_t incx, const size_t incy)
@@ -125,11 +125,11 @@ namespace tcgmtensor{
         @param[in] n column size of the matrix A
         @param[in] alpha double value by which A*x is scaled 
         @param[in] a pointer to the A matrix in column-major ordering
-        @param[in] x pointer to the vector x
-        @param[in] incx stride of vector x
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
         @param[in] beta double value by which y is scaled
-        @param[in,out] y pointer to the y vector values
-        @param[in] incy stride of vector y
+        @param[in,out] y pointer to the y Vector values
+        @param[in] incy stride of Vector y
     */ 
     void SymMatrixVectorProduct(const size_t n, const double alpha, const double* a, 
                                 const double* x, const size_t incx, const double beta, double* y, const size_t incy)
@@ -146,12 +146,12 @@ namespace tcgmtensor{
     for specified stride
         @param[in] n column size of the matrix A
         @param[in] a pointer to the A matrix in column-major ordering
-        @param[in] x pointer to the vector x
-        @param[in] incx stride of vector x
-        @param[in,out] y pointer to the y vector values
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
+        @param[in,out] y pointer to the y Vector values
         @param[in] alpha (optional, default 1.0) double value by which A*x is scaled 
         @param[in] beta (optional, default 0.0) double value by which y is scaled
-        @param[in] incy (optional, default 1) stride of vector y
+        @param[in] incy (optional, default 1) stride of Vector y
     */ 
     void SymMatrixVectorProduct(const size_t n,  const double* a, const double* x, double* y,
                                 const double alpha, const double beta, const size_t incx, const size_t incy)
@@ -169,11 +169,11 @@ namespace tcgmtensor{
         @param[in] n column size of the matrix A
         @param[in] alpha float value by which A*x is scaled 
         @param[in] a pointer to the A matrix in column-major ordering
-        @param[in] x pointer to the vector x
-        @param[in] incx stride of vector x
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
         @param[in] beta float value by which y is scaled
-        @param[in,out] y pointer to the y vector values
-        @param[in] incy stride of vector y
+        @param[in,out] y pointer to the y Vector values
+        @param[in] incy stride of Vector y
     */ 
     void SymMatrixVectorProduct(const size_t n, const float alpha, const float* a, 
                                 const float* x, const size_t incx, const float beta, float* y, const size_t incy)
@@ -190,12 +190,12 @@ namespace tcgmtensor{
     for specified stride
         @param[in] n column size of the matrix A
         @param[in] a pointer to the A matrix in column-major ordering
-        @param[in] x pointer to the vector x
-        @param[in] incx stride of vector x
-        @param[in,out] y pointer to the y vector values
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
+        @param[in,out] y pointer to the y Vector values
         @param[in] alpha (optional, default 1.0) float value by which A*x is scaled 
         @param[in] beta (optional, default 0.0) float value by which y is scaled
-        @param[in] incy (optional, default 1) stride of vector y
+        @param[in] incy (optional, default 1) stride of Vector y
     */ 
     void SymMatrixVectorProduct(const size_t n,  const float* a, const float* x, float* y,
                                 const float alpha, const float beta, const size_t incx, const size_t incy)

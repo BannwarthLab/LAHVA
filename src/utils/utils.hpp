@@ -8,12 +8,12 @@
 
 namespace tcgmtensor{
     template<typename T>
-    void check_equal_size(const vector<T> v1, const vector<T> v2){
+    void check_equal_size(const Vector<T> v1, const Vector<T> v2){
         assert(v1.size() == v2.size());
     };
 
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const Matrix<T> m, const vector<T> vmult, const vector<T> vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const Matrix<T> m, const Vector<T> vmult, const Vector<T> vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
@@ -86,7 +86,7 @@ namespace tcgmtensor{
     };
 
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix<T> m, const vector<T> vmult){
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix<T> m, const Vector<T> vmult){
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;

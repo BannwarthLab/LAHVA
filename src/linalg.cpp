@@ -4,8 +4,55 @@
 #include <assert.h>
 #include <stdexcept>
 #include <iostream>
+#ifdef _CUDA
+  #include "cublas_v2.h"
+  #include "cuda_runtime.h"
+  #include "runtime.hpp"
+#endif
 
 namespace tcgmtensor {
+
+///////////////////////////////////////////////////////////////////////////
+// Vector class
+///////////////////////////////////////////////////////////////////////////
+  template<typename T>
+  Vector<T>::~Vector()
+  {
+#ifdef _CUDA
+  if (this->is_on_device_){
+    cudaError_t istat = cudaFree(this->device_ptr_);
+    get_cuda_error(istat);
+  }
+#endif
+  };
+  template<typename T>
+  void Vector<T>::copy2device()
+  { 
+#ifdef _CUDA 
+    if (this->device_ptr_ == nullptr)
+    {
+      std::cout << sizeof(T) << std::endl;
+      cudaError_t istat = cudaMalloc(&this->device_ptr_, this->size()*sizeof(T));
+      get_cuda_error(istat);
+      
+    }
+    cublasStatus_t stat = cublasSetVector(this->size(), sizeof(T), this->data(), this->inc_, this->device_ptr_, this->inc_);
+    get_cublas_error(stat);
+    this->is_on_device_ = true;
+#endif  
+  };
+
+  template<typename T>
+  void Vector<T>::copy2host()
+  {
+#ifdef _CUDA 
+    if (!this->is_on_device_)
+    {
+      cublasStatus_t stat = cublasGetVector(this->size(), sizeof(T), this->device_ptr_, this->inc_, this->data(), this->inc_); 
+      this->is_on_device_ = false;
+    }
+#endif  
+  };
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -44,7 +91,7 @@ template<typename T>
 Matrix<T>::Matrix(uint n, T val) : Matrix<T>::Matrix(Shape(n,n), val) {}
 
 template<typename T>
-Matrix<T>::Matrix(const tcgmtensor::vector<tcgmtensor::vector<T>>& data) : 
+Matrix<T>::Matrix(const tcgmtensor::Vector<tcgmtensor::Vector<T>>& data) : 
     n_rows_{(uint) (data.size())},
     n_cols_{(uint) (data.at(0).size())},
     data_{new T[data_size_(n_rows_, n_cols_)]} {
@@ -66,6 +113,13 @@ Matrix<T>::~Matrix() {
   if (this->is_owner_){
     delete[] data_;
   }
+#ifdef _CUDA
+  if (this->device_ptr_ != nullptr){
+    cudaError_t istat = cudaFree(this->device_ptr_);
+    get_cuda_error(istat);
+  }
+
+#endif
 }
 
 // copy operations
@@ -192,7 +246,7 @@ LowTriMatrix<T>::LowTriMatrix(const Shape& shape, T val) :
 }
 
 template<typename T>
-LowTriMatrix<T>::LowTriMatrix(const tcgmtensor::vector<tcgmtensor::vector<T>>& data) : 
+LowTriMatrix<T>::LowTriMatrix(const tcgmtensor::Vector<tcgmtensor::Vector<T>>& data) : 
     n_{static_cast<uint>(data.size())},
     data_{new T[data_size_(data.size())]} {
   check_size_(data.size());
@@ -209,7 +263,7 @@ LowTriMatrix<T>::LowTriMatrix(const tcgmtensor::vector<tcgmtensor::vector<T>>& d
 }
 
 template<typename T>
-LowTriMatrix<T>::LowTriMatrix(uint n, const tcgmtensor::vector<T>& data) : 
+LowTriMatrix<T>::LowTriMatrix(uint n, const tcgmtensor::Vector<T>& data) : 
     n_{n},
     data_{new T[data.size()]} {
     check_size_(data.size());
@@ -296,6 +350,8 @@ template class Matrix<double>;
 template class Matrix<float>;
 template class LowTriMatrix<double>;
 template class LowTriMatrix<float>;
+template class Vector<float>;
+template class Vector<double>;
 
 } // namespace sqmbox
 
