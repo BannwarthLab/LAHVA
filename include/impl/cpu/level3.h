@@ -3,6 +3,7 @@
 #include "const.h"
 
 namespace tcgmtensor{
+    namespace cpu{
     void MatrixMatrixProduct(const char* Ta, const char* Tb, const size_t m, const size_t n, const size_t k, 
                              const double alpha, const double* a, const double* b, const double beta, double* c);
     void MatrixMatrixProduct(const size_t m, const size_t n, const size_t k, const double* a, const double* b, double* c,
@@ -19,6 +20,7 @@ namespace tcgmtensor{
     void SymMatrixMatrixProduct(const CBLAS_SIDE side, const size_t m, const size_t n, const float alpha, const float* a, 
                                 const float* b, const float beta, float* c);
     void SymMatrixMatrixProduct(const size_t m, const size_t n, const float* a, const float* b, float* c,
-                                const float alpha = 1.0 , const float beta = 0.0, const CBLAS_SIDE side = CblasLeft); 
+                                const float alpha = 1.0 , const float beta = 0.0, const CBLAS_SIDE side = CblasLeft);
+    }
 }
 #endif

@@ -10,7 +10,7 @@
 #include <algorithm>
 
 namespace tcgmtensor{
-
+    namespace cpu{
     /*! @brief Simple interface to DGEMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
     or \f$\vec{y}=alpha*\mathbf{A}^\intercal*\vec{x}+beta*\vec{y}\f$ or 
     \f$\vec{y}=alpha*conj(\mathbf{A})*\vec{x}+beta*\vec{y}\f$  for specified stride
@@ -207,4 +207,5 @@ namespace tcgmtensor{
 
             cblas_ssymv(major, tri, ncol, alpha, a, lda, x, inx, beta, y, iny);
         };
+    }
 }

@@ -16,6 +16,8 @@ namespace tcgmtensor{
         CudaRuntime(size_t max_dim, size_t);
         ~CudaRuntime();
         void print_cuda_version();
+        inline size_t device_id() {return cudaDevice;};
+        const inline size_t device_id() const {return cudaDevice;};
     };
     void get_cuda_error(cudaError_t stat);
     void get_cublas_error(cublasStatus_t stat);

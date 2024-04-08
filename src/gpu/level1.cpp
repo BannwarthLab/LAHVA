@@ -1,42 +1,293 @@
-#include <cstddef>
-#include <cuda_runtime.h>
-#include <cublas_v2.h>
+#include "linalg.hpp"
+#include "../utils/utils.hpp"
+#include "level1.hpp"
+#include "runtime.hpp"
+#include "../gpu-utils/utils.hpp"
 
-extern "C" {
-    void sHadamard(void *vecinout, void *vecin, size_t ndim2);
-    void dHadamard(void *vecinout, void *vecin, size_t ndim2);
+namespace tcgmtensor{
+    namespace gpu{
+    /*! @brief Take inner product of two Vectors of doubles
+        \param[in] nelemXY number of elements in Vectors X and Y
+        \param[in] X Vector
+        \param[in] Y Vector
+    */ 
+    double InnerVectorProduct(const CudaRuntime& cudart, const Vector<double>& X, const Vector<double>& Y)
+    {   
+        check_equal_size(X,Y);
+        check_device_alloc( cudart, X);
+        check_device_alloc( cudart, Y);
+        
+        double result;
+        cudaDeviceSynchronize();
+        cublasStatus_t istat = cublasDdot(cudart.handle, X.size(), X.gpu_data(), 1, Y.gpu_data(), 1, &result);
+        cudaDeviceSynchronize();
+        get_cublas_error(istat);
+        return result;}
+
+    /*! @brief Take inner product of two Vectors of float
+        \param[in] X Vector
+        \param[in] Y Vector
+    */ 
+    float InnerVectorProduct(const CudaRuntime& cudart, const Vector<float>& X, const Vector<float>& Y)
+    { 
+        check_equal_size(X,Y);
+        check_device_alloc( cudart, X);
+        check_device_alloc( cudart, Y);
+        
+        float result;
+        cublasStatus_t istat = cublasSdot(cudart.handle, X.size(), X.gpu_data(), 1, Y.gpu_data(), 1, &result);
+        get_cublas_error(istat);
+        return result;
+    }
+
+    // strided Vector product
+    double InnerVectorProduct(const CudaRuntime& cudart, const Vector<double>& X, const size_t strideX, const Vector<double>& Y, const size_t strideY)
+    {
+        check_equal_size(X,Y);
+        check_device_alloc( cudart, X);
+        check_device_alloc( cudart, Y);
+        
+        double result;
+        cublasStatus_t istat = cublasDdot(cudart.handle, X.size(), X.gpu_data(), strideX, Y.gpu_data(), strideY, &result);
+        get_cublas_error(istat);
+        return result;
+    }
+
+    float InnerVectorProduct(const CudaRuntime& cudart, const Vector<float>& X, const size_t strideX, const Vector<float>& Y, const size_t strideY)
+    {
+        check_equal_size(X,Y);
+        check_device_alloc( cudart, X);
+        check_device_alloc( cudart, Y);
+        
+        float result;
+        cublasStatus_t istat = cublasSdot(cudart.handle, X.size(), X.gpu_data(), strideX, Y.gpu_data(), strideY, &result);
+        get_cublas_error(istat);
+        return result;
+    }
+
+
+    /*! Simple interface to DAXPY \f$\vec{y}=\alpha\vec{x}+\vec{y}\f$ assuming unit stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] a \f$\alpha\f$
+    */
+    void AddVectors(const CudaRuntime& cudart, const double a, const Vector<double>& x, Vector<double>& y) {
+        check_equal_size(x,y);
+        check_device_alloc( cudart, x);
+        check_device_alloc( cudart, y); 
+        cudaDeviceSynchronize();
+        cublasStatus_t istat = cublasDaxpy(cudart.handle, x.size(), &a, x.gpu_data(), 1, y.gpu_data(), 1);
+        get_cublas_error(istat);
+        cudaDeviceSynchronize(); 
+    }
+
+    /*! Simple interface to SAXPY \f$\vec{y}=\alpha\vec{x}+\vec{y}\f$ assuming unit stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] a \f$\alpha\f$
+    */
+    void AddVectors(const CudaRuntime& cudart, const float a, const Vector<float>& x, Vector<float>& y) {
+        check_equal_size(x,y);
+        check_device_alloc( cudart, x);
+        check_device_alloc( cudart, y); 
+        cudaDeviceSynchronize();
+        cublasStatus_t istat = cublasSaxpy(cudart.handle, x.size(), &a, x.gpu_data(), 1, y.gpu_data(), 1);
+        get_cublas_error(istat); 
+        cudaDeviceSynchronize();
+    }
+
+
+    /*! Simple interface to DAXPY \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] a \f$\alpha\f$
+        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
+    */
+    void AddVectors(const CudaRuntime& cudart, const double a, const Vector<double>& x, size_t ix, Vector<double>& y, size_t iy) {
+        check_equal_size(x,y);
+        check_device_alloc( cudart, x);
+        check_device_alloc( cudart, y); 
+        cudaDeviceSynchronize();
+        cublasStatus_t istat = cublasDaxpy(cudart.handle, x.size(), &a, x.gpu_data(), ix, y.gpu_data(), iy);
+        get_cublas_error(istat);
+        cudaDeviceSynchronize();
+    }
+
+    /*! Simple interface to sAXPY \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] a \f$\alpha\f$
+        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
+    */
+    void AddVectors(const CudaRuntime& cudart, const float a, const Vector<float>& x, size_t ix, Vector<float>& y, size_t iy) {
+        check_equal_size(x,y);
+        check_device_alloc( cudart, x);
+        check_device_alloc( cudart, y); 
+        cudaDeviceSynchronize();
+        cublasStatus_t istat = cublasSaxpy(cudart.handle, x.size(), &a, x.gpu_data(), ix, y.gpu_data(), iy);
+        get_cublas_error(istat);
+        cudaDeviceSynchronize();
+    }
+
+    //Copy routines////////////////////////////////////////////////////////////////////
+
+    /*! Simple interface to DCOPY \f$\vec{y}=\vec{x}\f$ assuming unit stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+    */
+    void CopyVectors(const CudaRuntime& cudart, const Vector<double>& x, Vector<double>& y) {
+        check_equal_size(x,y);
+        check_device_alloc( cudart, x);
+        check_device_alloc( cudart, y); 
+        
+        cublasStatus_t istat = cublasDcopy(cudart.handle, x.size(), x.gpu_data(), 1, y.gpu_data(), 1);
+        get_cublas_error(istat); 
+    }
+
+    /*! Simple interface to SCOPY \f$\vec{y}=\vec{x}\f$ assuming unit stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+    */
+    void CopyVectors(const CudaRuntime& cudart, const Vector<float>& x, Vector<float>& y) {
+        check_equal_size(x,y);
+        check_device_alloc( cudart, x);
+        check_device_alloc( cudart, y); 
+        
+        cublasStatus_t istat = cublasScopy(cudart.handle, x.size(), x.gpu_data(), 1, y.gpu_data(), 1);
+        get_cublas_error(istat); 
+    }
+
+
+    /*! Simple interface to DCOPY \f$\vec{y}=\vec{x}\f$ for specified stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
+    */
+    void CopyVectors(const CudaRuntime& cudart, const Vector<double>& x, size_t ix, Vector<double>& y, size_t iy) {
+        check_equal_size(x,y);
+        check_device_alloc( cudart, x);
+        check_device_alloc( cudart, y); 
+        
+        cublasStatus_t istat = cublasDcopy(cudart.handle, x.size(), x.gpu_data(), ix, y.gpu_data(), iy);
+        get_cublas_error(istat);
+    }
+
+    /*! Simple interface to SCOPY \f$\vec{y}=\vec{x}\f$ for specified stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
+    */
+    void CopyVectors(const CudaRuntime& cudart, const Vector<float>& x, size_t ix, Vector<float>& y, size_t iy) {
+        check_equal_size(x,y);
+        check_device_alloc( cudart, x);
+        check_device_alloc( cudart, y); 
+        
+        cublasStatus_t istat = cublasScopy(cudart.handle, x.size(), x.gpu_data(), ix, y.gpu_data(), iy);
+        get_cublas_error(istat);
+    }
+
+    ////Swap routines////////////////////////////////////////////////////////////////////
+
+    /*! Simple interface to DSWAP \f$\vec{y}<=>\vec{x}\f$ assuming unit stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+    */
+    void SwapVectors(const CudaRuntime& cudart, Vector<double>& x, Vector<double>& y) {
+        check_equal_size(x,y);
+        check_device_alloc( cudart, x);
+        check_device_alloc( cudart, y); 
+        
+        cublasStatus_t istat = cublasDswap(cudart.handle, x.size(), x.gpu_data(), 1, y.gpu_data(), 1);
+        get_cublas_error(istat);
+    }
+
+    /*! Simple interface to SSWAP \f$\vec{y}<=>\vec{x}\f$ assuming unit stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+    */
+    void SwapVectors(const CudaRuntime& cudart, Vector<float>& x, Vector<float>& y) {
+        check_equal_size(x,y);
+        check_device_alloc( cudart, x);
+        check_device_alloc( cudart, y); 
+        
+        cublasStatus_t istat = cublasSswap(cudart.handle, x.size(), x.gpu_data(), 1, y.gpu_data(), 1);
+        get_cublas_error(istat);
+    }
+
+    /*! Simple interface to DSWAP \f$\vec{y}<=>\vec{x}\f$ for specified stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
+    */
+    void SwapVectors(const CudaRuntime& cudart, Vector<double>& x, size_t ix, Vector<double>& y, size_t iy) {
+        check_equal_size(x,y);
+        check_device_alloc( cudart, x);
+        check_device_alloc( cudart, y); 
+        
+        cublasStatus_t istat = cublasDswap(cudart.handle, x.size(), x.gpu_data(), ix, y.gpu_data(), iy);
+        get_cublas_error(istat);
+    }
+
+    /*! Simple interface to SSWAP \f$\vec{y}<=>\vec{x}\f$ for specified stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
+    */
+    void SwapVectors(const CudaRuntime& cudart, Vector<float>& x, size_t ix, Vector<float>& y, size_t iy) {
+        check_equal_size(x,y);
+        check_device_alloc( cudart, x);
+        check_device_alloc( cudart, y); 
+        
+        cublasStatus_t istat = cublasSswap(cudart.handle, x.size(), x.gpu_data(), ix, y.gpu_data(), iy);
+        get_cublas_error(istat);
+    } 
+
+    ////Scale routines////////////////////////////////////////////////////////////////////
+
+    /*! Simple interface to DSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
+        \param[in, out] x \f$\vec{x}\f$
+        \param[in,out] a \f$\alpha\f$
+    */
+    void ScaleVector(const CudaRuntime& cudart, const double a, Vector<double>& x) {
+        check_device_alloc( cudart, x); 
+        
+        cublasStatus_t istat = cublasDscal(cudart.handle, x.size(), &a, x.gpu_data(), 1);
+        get_cublas_error(istat);
+    }
+     /*! Simple interface to SSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
+        \param[in, out] x \f$\vec{x}\f$
+        \param[in,out] a \f$\alpha\f$
+    */
+    void ScaleVector(const CudaRuntime& cudart, const float a, Vector<float>& x){
+        check_device_alloc( cudart, x); 
+        
+        cublasStatus_t istat = cublasSscal(cudart.handle, x.size(), &a, x.gpu_data(), 1);
+        get_cublas_error(istat);
+    }
+
+    void ScaleVector(const CudaRuntime& cudart, const double a, Vector<double>& x, size_t ix){
+        check_device_alloc( cudart, x); 
+        
+        cublasStatus_t istat = cublasDscal(cudart.handle, x.size(), &a, x.gpu_data(), ix);
+        get_cublas_error(istat);
+    }
+     /*! Simple interface to SSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
+        \param[in, out] x \f$\vec{x}\f$
+        \param[in,out] a \f$\alpha\f$
+        stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+    */
+    void ScaleVector(const CudaRuntime& cudart, const float a, Vector<float>& x, size_t ix){
+        check_device_alloc( cudart, x); 
+        
+        cublasStatus_t istat = cublasSscal(cudart.handle, x.size(), &a, x.gpu_data(), ix);
+        get_cublas_error(istat);
+    }
+    }
 }
-
-namespace tcgmtensor {
-    static void wrap_sHadamard(cuda_smatrix vecinout, cuda_smatrix vecin, cuda_runtime cudart) {
-        size_t vec1 = vecinout.cols * vecinout.rows;
-        size_t vec2 = vecin.cols * vecin.rows;
-        if (vec1 != vec2) return;
-        cudaDeviceSynchronize();
-        sHadamard(vecinout.ptr, vecin.ptr, vec1);
-        cudaDeviceSynchronize();
-    }
-
-    static void wrap_dHadamard(cuda_dmatrix vecinout, cuda_dmatrix vecin, cuda_runtime cudart) {
-        size_t vec1 = vecinout.cols * vecinout.rows;
-        size_t vec2 = vecin.cols * vecin.rows;
-        if (vec1 != vec2) return;
-        cudaDeviceSynchronize();
-        dHadamard(vecinout.ptr, vecin.ptr, vec1);
-        cudaDeviceSynchronize();
-    }
-
-    static void wrap_saxpy(float a, cuda_smatrix x, cuda_smatrix y, cuda_runtime cudart, int incx = 1, int incy = 1) {
-        int n = (x.cols * x.rows) / abs(incx);
-        cudaDeviceSynchronize();
-        cublasSaxpy(cudart.handle, n, a, static_cast<float*>(x.ptr), incx, static_cast<float*>(y.ptr), incy);
-        cudaDeviceSynchronize();
-    }
-
-    static void wrap_daxpy(double a, cuda_dmatrix x, cuda_dmatrix y, cuda_runtime cudart, int incx = 1, int incy = 1) {
-        int n = (x.cols * x.rows) / abs(incx);
-        cudaDeviceSynchronize();
-        cublasDaxpy(cudart.handle, n, a, static_cast<double*>(x.ptr), incx, static_cast<double*>(y.ptr), incy);
-        cudaDeviceSynchronize();
-    }
-};

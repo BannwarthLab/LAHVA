@@ -2,9 +2,9 @@
 #include "tcgmblas.hpp"
 #include "tcgmblas.h"
 #include "utils.hpp"
-#include "runtime.hpp"
 #include <iostream>
 #include <numeric>
+using namespace tcgmtensor::cpu;
 using namespace tcgmtensor;
 
 const double thr2 = 5.0e-15;
@@ -583,10 +583,6 @@ int main(void){
     stat += test_inner_vf_prod_c();
     stat += test_inner_v_prod_cpp();
     stat += test_inner_vf_prod_cpp();
-    CudaRuntime cudart;
-    cudart.print_cuda_version();
-    Vector<double> p(5, 2.0);
-    p.copy2device();
 
     return stat;
 };

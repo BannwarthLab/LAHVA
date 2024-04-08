@@ -4,7 +4,7 @@
 #include "linalg.hpp"
 
 namespace tcgmtensor{
-    
+    namespace cpu{
     double InnerVectorProduct(const Vector<double>& X, const Vector<double>& Y);
     float InnerVectorProduct(const Vector<float>& X, const Vector<float>& Y);
     double InnerVectorProduct(const Vector<double>& X, const size_t strideX, const Vector<double>& Y, const size_t strideY);
@@ -29,6 +29,7 @@ namespace tcgmtensor{
     void ScaleVector(const float a, Vector<float>& x);
     void ScaleVector(const double a, Vector<double>& x, size_t ix);
     void ScaleVector(const float a, Vector<float>& x, size_t ix);
+    }
 } 
 
 #endif

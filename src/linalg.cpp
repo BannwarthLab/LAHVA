@@ -4,10 +4,11 @@
 #include <assert.h>
 #include <stdexcept>
 #include <iostream>
+#include "runtime.hpp"
 #ifdef _CUDA
   #include "cublas_v2.h"
   #include "cuda_runtime.h"
-  #include "runtime.hpp"
+  #include "utils/utils.hpp"
 #endif
 
 namespace tcgmtensor {
@@ -15,44 +16,51 @@ namespace tcgmtensor {
 ///////////////////////////////////////////////////////////////////////////
 // Vector class
 ///////////////////////////////////////////////////////////////////////////
+  
   template<typename T>
   Vector<T>::~Vector()
   {
-#ifdef _CUDA
-  if (this->is_on_device_){
-    cudaError_t istat = cudaFree(this->device_ptr_);
-    get_cuda_error(istat);
-  }
-#endif
+
   };
   template<typename T>
-  void Vector<T>::copy2device()
+  const void Vector<T>::copy2device(const CudaRuntime& cudart) const 
   { 
-#ifdef _CUDA 
-    if (this->device_ptr_ == nullptr)
-    {
-      std::cout << sizeof(T) << std::endl;
-      cudaError_t istat = cudaMalloc(&this->device_ptr_, this->size()*sizeof(T));
-      get_cuda_error(istat);
-      
-    }
-    cublasStatus_t stat = cublasSetVector(this->size(), sizeof(T), this->data(), this->inc_, this->device_ptr_, this->inc_);
+#ifdef _CUDA
+    cudaError_t stat_;
+    stat_ = cudaSetDevice(cudart.device_id());
+    get_cuda_error(stat_);
+
+    device_ptr_.reset(allocate<T>(this->size()));
+
+    cublasStatus_t stat = cublasSetVector(this->size(), sizeof(T), this->data(), this->inc_, this->device_ptr_.get(), this->inc_);
     get_cublas_error(stat);
     this->is_on_device_ = true;
 #endif  
   };
 
   template<typename T>
-  void Vector<T>::copy2host()
+  void Vector<T>::copy2host(const CudaRuntime& cudart)
   {
 #ifdef _CUDA 
-    if (!this->is_on_device_)
+    cudaError_t stat_;
+    stat_ = cudaSetDevice(cudart.device_id());
+    get_cuda_error(stat_);
+    if (this->is_on_device_)
     {
-      cublasStatus_t stat = cublasGetVector(this->size(), sizeof(T), this->device_ptr_, this->inc_, this->data(), this->inc_); 
+      cublasStatus_t stat = cublasGetVector(this->size(), sizeof(T), this->device_ptr_.get(), this->inc_, this->data(), this->inc_);
+      get_cublas_error(stat);
       this->is_on_device_ = false;
     }
 #endif  
   };
+
+template<typename T>
+void Vector<T>::print() const {
+  for (uint i = 0; i < this->size(); i++) {
+      printf("%f, ", this->data()[i]);
+    printf("\n");
+  }
+}  
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -75,6 +83,7 @@ template<typename T>
 Matrix<T>::Matrix(const Shape& shape) : n_rows_{shape.first}, n_cols_{shape.second},
     data_{new T[data_size_(n_rows_, n_cols_)]}{
   check_size_(shape.first, shape.second);
+  
 }
 
 template<typename T>
@@ -113,13 +122,6 @@ Matrix<T>::~Matrix() {
   if (this->is_owner_){
     delete[] data_;
   }
-#ifdef _CUDA
-  if (this->device_ptr_ != nullptr){
-    cudaError_t istat = cudaFree(this->device_ptr_);
-    get_cuda_error(istat);
-  }
-
-#endif
 }
 
 // copy operations
@@ -128,6 +130,7 @@ Matrix<T>::Matrix(const Matrix<T>& other) : n_rows_{other.n_rows_},
       n_cols_{other.n_cols_},
       data_{new T[data_size_(n_rows_, n_cols_)]} {
   std::copy(other.data_, other.data_ + data_size_(n_rows_, n_cols_), data_);
+  device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
 }
 
 template<typename T>
@@ -139,6 +142,7 @@ Matrix<T>& Matrix<T>::operator=(const Matrix<T>& other) {
     n_rows_ = other.n_rows_;
     n_cols_ = other.n_cols_;
     std::copy(other.data_, other.data_ + data_size_(n_rows_, n_cols_), data_);
+    device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
   }
 
   return *this;
@@ -147,7 +151,7 @@ Matrix<T>& Matrix<T>::operator=(const Matrix<T>& other) {
 // move operations
 template<typename T>
 Matrix<T>::Matrix(Matrix<T>&& other) : n_rows_{other.n_rows_}, 
-      n_cols_{other.n_cols_} {
+      n_cols_{other.n_cols_}  {
   this->data_ = other.data_;
 
   other.data_ = nullptr;
@@ -167,6 +171,7 @@ Matrix<T>& Matrix<T>::operator=(Matrix<T>&& other) {
     other.data_ = nullptr;
     other.n_rows_ = 0;
     other.n_cols_ = 0;
+    device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
   }
 
   return *this;
@@ -202,6 +207,37 @@ void Matrix<T>::print() const {
   }
 }
 
+  template<typename T>
+  const void Matrix<T>::copy2device(const CudaRuntime& cudart) const
+  {
+#ifdef _CUDA
+    cudaError_t stat_;
+    stat_ = cudaSetDevice(cudart.device_id());
+    get_cuda_error(stat_);
+
+    this->device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
+    cublasStatus_t stat = cublasSetMatrix(n_rows_, n_cols_, sizeof(T), this->data(), n_rows_, this->device_ptr_.get(), n_rows_);
+
+    get_cublas_error(stat);
+    this->is_on_device_ = true;
+#endif  
+  };
+  
+  template<typename T>
+  void Matrix<T>::copy2host(const CudaRuntime& cudart)
+  {
+#ifdef _CUDA 
+    cudaError_t stat_;
+    stat_ = cudaSetDevice(cudart.device_id());
+    get_cuda_error(stat_);
+    if (this->is_on_device_)
+    {
+      cublasStatus_t stat = cublasGetMatrix(n_rows_, n_cols_, sizeof(T), this->device_ptr_.get(), n_rows_, this->data(), n_rows_);
+      get_cublas_error(stat);
+      this->is_on_device_ = false;
+    }
+#endif  
+  };
 
 ///////////////////////////////////////////////////////////////////////////
 // Lower Triangular Matrix class

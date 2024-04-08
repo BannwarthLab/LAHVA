@@ -4,7 +4,7 @@
 #include "level1.h"
 
 namespace tcgmtensor{
-
+    namespace cpu{
     /*! @brief Take inner product of two Vectors of doubles
         \param[in] nelemXY number of elements in Vectors X and Y
         \param[in] X Vector
@@ -196,5 +196,6 @@ namespace tcgmtensor{
     */
     void ScaleVector(const float a, Vector<float>& x, size_t ix){
         ScaleVector(x.size(), a, x.data());
+    }
     }
 }

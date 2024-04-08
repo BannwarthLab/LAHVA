@@ -1,8 +1,10 @@
 #include "linalg.hpp"
+#include "level3.hpp"
 #include "const.h"
 #include "../../utils/utils.hpp"
 namespace tcgmtensor
 {
+    namespace cpu{
     void MatrixMatrixProduct(const char* Ta, const char* Tb, const double alpha, const Matrix<double>& a, 
                              const Matrix<double>& b, const double beta, Matrix<double>& c)
     {
@@ -110,6 +112,5 @@ namespace tcgmtensor
 
         cblas_ssymm(major, side, tri, m, n, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
     }; 
+    }
 } // namespace tcgmtensor
-
-

@@ -1,26 +1,27 @@
 #include "const.h"
 #include "utils.hpp"
 #include <cstring>
+#include <iostream>
 
 namespace tcgmtensor
 {
     BLAS_INT get_leading(BLAS_INT nrow, BLAS_INT ncol) {
     if (major == CblasColMajor) 
     {
-        return std::max((BLAS_INT) 1, ncol);
+        return std::max((BLAS_INT) 1, nrow);
     }
     else 
     {
-        return std::max((BLAS_INT) 1, nrow);
+        return std::max((BLAS_INT) 1, ncol);
     }    
     };
 
     CBLAS_TRANSPOSE get_trans(const char* T){
-        if (std::strcmp(T,"T") or std::strcmp(T,"t"))
+        if (std::strcmp(T,"T")==0 or std::strcmp(T,"t") == 0)
         {
             return CblasTrans;
         }
-        else if (std::strcmp(T,"C") or std::strcmp(T,"c")) 
+        else if (std::strcmp(T,"C") == 0 or std::strcmp(T,"c") == 0) 
         {
             return CblasConjTrans;
         } 

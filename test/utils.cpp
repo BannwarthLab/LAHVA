@@ -34,6 +34,17 @@ check(double* actual, double* expected, double tol, int ndim, const char* msg)
 }
 
 bool
+check(float* actual, float* expected, float tol, int ndim, const char* msg)
+{
+    for (int i = 0; i != ndim; i++) {
+        if (!check(actual[i], expected[i], tol, msg)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool
 check(const int* actual, const int* expected, int ndim, const char* msg)
 {
     for (int i = 0; i != ndim; i++) {

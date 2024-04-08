@@ -18,12 +18,14 @@ namespace tcgmtensor{
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
         if (trans == CblasNoTrans) {
-            assert(ncol == vres.size());
-            assert(nrow == vmult.size());
+            assert(nrow == (BLAS_INT)vres.size());
+            assert(ncol == (BLAS_INT)vmult.size());
+            
         }
         else {
-            assert(ncol == vmult.size());
-            assert(nrow == vres.size()); 
+            assert(nrow == (BLAS_INT)vmult.size());
+            assert(ncol == (BLAS_INT)vres.size());
+            
         }
         
         return std::make_tuple(nrow, ncol);
@@ -91,7 +93,7 @@ namespace tcgmtensor{
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
 
-        assert(ncol == vmult.size());
+        assert(ncol == (BLAS_INT)vmult.size());
        
         return std::make_tuple(nrow, ncol);
     };

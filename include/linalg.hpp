@@ -5,17 +5,53 @@
 #include <vector>
 #include <iterator>
 #include <assert.h>
+#include "runtime.hpp"
+#include "const.h"
+#include <iostream>
 
 namespace tcgmtensor {
 
 typedef unsigned int uint;
 typedef unsigned short ushort;
 
+
+  template<typename T>
+  T* allocate(size_t count = 1)
+  {
+    T* ptr = 0;
+    size_t bytes = 0;
+
+    bytes = count * sizeof(T);
+
+    cudaError_t istat = cudaMalloc((void**) &ptr, bytes);
+    get_cuda_error(istat);
+    return ptr;
+  };
+
+  template<typename T>
+  void free(T* ptr)
+  {
+    if(ptr)
+    {
+      cudaError_t cuda_error = (cudaFree(ptr));
+      get_cuda_error(cuda_error);
+    }
+  }
+
+
 template<class T>
 class Vector : public std::vector<T>{
+  public: 
+    struct deleter {
+    void operator()(T* ptr) {
+      cudaError_t cuda_error = (cudaFree(ptr));
+      get_cuda_error(cuda_error);
+    }
+  };
+
   protected:
-    void** device_ptr_ = nullptr;
-    bool is_on_device_ = false;
+    mutable std::unique_ptr<T, deleter> device_ptr_;
+    mutable bool is_on_device_ = false;
     size_t inc_ = 1;
   public:
     using size_type              = std::size_t;
@@ -34,8 +70,39 @@ class Vector : public std::vector<T>{
     Vector( std::initializer_list<T> init,
         const Allocator& alloc = Allocator() ) : std::vector<T>::vector(init, alloc) {};
     ~Vector();
-    void copy2device();
-    void copy2host();
+    Vector& operator=(const Vector& other) {
+      if (this != &other)
+      {
+        this->clear();
+        this->reserve(other.size());
+        this->device_ptr_.reset();
+        for (auto p : other)
+          {
+            this->emplace_back(p);
+          }
+      }
+      return *this;
+      };
+    Vector& operator=(Vector&& other) {
+      if (this != &other)
+      {
+        this->clear();
+        this->reserve(other.size());
+        this->device_ptr_.reset();
+        for (auto p : other)
+          {
+            this->emplace_back(p);
+          }
+      }
+      return *this;};
+    
+    
+    const void copy2device(const CudaRuntime& cudart) const;
+    void copy2host(const CudaRuntime& cudart);
+    inline bool alloc_on_device() const {return this->is_on_device_;};
+    const T* gpu_data() const {return device_ptr_.get();};
+    T* gpu_data() {return device_ptr_.get();};
+    void print() const;  
 
 };
 
@@ -50,13 +117,20 @@ using Shape = std::pair<uint, uint>;
 //!
 template<typename T>
 class Matrix {
+  public:
+    struct deleter {
+    void operator()(T* ptr) {
+      cudaError_t cuda_error = (cudaFree(ptr));
+      get_cuda_error(cuda_error);
+    }
+  };
   protected: 
     // shape in each dimension, i.e. data_ has length n_rows_*n_cols
     uint n_rows_;
     uint n_cols_;
     T* data_;
-    void** device_ptr_ = nullptr;
-    bool is_on_device_ = false;
+    mutable std::unique_ptr<T, deleter> device_ptr_;
+    mutable bool is_on_device_ = false;
 
     // indicates whether the Matrix object owns the data and consequently is 
     // responsible for freeing it
@@ -130,6 +204,12 @@ class Matrix {
 
     //! prints the matrix as string
     void print() const;
+
+    const void copy2device(const CudaRuntime& cudart) const;
+    void copy2host(const CudaRuntime& cudart);
+    inline bool alloc_on_device() const {return this->is_on_device_;};
+    const T* gpu_data() const {return device_ptr_.get();};
+    T* gpu_data() {return device_ptr_.get();};
 };
 
 //! slim wrapper around a float or double array to represent square, lower 

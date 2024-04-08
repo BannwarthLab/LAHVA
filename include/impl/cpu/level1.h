@@ -3,7 +3,7 @@
 #include "const.h"
 
 namespace tcgmtensor{
-    
+    namespace cpu{ 
     double InnerVectorProduct(const size_t nelemXY, const double* X, const double* Y);
     float InnerVectorProduct(const size_t nelemXY, const float* X, const float* Y);
     double InnerVectorProduct(const size_t nelemXY, const double* X, const size_t strideX, const double* Y, const size_t strideY);
@@ -28,6 +28,7 @@ namespace tcgmtensor{
     void ScaleVector(const size_t ndim, const float a, float* x);
     void ScaleVector(const size_t ndim, const double a, double* x, size_t ix);
     void ScaleVector(const size_t ndim, const float a, float* x, size_t ix);
+    }
 }
 
 #endif

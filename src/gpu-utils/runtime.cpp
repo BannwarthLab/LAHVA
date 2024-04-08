@@ -15,6 +15,7 @@ namespace tcgmtensor
     CudaRuntime::~CudaRuntime() {
         if (stream != nullptr) cudaStreamDestroy(stream);
         if (handle != nullptr) cublasDestroy(handle);
+        cudaDeviceReset();
     };
 
     CudaRuntime::CudaRuntime(size_t max_dim, size_t n_mat)
@@ -44,7 +45,7 @@ namespace tcgmtensor
     request = n_mat * sizeof(double)*max_dim*max_dim;
 
     if (request > availmem) cudaDevice = -1;
-    createHandle();
+        createHandle();
     };
     
     void get_cuda_error(cudaError_t stat) {
@@ -55,7 +56,7 @@ namespace tcgmtensor
 
     void get_cublas_error(cublasStatus_t stat) {
         if (stat != CUBLAS_STATUS_SUCCESS) {
-            std::cerr << "CUBLAS Error: " << cublasGetStatusString(stat) << std::endl;
+            std::cout << "CUBLAS Error: " << cublasGetStatusString(stat) << std::endl;
         }
     }
 

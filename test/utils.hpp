@@ -6,6 +6,8 @@ bool check(double actual, double expected, double tol, const char* msg);
 
 bool check(double* actual, double* expected, double tol, int ndim, const char* msg);
 
+bool check(float* actual, float* expected, float tol, int ndim, const char* msg);
+
 bool check(const int* actual, const int* expected, int ndim, const char* msg);
 
 double norm2(int n, double* vec);

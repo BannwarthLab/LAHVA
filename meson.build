@@ -30,6 +30,9 @@ subdir('config')
 
 inc_dirs += include_directories('include') 
 inc_dirs += include_directories('include/impl/cpu')
+if gpu == true
+  inc_dirs += include_directories('include/impl/gpu')
+endif
 
 # Collect source of the project
 srcs = []

@@ -1,4 +1,5 @@
 srcs += files(
     'runtime.cpp',
-    'timer.cpp'
+    'timer.cpp',
+    'utils.cpp',
 )

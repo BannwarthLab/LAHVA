@@ -3,7 +3,7 @@
 #include "../../utils/utils.hpp"
 
 namespace tcgmtensor{
-
+    namespace cpu{
     void MatrixMatrixProduct(const char* Ta, const char* Tb, const size_t m, const size_t n, const size_t k, 
                              const double alpha, const double* a, const double* b, const double beta, double* c) 
     {
@@ -163,4 +163,5 @@ namespace tcgmtensor{
 
         cblas_ssymm(major, side, tri, m_, n_, alpha, a, lda, b, ldb, beta, c, ldc);
     }; 
+    }
 }

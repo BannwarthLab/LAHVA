@@ -1,16 +1,13 @@
-#ifdef W_MKL
-#include <mkl.h>
-#else
-    #include <cblas.h>
-#endif
+#include "const.h"
 #include "level2.hpp"
 #include "linalg.hpp"
 #include "../../utils/utils.hpp"
 #include <cstring>
 #include <algorithm>
+#include <iostream>
 
 namespace tcgmtensor{
-
+    namespace cpu{
     /*! @brief Simple interface to DGEMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
     or \f$\vec{y}=alpha*\mathbf{A}^\intercal*\vec{x}+beta*\vec{y}\f$ or 
     \f$\vec{y}=alpha*conj(\mathbf{A}^\intercal)*\vec{x}+beta*\vec{y}\f$  for specified stride
@@ -31,6 +28,7 @@ namespace tcgmtensor{
             CBLAS_TRANSPOSE trans = get_trans(T);
             auto [nrow, ncol] = check_size_mv(a, x, y, trans);
             BLAS_INT lda = get_leading(nrow, ncol);
+
             cblas_dgemv(major, trans, nrow, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
         };
 
@@ -264,4 +262,5 @@ namespace tcgmtensor{
 
         cblas_stpmv(major, tri, trans, unit, col, a.data(), x.data(), inx);
     };
+    }
 }

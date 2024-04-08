@@ -9,6 +9,9 @@
 
 
 namespace tcgmtensor{
+    namespace cpu
+    {
+    
     /*! @brief Take inner product of two Vectors of doubles
         \param[in] nelemXY number of elements in Vectors X and Y
         \param[in] X Vector
@@ -261,5 +264,6 @@ namespace tcgmtensor{
         const BLAS_INT n = (BLAS_INT) ndim;
         const BLAS_INT incx = (BLAS_INT) ix;
         cblas_sscal(n, a, x, incx);
+    }
     }
 }
