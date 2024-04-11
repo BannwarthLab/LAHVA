@@ -21,6 +21,13 @@ namespace tcgmtensor {
                 gpu_vec.copy2device(cudart);
             }
         };
+        template<typename T>
+        void check_device_alloc(const CudaRuntime& cudart, const GPUTensor<T>& gpu_vec){
+            if (!gpu_vec.alloc_on_device())
+            {
+                gpu_vec.copy2device(cudart);
+            }
+        };
 
         template<typename T>
         std::tuple<size_t, size_t> check_size_mv(const Matrix<T> m, const Vector<T> vmult, const Vector<T> vres, cublasOperation_t trans = CUBLAS_OP_N){

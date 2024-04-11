@@ -14,6 +14,32 @@ namespace tcgmtensor {
 typedef unsigned int uint;
 typedef unsigned short ushort;
 
+  template<typename T>
+  class GPUTensor
+  { 
+    public: 
+      struct deleter {
+      void operator()(T* ptr) {
+        cudaError_t cuda_error = (cudaFree(ptr));
+        get_cuda_error(cuda_error);
+      }
+      };
+    protected:
+      mutable std::unique_ptr<T, deleter> device_ptr_;
+      mutable bool is_on_device_ = false;
+    public:
+      virtual size_t size() = 0;
+      virtual T* data() = 0;
+      virtual const size_t size() const = 0;
+      virtual const T* data() const = 0;
+    public:
+      const void copy2device(const CudaRuntime& cudart) const;
+      void copy2host(const CudaRuntime& cudart);
+      inline bool alloc_on_device() const {return this->is_on_device_;};
+      const T* gpu_data() const {return device_ptr_.get();};
+      T* gpu_data() {return device_ptr_.get();};
+  };
+
 
   template<typename T>
   T* allocate(size_t count = 1)
@@ -40,18 +66,10 @@ typedef unsigned short ushort;
 
 
 template<class T>
-class Vector : public std::vector<T>{
-  public: 
-    struct deleter {
-    void operator()(T* ptr) {
-      cudaError_t cuda_error = (cudaFree(ptr));
-      get_cuda_error(cuda_error);
-    }
-  };
+class Vector : virtual public std::vector<T>, virtual public GPUTensor<T>{
+  
 
   protected:
-    mutable std::unique_ptr<T, deleter> device_ptr_;
-    mutable bool is_on_device_ = false;
     size_t inc_ = 1;
   public:
     using size_type              = std::size_t;
@@ -95,13 +113,22 @@ class Vector : public std::vector<T>{
           }
       }
       return *this;};
-    
-    
-    const void copy2device(const CudaRuntime& cudart) const;
-    void copy2host(const CudaRuntime& cudart);
-    inline bool alloc_on_device() const {return this->is_on_device_;};
-    const T* gpu_data() const {return device_ptr_.get();};
-    T* gpu_data() {return device_ptr_.get();};
+    T*
+      data() override
+      { return this->_M_impl._M_start; }
+
+      const T*
+      data() const override
+      { return this->_M_impl._M_start; }
+
+    size_t
+      size()  override
+      { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
+
+  const size_t
+      size() const override
+      { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
+   
     void print() const;  
 
 };
@@ -116,21 +143,13 @@ using Shape = std::pair<uint, uint>;
 //! The data is stored in column-major order in a 1D array.
 //!
 template<typename T>
-class Matrix {
-  public:
-    struct deleter {
-    void operator()(T* ptr) {
-      cudaError_t cuda_error = (cudaFree(ptr));
-      get_cuda_error(cuda_error);
-    }
-  };
+class Matrix :  public GPUTensor<T> {
+
   protected: 
     // shape in each dimension, i.e. data_ has length n_rows_*n_cols
     uint n_rows_;
     uint n_cols_;
     T* data_;
-    mutable std::unique_ptr<T, deleter> device_ptr_;
-    mutable bool is_on_device_ = false;
 
     // indicates whether the Matrix object owns the data and consequently is 
     // responsible for freeing it
@@ -205,11 +224,10 @@ class Matrix {
     //! prints the matrix as string
     void print() const;
 
-    const void copy2device(const CudaRuntime& cudart) const;
-    void copy2host(const CudaRuntime& cudart);
-    inline bool alloc_on_device() const {return this->is_on_device_;};
-    const T* gpu_data() const {return device_ptr_.get();};
-    T* gpu_data() {return device_ptr_.get();};
+    inline size_t size() override {return n_cols_*n_rows_;};
+
+    const inline size_t size() const  {return n_cols_*n_rows_;};
+
 };
 
 //! slim wrapper around a float or double array to represent square, lower 
@@ -217,7 +235,7 @@ class Matrix {
 //! 
 //! The data is stored in column-major order.
 template<typename T>
-class LowTriMatrix {
+class LowTriMatrix :  public GPUTensor<T> {
   protected: 
     // shape in each dimension, i.e. data_ has length n_rows_^2
     uint n_;
@@ -298,6 +316,10 @@ class LowTriMatrix {
     Shape shape() const {return Shape(n_, n_);}
 
     void print() const;
+
+    inline size_t size() override {return data_size_(n_);};
+
+    const inline size_t size() const {return data_size_(n_);};
 };
 
 

@@ -14,6 +14,14 @@ test('level2',
   ),
 )
 
+test('level3',
+  executable(
+    '@0@-level3-tester'.format(meson.project_name()),
+    sources: files('level3.cpp','utils.cpp'),
+    dependencies: tcgmblas_dep,
+  ),
+)
+
 if gpu == true
   test('level1-gpu',
   executable(

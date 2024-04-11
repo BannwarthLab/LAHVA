@@ -55,6 +55,7 @@ tcgmblas_dep = declare_dependency(
   include_directories: inc_dirs,
   dependencies: lib_deps,
   variables: {'includedir': meson.current_source_dir() / 'include'},
+  
 )
 
 install = not (meson.is_subproject() and get_option('default_library') == 'static')
