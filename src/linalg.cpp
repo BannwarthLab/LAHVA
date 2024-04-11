@@ -176,6 +176,31 @@ void Matrix<T>::print() const {
   }
 }
 
+template<typename T>
+Vector<T> Matrix<T>::get_diagonal() const 
+{
+  size_t min_dim = min(n_cols_, n_rows_);
+  Vector<T> diag(min_dim);
+
+  for (size_t i =0 ; i < min_dim; i++)
+  {
+    diag.push_back(data_[data_id_(i,i)]);
+  }
+
+  return diag;
+}
+
+template<typename T>
+void Matrix<T>::set_diagonal(Vector<T>& diag)
+{
+  size_t min_dim = min(n_cols_, n_rows_);
+
+  for (size_t i = 0 ; i < min_dim; i++)
+  {
+    data_[data_id_(i,i)] = diag(i);
+  }
+}
+
   template<typename T>
   const void GPUTensor<T>::copy2device(const CudaRuntime& cudart) const
   {
@@ -349,6 +374,31 @@ void LowTriMatrix<T>::print() const {
   }
 }
 
+
+template<typename T>
+Vector<T> LowTriMatrix<T>::get_diagonal() const 
+{
+  size_t min_dim = min(n_cols_, n_rows_);
+  Vector<T> diag(min_dim);
+
+  for (size_t i =0 ; i < min_dim; i++)
+  {
+    diag.push_back(data_[data_id_(i,i)]);
+  }
+
+  return diag;
+}
+
+template<typename T>
+void LowTriMatrix<T>::set_diagonal(Vector<T>& diag)
+{
+  size_t min_dim = min(n_cols_, n_rows_);
+
+  for (size_t i = 0 ; i < min_dim; i++)
+  {
+    data_[data_id_(i,i)] = diag(i);
+  }
+}
 
 template class Matrix<double>;
 template class Matrix<float>;

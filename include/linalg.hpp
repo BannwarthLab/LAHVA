@@ -228,6 +228,10 @@ class Matrix :  public GPUTensor<T> {
 
     const inline size_t size() const  {return n_cols_*n_rows_;};
 
+    Vector<T> get_diagonal() const;
+
+    void set_diagonal(Vector<T>& diag);
+
 };
 
 //! slim wrapper around a float or double array to represent square, lower 
@@ -320,6 +324,10 @@ class LowTriMatrix :  public GPUTensor<T> {
     inline size_t size() override {return data_size_(n_);};
 
     const inline size_t size() const {return data_size_(n_);};
+
+    Vector<T> get_diagonal() const;
+
+    void set_diagonal(Vector<T>& diag);
 };
 
 
