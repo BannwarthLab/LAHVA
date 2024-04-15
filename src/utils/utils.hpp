@@ -32,6 +32,25 @@ namespace tcgmtensor{
     };
 
     template<typename T>
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix<T> m, const Vector<T> vmult, const Vector<T> vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
+        Shape s = m.shape();
+        BLAS_INT nrow = s.first;
+        BLAS_INT ncol = s.second;
+        if (trans == CblasNoTrans) {
+            assert(nrow == (BLAS_INT)vres.size());
+            assert(ncol == (BLAS_INT)vmult.size());
+            
+        }
+        else {
+            assert(nrow == (BLAS_INT)vmult.size());
+            assert(ncol == (BLAS_INT)vres.size());
+            
+        }
+        
+        return std::make_tuple(nrow, ncol);
+    };
+
+    template<typename T>
     std::tuple<BLAS_INT, BLAS_INT, BLAS_INT> check_size_mm(const Matrix<T> a, const Matrix<T> b, 
         const Matrix<T> c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
         

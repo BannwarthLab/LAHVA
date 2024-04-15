@@ -6,11 +6,16 @@
 namespace tcgmtensor{
     namespace gpu
     {
+        //Currently only floar 
         template<typename T>
         void Hadamard(const CudaRuntime& cudart, const GPUTensor<T>& vecin, GPUTensor<T>& vecinout);
         template<typename T>
         void Hadamard(const CudaRuntime& cudart, const GPUTensor<T>& vecin, const GPUTensor<T>& vecin2, GPUTensor<T>& vecout);
-        
+        template<typename T>
+        double ComputeTrace(const CudaRuntime& cudart, const Matrix<T>, bool use_diag = false);
+        template<typename T>
+        void SymmetrizeMatrix(const CudaRuntime& cudart, Matrix<T>);
+
     } // namespace gpu
     
 }   

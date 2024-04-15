@@ -3,9 +3,10 @@
 #include <vector>
 #include <iostream>
 #include <cuda_runtime.h>
+#include "runtime.hpp"
 
 
-
+namespace tcgmtensor{
 class time_record {
 public:
     std::string label;
@@ -40,12 +41,14 @@ public:
         istat = cudaEventCreate(&record[it].startEvent);
         istat = cudaEventCreate(&record[it].stopEvent);
         istat = cudaEventRecord(record[it].startEvent, 0);
+        get_cuda_error(istat);
         record[it].running = !record[it].running;
     }
 
     void pop() {
         float time;
-        int it, istat;
+        int it;
+        cudaError_t istat;
 
         it = find(last);
         if (it == -1) return;
@@ -53,6 +56,7 @@ public:
         istat = cudaEventRecord(record[it].stopEvent, 0);
         istat = cudaEventSynchronize(record[it].stopEvent);
         istat = cudaEventElapsedTime(&time, record[it].startEvent, record[it].stopEvent);
+        get_cuda_error(istat);
         record[it].time += time;
         record[it].running = !record[it].running;
         if (!last.empty()) last.clear();
@@ -60,7 +64,8 @@ public:
 
     float get(std::string label) {
         float time = 0.0;
-        int it, istat;
+        int it;
+        cudaError_t istat;
 
         if (n <= 0) return time;
         it = find(label);
@@ -70,6 +75,7 @@ public:
             istat = cudaEventRecord(record[it].stopEvent, 0);
             istat = cudaEventSynchronize(record[it].stopEvent);
             istat = cudaEventElapsedTime(&time, record[it].startEvent, record[it].stopEvent);
+            get_cuda_error(istat);
             time += record[it].time;
         }
         return time;
@@ -117,20 +123,4 @@ std::string format_time_sp(float time) {
     return format_time_dp(time);
 }
 
-int main() {
-    // Example usage of the gputimer_type class
-    gputimer_type timer;
-
-    timer.push("Test1");
-    // Run some CUDA code
-    timer.pop();
-
-    timer.push("Test2");
-    // Run some more CUDA code
-    timer.pop();
-
-    std::cout << "Time for Test1: " << format_time_dp(timer.get("Test1")) << std::endl;
-    std::cout << "Time for Test2: " << format_time_dp(timer.get("Test2")) << std::endl;
-
-    return 0;
 }

@@ -189,6 +189,86 @@ namespace tcgmtensor{
             cblas_ssymv(major, tri, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
         };
 
+    /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ 
+    for specified stride
+        @param[in] alpha double value by which A*x is scaled 
+        @param[in] a pointer to the A matrix in column-major ordering
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
+        @param[in] beta double value by which y is scaled
+        @param[in,out] y pointer to the y Vector values
+        @param[in] incy stride of Vector y
+    */ 
+    void SymMatrixVectorProduct(const double alpha, const LowTriMatrix<double>& a, 
+                                const Vector<double>& x, const size_t incx, const double beta, Vector<double>& y, const size_t incy)
+        {
+            auto [nrow, ncol] = check_size_mv(a, x, y);
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+
+            cblas_dspmv(major, tri, ncol, alpha, a.data(), x.data(), inx, beta, y.data(), iny);
+        };
+
+    /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ 
+    for specified stride
+        @param[in] a pointer to the A matrix in column-major ordering
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
+        @param[in,out] y pointer to the y Vector values
+        @param[in] alpha (optional, default 1.0) double value by which A*x is scaled 
+        @param[in] beta (optional, default 0.0) double value by which y is scaled
+        @param[in] incy (optional, default 1) stride of Vector y
+    */ 
+    void SymMatrixVectorProduct(const LowTriMatrix<double>& a, const Vector<double>& x, Vector<double>& y,
+                                const double alpha, const double beta, const size_t incx, const size_t incy)
+        {
+            auto [nrow, ncol] = check_size_mv(a, x, y); 
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+
+            cblas_dspmv(major, tri, ncol, alpha, a.data(), x.data(), inx, beta, y.data(), iny);
+        };
+
+    /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ 
+    for specified stride
+        @param[in] alpha float value by which A*x is scaled 
+        @param[in] a pointer to the A matrix in column-major ordering
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
+        @param[in] beta float value by which y is scaled
+        @param[in,out] y pointer to the y Vector values
+        @param[in] incy stride of Vector y
+    */ 
+    void SymMatrixVectorProduct(const float alpha, const LowTriMatrix<float>& a, 
+                                const Vector<float>& x, const size_t incx, const float beta, Vector<float>& y, const size_t incy)
+        {
+            auto [nrow, ncol] = check_size_mv(a, x, y); 
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+
+            cblas_sspmv(major, tri, ncol, alpha, a.data(), x.data(), inx, beta, y.data(), iny);
+        };
+
+    /*! @brief Simple interface to SSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ 
+    for specified stride
+        @param[in] a pointer to the A matrix in column-major ordering
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
+        @param[in,out] y pointer to the y Vector values
+        @param[in] alpha (optional, default 1.0) float value by which A*x is scaled 
+        @param[in] beta (optional, default 0.0) float value by which y is scaled
+        @param[in] incy (optional, default 1) stride of Vector y
+    */ 
+    void SymMatrixVectorProduct(const LowTriMatrix<float>& a, const Vector<float>& x, Vector<float>& y,
+                                const float alpha, const float beta, const size_t incx, const size_t incy)
+        {
+            auto [nrow, ncol] = check_size_mv(a, x, y);
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+
+            cblas_sspmv(major, tri, ncol, alpha, a.data(), x.data(), inx, beta, y.data(), iny);
+        };
+
     
     /*! @brief Simple interface to DTPMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ 
     for specified stride

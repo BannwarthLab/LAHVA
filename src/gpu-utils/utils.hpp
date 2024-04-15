@@ -46,6 +46,23 @@ namespace tcgmtensor {
         return std::make_tuple(nrow, ncol);
         };
 
+        template<typename T>
+        std::tuple<size_t, size_t> check_size_mv(const LowTriMatrix<T> m, const Vector<T> vmult, const Vector<T> vres, cublasOperation_t trans = CUBLAS_OP_N){
+        Shape s = m.shape();
+        size_t nrow = s.first;
+        size_t ncol = s.second;
+        if (trans == CUBLAS_OP_N) {
+            assert(nrow == vres.size());
+            assert(ncol == vmult.size());
+        }
+        else {
+            assert(nrow == vmult.size());
+            assert(ncol == vres.size()); 
+        }
+        
+        return std::make_tuple(nrow, ncol);
+        };
+
         size_t get_leading(size_t nrow, size_t ncol);
 
         cublasOperation_t get_trans(const char* T);

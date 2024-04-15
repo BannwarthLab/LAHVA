@@ -2,6 +2,7 @@
 #include "cublas_v2.h"
 #include <math.h>
 #include "hadamard.h"
+#include "runtime.hpp"
 namespace tcgmtensor{
   namespace gpu{
 
@@ -36,40 +37,24 @@ __global__ static void sElementwiseScalecopy(float* vecout, const float* vecin1,
   if (id < ndim2) vecout[id] = vecin1[id] * vecin2[id];
 }
 
-void sHadamard(float* vecinout, const float* vecin, size_t ndim2){
-    int blockSize, gridSize;
-    blockSize = 512;
-    // Number of thread blocks in grid
-    gridSize = (int)ceil((float)ndim2/blockSize);
+void sHadamard(const CudaRuntime& cudart, float* vecinout, const float* vecin, size_t ndim2){
 
-    sElementwiseScale<<<gridSize,blockSize>>>(vecinout, vecin, ndim2);
+    sElementwiseScale<<<cudart.gridSize(ndim2, 1),cudart.blockSize()>>>(vecinout, vecin, ndim2);
 }
 
-void dHadamard(double* vecinout, const double* vecin, size_t ndim2){
-    int blockSize, gridSize;
-    blockSize = 512;
-    // Number of thread blocks in grid
-    gridSize = (int)ceil((float)ndim2/blockSize);
+void dHadamard(const CudaRuntime& cudart, double* vecinout, const double* vecin, size_t ndim2){
 
-    dElementwiseScale<<<gridSize,blockSize>>>(vecinout, vecin, ndim2);
+    dElementwiseScale<<<cudart.gridSize(ndim2, 1),cudart.blockSize()>>>(vecinout, vecin, ndim2);
 }
 
-void sHadamardcopy(float* vecout, const float* vecin1, const float* vecin2, size_t ndim2){
-    int blockSize, gridSize;
-    blockSize = 512;
-    // Number of thread blocks in grid
-    gridSize = (int)ceil((float)ndim2/blockSize);
+void sHadamardcopy(const CudaRuntime& cudart, float* vecout, const float* vecin1, const float* vecin2, size_t ndim2){
 
-    sElementwiseScalecopy<<<gridSize,blockSize>>>(vecout, vecin1, vecin2, ndim2);
+    sElementwiseScalecopy<<<cudart.gridSize(ndim2, 1),cudart.blockSize()>>>(vecout, vecin1, vecin2, ndim2);
 }
 
-void dHadamardcopy(double* vecout, const double* vecin1, const double* vecin2, size_t ndim2){
-    int blockSize, gridSize;
-    blockSize = 512;
-    // Number of thread blocks in grid
-    gridSize = (int)ceil((float)ndim2/blockSize);
+void dHadamardcopy(const CudaRuntime& cudart, double* vecout, const double* vecin1, const double* vecin2, size_t ndim2){
 
-    dElementwiseScalecopy<<<gridSize,blockSize>>>(vecout, vecin1, vecin2, ndim2);
+    dElementwiseScalecopy<<<cudart.gridSize(ndim2, 1),cudart.blockSize()>>>(vecout, vecin1, vecin2, ndim2);
 }
 
   }

@@ -285,6 +285,69 @@ int test_sgemv_v_cpp(CudaRuntime& cudart){
     return stat_;
 }
 
+int test_dspmv_v_cpp(CudaRuntime& cudart){
+    int stat_ = 0;
+    Shape s(3,3);
+    double* vdtri_ = new double[6] {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
+    LowTriMatrix<double> A(3, vdtri_);
+    Vector<double> x({1.0, 2.0, 3.0});
+    Vector<double> y(3, 0.0);
+
+    SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 0.0, y, 1);
+    y.copy2host(cudart);
+    Vector<double> vres({24.0, 26.0, 26.0}); 
+
+    if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1; 
+    
+    y = Vector<double>(3, 1.0);
+    
+    SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 1.0, y, 1);
+    y.copy2host(cudart);
+    vres = Vector<double>({25.0, 27.0, 27.0});
+
+    if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
+
+    SymMatrixVectorProduct(cudart, A, x, y, 2.0d, 0.0d);
+    y.copy2host(cudart);
+    vres = Vector<double>({48.0, 52.0, 52.0});
+
+    if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
+
+    return stat_;
+}
+
+int test_sspmv_v_cpp(CudaRuntime& cudart){
+    int stat_ = 0;
+    Shape s(3,3);
+    float* vdtri_ = new float[6] {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
+    LowTriMatrix<float> A(3, vdtri_);
+    Vector<float> x({1.0, 2.0, 3.0});
+    Vector<float> y(3, 0.0);
+
+    SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 0.0, y, 1);
+    y.copy2host(cudart);
+    Vector<float> vres({24.0, 26.0, 26.0}); 
+
+    if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1; 
+    
+    y = Vector<float>(3, 1.0);
+    
+    SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 1.0, y, 1);
+    y.copy2host(cudart);
+    vres = Vector<float>({25.0, 27.0, 27.0});
+
+    if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
+
+    SymMatrixVectorProduct(cudart, A, x, y, 2.0d, 0.0d);
+    y.copy2host(cudart);
+    vres = Vector<float>({48.0, 52.0, 52.0});
+
+    if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
+
+    return stat_;
+
+}
+
 int main(){
     int stat = 0;
     CudaRuntime cudart(5,2);
@@ -305,5 +368,8 @@ int main(){
     stat += test_ssymv_v_cpp(cudart);
     printf("8th Test");
     stat += test_dsymv_v_cpp(cudart);
+    stat += test_sspmv_v_cpp(cudart);
+    printf("8th Test");
+    stat += test_dspmv_v_cpp(cudart);
     return stat;
 };

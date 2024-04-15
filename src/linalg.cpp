@@ -179,7 +179,7 @@ void Matrix<T>::print() const {
 template<typename T>
 Vector<T> Matrix<T>::get_diagonal() const 
 {
-  size_t min_dim = min(n_cols_, n_rows_);
+  size_t min_dim = std::min(n_cols_, n_rows_);
   Vector<T> diag(min_dim);
 
   for (size_t i =0 ; i < min_dim; i++)
@@ -193,11 +193,11 @@ Vector<T> Matrix<T>::get_diagonal() const
 template<typename T>
 void Matrix<T>::set_diagonal(Vector<T>& diag)
 {
-  size_t min_dim = min(n_cols_, n_rows_);
+  size_t min_dim = std::min(n_cols_, n_rows_);
 
   for (size_t i = 0 ; i < min_dim; i++)
   {
-    data_[data_id_(i,i)] = diag(i);
+    data_[data_id_(i,i)] = diag[i];
   }
 }
 
@@ -355,11 +355,23 @@ LowTriMatrix<T>& LowTriMatrix<T>::operator=(LowTriMatrix<T>&& other) {
 
 template<typename T>
 T& LowTriMatrix<T>::operator()(uint i, uint j) {
+  if (i < j)
+  {
+    uint tmp = i;
+    i = j;
+    j = tmp;
+  }
   return data_[data_id_(i,j)];
 }
 
 template<typename T>
 const T& LowTriMatrix<T>::operator()(uint i, uint j) const {
+  if (i < j)
+  {
+    uint tmp = i;
+    i = j;
+    j = tmp;
+  }
   return data_[data_id_(i,j)];
 }
 
@@ -378,7 +390,7 @@ void LowTriMatrix<T>::print() const {
 template<typename T>
 Vector<T> LowTriMatrix<T>::get_diagonal() const 
 {
-  size_t min_dim = min(n_cols_, n_rows_);
+  size_t min_dim = n_;
   Vector<T> diag(min_dim);
 
   for (size_t i =0 ; i < min_dim; i++)
@@ -392,11 +404,11 @@ Vector<T> LowTriMatrix<T>::get_diagonal() const
 template<typename T>
 void LowTriMatrix<T>::set_diagonal(Vector<T>& diag)
 {
-  size_t min_dim = min(n_cols_, n_rows_);
+  size_t min_dim = n_;
 
   for (size_t i = 0 ; i < min_dim; i++)
   {
-    data_[data_id_(i,i)] = diag(i);
+    data_[data_id_(i,i)] = diag[i];
   }
 }
 

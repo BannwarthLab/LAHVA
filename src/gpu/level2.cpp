@@ -228,6 +228,102 @@ namespace tcgmtensor{
             get_cublas_error(istat);
         };
 
+    /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ 
+    for specified stride
+        @param[in] alpha double value by which A*x is scaled 
+        @param[in] a pointer to the A matrix in column-cudart.handle ordering
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
+        @param[in] beta double value by which y is scaled
+        @param[in,out] y pointer to the y Vector values
+        @param[in] incy stride of Vector y
+    */ 
+    void SymMatrixVectorProduct(const CudaRuntime& cudart, const double alpha, const LowTriMatrix<double>& a, 
+                                const Vector<double>& x, const size_t incx, const double beta, Vector<double>& y, const size_t incy)
+        {
+            auto [nrow, ncol] = check_size_mv(a, x, y);
+            size_t inx = incx;
+            size_t iny = incy;
+            check_device_alloc( cudart, a);
+            check_device_alloc( cudart, x);
+            check_device_alloc( cudart, y);
+            
+            cublasStatus_t istat = cublasDspmv(cudart.handle, tri_gpu, ncol, &alpha, a.gpu_data(), x.gpu_data(), inx, &beta, y.gpu_data(), iny);
+            get_cublas_error(istat);
+        };
+
+    /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ 
+    for specified stride
+        @param[in] a pointer to the A matrix in column-cudart.handle ordering
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
+        @param[in,out] y pointer to the y Vector values
+        @param[in] alpha (optional, default 1.0) double value by which A*x is scaled 
+        @param[in] beta (optional, default 0.0) double value by which y is scaled
+        @param[in] incy (optional, default 1) stride of Vector y
+    */ 
+    void SymMatrixVectorProduct(const CudaRuntime& cudart, const LowTriMatrix<double>& a, const Vector<double>& x, Vector<double>& y,
+                                const double alpha, const double beta, const size_t incx, const size_t incy)
+        {
+            auto [nrow, ncol] = check_size_mv(a, x, y); 
+            size_t inx = incx;
+            size_t iny = incy;
+            check_device_alloc( cudart, a);
+            check_device_alloc( cudart, x);
+            check_device_alloc( cudart, y);
+
+            cublasStatus_t istat = cublasDspmv(cudart.handle, tri_gpu, ncol, &alpha, a.gpu_data(), x.gpu_data(), inx, &beta, y.gpu_data(), iny);
+            get_cublas_error(istat);
+        };
+
+    /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ 
+    for specified stride
+        @param[in] alpha float value by which A*x is scaled 
+        @param[in] a pointer to the A matrix in column-cudart.handle ordering
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
+        @param[in] beta float value by which y is scaled
+        @param[in,out] y pointer to the y Vector values
+        @param[in] incy stride of Vector y
+    */ 
+    void SymMatrixVectorProduct(const CudaRuntime& cudart, const float alpha, const LowTriMatrix<float>& a, 
+                                const Vector<float>& x, const size_t incx, const float beta, Vector<float>& y, const size_t incy)
+        {
+            auto [nrow, ncol] = check_size_mv(a, x, y); 
+            size_t inx = incx;
+            size_t iny = incy;
+            check_device_alloc( cudart, a);
+            check_device_alloc( cudart, x);
+            check_device_alloc( cudart, y);
+
+            cublasStatus_t istat = cublasSspmv(cudart.handle, tri_gpu, ncol, &alpha, a.gpu_data(), x.gpu_data(), inx, &beta, y.gpu_data(), iny);
+            get_cublas_error(istat);
+        };
+
+    /*! @brief Simple interface to SSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ 
+    for specified stride
+        @param[in] a pointer to the A matrix in column-cudart.handle ordering
+        @param[in] x pointer to the Vector x
+        @param[in] incx stride of Vector x
+        @param[in,out] y pointer to the y Vector values
+        @param[in] alpha (optional, default 1.0) float value by which A*x is scaled 
+        @param[in] beta (optional, default 0.0) float value by which y is scaled
+        @param[in] incy (optional, default 1) stride of Vector y
+    */ 
+    void SymMatrixVectorProduct(const CudaRuntime& cudart, const LowTriMatrix<float>& a, const Vector<float>& x, Vector<float>& y,
+                                const float alpha, const float beta, const size_t incx, const size_t incy)
+        {
+            auto [nrow, ncol] = check_size_mv(a, x, y);
+            size_t inx = incx;
+            size_t iny = incy;
+            check_device_alloc( cudart, a);
+            check_device_alloc( cudart, x);
+            check_device_alloc( cudart, y);
+
+            cublasStatus_t istat = cublasSspmv(cudart.handle, tri_gpu, ncol, &alpha, a.gpu_data(), x.gpu_data(), inx, &beta, y.gpu_data(), iny);
+            get_cublas_error(istat);
+        };
+
     
     ///*! @brief Simple interface to DTPMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ 
     //for specified stride

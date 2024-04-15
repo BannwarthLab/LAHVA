@@ -13,7 +13,7 @@ namespace tcgmtensor{
             check_device_alloc(cudart, vecinout);
             check_device_alloc(cudart, vecin);
             
-            dHadamard(vecinout.gpu_data(), vecin.gpu_data(), vecinout.size());            
+            dHadamard(cudart, vecinout.gpu_data(), vecin.gpu_data(), vecinout.size());            
         }
 
         template<>
@@ -22,7 +22,7 @@ namespace tcgmtensor{
             check_device_alloc(cudart, vecinout);
             check_device_alloc(cudart, vecin);
 
-            sHadamard(vecinout.gpu_data(), vecin.gpu_data(), vecinout.size());
+            sHadamard(cudart, vecinout.gpu_data(), vecin.gpu_data(), vecinout.size());
             
         }
 
@@ -35,7 +35,7 @@ namespace tcgmtensor{
             check_device_alloc(cudart, vecout);
 
 
-            dHadamardcopy(vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size());            
+            dHadamardcopy(cudart, vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size());            
         }
 
         template<>
@@ -46,7 +46,7 @@ namespace tcgmtensor{
             check_device_alloc(cudart, vecout);
 
 
-            sHadamardcopy(vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size());            
+            sHadamardcopy(cudart, vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size());            
         }
 
 
