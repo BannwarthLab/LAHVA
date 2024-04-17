@@ -4,24 +4,11 @@
 #include <iostream>
 #include <cuda_runtime.h>
 #include "runtime.hpp"
+#include "timer.hpp"
 
 
 namespace tcgmtensor{
-class time_record {
-public:
-    std::string label;
-    bool running = false;
-    float time = 0.0;
-    cudaEvent_t startEvent = 0, stopEvent = 0;
-};
-
-class gputimer_type {
-public:
-    size_t n = 0;
-    std::string last;
-    std::vector<time_record> record;
-
-    void push(std::string label) {
+    void GPUTimer::push(std::string label) {
         int it;
         cudaError_t istat;
 
@@ -45,7 +32,7 @@ public:
         record[it].running = !record[it].running;
     }
 
-    void pop() {
+    void GPUTimer::pop() {
         float time;
         int it;
         cudaError_t istat;
@@ -62,7 +49,7 @@ public:
         if (!last.empty()) last.clear();
     }
 
-    float get(std::string label) {
+    float GPUTimer::get(std::string label) {
         float time = 0.0;
         int it;
         cudaError_t istat;
@@ -81,7 +68,7 @@ public:
         return time;
     }
 
-    int find(std::string label) {
+    int GPUTimer::find(std::string label) {
         int pos = -1;
 
         for (int i = record.size() - 1; i >= 0; i--) {
@@ -93,10 +80,10 @@ public:
         return pos;
     }
 
-    void resize(int n) {
+    void GPUTimer::resize(int n) {
         record.resize(n);
     }
-};
+
 
 std::string format_time_dp(double time) {
     int days, hours, mins;

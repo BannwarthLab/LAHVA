@@ -12,17 +12,20 @@ namespace tcgmtensor{
         cudaStream_t stream = nullptr;
         int version = 0;
         void createHandle();
-        const int blockSize_ = THREADS_PER_BLOCK;
+        int blockSize_ = THREADS_PER_BLOCK;
     public:
         cublasHandle_t handle = nullptr;
         CudaRuntime();
-        CudaRuntime(size_t max_dim, size_t);
+        CudaRuntime(size_t max_dim, size_t n_mat);
+        CudaRuntime(size_t requestedMem);
         ~CudaRuntime();
         void print_cuda_version();
         inline size_t device_id() {return cudaDevice;};
         const inline size_t device_id() const {return cudaDevice;};
+        inline void setblockSize(int blockSize) {blockSize_ = blockSize;}
         inline int blockSize() const {return blockSize_;};
         inline int gridSize(size_t ndim, size_t dim) const {return (int)ceil((float)std::pow(ndim, dim)/blockSize_);};
+        size_t get_GPU_wmaxMem();
 
     };
     void get_cuda_error(cudaError_t stat);

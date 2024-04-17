@@ -159,9 +159,9 @@ class Matrix :  public GPUTensor<T> {
 
   protected: 
     // shape in each dimension, i.e. data_ has length n_rows_*n_cols
-    uint n_rows_;
-    uint n_cols_;
-    T* data_;
+    uint n_rows_ = 0;
+    uint n_cols_ = 0;
+    T* data_ = nullptr;
 
     // indicates whether the Matrix object owns the data and consequently is 
     // responsible for freeing it
@@ -185,6 +185,7 @@ class Matrix :  public GPUTensor<T> {
     // to deal with that
     static void check_size_(size_t, size_t);
   public:
+    Matrix() {};
     //! construct a square matrix with dimensions n x n 
     //! It is not guaranteed that the values will be initialized
     Matrix(uint n);
@@ -243,6 +244,8 @@ class Matrix :  public GPUTensor<T> {
     Vector<T> get_diagonal() const;
 
     void set_diagonal(Vector<T>& diag);
+
+    void symmetrize();
 
 };
 
@@ -340,6 +343,7 @@ class LowTriMatrix :  public GPUTensor<T> {
     Vector<T> get_diagonal() const;
 
     void set_diagonal(Vector<T>& diag);
+
 };
 
 
@@ -383,7 +387,7 @@ T row_dot_col(const Matrix<T>& A, const Matrix<T>& B, uint i) {
 //! @param A matrix to symmetrize
 //! @return (A+A^T)/2
 template<typename T>
-LowTriMatrix<T> symmetrize(const Matrix<T>& A) {
+LowTriMatrix<T> symmetrizeLowTri(const Matrix<T>& A) {
   assert (A.shape().first == A.shape().second);
 
   LowTriMatrix<T> result(A.shape().first);
@@ -396,6 +400,7 @@ LowTriMatrix<T> symmetrize(const Matrix<T>& A) {
 
   return result;
 }
+
 
 template<typename T>
 void move_Vector_into_Vector(tcgmtensor::Vector<T>& vec1, tcgmtensor::Vector<T>& vec2)

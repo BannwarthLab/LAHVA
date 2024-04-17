@@ -7,4 +7,5 @@
 #include "impl/gpu/level1.hpp"
 #include "impl/gpu/level2.hpp"
 #include "impl/gpu/level3.hpp"
+#include "impl/gpu/additional-level1.hpp"
 #endif

@@ -183,6 +183,23 @@ void Matrix<T>::print() const {
   }
 }
 
+
+//! @param A matrix to symmetrize
+//! @return (A+A^T)/2
+template<typename T>
+void Matrix<T>::symmetrize() {
+  assert (n_cols_ == n_rows_);
+
+  Matrix<T> copy = *this;
+
+  for (uint i = 0; i < n_cols_; i++){
+    for (uint j = 0; j < n_cols_; j++) {
+      data_[data_id_(i,j)] = 0.5*(copy(i,j)+copy(j,i));
+    }
+  }
+
+}
+
 template<typename T>
 Vector<T> Matrix<T>::get_diagonal() const 
 {

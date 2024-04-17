@@ -172,7 +172,7 @@ namespace tcgmtensor
  
     // compute trace on GPU wrapper routine (FP64)
     template<>
-    double ComputeTrace<double>(const CudaRuntime& cudart, const Matrix<double> m, bool use_diag)
+    double ComputeTrace<double>(const CudaRuntime& cudart, const Matrix<double>& m, bool use_diag)
     {
       // Number of blocks in grid;
       int gridS = cudart.gridSize(m.size(), 1);
@@ -182,7 +182,7 @@ namespace tcgmtensor
       {
         Vector<double> diag = m.get_diagonal();
         diag.copy2device(cudart);
-        MatrixTraceFromDiagonal<<<gridS,cudart.blockSize()>>>(m.gpu_data(),m.shape().first ,v.gpu_data());
+        MatrixTraceFromDiagonal<<<gridS,cudart.blockSize()>>>(diag.gpu_data(),diag.size(),v.gpu_data());
         
       }
       else 
@@ -198,10 +198,26 @@ namespace tcgmtensor
       return trace;
     }
 
+    double ComputeTrace(const CudaRuntime& cudart, const Vector<double>& diag)
+    {
+      // Number of blocks in grid;
+      int gridS = cudart.gridSize(diag.size(), 1);
+      Vector<double> v(gridS);
+      v.copy2device(cudart);
+      check_device_alloc(cudart, diag);
+      MatrixTraceFromDiagonal<<<gridS,cudart.blockSize()>>>(diag.gpu_data(),diag.size() ,v.gpu_data());
+      
+      v.copy2host(cudart);
+      double trace=0.0;
+      // final summation on CPU
+      for(int i = 0 ; i < gridS ; i++) trace+=v[i];
+      return trace;
+    }
+
     
     // compute trace on GPU wrapper routine (FP32)
     template<>
-    double ComputeTrace<float>(const CudaRuntime& cudart, const Matrix<float> m, bool use_diag)
+    double ComputeTrace<float>(const CudaRuntime& cudart, const Matrix<float>& m, bool use_diag)
     {
       // Number of blocks in grid;
       int gridS =  cudart.gridSize(m.size(), 1);
@@ -217,7 +233,7 @@ namespace tcgmtensor
     }
 
     template<>
-    void SymmetrizeMatrix<float>(const CudaRuntime& cudart, Matrix<float> m)
+    void SymmetrizeMatrix<float>(const CudaRuntime& cudart, Matrix<float>& m)
     {
       // Number of blocks in grid;
       int gridS =  cudart.gridSize(m.size(), 1);
@@ -226,7 +242,7 @@ namespace tcgmtensor
     }
 
     template<>
-    void SymmetrizeMatrix<double>(const CudaRuntime& cudart, Matrix<double> m)
+    void SymmetrizeMatrix<double>(const CudaRuntime& cudart, Matrix<double>& m)
     {
       // Number of blocks in grid;
       int gridS =  cudart.gridSize(m.size(), 1);

@@ -18,11 +18,11 @@ namespace tcgmtensor
         cudaDeviceReset();
     };
 
-    CudaRuntime::CudaRuntime(size_t max_dim, size_t n_mat)
+    size_t CudaRuntime::get_GPU_wmaxMem()
     {
         size_t freemem, totmem;
         int ndev;
-        size_t request;
+        
         size_t availmem = 0;
 
         freemem = 0;
@@ -41,12 +41,23 @@ namespace tcgmtensor
                 cudaDevice = i;
             }
         }
+        return availmem;
+    }
 
-    request = n_mat * sizeof(double)*max_dim*max_dim;
+    CudaRuntime::CudaRuntime(size_t max_dim, size_t n_mat) : 
+    CudaRuntime( n_mat * sizeof(double)*max_dim*max_dim)
+    {
 
-    if (request > availmem) cudaDevice = -1;
-        createHandle();
     };
+
+    CudaRuntime::CudaRuntime(size_t requestedMem)
+    {
+        size_t availmem = get_GPU_wmaxMem();
+
+        if (requestedMem > availmem) cudaDevice = -1;
+            createHandle();
+    };    
+
     
     void get_cuda_error(cudaError_t stat) {
         if (stat != cudaSuccess) {
