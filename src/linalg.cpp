@@ -69,6 +69,12 @@ template<typename T>
 Matrix<T>::Matrix(uint n, T val) : Matrix<T>::Matrix(Shape(n,n), val) {}
 
 template<typename T>
+Matrix<T>::Matrix(const Shape& shape, const T* data) : Matrix<T>::Matrix(shape) 
+{
+  std::copy(data, data + data_size_(n_rows_, n_cols_), data_);
+};
+
+template<typename T>
 Matrix<T>::Matrix(const tcgmtensor::Vector<tcgmtensor::Vector<T>>& data) : 
     n_rows_{(uint) (data.size())},
     n_cols_{(uint) (data.at(0).size())},
@@ -126,6 +132,7 @@ Matrix<T>::Matrix(Matrix<T>&& other) : n_rows_{other.n_rows_},
   other.data_ = nullptr;
   other.n_rows_ = 0;
   other.n_cols_ = 0;
+  this->device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
 }
 
 template<typename T>

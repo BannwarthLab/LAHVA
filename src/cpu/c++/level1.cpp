@@ -10,7 +10,7 @@ namespace tcgmtensor{
         \param[in] X Vector
         \param[in] Y Vector
     */ 
-    double InnerVectorProduct(const Vector<double>& X, const Vector<double>& Y)
+    double InnerVectorProduct(const Tensor<double>& X, const Tensor<double>& Y)
     {   check_equal_size(X,Y);
         return InnerVectorProduct(X.size(), X.data(), Y.data());}
 
@@ -18,20 +18,20 @@ namespace tcgmtensor{
         \param[in] X Vector
         \param[in] Y Vector
     */ 
-    float InnerVectorProduct( const Vector<float>& X, const Vector<float>& Y)
+    float InnerVectorProduct( const Tensor<float>& X, const Tensor<float>& Y)
     { 
         check_equal_size(X,Y);
     return  InnerVectorProduct(X.size(), X.data(), Y.data());
     }
 
     // strided Vector product
-    double InnerVectorProduct(const Vector<double>& X, const size_t strideX, const Vector<double>& Y, const size_t strideY)
+    double InnerVectorProduct(const Tensor<double>& X, const size_t strideX, const Tensor<double>& Y, const size_t strideY)
     {
         check_equal_size(X,Y);
     return InnerVectorProduct(X.size(), X.data(), strideX, Y.data(), strideY);
     }
 
-    float InnerVectorProduct(const Vector<float>& X, const size_t strideX, const Vector<float>& Y, const size_t strideY)
+    float InnerVectorProduct(const Tensor<float>& X, const size_t strideX, const Tensor<float>& Y, const size_t strideY)
     {
         check_equal_size(X,Y);
     return InnerVectorProduct(X.size(), X.data(), strideX, Y.data(), strideY);
@@ -43,7 +43,7 @@ namespace tcgmtensor{
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
     */
-    void AddVectors(const double a, const Vector<double>& x, Vector<double>& y) {
+    void AddVectors(const double a, const Tensor<double>& x, Tensor<double>& y) {
         check_equal_size(x,y);
         AddVectors(x.size(), a, x.data(), y.data());
     }
@@ -53,7 +53,7 @@ namespace tcgmtensor{
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
     */
-    void AddVectors(const float a, const Vector<float>& x, Vector<float>& y) {
+    void AddVectors(const float a, const Tensor<float>& x, Tensor<float>& y) {
         check_equal_size(x,y);
         AddVectors(x.size(), a, x.data(), y.data());
     }
@@ -66,7 +66,7 @@ namespace tcgmtensor{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void AddVectors(const double a, const Vector<double>& x, size_t ix, Vector<double>& y, size_t iy) {
+    void AddVectors(const double a, const Tensor<double>& x, size_t ix, Tensor<double>& y, size_t iy) {
         check_equal_size(x,y);
         AddVectors(x.size(), a, x.data(), ix, y.data(), iy);
     }
@@ -78,7 +78,7 @@ namespace tcgmtensor{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void AddVectors(const float a, const Vector<float>& x, size_t ix, Vector<float>& y, size_t iy) {
+    void AddVectors(const float a, const Tensor<float>& x, size_t ix, Tensor<float>& y, size_t iy) {
         check_equal_size(x,y);
         AddVectors(x.size(), a, x.data(), ix, y.data(), iy);
     }
@@ -89,7 +89,7 @@ namespace tcgmtensor{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void CopyVectors(const Vector<double>& x, Vector<double>& y) {
+    void CopyVectors(const Tensor<double>& x, Tensor<double>& y) {
         check_equal_size(x,y);
         CopyVectors(x.size(), x.data(), y.data());
     }
@@ -98,7 +98,7 @@ namespace tcgmtensor{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void CopyVectors(const Vector<float>& x, Vector<float>& y) {
+    void CopyVectors(const Tensor<float>& x, Tensor<float>& y) {
         check_equal_size(x,y);
         CopyVectors(x.size(), x.data(), y.data());
     }
@@ -110,7 +110,7 @@ namespace tcgmtensor{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void CopyVectors(const Vector<double>& x, size_t ix, Vector<double>& y, size_t iy) {
+    void CopyVectors(const Tensor<double>& x, size_t ix, Tensor<double>& y, size_t iy) {
         check_equal_size(x,y);
         CopyVectors(x.size(), x.data(), ix, y.data(), iy);
     }
@@ -121,7 +121,7 @@ namespace tcgmtensor{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void CopyVectors(const Vector<float>& x, size_t ix, Vector<float>& y, size_t iy) {
+    void CopyVectors(const Tensor<float>& x, size_t ix, Tensor<float>& y, size_t iy) {
         CopyVectors(x.size(), x.data(), ix, y.data(), iy);
     }
 
@@ -131,7 +131,7 @@ namespace tcgmtensor{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void SwapVectors(Vector<double>& x, Vector<double>& y) {
+    void SwapVectors(Tensor<double>& x, Tensor<double>& y) {
         check_equal_size(x,y);
         SwapVectors(x.size(), x.data(), y.data());
     }
@@ -140,7 +140,7 @@ namespace tcgmtensor{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void SwapVectors(Vector<float>& x, Vector<float>& y) {
+    void SwapVectors(Tensor<float>& x, Tensor<float>& y) {
         check_equal_size(x,y);
         SwapVectors(x.size(), x.data(), y.data());
     }
@@ -152,7 +152,7 @@ namespace tcgmtensor{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void SwapVectors(Vector<double>& x, size_t ix, Vector<double>& y, size_t iy) {
+    void SwapVectors(Tensor<double>& x, size_t ix, Tensor<double>& y, size_t iy) {
         check_equal_size(x,y);
         SwapVectors(x.size(), x.data(), ix, y.data(), iy);
     }
@@ -163,7 +163,7 @@ namespace tcgmtensor{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void SwapVectors(Vector<float>& x, size_t ix, Vector<float>& y, size_t iy) {
+    void SwapVectors(Tensor<float>& x, size_t ix, Tensor<float>& y, size_t iy) {
         check_equal_size(x,y);
         SwapVectors(x.size(), x.data(), ix, y.data(), iy);
     } 
@@ -174,18 +174,18 @@ namespace tcgmtensor{
         \param[in, out] x \f$\vec{x}\f$
         \param[in,out] a \f$\alpha\f$
     */
-    void ScaleVector(const double a, Vector<double>& x) {
+    void ScaleVector(const double a, Tensor<double>& x) {
         ScaleVector(x.size(), a, x.data());
     }
      /*! Simple interface to SSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
         \param[in, out] x \f$\vec{x}\f$
         \param[in,out] a \f$\alpha\f$
     */
-    void ScaleVector(const float a, Vector<float>& x){
+    void ScaleVector(const float a, Tensor<float>& x){
         ScaleVector(x.size(), a, x.data());
     }
 
-    void ScaleVector(const double a, Vector<double>& x, size_t ix){
+    void ScaleVector(const double a, Tensor<double>& x, size_t ix){
         ScaleVector(x.size(), a, x.data(), ix);
     }
      /*! Simple interface to SSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
@@ -194,7 +194,7 @@ namespace tcgmtensor{
         \param[in,out] a \f$\alpha\f$
         stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
     */
-    void ScaleVector(const float a, Vector<float>& x, size_t ix){
+    void ScaleVector(const float a, Tensor<float>& x, size_t ix){
         ScaleVector(x.size(), a, x.data());
     }
     }

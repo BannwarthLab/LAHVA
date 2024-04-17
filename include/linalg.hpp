@@ -15,7 +15,17 @@ typedef unsigned int uint;
 typedef unsigned short ushort;
 
   template<typename T>
-  class GPUTensor
+  class Tensor
+  {
+    public:
+      virtual size_t size() = 0;
+      virtual T* data() = 0;
+      virtual const size_t size() const = 0;
+      virtual const T* data() const = 0;
+  };
+
+  template<typename T>
+  class GPUTensor : public Tensor<T>
   { 
     public: 
       struct deleter {
@@ -27,11 +37,6 @@ typedef unsigned short ushort;
     protected:
       mutable std::unique_ptr<T, deleter> device_ptr_;
       mutable bool is_on_device_ = false;
-    public:
-      virtual size_t size() = 0;
-      virtual T* data() = 0;
-      virtual const size_t size() const = 0;
-      virtual const T* data() const = 0;
     public:
       const void copy2device(const CudaRuntime& cudart) const;
       void copy2host(const CudaRuntime& cudart);
@@ -129,6 +134,13 @@ class Vector : virtual public std::vector<T>, virtual public GPUTensor<T>{
       size() const override
       { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
    
+    T sum() {
+      T sum ;
+      for (int i = 0 ; i < this->size(); i++) 
+      {
+        sum += this->at(i);
+      }
+      return sum;}
     void print() const;  
 
 };
@@ -191,7 +203,7 @@ class Matrix :  public GPUTensor<T> {
     Matrix(const Shape& shape, T* data, bool take_ownership = true) : 
       n_rows_{shape.first}, n_cols_{shape.second}, data_{data}, 
       is_owner_{take_ownership} {}
-
+    Matrix(const Shape& shape, const T* data);
 
     Matrix(const tcgmtensor::Vector<tcgmtensor::Vector<T>>& data);
 
