@@ -134,14 +134,22 @@ class Vector : virtual public std::vector<T>, virtual public GPUTensor<T>{
       size() const override
       { return size_t(this->_M_impl._M_finish - this->_M_impl._M_start); }
    
-    T sum() {
-      T sum ;
-      for (int i = 0 ; i < this->size(); i++) 
+    T sum() const {
+      T res = (T) 0;
+      for (size_t i = 0 ; i < this->size(); i++) 
       {
-        sum += this->at(i);
+        res += this->at(i);
       }
-      return sum;}
+      return res;}
     void print() const;  
+
+    T sum() {
+      T res = (T) 0;
+      for (size_t i = 0 ; i < this->size(); i++) 
+      {
+        res += this->at(i);
+      }
+      return res;} 
 
 };
 

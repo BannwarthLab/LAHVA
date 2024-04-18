@@ -7,30 +7,30 @@
 
 namespace tcgmtensor{
     namespace gpu{
-    double InnerVectorProduct(const CudaRuntime& cudart, const Vector<double>& X, const Vector<double>& Y);
-    float InnerVectorProduct(const CudaRuntime& cudart, const Vector<float>& X, const Vector<float>& Y);
-    double InnerVectorProduct(const CudaRuntime& cudart, const Vector<double>& X, const size_t strideX, const Vector<double>& Y, const size_t strideY);
-    float InnerVectorProduct(const CudaRuntime& cudart, const Vector<float>& X, const size_t strideX, const Vector<float>& Y, const size_t strideY);
+    double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor<double>& X, const GPUTensor<double>& Y);
+    float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor<float>& X, const GPUTensor<float>& Y);
+    double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor<double>& X, const size_t strideX, const GPUTensor<double>& Y, const size_t strideY);
+    float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor<float>& X, const size_t strideX, const GPUTensor<float>& Y, const size_t strideY);
 
-    void AddVectors(const CudaRuntime& cudart, double a, const Vector<double>& x, Vector<double>& y);
-    void AddVectors(const CudaRuntime& cudart, float a, const Vector<float>& x, Vector<float>& y);
-    void AddVectors(const CudaRuntime& cudart, double a, const Vector<double>& x, size_t ix, Vector<double>& y, size_t iy);
-    void AddVectors(const CudaRuntime& cudart, float a, const Vector<float>& x, size_t ix, Vector<float>& y, size_t iy);
+    void AddVectors(const CudaRuntime& cudart, double a, const GPUTensor<double>& x, GPUTensor<double>& y);
+    void AddVectors(const CudaRuntime& cudart, float a, const GPUTensor<float>& x, GPUTensor<float>& y);
+    void AddVectors(const CudaRuntime& cudart, double a, const GPUTensor<double>& x, size_t ix, GPUTensor<double>& y, size_t iy);
+    void AddVectors(const CudaRuntime& cudart, float a, const GPUTensor<float>& x, size_t ix, GPUTensor<float>& y, size_t iy);
 
-    void CopyVectors(const CudaRuntime& cudart, const Vector<double>& X, Vector<double>& Y);
-    void CopyVectors(const CudaRuntime& cudart, const Vector<float>& X, Vector<float>& Y);
-    void CopyVectors(const CudaRuntime& cudart, const Vector<double>& X, const size_t strideX, Vector<double>& Y, const size_t strideY);
-    void CopyVectors(const CudaRuntime& cudart, const Vector<float>& X, const size_t strideX, Vector<float>& Y, const size_t strideY);
+    void CopyVectors(const CudaRuntime& cudart, const GPUTensor<double>& X, GPUTensor<double>& Y);
+    void CopyVectors(const CudaRuntime& cudart, const GPUTensor<float>& X, GPUTensor<float>& Y);
+    void CopyVectors(const CudaRuntime& cudart, const GPUTensor<double>& X, const size_t strideX, GPUTensor<double>& Y, const size_t strideY);
+    void CopyVectors(const CudaRuntime& cudart, const GPUTensor<float>& X, const size_t strideX, GPUTensor<float>& Y, const size_t strideY);
 
-    void SwapVectors(const CudaRuntime& cudart, Vector<double>& X, Vector<double>& Y);
-    void SwapVectors(const CudaRuntime& cudart, Vector<float>& X, Vector<float>& Y);
-    void SwapVectors(const CudaRuntime& cudart, Vector<double>& X, const size_t strideX, Vector<double>& Y, const size_t strideY);
-    void SwapVectors(const CudaRuntime& cudart, Vector<float>& X, const size_t strideX, Vector<float>& Y, const size_t strideY);
+    void SwapVectors(const CudaRuntime& cudart, GPUTensor<double>& X, GPUTensor<double>& Y);
+    void SwapVectors(const CudaRuntime& cudart, GPUTensor<float>& X, GPUTensor<float>& Y);
+    void SwapVectors(const CudaRuntime& cudart, GPUTensor<double>& X, const size_t strideX, GPUTensor<double>& Y, const size_t strideY);
+    void SwapVectors(const CudaRuntime& cudart, GPUTensor<float>& X, const size_t strideX, GPUTensor<float>& Y, const size_t strideY);
 
-    void ScaleVector(const CudaRuntime& cudart, double a, Vector<double>& x);
-    void ScaleVector(const CudaRuntime& cudart, float a, Vector<float>& x);
-    void ScaleVector(const CudaRuntime& cudart, double a, Vector<double>& x, size_t ix);
-    void ScaleVector(const CudaRuntime& cudart, float a, Vector<float>& x, size_t ix);
+    void ScaleVector(const CudaRuntime& cudart, double a, GPUTensor<double>& x);
+    void ScaleVector(const CudaRuntime& cudart, float a, GPUTensor<float>& x);
+    void ScaleVector(const CudaRuntime& cudart, double a, GPUTensor<double>& x, size_t ix);
+    void ScaleVector(const CudaRuntime& cudart, float a, GPUTensor<float>& x, size_t ix);
     }
 } 
 
