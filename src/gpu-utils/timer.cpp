@@ -18,9 +18,8 @@ namespace tcgmtensor{
             if (n >= record.size()) {
                 resize(record.size() * 2 + 1);
             }
-
             n++;
-            it = n;
+            it = n-1;
             record[it].label = label;
         }
 

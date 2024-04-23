@@ -204,8 +204,7 @@ template<typename T>
 Vector<T> Matrix<T>::get_diagonal() const 
 {
   size_t min_dim = std::min(n_cols_, n_rows_);
-  Vector<T> diag(min_dim);
-
+  Vector<T> diag;
   for (size_t i =0 ; i < min_dim; i++)
   {
     diag.push_back(data_[data_id_(i,i)]);

@@ -8,7 +8,7 @@
 namespace tcgmtensor{
     class CudaRuntime {
     protected:
-        size_t cudaDevice = 0;
+        int cudaDevice = -1;
         cudaStream_t stream = nullptr;
         int version = 0;
         void createHandle();
