@@ -228,6 +228,8 @@ void Matrix<T>::set_diagonal(Vector<T>& diag)
   const void GPUTensor<T>::copy2device(const CudaRuntime& cudart) const
   {
 #ifdef _CUDA
+  if (!is_on_device_)
+  {
     cudaError_t stat_;
     stat_ = cudaSetDevice(cudart.device_id());
     get_cuda_error(stat_);
@@ -236,18 +238,19 @@ void Matrix<T>::set_diagonal(Vector<T>& diag)
     cudaError_t stat = cudaMemcpy(this->device_ptr_.get(), this->data(), this->size()*sizeof(T), cudaMemcpyHostToDevice);
     get_cuda_error(stat);
     this->is_on_device_ = true;
+  }
 #endif  
   };
   
   template<typename T>
   void GPUTensor<T>::copy2host(const CudaRuntime& cudart)
   {
-#ifdef _CUDA 
+#ifdef _CUDA
+  if (this->is_on_device_)
+  {
     cudaError_t stat_;
     stat_ = cudaSetDevice(cudart.device_id());
     get_cuda_error(stat_);
-    if (this->is_on_device_)
-    {
       stat_ = cudaMemcpy(this->data(), this->device_ptr_.get(), this->size()*sizeof(T), cudaMemcpyDeviceToHost);
       get_cuda_error(stat_);
       this->is_on_device_ = false;

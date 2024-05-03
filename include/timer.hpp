@@ -9,6 +9,9 @@ class time_record {
         bool running = false;
         float time = 0.0;
         cudaEvent_t startEvent = 0, stopEvent = 0;
+        time_record() {};
+        time_record(std::string lbl) : label{lbl}{};
+        ~time_record() {};
 };
 
 class GPUTimer {
@@ -27,6 +30,10 @@ public:
     int find(std::string label);
     void resize(int n);
 };
+std::string format_time(float time);
+std::string format_time(double time);
 }
+
+
 
 #endif

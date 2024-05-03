@@ -59,15 +59,17 @@ namespace tcgmtensor
     };    
 
     
-    void get_cuda_error(cudaError_t stat) {
+    void get_cuda_ERROR(cudaError_t stat, const char* file, int line) {
         if (stat != cudaSuccess) {
-            std::cerr << "CUDA Error: " << cudaGetErrorString(stat) << std::endl;
+            std::cerr << "CUDA Error: " << cudaGetErrorString(stat) << std::endl << "In File: "<< file << " at line: " << std::to_string(line)<< std::endl;
+            throw;
         }
     }
 
-    void get_cublas_error(cublasStatus_t stat) {
+    void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line) {
         if (stat != CUBLAS_STATUS_SUCCESS) {
-            std::cout << "CUBLAS Error: " << cublasGetStatusString(stat) << std::endl;
+            std::cerr << "CUBLAS Error: " << cublasGetStatusString(stat) << std::endl << "In File: "<< file << " at line: " << std::to_string(line)<< std::endl;
+            throw;
         }
     }
 

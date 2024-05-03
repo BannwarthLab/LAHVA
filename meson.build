@@ -20,7 +20,8 @@ lib_deps = []
 
 if gpu == true
   has_nvcc = add_languages('cuda', native: false)
-  lib_deps += dependency('cuda', modules: ['cudart', 'cublas'])
+  cuda = dependency('cuda', modules: ['cudart', 'cublas'])
+  lib_deps += cuda
   add_project_arguments(['-D_CUDA'], language: 'cpp')
 endif
 
@@ -55,7 +56,6 @@ tcgmblas_dep = declare_dependency(
   include_directories: inc_dirs,
   dependencies: lib_deps,
   variables: {'includedir': meson.current_source_dir() / 'include'},
-  
 )
 
 install = not (meson.is_subproject() and get_option('default_library') == 'static')

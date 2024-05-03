@@ -5,6 +5,9 @@
 #include <cmath>
 #define THREADS_PER_BLOCK 512
 
+#define get_cuda_error(arg) get_cuda_ERROR(arg, __FILE__, __LINE__);
+#define get_cublas_error(arg) get_cublas_ERROR(arg, __FILE__, __LINE__);
+
 namespace tcgmtensor{
     class CudaRuntime {
     protected:
@@ -28,7 +31,7 @@ namespace tcgmtensor{
         size_t get_GPU_wmaxMem();
 
     };
-    void get_cuda_error(cudaError_t stat);
-    void get_cublas_error(cublasStatus_t stat);
+    void get_cuda_ERROR(cudaError_t stat, const char * file, int line);
+    void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line);
 }
 #endif

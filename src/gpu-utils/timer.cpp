@@ -11,16 +11,12 @@ namespace tcgmtensor{
     void GPUTimer::push(std::string label) {
         int it;
         cudaError_t istat;
-
         it = find(label);
 
         if (it == -1) {
-            if (n >= record.size()) {
-                resize(record.size() * 2 + 1);
-            }
+            record.push_back(time_record(label));
             n++;
             it = n-1;
-            record[it].label = label;
         }
 
         last = record[it].label;
@@ -35,7 +31,7 @@ namespace tcgmtensor{
         float time;
         int it;
         cudaError_t istat;
-
+        
         it = find(last);
         if (it == -1) return;
 
@@ -49,10 +45,10 @@ namespace tcgmtensor{
     }
 
     float GPUTimer::get(std::string label) {
-        float time = 0.0;
+        float time = -1.0;
         int it;
         cudaError_t istat;
-
+        
         if (n <= 0) return time;
         it = find(label);
         if (it == -1) return time;
@@ -64,13 +60,16 @@ namespace tcgmtensor{
             get_cuda_error(istat);
             time += record[it].time;
         }
+        else
+        time = record[it].time;
+        
         return time;
     }
 
     int GPUTimer::find(std::string label) {
         int pos = -1;
 
-        for (int i = record.size() - 1; i >= 0; i--) {
+        for (size_t i = 0; i < record.size(); i++) {
             if (record[i].label == label) {
                 pos = i;
                 break;
@@ -84,10 +83,12 @@ namespace tcgmtensor{
     }
 
 
-std::string format_time_dp(double time) {
+std::string format_time(double time) {
     int days, hours, mins;
     double secs;
     std::string str;
+
+    time = time / 1000; 
 
     days = static_cast<int>(time / 86400.0);
     time -= days * 86400.0;
@@ -105,8 +106,8 @@ std::string format_time_dp(double time) {
     return str;
 }
 
-std::string format_time_sp(float time) {
-    return format_time_dp(time);
+std::string format_time(float time) {
+    return format_time((double)time);
 }
 
 }
