@@ -21,6 +21,8 @@ lib_deps = []
 if gpu == true
   has_nvcc = add_languages('cuda', native: false)
   cuda = dependency('cuda', modules: ['cudart', 'cublas'])
+  cudast = import('unstable-cuda')
+  add_project_arguments(['-gencode', 'arch=compute_75,code=sm_75','-gencode', 'arch=compute_86,code=sm_86'], language: 'cuda')
   lib_deps += cuda
   add_project_arguments(['-D_CUDA'], language: 'cpp')
 endif

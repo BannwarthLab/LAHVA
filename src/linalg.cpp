@@ -138,7 +138,8 @@ Matrix<T>::Matrix(Matrix<T>&& other) : n_rows_{other.n_rows_},
 template<typename T>
 Matrix<T>& Matrix<T>::operator=(Matrix<T>&& other) {
   if (this != &other) {
-    delete[] data_;
+    if (is_owner_ && data_ != nullptr)
+      delete[] data_;
 
     data_ = other.data_;
     n_rows_ = other.n_rows_;

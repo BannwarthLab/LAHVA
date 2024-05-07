@@ -21,7 +21,7 @@ namespace tcgmtensor
         cblas_dgemm(major, transa, transb, m, n, k, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
     };
 
-    void MatrixMatrixProduct(const Matrix<double>& a, const Matrix<double>& b, Matrix<double> c,
+    void MatrixMatrixProduct(const Matrix<double>& a, const Matrix<double>& b, Matrix<double>& c,
                              const double alpha, const double beta, const char* Ta, const char* Tb)
     {
         CBLAS_TRANSPOSE transa = get_trans(Ta);
@@ -51,7 +51,7 @@ namespace tcgmtensor
         cblas_sgemm(major, transa, transb, m, n, k, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
     };
 
-    void MatrixMatrixProduct(const Matrix<float>& a, const Matrix<float>& b, Matrix<float> c,
+    void MatrixMatrixProduct(const Matrix<float>& a, const Matrix<float>& b, Matrix<float>& c,
                              const float alpha, const float beta, const char* Ta, const char* Tb)
     {
         CBLAS_TRANSPOSE transa = get_trans(Ta);
