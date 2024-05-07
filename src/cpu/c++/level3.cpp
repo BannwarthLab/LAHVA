@@ -2,6 +2,7 @@
 #include "level3.hpp"
 #include "const.h"
 #include "../../utils/utils.hpp"
+#include "timer.hpp"
 namespace tcgmtensor
 {
     namespace cpu{
@@ -68,12 +69,11 @@ namespace tcgmtensor
     void SymMatrixMatrixProduct(const CBLAS_SIDE side, const double alpha, const Matrix<double>& a, const Matrix<double>& b,
                                 const double beta, Matrix<double>& c)
     {
+        CPUTimer timer;
         auto [m, n, k] = check_size_mm(a, b, c);
-
         BLAS_INT lda = get_leading(m, k);
         BLAS_INT ldb = get_leading(k, n);
         BLAS_INT ldc = get_leading(m, n);
-
         cblas_dsymm(major, side, tri, m, n, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
     };
 
@@ -81,11 +81,9 @@ namespace tcgmtensor
                                 const double alpha, const double beta, const CBLAS_SIDE side)
     {
         auto [m, n, k] = check_size_mm(a, b, c);
-
         BLAS_INT lda = get_leading(m, k);
         BLAS_INT ldb = get_leading(k, n);
         BLAS_INT ldc = get_leading(m, n);
-
         cblas_dsymm(major, side, tri, m, n, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
     };
 

@@ -56,8 +56,8 @@ namespace tcgmtensor{
     };
 
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT, BLAS_INT> check_size_mm(const Matrix<T> a, const Matrix<T> b, 
-        const Matrix<T> c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
+    std::tuple<BLAS_INT, BLAS_INT, BLAS_INT> check_size_mm(const Matrix<T>& a, const Matrix<T>& b, 
+        const Matrix<T>& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
         
         Shape sa = a.shape();
         BLAS_INT nrowa = sa.first;

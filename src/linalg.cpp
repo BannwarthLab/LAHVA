@@ -105,7 +105,7 @@ Matrix<T>::Matrix(const Matrix<T>& other) : n_rows_{other.n_rows_},
       n_cols_{other.n_cols_},
       data_{new T[data_size_(n_rows_, n_cols_)]} {
   std::copy(other.data_, other.data_ + data_size_(n_rows_, n_cols_), data_);
-  this->device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
+  if (this->device_ptr_) this->device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
 }
 
 template<typename T>
@@ -117,7 +117,7 @@ Matrix<T>& Matrix<T>::operator=(const Matrix<T>& other) {
     n_rows_ = other.n_rows_;
     n_cols_ = other.n_cols_;
     std::copy(other.data_, other.data_ + data_size_(n_rows_, n_cols_), data_);
-    this->device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
+    if (this->device_ptr_) this->device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
   }
 
   return *this;
@@ -132,7 +132,7 @@ Matrix<T>::Matrix(Matrix<T>&& other) : n_rows_{other.n_rows_},
   other.data_ = nullptr;
   other.n_rows_ = 0;
   other.n_cols_ = 0;
-  this->device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
+  if (this->device_ptr_) this->device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
 }
 
 template<typename T>
@@ -143,11 +143,12 @@ Matrix<T>& Matrix<T>::operator=(Matrix<T>&& other) {
     data_ = other.data_;
     n_rows_ = other.n_rows_;
     n_cols_ = other.n_cols_;
+    is_owner_ = other.is_owner_;
 
     other.data_ = nullptr;
     other.n_rows_ = 0;
     other.n_cols_ = 0;
-    this->device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
+    if (this->device_ptr_) this->device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
   }
 
   return *this;
