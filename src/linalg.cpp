@@ -105,7 +105,8 @@ Matrix<T>::Matrix(const Matrix<T>& other) : n_rows_{other.n_rows_},
       n_cols_{other.n_cols_},
       data_{new T[data_size_(n_rows_, n_cols_)]} {
   std::copy(other.data_, other.data_ + data_size_(n_rows_, n_cols_), data_);
-  if (this->device_ptr_) this->device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
+  
+  if (other.device_ptr_) this->device_ptr_.reset(allocate<T>(n_cols_*n_rows_));
 }
 
 template<typename T>
@@ -139,12 +140,14 @@ template<typename T>
 Matrix<T>& Matrix<T>::operator=(Matrix<T>&& other) {
   if (this != &other) {
     if (is_owner_ && data_ != nullptr)
+    {
       delete[] data_;
-
+    }
     data_ = other.data_;
     n_rows_ = other.n_rows_;
     n_cols_ = other.n_cols_;
     is_owner_ = other.is_owner_;
+    this->device_ptr_ = std::move(other.device_ptr_);
 
     other.data_ = nullptr;
     other.n_rows_ = 0;
@@ -235,7 +238,6 @@ void Matrix<T>::set_diagonal(Vector<T>& diag)
     cudaError_t stat_;
     stat_ = cudaSetDevice(cudart.device_id());
     get_cuda_error(stat_);
-
     this->device_ptr_.reset(allocate<T>(this->size()));
     cudaError_t stat = cudaMemcpy(this->device_ptr_.get(), this->data(), this->size()*sizeof(T), cudaMemcpyHostToDevice);
     get_cuda_error(stat);
@@ -253,10 +255,10 @@ void Matrix<T>::set_diagonal(Vector<T>& diag)
     cudaError_t stat_;
     stat_ = cudaSetDevice(cudart.device_id());
     get_cuda_error(stat_);
-      stat_ = cudaMemcpy(this->data(), this->device_ptr_.get(), this->size()*sizeof(T), cudaMemcpyDeviceToHost);
-      get_cuda_error(stat_);
-      this->is_on_device_ = false;
-    }
+    stat_ = cudaMemcpy(this->data(), this->device_ptr_.get(), this->size()*sizeof(T), cudaMemcpyDeviceToHost);
+    get_cuda_error(stat_);
+    this->is_on_device_ = false;
+  }
 #endif  
   };
 

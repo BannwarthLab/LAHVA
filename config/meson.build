@@ -48,6 +48,9 @@ endif
 
 if lapack_vendor == 'mkl'
   add_project_arguments(['-DW_MKL'], language: 'cpp')
+  if gpu == true
+    add_project_arguments(['-DW_MKL'], language:  'cuda')
+  endif
   mkl_dep = []
   if cc_id == 'intel'
     mkl_dep += cc.find_library('mkl_intel_lp64')

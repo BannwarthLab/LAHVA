@@ -27,7 +27,7 @@ namespace tcgmtensor{
         const inline size_t device_id() const {return cudaDevice;};
         inline void setblockSize(int blockSize) {blockSize_ = blockSize;}
         inline int blockSize() const {return blockSize_;};
-        inline int gridSize(size_t ndim, size_t dim) const {return (int)ceil((float)std::pow(ndim, dim)/blockSize_);};
+        inline int gridSize(size_t base, size_t exp) const {return (int)ceil((float)std::pow(base, exp)/blockSize_);};
         size_t get_GPU_wmaxMem();
 
     };

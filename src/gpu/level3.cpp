@@ -25,7 +25,7 @@ namespace tcgmtensor
         get_cublas_error(istat);
     };
 
-    void MatrixMatrixProduct(const CudaRuntime& cudart, const Matrix<double>& a, const Matrix<double>& b, Matrix<double> c,
+    void MatrixMatrixProduct(const CudaRuntime& cudart, const Matrix<double>& a, const Matrix<double>& b, Matrix<double>& c,
                              const double alpha, const double beta, const char* Ta, const char* Tb)
     {
         cublasOperation_t transa = get_trans(Ta);
@@ -65,7 +65,7 @@ namespace tcgmtensor
         get_cublas_error(istat);
     };
 
-    void MatrixMatrixProduct(const CudaRuntime& cudart, const Matrix<float>& a, const Matrix<float>& b, Matrix<float> c,
+    void MatrixMatrixProduct(const CudaRuntime& cudart, const Matrix<float>& a, const Matrix<float>& b, Matrix<float>& c,
                              const float alpha, const float beta, const char* Ta, const char* Tb)
     {
         cublasOperation_t transa = get_trans(Ta);
