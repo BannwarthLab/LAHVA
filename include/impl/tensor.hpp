@@ -25,7 +25,6 @@ namespace tcgmtensor
     public: 
       struct deleter {
       void operator()(T* ptr) {
-         << "Destryoing the following pointer : " << ptr << std::endl;
         if (ptr != nullptr)
         {
         cudaError_t cuda_error = (cudaFree(ptr));

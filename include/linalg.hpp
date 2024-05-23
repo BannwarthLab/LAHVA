@@ -10,7 +10,6 @@
 
 #include "impl/tensor.hpp"
 #include "runtime.hpp"
-
 namespace tcgmtensor {
 
 typedef unsigned int uint;

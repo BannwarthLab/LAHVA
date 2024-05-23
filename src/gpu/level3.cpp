@@ -2,6 +2,7 @@
 #include "const.h"
 #include "../gpu-utils/utils.hpp"
 #include "runtime.hpp"
+#include "timer.hpp"
 namespace tcgmtensor
 {
     namespace gpu{

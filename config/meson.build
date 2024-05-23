@@ -25,6 +25,7 @@ if cc_id == 'gcc'
 elif cc_id == 'intel'
   add_project_arguments(
     '-traceback',
+    '-static-libgcc',
     language: 'cpp',
   )
 elif cc_id == 'pgi' or cc_id == 'nvidia_hpc'

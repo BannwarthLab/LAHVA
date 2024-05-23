@@ -30,7 +30,7 @@ namespace tcgmtensor {
         };
 
         template<typename T>
-        std::tuple<size_t, size_t> check_size_mv(const Matrix<T> m, const Vector<T> vmult, const Vector<T> vres, cublasOperation_t trans = CUBLAS_OP_N){
+        std::tuple<size_t, size_t> check_size_mv(const Matrix<T>& m, const Vector<T>& vmult, const Vector<T>& vres, cublasOperation_t trans = CUBLAS_OP_N){
         Shape s = m.shape();
         size_t nrow = s.first;
         size_t ncol = s.second;
@@ -47,7 +47,7 @@ namespace tcgmtensor {
         };
 
         template<typename T>
-        std::tuple<size_t, size_t> check_size_mv(const LowTriMatrix<T> m, const Vector<T> vmult, const Vector<T> vres, cublasOperation_t trans = CUBLAS_OP_N){
+        std::tuple<size_t, size_t> check_size_mv(const LowTriMatrix<T>& m, const Vector<T>& vmult, const Vector<T>& vres, cublasOperation_t trans = CUBLAS_OP_N){
         Shape s = m.shape();
         size_t nrow = s.first;
         size_t ncol = s.second;
@@ -68,8 +68,8 @@ namespace tcgmtensor {
         cublasOperation_t get_trans(const char* T);
 
         template<typename T>
-        std::tuple<size_t, size_t, size_t> check_size_mm(const Matrix<T> a, const Matrix<T> b, 
-        const Matrix<T> c, cublasOperation_t transa = CUBLAS_OP_N, cublasOperation_t transb = CUBLAS_OP_N){
+        std::tuple<size_t, size_t, size_t>  check_size_mm(const Matrix<T>& a, const Matrix<T>& b, 
+        const Matrix<T>& c, cublasOperation_t transa = CUBLAS_OP_N, cublasOperation_t transb = CUBLAS_OP_N){
         
         Shape sa = a.shape();
         size_t nrowa = sa.first;
