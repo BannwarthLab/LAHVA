@@ -1,6 +1,5 @@
 #pragma once
 #include "linalg.hpp"
-#include "tcgmblas.hpp"
 #include "const.h"
 #include <tuple>
 

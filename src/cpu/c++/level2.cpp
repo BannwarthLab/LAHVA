@@ -1,10 +1,5 @@
-#include "const.h"
-#include "level2.hpp"
-#include "linalg.hpp"
+#include "impl/cpu/level2.hpp"
 #include "../../utils/utils.hpp"
-#include <cstring>
-#include <algorithm>
-#include <iostream>
 
 namespace tcgmtensor{
     namespace cpu{

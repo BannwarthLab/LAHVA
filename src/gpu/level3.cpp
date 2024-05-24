@@ -1,8 +1,6 @@
-#include "linalg.hpp"
-#include "const.h"
+#include "impl/gpu/level3.hpp"
 #include "../gpu-utils/utils.hpp"
-#include "runtime.hpp"
-#include "timer.hpp"
+
 namespace tcgmtensor
 {
     namespace gpu{

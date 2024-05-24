@@ -1,13 +1,5 @@
-#ifdef W_MKL
-#include <mkl.h>
-#else
-    #include <cblas.h>
-#endif
-#include "level2.h"
-#include "tcgmblas.h"
+#include "impl/cpu/level2.h"
 #include "../../utils/utils.hpp"
-#include <cstring>
-#include <algorithm>
 
 namespace tcgmtensor{
     namespace cpu{

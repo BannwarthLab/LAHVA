@@ -1,7 +1,6 @@
-#include "linalg.hpp"
 #include "../../utils/utils.hpp"
-#include "level1.hpp"
-#include "level1.h"
+#include "impl/cpu/level1.hpp"
+#include "impl/cpu/level1.h"
 
 namespace tcgmtensor{
     namespace cpu{

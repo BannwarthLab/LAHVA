@@ -1,6 +1,4 @@
-#include "linalg.hpp"
-#include "runtime.hpp"
-#include "additional-level1.hpp"
+#include "impl/gpu/additional-level1.hpp"
 #include "custom-kernel/hadamard.h"
 #include "../gpu-utils/utils.hpp"
 

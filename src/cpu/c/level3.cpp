@@ -1,5 +1,4 @@
-#include "level3.h"
-#include "const.h"
+#include "impl/cpu/level3.h"
 #include "../../utils/utils.hpp"
 
 namespace tcgmtensor{

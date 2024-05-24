@@ -1,7 +1,5 @@
-#include "linalg.hpp"
 #include "../utils/utils.hpp"
-#include "level1.hpp"
-#include "runtime.hpp"
+#include "impl/gpu/level1.hpp"
 #include "../gpu-utils/utils.hpp"
 
 namespace tcgmtensor{

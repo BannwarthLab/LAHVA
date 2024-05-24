@@ -7,9 +7,8 @@
 #include <assert.h>
 
 #include <iostream>
-
 #include "impl/tensor.hpp"
-#include "runtime.hpp"
+
 namespace tcgmtensor {
 
 typedef unsigned int uint;

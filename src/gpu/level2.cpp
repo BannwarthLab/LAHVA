@@ -1,10 +1,6 @@
-#include "level2.hpp"
-#include "linalg.hpp"
+#include "impl/gpu/level2.hpp"
 #include "../gpu-utils/utils.hpp"
-#include <cstring>
-#include <algorithm>
-#include "runtime.hpp"
-#include "const.h"
+
 
 namespace tcgmtensor{
     namespace gpu{

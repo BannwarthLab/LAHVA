@@ -1,8 +1,5 @@
-#include "linalg.hpp"
-#include "level3.hpp"
-#include "const.h"
+#include "impl/cpu/level3.hpp"
 #include "../../utils/utils.hpp"
-#include "timer.hpp"
 namespace tcgmtensor
 {
     namespace cpu{
