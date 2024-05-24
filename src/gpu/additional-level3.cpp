@@ -8,7 +8,7 @@ namespace tcgmtensor{
     namespace gpu
     {
         
-        MPSymMatrixMatrixMultiplication(const CudaRuntime& cudart, const Vector<double>& d1, const Matrix<float>& m1,
+        void MPSymMatrixMatrixMultiplication(const CudaRuntime& cudart, const Vector<double>& d1, const Matrix<float>& m1,
                                         const Vector<double>& d2, const Matrix<float>& m2, Vector<double>& dout, Matrix<float>& mout)
         {
             SymMatrixMatrixProduct(cudart, m1, m2, mout);
