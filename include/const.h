@@ -9,6 +9,7 @@
 #endif
 
 #ifdef _CUDA
+    #pragma warning(disable:2282)
     #include "cublas_v2.h"
 #endif
 

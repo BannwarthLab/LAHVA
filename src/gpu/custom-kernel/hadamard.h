@@ -1,4 +1,5 @@
 #pragma once
+#pragma warning(disable:2282 815 858)
 #include <cuda_runtime.h>
 #include "cublas_v2.h"
 #include "runtime.hpp"

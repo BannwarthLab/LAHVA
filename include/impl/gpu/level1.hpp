@@ -19,6 +19,8 @@ namespace tcgmtensor{
 
     void CopyVectors(const CudaRuntime& cudart, const GPUTensor<double>& X, GPUTensor<double>& Y);
     void CopyVectors(const CudaRuntime& cudart, const GPUTensor<float>& X, GPUTensor<float>& Y);
+    void CopyVectors(const CudaRuntime& cudart, const GPUTensor<double>& X, GPUTensor<float>& Y);
+    void CopyVectors(const CudaRuntime& cudart, const GPUTensor<float>& X, GPUTensor<double>& Y);
     void CopyVectors(const CudaRuntime& cudart, const GPUTensor<double>& X, const size_t strideX, GPUTensor<double>& Y, const size_t strideY);
     void CopyVectors(const CudaRuntime& cudart, const GPUTensor<float>& X, const size_t strideX, GPUTensor<float>& Y, const size_t strideY);
 

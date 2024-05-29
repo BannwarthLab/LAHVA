@@ -19,6 +19,8 @@ namespace tcgmtensor{
     void CopyVectors(const Tensor<float>& X, Tensor<float>& Y);
     void CopyVectors(const Tensor<double>& X, const size_t strideX, Tensor<double>& Y, const size_t strideY);
     void CopyVectors(const Tensor<float>& X, const size_t strideX, Tensor<float>& Y, const size_t strideY);
+    void CopyVectors(const Tensor<float>& X, Tensor<double>& Y);
+    void CopyVectors(const Tensor<double>& X, Tensor<float>& Y);
 
     void SwapVectors(Tensor<double>& X, Tensor<double>& Y);
     void SwapVectors(Tensor<float>& X, Tensor<float>& Y);

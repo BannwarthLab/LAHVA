@@ -76,7 +76,7 @@ namespace tcgmtensor
     template <typename T>
     class GPUTensor : public Tensor<T>
     {
-    }
+    };
 #endif
 } // namespace tcgmtensor
 

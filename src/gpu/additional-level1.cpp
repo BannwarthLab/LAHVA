@@ -1,4 +1,5 @@
 #include "impl/gpu/additional-level1.hpp"
+#include "impl/gpu/level1.hpp"
 #include "custom-kernel/hadamard.h"
 #include "../gpu-utils/utils.hpp"
 
@@ -32,7 +33,6 @@ namespace tcgmtensor{
             check_device_alloc(cudart, vecin);
             check_device_alloc(cudart, vecout);
 
-
             dHadamardcopy(cudart, vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size());            
         }
 
@@ -43,10 +43,8 @@ namespace tcgmtensor{
             check_device_alloc(cudart, vecin);
             check_device_alloc(cudart, vecout);
 
-
             sHadamardcopy(cudart, vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size());            
         }
-
 
     } // namespace gpu
 }   

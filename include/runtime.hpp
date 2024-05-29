@@ -1,5 +1,8 @@
 #ifndef TCGMBLAS_GPU_RUNTIME_HPP
 #define TCGMBLAS_GPU_RUNTIME_HPP
+
+#pragma warning(disable:2282)
+#pragma warning(disable:815 858) 
 #include <cuda_runtime.h>
 #include <cublas_v2.h>
 #include <cmath>

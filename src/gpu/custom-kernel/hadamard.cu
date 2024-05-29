@@ -1,8 +1,6 @@
-#include <cuda_runtime.h>
-#include "cublas_v2.h"
 #include <math.h>
 #include "hadamard.h"
-#include "runtime.hpp"
+
 namespace tcgmtensor{
   namespace gpu{
 

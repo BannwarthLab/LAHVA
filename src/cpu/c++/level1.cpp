@@ -101,7 +101,26 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         CopyVectors(x.size(), x.data(), y.data());
     }
+    
+    void CopyVectors(const Tensor<float>& x, Tensor<double>& y) 
+    {
+        
+        #pragma omp for 
+        for (size_t i = 0; i < x.size() ; i++ )
+        {
+            y.data()[i] = static_cast<double>(x.data()[i]);
+        }
+    }
 
+    void CopyVectors(const Tensor<double>& x, Tensor<float>& y) 
+    {
+        
+        #pragma omp for 
+        for (size_t i = 0; i < x.size() ; i++ )
+        {
+            y.data()[i] = static_cast<float>(x.data()[i]);
+        }
+    }
 
     /*! Simple interface to DCOPY \f$\vec{y}=\vec{x}\f$ for specified stride
         \param[in] x \f$\vec{x}\f$
@@ -123,6 +142,8 @@ namespace tcgmtensor{
     void CopyVectors(const Tensor<float>& x, size_t ix, Tensor<float>& y, size_t iy) {
         CopyVectors(x.size(), x.data(), ix, y.data(), iy);
     }
+
+    
 
     //Swap routines////////////////////////////////////////////////////////////////////
 

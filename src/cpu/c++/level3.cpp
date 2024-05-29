@@ -66,7 +66,6 @@ namespace tcgmtensor
     void SymMatrixMatrixProduct(const CBLAS_SIDE side, const double alpha, const Matrix<double>& a, const Matrix<double>& b,
                                 const double beta, Matrix<double>& c)
     {
-        CPUTimer timer;
         auto [m, n, k] = check_size_mm(a, b, c);
         BLAS_INT lda = get_leading(m, k);
         BLAS_INT ldb = get_leading(k, n);
