@@ -62,14 +62,14 @@ namespace tcgmtensor
     void get_cuda_ERROR(cudaError_t stat, const char* file, int line) {
         if (stat != cudaSuccess) {
             std::cerr << "CUDA Error: " << cudaGetErrorString(stat) << std::endl << "In File: "<< file << " at line: " << std::to_string(line)<< std::endl;
-            throw;
+            throw std::runtime_error("CUDA Error");
         }
     }
 
     void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line) {
         if (stat != CUBLAS_STATUS_SUCCESS) {
             std::cerr << "CUBLAS Error: " << cublasGetStatusString(stat) << std::endl << "In File: "<< file << " at line: " << std::to_string(line)<< std::endl;
-            throw;
+            throw std::runtime_error("CUBLAS Error");
         }
     }
 
@@ -77,7 +77,7 @@ namespace tcgmtensor
         cublasStatus_t stat;
         cudaError_t stat_;
         stat_ = cudaSetDevice(cudaDevice);
-        get_cuda_error(stat_);
+        get_cuda_error(stat_); 
         stat = cublasCreate(&handle);
         get_cublas_error(stat);
         stat = cublasGetVersion(handle, &version);
@@ -87,6 +87,17 @@ namespace tcgmtensor
     void CudaRuntime::print_cuda_version(){
         std::cout << "Cuda version in use: " << std::to_string(version) << std::endl;
     };
+
+    void CudaRuntime::enableAsyncCopy()
+    {
+        async_ = true;
+
+    }
+
+    void CudaRuntime::createStream()
+    {
+        get_cuda_error(cudaStreamCreateWithFlags(&stream_, streamFlag_));
+    }  
 
 } // namespace tgmctensor
 
