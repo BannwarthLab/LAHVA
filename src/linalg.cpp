@@ -239,9 +239,9 @@ void Matrix<T>::set_diagonal(Vector<T>& diag)
     stat_ = cudaSetDevice(cudart.device_id());
     get_cuda_error(stat_);
     this->device_ptr_.reset(allocate<T>(this->size()));
-    if (cudart_.asyncCopy())
+    if (cudart.asyncCopy())
     {
-      cudaError_t stat = cudaMemcpyAsync(this->device_ptr_.get(), this->data(), this->size()*sizeof(T), cudaMemcpyHostToDevice, cudart_.getStream());
+      cudaError_t stat = cudaMemcpyAsync(this->device_ptr_.get(), this->data(), this->size()*sizeof(T), cudaMemcpyHostToDevice, cudart.getStream());
       get_cuda_error(stat);
     }
     else
@@ -263,9 +263,9 @@ void Matrix<T>::set_diagonal(Vector<T>& diag)
     cudaError_t stat_;
     stat_ = cudaSetDevice(cudart.device_id());
     get_cuda_error(stat_);
-     if (cudart_.asyncCopy())
+     if (cudart.asyncCopy())
     {
-      stat_ = cudaMemcpyAsync(this->data(), this->device_ptr_.get(), this->size()*sizeof(T), cudaMemcpyDeviceToHost, cudart_.getStream());
+      stat_ = cudaMemcpyAsync(this->data(), this->device_ptr_.get(), this->size()*sizeof(T), cudaMemcpyDeviceToHost, cudart.getStream());
     }
     else
     {

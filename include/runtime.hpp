@@ -12,6 +12,10 @@
 #define get_cublas_error(arg) get_cublas_ERROR(arg, __FILE__, __LINE__);
 
 namespace tcgmtensor{
+    
+    void get_cuda_ERROR(cudaError_t stat, const char * file, int line);
+    void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line);
+    
     class CudaRuntime {
     protected:
         int cudaDevice = -1;
@@ -30,6 +34,7 @@ namespace tcgmtensor{
         ~CudaRuntime();
 
         bool asyncCopy() {return async_;};
+        bool asyncCopy() const {return async_;};
         cublasHandle_t handle = nullptr;
         void print_cuda_version();
         void enableAsyncCopy();
@@ -39,11 +44,11 @@ namespace tcgmtensor{
         inline int blockSize() const {return blockSize_;};
         inline int gridSize(size_t base, size_t exp) const {return (int)ceil((float)std::pow(base, exp)/blockSize_);};
         size_t get_GPU_wmaxMem();
-        cudaStream_t getStream() {return stream;}
-        void synchronize() {get_cuda_error(cudaDeviceSynchronize();)}
+        cudaStream_t getStream() {return stream_;}
+        cudaStream_t getStream() const {return stream_;}
+        void synchronize() {get_cuda_error(cudaDeviceSynchronize());}
     };
 
-    void get_cuda_ERROR(cudaError_t stat, const char * file, int line);
-    void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line);
+    
 }
 #endif

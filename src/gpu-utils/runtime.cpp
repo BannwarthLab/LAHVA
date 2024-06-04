@@ -13,7 +13,7 @@ namespace tcgmtensor
     };
 
     CudaRuntime::~CudaRuntime() {
-        if (stream != nullptr) cudaStreamDestroy(stream);
+        if (stream_ != nullptr) cudaStreamDestroy(stream_);
         if (handle != nullptr) cublasDestroy(handle);
         cudaDeviceReset();
     };

@@ -27,7 +27,8 @@ if gpu == true
   cudast = import('unstable-cuda')
   add_project_arguments(['-use_fast_math', '-gencode=arch=compute_86,code=sm_86', '-gencode=arch=compute_75,code=sm_75', '--allow-unsupported-compiler', '-ccbin', '/mnt/group-lib/intel_oneAPI/compiler/2023.2.0/linux/bin/intel64/icpc'], language: 'cuda')
   lib_deps += cuda
-  add_project_arguments(['-D_CUDA', '-DW_MKL'], language: ['cuda', 'cpp'])
+  add_project_arguments(['-D_CUDA'], language: ['cuda', 'cpp'])
+  add_project_arguments(['-diag-disable=2282'], language: ['cpp'])
 endif
 
 
