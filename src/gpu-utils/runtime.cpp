@@ -8,14 +8,13 @@ namespace tcgmtensor
 {
     CudaRuntime::CudaRuntime() 
     {  
-
         createHandle();
     };
 
     CudaRuntime::~CudaRuntime() {
-        if (stream_ != nullptr) cudaStreamDestroy(stream_);
-        if (handle != nullptr) cublasDestroy(handle);
-        cudaDeviceReset();
+        if (stream_ != nullptr) get_cuda_error(cudaStreamDestroy(stream_));
+        if (handle != nullptr) get_cublas_error(cublasDestroy(handle));
+        //cudaDeviceReset();
     };
 
     size_t CudaRuntime::get_GPU_wmaxMem()
@@ -91,7 +90,7 @@ namespace tcgmtensor
     void CudaRuntime::enableAsyncCopy()
     {
         async_ = true;
-
+        createStream();
     }
 
     void CudaRuntime::createStream()

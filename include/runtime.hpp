@@ -7,46 +7,107 @@
 #include <cublas_v2.h>
 #include <cmath>
 #define THREADS_PER_BLOCK 512
-
+//Macro to get the line and file throwing cuda runtime errors
 #define get_cuda_error(arg) get_cuda_ERROR(arg, __FILE__, __LINE__);
+//Macro to get the line and file throwing cublas runtim errors
 #define get_cublas_error(arg) get_cublas_ERROR(arg, __FILE__, __LINE__);
 
 namespace tcgmtensor{
     
+    /// @brief get error string for cuda runtime
+    /// @param stat error ID
+    /// @param file File in which error is raised
+    /// @param line Line in which error is raised
     void get_cuda_ERROR(cudaError_t stat, const char * file, int line);
+     /// @brief get error string for cublas runtime
+    /// @param stat error ID
+    /// @param file File in which error is raised
+    /// @param line Line in which error is raised
     void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line);
     
+    /// @brief cudaRuntime object, stream and Device and cublas Handle
     class CudaRuntime {
     protected:
-        int cudaDevice = -1;
+        /// @brief cudaDevice ID defaults to 1
+        int cudaDevice = 0;
+        /// @brief cuda Stream for asynchronous tasks
         cudaStream_t stream_ = 0;
-        bool async_;
+        /// @brief flag to do memCopyAsync
+        bool async_ = false;
+        /// @brief store version number of cuda library
         int version = 0;
+        /// @brief streamFlag used when creating stream
         unsigned int streamFlag_ = cudaStreamDefault;
+        /// @brief create cublasHandle
         void createHandle();
+        /// @brief create Stream
         void createStream();
+        /// @brief blocksize used for launching kernels
         int blockSize_ = THREADS_PER_BLOCK;
     public:
+        /// @brief cublas Handle
+        cublasHandle_t handle = nullptr;
         
+        /// @brief default constructor not checking memory request
         CudaRuntime();
+        /// @brief Constructor checking memory request via tensor size
+        /// @param max_dim maximum dimension of tensor
+        /// @param n_mat number of amtrcies
         CudaRuntime(size_t max_dim, size_t n_mat);
+        /// @brief Constructor checking memory request via number of bytes needed
+        /// @param requestedMem hnumber of bytes needed for computation
         CudaRuntime(size_t requestedMem);
+        /// @brief Destructor, destroying stream and handle if associated
         ~CudaRuntime();
 
+        //%TODO move and copy Constructor
+
+        /// @brief check if runtime is setup for async task
+        /// @return true if a stream is created
         bool asyncCopy() {return async_;};
+        /// @brief check if runtime is setup for async task
+        /// @return true if a stream is created
         bool asyncCopy() const {return async_;};
-        cublasHandle_t handle = nullptr;
+        /// @brief print cuda library version to stdout
         void print_cuda_version();
+        /// @brief set internal async falg to true and createStream
         void enableAsyncCopy();
+        
+        /// @brief get CUDA Device ID
+        /// @return CUDA device id
         inline size_t device_id() {return cudaDevice;};
+        /// @brief get CUDA Device ID
+        /// @return CUDA device id
         const inline size_t device_id() const {return cudaDevice;};
+
+        /// @brief Change block size
+        /// @param blockSize new block size
         inline void setblockSize(int blockSize) {blockSize_ = blockSize;}
+        /// @brief get blocksize
+        /// @return blocksize for Kernel execution
         inline int blockSize() const {return blockSize_;};
+
+        /// @brief determine gridSIze based on blocksize and Tensor dimensions
+        /// @param base Tensor length as 1D
+        /// @param exp dimension of Tensor
+        /// @return grid Size for Kernel excution
         inline int gridSize(size_t base, size_t exp) const {return (int)ceil((float)std::pow(base, exp)/blockSize_);};
+        
+        /// @brief get device id of GPU with maximum working memory
+        /// @return device ID of GPU with max memory
         size_t get_GPU_wmaxMem();
+        
+        /// @brief get async. stream
+        /// @return CUDA stream
         cudaStream_t getStream() {return stream_;}
         cudaStream_t getStream() const {return stream_;}
-        void synchronize() {get_cuda_error(cudaDeviceSynchronize());}
+        
+        /// @brief synchronize device after async. operations
+        void synchronize() 
+        {
+            get_cuda_error(cudaDeviceSynchronize());
+            get_cuda_error(cudaStreamSynchronize(stream_));    
+        }
     };
 
     

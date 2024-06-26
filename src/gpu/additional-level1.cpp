@@ -46,5 +46,25 @@ namespace tcgmtensor{
             sHadamardcopy(cudart, vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size());            
         }
 
+        template<>
+        void Hadamard<double>(const CudaRuntime& cudart, const Matrix<double>& vecin, const Vector<double>& vecin2, Matrix<double>& vecout)
+        {
+            check_device_alloc(cudart, vecin2);
+            check_device_alloc(cudart, vecin);
+            check_device_alloc(cudart, vecout);
+
+            dHadamardcopy(cudart, vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size(), vecin2.size());            
+        }
+
+        template<>
+        void Hadamard<float>(const CudaRuntime& cudart, const Matrix<float>& vecin, const Vector<float>& vecin2, Matrix<float>& vecout)
+        {
+            check_device_alloc(cudart, vecin2);
+            check_device_alloc(cudart, vecin);
+            check_device_alloc(cudart, vecout);
+
+            sHadamardcopy(cudart, vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size(), vecin2.size());            
+        }
+
     } // namespace gpu
 }   

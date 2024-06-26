@@ -39,6 +39,8 @@ class Vector : virtual public std::vector<T>, virtual public GPUTensor<T>{
     //Vector( Vector&& other ) : std::Vector<T>::Vector(other) {};
     Vector( std::initializer_list<T> init,
         const Allocator& alloc = Allocator() ) : std::vector<T>::vector(init, alloc) {};
+    Vector(size_type count, T* ptr);
+    Vector(size_type count, const T *ptr);
     ~Vector();
     Vector& operator=(const Vector& other) {
       if (this != &other)
@@ -203,6 +205,8 @@ class Matrix :  public GPUTensor<T> {
     void set_diagonal(Vector<T>& diag);
 
     void symmetrize();
+
+    bool ownsData() {return is_owner_;};
 
 };
 
