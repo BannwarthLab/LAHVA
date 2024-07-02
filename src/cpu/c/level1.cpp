@@ -37,7 +37,13 @@ namespace tcgmtensor{
     return cblas_sdot(nXY, X, incx, Y, incy);
     }
 
-    // strided Vector product
+    /// @brief take inner vector product 
+    /// @param nelemXY number of elements in the vectors
+    /// @param X pointer to X values
+    /// @param strideX stride in X
+    /// @param Y pointer to Y values
+    /// @param strideY stride in Y
+    /// @return inner product of X and Y
     double InnerVectorProduct(const size_t nelemXY, const double* X, const size_t strideX, const double* Y, const size_t strideY)
     {
     if(nelemXY == 0) return 0.0;
@@ -47,6 +53,13 @@ namespace tcgmtensor{
     return cblas_ddot(nXY, X, incx, Y, incy);
     }
 
+    /// @brief take inner vector product 
+    /// @param nelemXY number of elements in the vectors
+    /// @param X pointer to X values
+    /// @param strideX stride in X
+    /// @param Y pointer to Y values
+    /// @param strideY stride in Y
+    /// @return inner product of X and Y
     float InnerVectorProduct(const size_t nelemXY, const float* X, const size_t strideX, const float* Y, const size_t strideY)
     {
     if(nelemXY == 0) return 0.0;
