@@ -68,7 +68,7 @@ namespace tcgmtensor
         inline bool alloc_on_device() const { return this->is_on_device_; };
         const T *gpu_data() const { return device_ptr_.get(); };
         T *gpu_data() { return device_ptr_.get(); };
-        void release_gpu_ptr() { device_ptr_.release(); };
+        void release_gpu_ptr() { device_ptr_.reset(); };
         virtual void copyGPUTensor(const GPUTensor<T> &other);
         virtual void moveGPUTensor(GPUTensor<T> &&other);
     };
