@@ -31,6 +31,31 @@ namespace tcgmtensor{
     void ScaleVector(const float a, Tensor<float>& x);
     void ScaleVector(const double a, Tensor<double>& x, size_t ix);
     void ScaleVector(const float a, Tensor<float>& x, size_t ix);
+    
+    template<typename... Args>
+    void InnerVectorProduct(const CPURuntime& rt_, Args&&... args) {
+        (InnerVectorProduct(args...));                    
+    }
+
+    template<typename... Args>
+    void AddVectors(const CPURuntime& rt_, Args&&... args) {
+        (AddVectors(args...));                
+    }
+
+    template<typename... Args>
+    void CopyVectors(const CPURuntime& rt_, Args&&... args) {
+        (CopyVectors(args...));                
+    }
+
+    template<typename... Args>
+    void SwapVectors(const CPURuntime& rt_, Args&&... args) {
+        (SwapVectors(args...));                
+    }
+    
+    template<typename... Args>
+    void ScaleVector(const CPURuntime& rt_, Args&&... args) {
+        (ScaleVector(args...));                
+    }
     }
 } 
 

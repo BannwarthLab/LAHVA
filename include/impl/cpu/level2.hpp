@@ -31,11 +31,27 @@ namespace tcgmtensor{
                              const size_t incx, const float beta, Vector<float>& y, const size_t incy);
     void SymMatrixVectorProduct(const LowTriMatrix<float>& a, const Vector<float>& x, Vector<float>& y,
                              const float alpha = 1.0, const float beta = 0.0, const size_t incx = 1, const size_t incy = 1);
-
+    
     void LowTriMatrixVectorProduct(const char* T, const CBLAS_DIAG unit, const LowTriMatrix<double>& a, Vector<double>& x, const size_t incx);
     void LowTriMatrixVectorProduct(const LowTriMatrix<double>& a, Vector<double>& x, const char* T = "N", const CBLAS_DIAG unit = CblasNonUnit, const size_t incx = 1);
     void LowTriMatrixVectorProduct(const char* T, const CBLAS_DIAG unit, const LowTriMatrix<float>& a, Vector<float>& x, const size_t incx);
     void LowTriMatrixVectorProduct(const LowTriMatrix<float>& a, Vector<float>& x, const char* T = "N", const CBLAS_DIAG unit = CblasNonUnit, const size_t incx = 1);
+    
+    template<typename... Args>
+    void LowTriMatrixVectorProduct(const CPURuntime& rt_, Args&&... args) {
+        (LowTriMatrixVectorProduct(args...));                    
+    }
+
+    template<typename... Args>
+    void MatrixVectorProduct(const CPURuntime& rt_, Args&&... args) {
+        (MatrixVectorProduct(args...));                
+    }
+
+    template<typename... Args>
+    void SymMatrixVectorProduct(const CPURuntime& rt_, Args&&... args) {
+        (SymMatrixVectorProduct(args...));                  
+    }
+    
     }
 } 
 

@@ -4,11 +4,6 @@
 #include "const.h"
 
 namespace tcgmtensor{
-    class CPURuntime
-    {
-
-    };
-
     namespace cpu {
     void MatrixMatrixProduct(const char* Ta, const char* Tb, const double alpha, const Matrix<double>& a, const Matrix<double>& b,
                              const double beta, Matrix<double>& c);
@@ -27,6 +22,17 @@ namespace tcgmtensor{
                                 const float beta, Matrix<float>& c);
     void SymMatrixMatrixProduct(const Matrix<float>& a, const Matrix<float>& b, Matrix<float>& c,
                                 const float alpha = 1.0 , const float beta = 0.0, const CBLAS_SIDE side = CblasLeft);
+    
+    template<typename... Args>
+    void MatrixMatrixProduct(const CPURuntime& rt_, Args&&... args) {
+        (MatrixMatrixProduct(args...));                
+    }
+
+    template<typename... Args>
+    void SymMatrixMatrixProduct(const CPURuntime& rt_, Args&&... args) {
+        (SymMatrixMatrixProduct(args...));                  
+    }
+
 
     }
 }

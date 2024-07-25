@@ -2,7 +2,8 @@
 #include "../../utils/utils.hpp"
 namespace tcgmtensor
 {
-    namespace cpu{
+    namespace cpu{ 
+    
     void MatrixMatrixProduct(const char* Ta, const char* Tb, const double alpha, const Matrix<double>& a, 
                              const Matrix<double>& b, const double beta, Matrix<double>& c)
     {

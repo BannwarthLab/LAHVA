@@ -66,5 +66,13 @@ namespace tcgmtensor{
             sHadamardcopy(cudart, vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size(), vecin2.size());            
         }
 
+        template<>
+        float FrobeniusNorm(const CudaRuntime& cudart, const Matrix<float>& mat)
+        {
+            check_device_alloc(cudart, mat);
+
+            return sFrobenius(cudart, mat.gpu_data());
+        }
+
     } // namespace gpu
 }   

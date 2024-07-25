@@ -4,7 +4,8 @@
 #pragma warning(disable:2282)
 #pragma warning(disable:815 858) 
 #include <cuda_runtime.h>
-#include <cublas_v2.h>
+#include "const.h"
+//#include <cublas_v2.h>
 #include <cmath>
 #define THREADS_PER_BLOCK 512
 //Macro to get the line and file throwing cuda runtime errors
@@ -26,7 +27,7 @@ namespace tcgmtensor{
     void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line);
     
     /// @brief cudaRuntime object, stream and Device and cublas Handle
-    class CudaRuntime {
+    class CudaRuntime : public BLASRuntime {
     protected:
         /// @brief cudaDevice ID defaults to 1
         int cudaDevice = 0;
@@ -108,6 +109,7 @@ namespace tcgmtensor{
             get_cuda_error(cudaDeviceSynchronize());
             get_cuda_error(cudaStreamSynchronize(stream_));    
         }
+
     };
 
     

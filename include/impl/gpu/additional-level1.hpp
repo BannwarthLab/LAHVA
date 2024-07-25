@@ -18,6 +18,8 @@ namespace tcgmtensor{
         double ComputeTrace(const CudaRuntime& cudart, const Vector<double>& diag);
         template<typename T>
         void SymmetrizeMatrix(const CudaRuntime& cudart, Matrix<T>&);
+        template<typename T>
+        T FrobeniusNorm(const CudaRuntime& cudart, const Matrix<T>& mat);
 
     } // namespace gpu
     
