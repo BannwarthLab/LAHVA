@@ -13,6 +13,9 @@ namespace tcgmtensor{
 
         template<typename T>
         T FrobeniusNorm(const Matrix<T>& mat);
+        template<typename T>
+        T FrobeniusNorm(const CPURuntime& cudart, const Matrix<T>& mat);
+        
     } // namespace gpu
     
 }   
