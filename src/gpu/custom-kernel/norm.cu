@@ -1,10 +1,11 @@
 #include "impl/gpu/additional-level1.hpp"
+#include "../../gpu-utils/utils.hpp"
 
 namespace tcgmtensor
 {
     namespace gpu
     {
-        __global__ static void sFrobenius(const unsigned long long ndim, const float* mat, const float* sum)
+        __global__ static void sFrobenius(const unsigned long long ndim, const float* mat, float* sum)
         {
             unsigned long long tid = threadIdx.x;
             unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -37,7 +38,7 @@ namespace tcgmtensor
                 sum[blockIdx.x] = temp[0]; 
         }
 
-        __global__ static void dFrobenius(const unsigned long long ndim, const double* mat, const double* sum)
+        __global__ static void dFrobenius(const unsigned long long ndim, const double* mat, double* sum)
         {
             unsigned long long tid = threadIdx.x;
             unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -89,7 +90,7 @@ namespace tcgmtensor
         {
             check_device_alloc(cudart, mat);
             int gridS = cudart.gridSize(mat.size(), 1);
-            Vector<float> vec(gridS);
+            Vector<double> vec(gridS);
             vec.copy2device(cudart);
 
             dFrobenius<<<gridS, cudart.blockSize()>>>(mat.shape().first, mat.gpu_data(), vec.gpu_data());
