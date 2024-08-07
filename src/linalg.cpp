@@ -18,10 +18,88 @@ namespace tcgmtensor
     ///////////////////////////////////////////////////////////////////////////
     // Vector class
     ///////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    Vector<T>::Vector( size_type count ) : n_entries_{count}, data_{new T(count)}
+    {   
+    };
+
+    template<typename T>
+    Vector<T>::Vector( size_type count, const T& value) : Vector{count}
+    {
+        std::fill(data_, data_ + count, value);
+    };
+
+    template<typename T>
+    Vector<T>::Vector(size_type count, T* ptr, bool take_ownership) : 
+    n_entries_{count}, data_{ptr}, is_owner_{take_ownership}
+    {
+
+    };
+
+    template <typename T>
+    Vector<T>::Vector(size_type count, const T *ptr) : Vector{count}
+    {   
+        std::copy(ptr, ptr + count, data_);
+    };
+
+    
+    template <typename T>
+    Vector<T>::Vector(const Vector& x) : Vector{x.size()}
+    {
+        std::copy(x.data(), x.data() + x.size(), data_);
+    };
+    
+    
+    template <typename T>
+    Vector<T> &Vector<T>::operator=(const Vector& other) {
+    if (this != &other)
+    {
+        if (this->is_owner_) delete[] data_;
+        data_ = new T[other.size()];
+        is_owner_ = true;
+        n_entries_ = other.size();
+        std::copy(other.data(), other.data() + other.size(), data_);
+        
+        if (this->device_ptr_) this->device_ptr_.reset(allocate<T>(this->size()));
+      }
+      return *this;
+      };
+    
+    template <typename T>
+    Vector<T> &Vector<T>::operator=(Vector&& other) 
+    {
+        if (this != &other)
+        {
+        this->data_ = other.data_;
+
+        if (n_entries_ == other.size())
+        {
+            this->device_ptr_ = std::move(other.device_ptr_);
+            this->is_on_device_ = other.is_on_device_;
+        }
+        else
+        {
+            this->device_ptr_.reset();
+            this->is_on_device_ = false;
+        }
+    
+        other.data_ = nullptr;
+        other.n_entries_ = 0;
+        this->is_owner_ = other.is_owner_;
+
+        other.is_owner_ = false;
+        other.is_on_device_ = false;
+        }
+        return *this;
+    };
+    
 
     template <typename T>
     Vector<T>::~Vector(){
-
+        if (is_owner_)
+        {
+            delete[] data_;
+        }
     };
 
     template <typename T>
@@ -34,17 +112,9 @@ namespace tcgmtensor
         }
     }
 
-    template <typename T>
-    Vector<T>::Vector(size_type count, T *ptr) : std::vector<T>::vector(count)
-    {
-        this->assign(ptr, ptr + count);
-    }
+    
 
-    template <typename T>
-    Vector<T>::Vector(size_type count, const T *ptr) : std::vector<T>::vector(count)
-    {   
-        std::copy(ptr, ptr + count, this->data());
-    }
+    
 
     ///////////////////////////////////////////////////////////////////////////
     // Matrix class
@@ -95,10 +165,10 @@ namespace tcgmtensor
 
     template <typename T>
     Matrix<T>::Matrix(const tcgmtensor::Vector<tcgmtensor::Vector<T>> &data) : n_rows_{(uint)(data.size())},
-                                                                               n_cols_{(uint)(data.at(0).size())},
+                                                                               n_cols_{(uint)(data[0].size())},
                                                                                data_{new T[data_size_(n_rows_, n_cols_)]}
     {
-        check_size_(data.size(), data.at(0).size());
+        check_size_(data.size(), data[0].size());
 
         for (uint i = 0; i < n_rows_; i++)
         {
@@ -164,7 +234,7 @@ namespace tcgmtensor
         }
         else
         {
-            this->device_ptr_.release();
+            this->device_ptr_.reset();
             this->is_on_device_ = false;
         }
     
@@ -199,7 +269,7 @@ namespace tcgmtensor
             }
             else
             {
-                this->device_ptr_.release();
+                this->device_ptr_.reset();
                 this->is_on_device_ = false;
             }
             other.is_on_device_ = false;
@@ -271,10 +341,10 @@ namespace tcgmtensor
     Vector<T> Matrix<T>::get_diagonal() const
     {
         size_t min_dim = std::min(n_cols_, n_rows_);
-        Vector<T> diag;
+        Vector<T> diag(min_dim);
         for (size_t i = 0; i < min_dim; i++)
         {
-            diag.push_back(data_[data_id_(i, i)]);
+            diag[i] = (data_[data_id_(i, i)]);
         }
 
         return diag;
@@ -470,7 +540,7 @@ namespace tcgmtensor
 
         for (size_t i = 0; i < min_dim; i++)
         {
-            diag.push_back(data_[data_id_(i, i)]);
+            diag[i] = (data_[data_id_(i, i)]);
         }
 
         return diag;

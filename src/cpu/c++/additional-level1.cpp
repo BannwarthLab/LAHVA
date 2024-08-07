@@ -50,8 +50,13 @@ namespace tcgmtensor
         template<typename T>
         T FrobeniusNorm(const CPURuntime& rt, const Matrix<T>& mat)
         {
-            FrobeniusNorm(mat);
+            return FrobeniusNorm(mat);
         };
+
+        template float FrobeniusNorm<float>(const Matrix<float>& mat);
+        template double FrobeniusNorm<double>(const Matrix<double>& mat);
+        template double FrobeniusNorm<double>(const CPURuntime& rt, const Matrix<double>& mat);
+        template float FrobeniusNorm<float>(const CPURuntime& rt, const Matrix<float>& mat);
 
     } // namespace cpu
     

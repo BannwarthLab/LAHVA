@@ -43,6 +43,7 @@ namespace tcgmtensor
         {
             void operator()(T *ptr)
             {
+                std::cout << "Calling the deleter." << std::endl; 
                 if (ptr != nullptr)
                 {
                     cudaError_t cuda_error = (cudaFree(ptr));
@@ -80,7 +81,7 @@ namespace tcgmtensor
         size_t bytes = 0;
 
         bytes = count * sizeof(T);
-
+        std::cout << "Calling allocator" << count << " " << sizeof(T) << std::endl;
         cudaError_t istat = cudaMalloc((void **)&ptr, bytes);
         get_cuda_error(istat);
         return ptr;
