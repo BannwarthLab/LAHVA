@@ -19,7 +19,7 @@ namespace tcgmtensor
     // Vector class
     ///////////////////////////////////////////////////////////////////////////
     template<typename T>
-    Vector<T>::Vector( size_type count ) : n_entries_{count}, data_{new T(count)}
+    Vector<T>::Vector( size_type count ) : n_entries_{count}, data_{new T[count]}
     {   
     };
 
