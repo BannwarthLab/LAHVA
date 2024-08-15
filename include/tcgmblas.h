@@ -3,5 +3,6 @@
 #include "impl/cpu/level1.h"
 #include "impl/cpu/level2.h"
 #include "impl/cpu/level3.h"
+#include "impl/cpu/lapack.h"
 
 #endif
