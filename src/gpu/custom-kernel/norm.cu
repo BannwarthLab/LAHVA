@@ -5,18 +5,19 @@ namespace tcgmtensor
 {
     namespace gpu
     {
-        __global__ static void sFrobenius(const unsigned long long ndim, const float* mat, float* sum)
+        __global__ static void sFrobenius(const unsigned long long size, const float* mat, float* sum)
         {
             unsigned long long tid = threadIdx.x;
             unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
-            __shared__ float temp[THREADS_PER_BLOCK];
+            extern __shared__ float temp[THREADS_PER_BLOCK];
             //due to the shared directive every block gets its own copy of tmp
             float tmp = 0.0;
-            while (id < ndim*ndim)
+            while (id < size)
             {
                 tmp += mat[id]*mat[id];
                 id += blockDim.x * gridDim.x;
             }
+            temp[tid] = 0;
             temp[tid] = tmp;
             __syncthreads();
 
@@ -38,14 +39,14 @@ namespace tcgmtensor
                 sum[blockIdx.x] = temp[0]; 
         }
 
-        __global__ static void dFrobenius(const unsigned long long ndim, const double* mat, double* sum)
+        __global__ static void dFrobenius(const unsigned long long size, const double* mat, double* sum)
         {
             unsigned long long tid = threadIdx.x;
             unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
             __shared__ double temp[THREADS_PER_BLOCK];
             //due to the shared directive every block gets its own copy of tmp
             double tmp = 0.0;
-            while (id < ndim*ndim)
+            while (id < size)
             {
                 tmp += mat[id]*mat[id];
                 id += blockDim.x * gridDim.x;
@@ -72,28 +73,30 @@ namespace tcgmtensor
         }
 
         template<>
-        float FrobeniusNorm(const CudaRuntime& cudart, const Matrix<float>& mat)
+        float FrobeniusNorm(const CudaRuntime& cudart, const GPUTensor<float>& mat)
         {
             check_device_alloc(cudart, mat);
             int gridS = cudart.gridSize(mat.size(), 1);
-            Vector<float> vec(gridS);
+            Vector<float> vec(gridS, 0.0);
             vec.copy2device(cudart);
-
-            sFrobenius<<<gridS, cudart.blockSize()>>>(mat.shape().first, mat.gpu_data(), vec.gpu_data());
+            sFrobenius<<<gridS, cudart.blockSize()>>>(mat.size(), mat.gpu_data(), vec.gpu_data());
+            vec.copy2host(cudart);
             float norm = vec.sum();
             
             return std::sqrt(norm);
         }
 
         template<>
-        double FrobeniusNorm(const CudaRuntime& cudart, const Matrix<double>& mat)
+        double FrobeniusNorm(const CudaRuntime& cudart, const GPUTensor<double>& mat)
         {
             check_device_alloc(cudart, mat);
             int gridS = cudart.gridSize(mat.size(), 1);
-            Vector<double> vec(gridS);
+            Vector<double> vec(gridS, 0.0);
             vec.copy2device(cudart);
 
-            dFrobenius<<<gridS, cudart.blockSize()>>>(mat.shape().first, mat.gpu_data(), vec.gpu_data());
+            dFrobenius<<<gridS, cudart.blockSize()>>>(mat.size(), mat.gpu_data(), vec.gpu_data());
+            
+            vec.copy2host(cudart);
             double norm = vec.sum();
             
             return std::sqrt(norm);

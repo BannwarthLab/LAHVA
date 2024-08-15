@@ -12,10 +12,15 @@ namespace tcgmtensor{
         double ComputeTrace(const CPURuntime& cudart, const Vector<double>& diag);
 
         template<typename T>
-        T FrobeniusNorm(const Matrix<T>& mat);
+        T FrobeniusNorm(const Tensor<T>& mat);
         template<typename T>
-        T FrobeniusNorm(const CPURuntime& cudart, const Matrix<T>& mat);
-        
+        T FrobeniusNorm(const CPURuntime& cudart, const Tensor<T>& mat);
+
+        template<typename T>
+        void GetDiagonal(const CPURuntime& cudart, const Matrix<T>& mat, Vector<T>& vec);
+
+        template<typename T>
+        void SetDiagonal(const CPURuntime& cudart, const Vector<T>& vec, Matrix<T>& m);  
     } // namespace gpu
     
 }   

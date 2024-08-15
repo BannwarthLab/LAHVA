@@ -43,7 +43,6 @@ namespace tcgmtensor
         {
             void operator()(T *ptr)
             {
-                std::cout << "Calling the deleter." << std::endl; 
                 if (ptr != nullptr)
                 {
                     cudaError_t cuda_error = (cudaFree(ptr));
@@ -79,9 +78,7 @@ namespace tcgmtensor
     {
         T *ptr = 0;
         size_t bytes = 0;
-
         bytes = count * sizeof(T);
-        std::cout << "Calling allocator" << count << " " << sizeof(T) << std::endl;
         cudaError_t istat = cudaMalloc((void **)&ptr, bytes);
         get_cuda_error(istat);
         return ptr;
@@ -101,7 +98,7 @@ namespace tcgmtensor
     class GPUTensor : public Tensor<T>
     {
         protected:
-            mutable std::unique_ptr<T, deleter> device_ptr_;
+            mutable std::unique_ptr<T> device_ptr_;
             mutable bool is_on_device_ = false;
         public:
             virtual void copyGPUTensor(const GPUTensor<T> &other) {};

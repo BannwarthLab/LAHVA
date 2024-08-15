@@ -19,8 +19,13 @@ namespace tcgmtensor{
         template<typename T>
         void SymmetrizeMatrix(const CudaRuntime& cudart, Matrix<T>&);
         template<typename T>
-        T FrobeniusNorm(const CudaRuntime& cudart, const Matrix<T>& mat);
+        T FrobeniusNorm(const CudaRuntime& cudart, const GPUTensor<T>& mat);
 
+        template<typename T>
+        void GetDiagonal(const CudaRuntime& cudart, const Matrix<T>& mat, Vector<T>& vec);
+
+        template<typename T>
+        void SetDiagonal(const CudaRuntime& cudart, const Vector<T>& vec, Matrix<T>& m);
     } // namespace gpu
     
 }   

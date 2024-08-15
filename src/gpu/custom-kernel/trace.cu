@@ -127,6 +127,7 @@ namespace tcgmtensor
                 matrix[id * ndim + jd] = 0.5 * (matrix[id * ndim + jd] + matrix[jd * ndim + id]);
             }
         }
+        
 
         // symmetrize matrix
         __global__ static void SymmetrizeMatrix(unsigned long long ndim, double *matrix)
@@ -139,7 +140,45 @@ namespace tcgmtensor
                 matrix[id * ndim + jd] = 0.5 * (matrix[id * ndim + jd] + matrix[jd * ndim + id]);
             }
         }
+        
+        __global__ static void dGetDiagonal(unsigned long long ndim, const double *matrix, double* diag)
+        {
+            unsigned long long id = threadIdx.x + blockIdx.x * blockDim.x;
+            
+            if (id < ndim)
+            {
+                diag[id] = matrix[id * ndim + id];
+            }
+        }
+         __global__ static void sGetDiagonal(unsigned long long ndim, const float *matrix, float* diag)
+        {
+            unsigned long long id = threadIdx.x + blockIdx.x * blockDim.x;
+            
+            if (id < ndim)
+            {
+                diag[id] = matrix[id * ndim + id];
+            }
+        }
 
+         __global__ static void dSetDiagonal(unsigned long long ndim, const double* diag, double *matrix)
+        {
+            unsigned long long id = threadIdx.x + blockIdx.x * blockDim.x;
+            
+            if (id < ndim)
+            {
+                matrix[id * ndim + id] = diag[id];
+            }
+        }
+         __global__ static void sSetDiagonal(unsigned long long ndim, const float* diag, float *matrix)
+        {
+            unsigned long long id = threadIdx.x + blockIdx.x * blockDim.x;
+            
+            if (id < ndim)
+            {
+                matrix[id * ndim + id] = diag[id];
+            }
+        }
+        
         // compute trace on GPU wrapper routine (FP64)
         template <>
         double ComputeTrace<double>(const CudaRuntime &cudart, const Matrix<double> &m, bool use_diag)
@@ -219,6 +258,46 @@ namespace tcgmtensor
             int gridS = cudart.gridSize(m.size(), 1);
             check_device_alloc(cudart, m);
             SymmetrizeMatrix<<<gridS, cudart.blockSize()>>>(m.shape().first, m.gpu_data()); // compute trace
+        }
+
+        template<>
+        void GetDiagonal<double>(const CudaRuntime& cudart, const Matrix<double>& m, Vector<double>& diag)
+        {
+            int gridS = cudart.gridSize(diag.size(), 1);
+            check_device_alloc(cudart, diag);
+            check_device_alloc(cudart, m);
+            dGetDiagonal<<<gridS, cudart.blockSize()>>>(diag.size(), m.gpu_data(), diag.gpu_data());
+
+        }
+        
+        template<>
+        void GetDiagonal<float>(const CudaRuntime& cudart, const Matrix<float>& m, Vector<float>& diag)
+        {
+            int gridS = cudart.gridSize(diag.size(), 1);
+            check_device_alloc(cudart, diag);
+            check_device_alloc(cudart, m);
+            sGetDiagonal<<<gridS, cudart.blockSize()>>>(diag.size(), m.gpu_data(), diag.gpu_data());
+
+        }
+
+        template<>
+        void SetDiagonal<double>(const CudaRuntime& cudart, const Vector<double>& diag, Matrix<double>& m)
+        {
+            int gridS = cudart.gridSize(diag.size(), 1);
+            check_device_alloc(cudart, diag);
+            check_device_alloc(cudart, m);
+            dSetDiagonal<<<gridS, cudart.blockSize()>>>(diag.size(), diag.gpu_data(), m.gpu_data());
+
+        }
+
+        template<>
+        void SetDiagonal<float>(const CudaRuntime& cudart, const Vector<float>& diag, Matrix<float>& m)
+        {
+            int gridS = cudart.gridSize(diag.size(), 1);
+            check_device_alloc(cudart, diag);
+            check_device_alloc(cudart, m);
+            sSetDiagonal<<<gridS, cudart.blockSize()>>>(diag.size(), diag.gpu_data(), m.gpu_data());
+
         }
 
     } // namespace Purification_kernel
