@@ -188,7 +188,7 @@ namespace tcgmtensor
 
     Vector<T> get_diagonal() const;
 
-    void set_diagonal(Vector<T> &diag);
+    void set_diagonal(const Vector<T> &diag);
 
     void symmetrize();
 
