@@ -14,7 +14,7 @@ namespace tcgmtensor{
             {
                 throw std::runtime_error("Failure in DGETRF");
             }
-            info = LAPCKE_dgetrs(l_major, T, n, nrhs, a, n, ipiv, b, n);
+            info = LAPACKE_dgetrs(l_major, *T, n, nrhs, a, n, ipiv, b, n);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRS");
@@ -32,7 +32,7 @@ namespace tcgmtensor{
             {
                 throw std::runtime_error("Failure in DGETRF");
             }
-            info = LAPCKE_dgetrs(l_major, T, n, nrhs, a, n, ipiv, b, n);
+            info = LAPACKE_dgetrs(l_major, *T, n, nrhs, a, n, ipiv, b, n);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRS");
@@ -51,7 +51,7 @@ namespace tcgmtensor{
             {
                 throw std::runtime_error("Failure in SGETRF");
             }
-            info = LAPCKE_sgetrs(l_major, T, n, nrhs, a, n, ipiv, b, n);
+            info = LAPACKE_sgetrs(l_major, *T, n, nrhs, a, n, ipiv, b, n);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SGETRS");
@@ -69,7 +69,7 @@ namespace tcgmtensor{
             {
                 throw std::runtime_error("Failure in SGETRF");
             }
-            info = LAPCKE_sgetrs(l_major, T, n, nrhs, a, n, ipiv, b, n);
+            info = LAPACKE_sgetrs(l_major, *T, n, nrhs, a, n, ipiv, b, n);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SGETRS");
