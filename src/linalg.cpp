@@ -71,7 +71,7 @@ namespace tcgmtensor
         if (this != &other)
         {
         this->data_ = other.data_;
-
+        
         if (n_entries_ == other.size())
         {
             this->device_ptr_ = std::move(other.device_ptr_);
@@ -82,7 +82,8 @@ namespace tcgmtensor
             this->device_ptr_.reset();
             this->is_on_device_ = false;
         }
-    
+
+        this->n_entries_ = other.n_entries_;
         other.data_ = nullptr;
         other.n_entries_ = 0;
         this->is_owner_ = other.is_owner_;
@@ -327,7 +328,7 @@ namespace tcgmtensor
         assert(n_cols_ == n_rows_);
 
         Matrix<T> copy = *this;
-        #pragma omp for 
+        #pragma omp parallel for shared(data_, copy)
         for (uint i = 0; i < n_cols_; i++)
         {
             for (uint j = 0; j < n_cols_; j++)
@@ -342,6 +343,7 @@ namespace tcgmtensor
     {
         size_t min_dim = std::min(n_cols_, n_rows_);
         Vector<T> diag(min_dim);
+        #pragma omp parallel for shared(diag,data_) 
         for (size_t i = 0; i < min_dim; i++)
         {
             diag[i] = (data_[data_id_(i, i)]);
@@ -351,10 +353,10 @@ namespace tcgmtensor
     }
 
     template <typename T>
-    void Matrix<T>::set_diagonal(Vector<T> &diag)
+    void Matrix<T>::set_diagonal(const Vector<T> &diag)
     {
         size_t min_dim = std::min(n_cols_, n_rows_);
-        #pragma omp for 
+        #pragma omp parallel for shared(diag,data_) 
         for (size_t i = 0; i < min_dim; i++)
         {
             data_[data_id_(i, i)] = diag[i];
