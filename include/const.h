@@ -3,11 +3,14 @@
 #ifdef W_MKL
 #include <mkl.h>
 typedef MKL_INT BLAS_INT;
+typedef lapack_int LPCK_INT;
 #else
 #include <cblas.h>
+#include <lapacke.h>
 typedef size_t BLAS_INT;
+typedef lapck_int LCPK_INT;
 #endif
-
+#include <omp.h>
 #ifdef _CUDA
 #pragma warning(disable : 2282)
 #include "cublas_v2.h"
@@ -17,6 +20,7 @@ namespace tcgmtensor
 {
     static const CBLAS_LAYOUT major = CblasColMajor;
     static const CBLAS_UPLO tri = CblasLower;
+    static const int l_major = LAPACK_COL_MAJOR; 
 
     class BLASLeft
     {
