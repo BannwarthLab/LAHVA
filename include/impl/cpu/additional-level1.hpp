@@ -17,6 +17,11 @@ namespace tcgmtensor{
         T FrobeniusNorm(const CPURuntime& cudart, const Tensor<T>& mat);
 
         template<typename T>
+        T FrobeniusInnerProduct(const Matrix<T>& mat1, const Matrix<T>& mat2);
+        template<typename T>
+        T FrobeniusInnerProduct(const CPURuntime& rt, const Matrix<T>& mat1, const Matrix<T>& mat2);
+
+        template<typename T>
         void GetDiagonal(const CPURuntime& cudart, const Matrix<T>& mat, Vector<T>& vec);
 
         template<typename T>
