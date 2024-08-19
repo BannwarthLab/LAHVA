@@ -17,13 +17,13 @@ install = not (meson.is_subproject() and get_option('default_library') == 'stati
 gpu = get_option('gpu')
 debug = get_option('buildtype')
 if debug == 'release'
-  add_project_arguments('-DNDEBUG', language: ['cpp', 'cuda'])
+  add_project_argumnts('-DNDEBUG', language: ['cpp', 'cuda'])
 endif
 lib_deps = []
 
 if gpu == true
   has_nvcc = add_languages('cuda', native: false)
-  cuda = dependency('cuda', modules: ['cudart', 'cublas'])
+  cuda = dependency('cuda', modules: ['cudart', 'cublas','cusolver','cusparse'])
   cudast = import('unstable-cuda')
   add_project_arguments(['-use_fast_math', '-gencode=arch=compute_86,code=sm_86', '-gencode=arch=compute_75,code=sm_75', '--allow-unsupported-compiler', '-ccbin', '/mnt/group-lib/intel_oneAPI/compiler/2023.2.0/linux/bin/intel64/icpc'], language: 'cuda')
   lib_deps += cuda

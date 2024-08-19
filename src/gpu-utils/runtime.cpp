@@ -6,8 +6,9 @@
 
 namespace tcgmtensor
 {
-    CudaRuntime::CudaRuntime() 
+    CudaRuntime::CudaRuntime(bool async_copy) 
     {  
+        if (async_copy) this->enableAsyncCopy();
         createHandle();
     };
 
@@ -98,5 +99,15 @@ namespace tcgmtensor
         get_cuda_error(cudaStreamCreateWithFlags(&stream_, streamFlag_));
     }  
 
+    cusolverDnHandle_t CudaRuntime::getcuSolverHandle()
+    {
+        if (!this->cusolv_)
+        {
+            cusolv_ = std::make_shared<cuSolverRuntime>();
+            if (stream_ == 0) this->createStream();
+            cusolv_->setStream(this->getStream());
+        }
+        return this->cusolv_->getHandle();
+    };
 } // namespace tgmctensor
 

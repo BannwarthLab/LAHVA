@@ -4,14 +4,18 @@
 #pragma warning(disable:2282)
 #pragma warning(disable:815 858) 
 #include <cuda_runtime.h>
+#include <cusolverDn.h>
 #include "const.h"
+#include <memory>
 //#include <cublas_v2.h>
 #include <cmath>
-#define THREADS_PER_BLOCK 512
+#define THREADS_PER_BLOCK 128
 //Macro to get the line and file throwing cuda runtime errors
 #define get_cuda_error(arg) get_cuda_ERROR(arg, __FILE__, __LINE__);
 //Macro to get the line and file throwing cublas runtim errors
 #define get_cublas_error(arg) get_cublas_ERROR(arg, __FILE__, __LINE__);
+
+#define get_cusolv_error(arg) get_cusolv_ERROR(arg, __FILE__, __LINE__);
 
 namespace tcgmtensor{
     
@@ -25,7 +29,15 @@ namespace tcgmtensor{
     /// @param file File in which error is raised
     /// @param line Line in which error is raised
     void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line);
-    
+
+    /// @brief get error line and file of cusolver error
+    /// @param stat error ID, an not be translated
+    /// @param file file where error occurs
+    /// @param line line where error occurs
+    void get_cusolv_ERROR(cusolverStatus_t stat, const char *file, int line);
+
+    class cuSolverRuntime;
+
     /// @brief cudaRuntime object, stream and Device and cublas Handle
     class CudaRuntime : public BLASRuntime {
     protected:
@@ -45,12 +57,13 @@ namespace tcgmtensor{
         void createStream();
         /// @brief blocksize used for launching kernels
         int blockSize_ = THREADS_PER_BLOCK;
+        ///
+        std::shared_ptr<cuSolverRuntime> cusolv_; 
     public:
         /// @brief cublas Handle
         cublasHandle_t handle = nullptr;
-        
         /// @brief default constructor not checking memory request
-        CudaRuntime();
+        CudaRuntime(bool async_copy = false);
         /// @brief Constructor checking memory request via tensor size
         /// @param max_dim maximum dimension of tensor
         /// @param n_mat number of amtrcies
@@ -62,7 +75,8 @@ namespace tcgmtensor{
         ~CudaRuntime();
 
         //%TODO move and copy Constructor
-
+        ///
+        cusolverDnHandle_t getcuSolverHandle();
         /// @brief check if runtime is setup for async task
         /// @return true if a stream is created
         bool asyncCopy() {return async_;};
@@ -92,7 +106,7 @@ namespace tcgmtensor{
         /// @param base Tensor length as 1D
         /// @param exp dimension of Tensor
         /// @return grid Size for Kernel excution
-        inline int gridSize(size_t base, size_t exp) const {return (int)ceil((float)std::pow(base, exp)/blockSize_);};
+        inline int gridSize(size_t base, size_t exp) const {return (int)ceil(((float)std::pow(base, exp)+blockSize_-1)/blockSize_);};
         
         /// @brief get device id of GPU with maximum working memory
         /// @return device ID of GPU with max memory
@@ -110,8 +124,25 @@ namespace tcgmtensor{
             get_cuda_error(cudaStreamSynchronize(stream_));    
         }
 
+        void synchronize() const
+        {
+            get_cuda_error(cudaDeviceSynchronize());
+            get_cuda_error(cudaStreamSynchronize(stream_));    
+        }
+    
     };
 
-    
+    class cuSolverRuntime
+    {
+    private:
+        cusolverDnHandle_t handle = NULL;
+
+    public:
+        cuSolverRuntime();
+        ~cuSolverRuntime();
+        void setStream(const cudaStream_t& stream);
+        cusolverDnHandle_t getHandle() { return handle; };
+        cusolverDnHandle_t *getHandlePtr() { return &handle; }
+    };
 }
 #endif
