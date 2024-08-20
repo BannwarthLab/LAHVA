@@ -10,6 +10,11 @@ namespace tcgmtensor{
     double InnerVectorProduct(const Tensor<double>& X, const size_t strideX, const Tensor<double>& Y, const size_t strideY);
     float InnerVectorProduct(const Tensor<float>& X, const size_t strideX, const Tensor<float>& Y, const size_t strideY);
 
+    double InnerVectorProduct(const CPURuntime& rt_, const Tensor<double>& X, const Tensor<double>& Y);
+    float InnerVectorProduct(const CPURuntime& rt_, const Tensor<float>& X, const Tensor<float>& Y);
+    double InnerVectorProduct(const CPURuntime& rt_, const Tensor<double>& X, const size_t strideX, const Tensor<double>& Y, const size_t strideY);
+    float InnerVectorProduct(const CPURuntime& rt_, const Tensor<float>& X, const size_t strideX, const Tensor<float>& Y, const size_t strideY);
+
     void AddVectors(const double a, const Tensor<double>& x, Tensor<double>& y);
     void AddVectors(const float a, const Tensor<float>& x, Tensor<float>& y);
     void AddVectors(const double a, const Tensor<double>& x, size_t ix, Tensor<double>& y, size_t iy);
@@ -32,11 +37,6 @@ namespace tcgmtensor{
     void ScaleVector(const double a, Tensor<double>& x, size_t ix);
     void ScaleVector(const float a, Tensor<float>& x, size_t ix);
     
-    template<typename... Args>
-    void InnerVectorProduct(const CPURuntime& rt_, Args&&... args) {
-        (InnerVectorProduct(args...));                    
-    }
-
     template<typename... Args>
     void AddVectors(const CPURuntime& rt_, Args&&... args) {
         (AddVectors(args...));                

@@ -36,6 +36,23 @@ namespace tcgmtensor{
     return InnerVectorProduct(X.size(), X.data(), strideX, Y.data(), strideY);
     }
 
+    double InnerVectorProduct(const CPURuntime& rt_, const Tensor<double>& X, const Tensor<double>& Y)
+    {
+        return InnerVectorProduct(X, Y);
+    };
+    float InnerVectorProduct(const CPURuntime& rt_, const Tensor<float>& X, const Tensor<float>& Y)
+    {
+        return InnerVectorProduct(X, Y);
+    };
+    double InnerVectorProduct(const CPURuntime& rt_, const Tensor<double>& X, const size_t strideX, const Tensor<double>& Y, const size_t strideY)
+    {
+        return InnerVectorProduct(X, strideX, Y, strideY);
+    };
+    float InnerVectorProduct(const CPURuntime& rt_, const Tensor<float>& X, const size_t strideX, const Tensor<float>& Y, const size_t strideY)
+    {
+        return InnerVectorProduct(X, strideX, Y, strideY);
+    };
+
 
     /*! Simple interface to DAXPY \f$\vec{y}=\alpha\vec{x}+\vec{y}\f$ assuming unit stride
         \param[in] x \f$\vec{x}\f$
