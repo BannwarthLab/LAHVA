@@ -568,5 +568,6 @@ namespace tcgmtensor
     template class Vector<float>;
     template class Vector<double>;
     template class Vector<int>;
+    template class Vector<int64_t>;
 
-} // namespace sqmbox
+} // namespace tcgmtensor
