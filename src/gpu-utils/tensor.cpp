@@ -72,6 +72,7 @@ namespace tcgmtensor
     template class GPUTensor<double>;
     template class GPUTensor<float>;
     template class GPUTensor<int>;
+    template class GPUTensor<int64_t>;
 
 } // namespace tcgmtensor
 
