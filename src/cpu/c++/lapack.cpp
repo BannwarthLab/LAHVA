@@ -127,13 +127,13 @@ namespace tcgmtensor
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
-            Vector<LPCK_INT> ipiv(n);
-            info = LAPACKE_dsptrf(l_major, l_uplo, n, a.data(), ipiv.data());
-            if (info != 0)
-            {
-                throw std::runtime_error("Failure in DSPTRF");
-            }
-            info = LAPACKE_dtptrs(l_major, l_uplo, *Ta, 'N', n, nrhs, a.data(), ipiv.data(), b.data(), n);
+           // Vector<LPCK_INT> ipiv(n);
+            //info = LAPACKE_dsptrf(l_major, l_uplo, n, a.data(), ipiv.data());
+            //if (info != 0)
+            //{
+                //throw std::runtime_error("Failure in DSPTRF");
+            //}
+            info = LAPACKE_dtptrs(l_major, l_uplo, *Ta, 'N', n, nrhs, a.data(), b.data(), n);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DTPTRS");
@@ -150,13 +150,13 @@ namespace tcgmtensor
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
-            Vector<LPCK_INT> ipiv(n);
-            info = LAPACKE_dsptrf(l_major, l_uplo, n, a.data(), ipiv.data());
-            if (info != 0)
-            {
-                throw std::runtime_error("Failure in SSPTRF");
-            }
-            info = LAPACKE_dtptrs(l_major, l_uplo, *Ta, 'N', n, nrhs, a.data(), ipiv.data(), b.data(), n);
+            //Vector<LPCK_INT> ipiv(n);
+            //info = LAPACKE_ssptrf(l_major, l_uplo, n, a.data(), ipiv.data());
+            //if (info != 0)
+            //{
+                //throw std::runtime_error("Failure in SSPTRF");
+            //}
+            info = LAPACKE_stptrs(l_major, l_uplo, *Ta, 'N', n, nrhs, a.data(), b.data(), n);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in STPTRS");
@@ -173,13 +173,13 @@ namespace tcgmtensor
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
-            Vector<LPCK_INT> ipiv(n);
-            info = LAPACKE_dsptrf(l_major, l_uplo, n, a.data(), ipiv.data());
-            if (info != 0)
-            {
-                throw std::runtime_error("Failure in DSPTRF");
-            }
-            info = LAPACKE_dtptrs(l_major, l_uplo, *Ta, 'N', n, nrhs, a.data(), ipiv.data(), b.data(), n);
+            //Vector<LPCK_INT> ipiv(n);
+            //info = LAPACKE_dsptrf(l_major, l_uplo, n, a.data(), ipiv.data());
+            //if (info != 0)
+            //{
+                //throw std::runtime_error("Failure in DSPTRF");
+            //}
+            info = LAPACKE_dtptrs(l_major, l_uplo, *Ta, 'N', n, nrhs, a.data(), b.data(), n);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DTPTRS");
@@ -196,13 +196,13 @@ namespace tcgmtensor
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
-            Vector<LPCK_INT> ipiv(n);
-            info = LAPACKE_dsptrf(l_major, l_uplo, n, a.data(), ipiv.data());
-            if (info != 0)
-            {
-                throw std::runtime_error("Failure in SSPTRF");
-            }
-            info = LAPACKE_dtptrs(l_major, l_uplo, *Ta, 'N', n, nrhs, a.data(), ipiv.data(), b.data(), n);
+            //Vector<LPCK_INT> ipiv(n);
+            //info = LAPACKE_ssptrf(l_major, l_uplo, n, a.data(), ipiv.data());
+            //if (info != 0)
+            //{
+                //throw std::runtime_error("Failure in SSPTRF");
+            //}
+            info = LAPACKE_stptrs(l_major, l_uplo, *Ta, 'N', n, nrhs, a.data(), b.data(), n);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in STPTRS");
@@ -243,12 +243,12 @@ namespace tcgmtensor
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
             Vector<LPCK_INT> ipiv(n);
-            info = LAPACKE_dsptrf(l_major, l_uplo, n, a.data(), ipiv.data());
+            info = LAPACKE_ssptrf(l_major, l_uplo, n, a.data(), ipiv.data());
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SSPTRF");
             }
-            info = LAPACKE_dsptrs(l_major, l_uplo, n, nrhs, a.data(), ipiv.data(), b.data(), n);
+            info = LAPACKE_ssptrs(l_major, l_uplo, n, nrhs, a.data(), ipiv.data(), b.data(), n);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SSPTRS");
