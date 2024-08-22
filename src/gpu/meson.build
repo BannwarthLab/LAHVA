@@ -1,11 +1,5 @@
-subdir('custom-kernel')
+subdir('additional-blas')
+subdir('blas')
+subdir('lapack')
 
-srcs += files(
-    'additional-level1.cpp',
-    'additional-level3.cpp',
-    'lapack.cpp',
-    'level1.cpp',
-    'level2.cpp',
-    'level3.cpp',
-)
 
