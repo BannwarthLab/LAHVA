@@ -108,8 +108,8 @@ namespace tcgmtensor
     {
         for (uint i = 0; i < this->size(); i++)
         {
-            printf("%f, ", this->data()[i]);
-            printf("\n");
+            std::cout << data()[i] << ", ";
+            std::cout << std::endl;
         }
     }
 
@@ -314,9 +314,9 @@ namespace tcgmtensor
         {
             for (uint j = 0; j < n_cols_; j++)
             {
-                printf("%f, ", data_[data_id_(i, j)]);
+                std::cout << data_[data_id_(i, j)] << ", ";
             }
-            printf("\n");
+            std::cout << std::endl;
         }
     }
 
@@ -528,9 +528,9 @@ namespace tcgmtensor
         {
             for (uint j = 0; j <= i; j++)
             {
-                std::cout << data_[data_id_(i, j)];
+                std::cout << data_[data_id_(i, j)]; << ", ";
             }
-            printf("\n");
+            std::cout << std::endl;
         }
     }
 
