@@ -528,7 +528,7 @@ namespace tcgmtensor
         {
             for (uint j = 0; j <= i; j++)
             {
-                std::cout << data_[data_id_(i, j)]; << ", ";
+                std::cout << data_[data_id_(i, j)] << ", ";
             }
             std::cout << std::endl;
         }
