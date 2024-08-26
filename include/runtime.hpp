@@ -120,13 +120,11 @@ namespace tcgmtensor{
         /// @brief synchronize device after async. operations
         void synchronize() 
         {
-            get_cuda_error(cudaDeviceSynchronize());
             get_cuda_error(cudaStreamSynchronize(stream_));    
         }
 
         void synchronize() const
         {
-            get_cuda_error(cudaDeviceSynchronize());
             get_cuda_error(cudaStreamSynchronize(stream_));    
         }
     

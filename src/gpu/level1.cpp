@@ -16,9 +16,7 @@ namespace tcgmtensor{
         check_device_alloc( cudart, Y);
         
         double result;
-        cudaDeviceSynchronize();
         cublasStatus_t istat = cublasDdot(cudart.handle, X.size(), X.gpu_data(), 1, Y.gpu_data(), 1, &result);
-        cudaDeviceSynchronize();
         get_cublas_error(istat);
         return result;}
 
@@ -73,10 +71,8 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
-        cudaDeviceSynchronize();
         cublasStatus_t istat = cublasDaxpy(cudart.handle, x.size(), &a, x.gpu_data(), 1, y.gpu_data(), 1);
         get_cublas_error(istat);
-        cudaDeviceSynchronize(); 
     }
 
     /*! Simple interface to SAXPY \f$\vec{y}=\alpha\vec{x}+\vec{y}\f$ assuming unit stride
@@ -88,10 +84,8 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
-        cudaDeviceSynchronize();
         cublasStatus_t istat = cublasSaxpy(cudart.handle, x.size(), &a, x.gpu_data(), 1, y.gpu_data(), 1);
         get_cublas_error(istat); 
-        cudaDeviceSynchronize();
     }
 
 
@@ -106,10 +100,8 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
-        cudaDeviceSynchronize();
         cublasStatus_t istat = cublasDaxpy(cudart.handle, x.size(), &a, x.gpu_data(), ix, y.gpu_data(), iy);
         get_cublas_error(istat);
-        cudaDeviceSynchronize();
     }
 
     /*! Simple interface to sAXPY \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
@@ -123,10 +115,8 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
-        cudaDeviceSynchronize();
         cublasStatus_t istat = cublasSaxpy(cudart.handle, x.size(), &a, x.gpu_data(), ix, y.gpu_data(), iy);
         get_cublas_error(istat);
-        cudaDeviceSynchronize();
     }
 
     //Copy routines////////////////////////////////////////////////////////////////////
