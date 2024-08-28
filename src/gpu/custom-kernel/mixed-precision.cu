@@ -1,4 +1,4 @@
-#include "../../gpu-utils/utils.hpp"
+#include "../../../gpu-utils/utils.hpp"
 #include "impl/gpu/level1.hpp"
 #include "mixed-precision.h"
 
@@ -55,13 +55,13 @@ namespace tcgmtensor
             if (diag1.gpu_data() == diag2.gpu_data() && matrix1.gpu_data() == matrix2.gpu_data())
             {
                 double two = 2.0;
-                SymmetrizedDiagonalMatrixMatrixProductKernel_Mixed<<<nBlocksPerGrid, nThreadsPerBlock>>>(n, two, diag1.gpu_data(), matrix1.gpu_data(), matrix_out.gpu_data());
+                SymmetrizedDiagonalMatrixMatrixProductKernel_Mixed<<<nBlocksPerGrid, nThreadsPerBlock, 0, cudart.getStream()>>>(n, two, diag1.gpu_data(), matrix1.gpu_data(), matrix_out.gpu_data());
             }
             else
             {
                 double one = 1.0;
-                SymmetrizedDiagonalMatrixMatrixProductKernel_Mixed<<<nBlocksPerGrid, nThreadsPerBlock>>>(n, one, diag1.gpu_data(), matrix2.gpu_data(), matrix_out.gpu_data());
-                SymmetrizedDiagonalMatrixMatrixProductKernel_Mixed<<<nBlocksPerGrid, nThreadsPerBlock>>>(n, one, diag2.gpu_data(), matrix1.gpu_data(), matrix_out.gpu_data());
+                SymmetrizedDiagonalMatrixMatrixProductKernel_Mixed<<<nBlocksPerGrid, nThreadsPerBlock, 0, cudart.getStream()>>>(n, one, diag1.gpu_data(), matrix2.gpu_data(), matrix_out.gpu_data());
+                SymmetrizedDiagonalMatrixMatrixProductKernel_Mixed<<<nBlocksPerGrid, nThreadsPerBlock, 0, cudart.getStream()>>>(n, one, diag2.gpu_data(), matrix1.gpu_data(), matrix_out.gpu_data());
             }
         }
 
@@ -72,7 +72,7 @@ namespace tcgmtensor
             check_device_alloc(cudart, X);
             
             unsigned long long n = X.size();
-            CastMatrixDPToSP<<<cudart.gridSize(n,1),cudart.blockSize()>>>(n, X.gpu_data(), Y.gpu_data());
+            CastMatrixDPToSP<<<cudart.gridSize(n,1),cudart.blockSize(), 0, cudart.getStream()>>>(n, X.gpu_data(), Y.gpu_data());
         }
 
         void CopyVectors(const CudaRuntime& cudart, const GPUTensor<float>& X, GPUTensor<double> &Y)
@@ -82,7 +82,7 @@ namespace tcgmtensor
             check_device_alloc(cudart, X);
             check_device_alloc(cudart, Y);
 
-            CastMatrixSPToDP<<<cudart.gridSize(n,1),cudart.blockSize()>>>(n, X.gpu_data(), Y.gpu_data());
+            CastMatrixSPToDP<<<cudart.gridSize(n,1),cudart.blockSize(), 0, cudart.getStream()>>>(n, X.gpu_data(), Y.gpu_data());
         }
     } // namespace gpu
 

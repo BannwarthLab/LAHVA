@@ -65,38 +65,38 @@ namespace tcgmtensor
         void sHadamard(const CudaRuntime &cudart, float *vecinout, const float *vecin, size_t ndim2)
         {
 
-            sElementwiseScale<<<cudart.gridSize(ndim2, 1), cudart.blockSize()>>>(vecinout, vecin, ndim2);
+            sElementwiseScale<<<cudart.gridSize(ndim2, 1), cudart.blockSize(), 0, cudart.getStream()>>>(vecinout, vecin, ndim2);
         }
 
         void dHadamard(const CudaRuntime &cudart, double *vecinout, const double *vecin, size_t ndim2)
         {
 
-            dElementwiseScale<<<cudart.gridSize(ndim2, 1), cudart.blockSize()>>>(vecinout, vecin, ndim2);
+            dElementwiseScale<<<cudart.gridSize(ndim2, 1), cudart.blockSize(), 0, cudart.getStream()>>>(vecinout, vecin, ndim2);
         }
 
         void sHadamardcopy(const CudaRuntime &cudart, float *vecout, const float *vecin1, const float *vecin2, size_t ndim2)
         {
 
-            sElementwiseScalecopy<<<cudart.gridSize(ndim2, 1), cudart.blockSize()>>>(vecout, vecin1, vecin2, ndim2);
+            sElementwiseScalecopy<<<cudart.gridSize(ndim2, 1), cudart.blockSize(), 0, cudart.getStream()>>>(vecout, vecin1, vecin2, ndim2);
         }
 
         void dHadamardcopy(const CudaRuntime &cudart, double *vecout, const double *vecin1, const double *vecin2, size_t ndim2)
         {
 
-            dElementwiseScalecopy<<<cudart.gridSize(ndim2, 1), cudart.blockSize()>>>(vecout, vecin1, vecin2, ndim2);
+            dElementwiseScalecopy<<<cudart.gridSize(ndim2, 1), cudart.blockSize(), 0, cudart.getStream()>>>(vecout, vecin1, vecin2, ndim2);
         }
 
         void sHadamardcopy(const CudaRuntime &cudart, float *vecout, const float *vecin1, const float *vecin2, size_t ndim2, size_t ndim)
         {
 
-            sElementwiseScalecopyMV<<<cudart.gridSize(ndim2, 1), cudart.blockSize()>>>(vecout, vecin1, vecin2, ndim2, ndim);
+            sElementwiseScalecopyMV<<<cudart.gridSize(ndim2, 1), cudart.blockSize(), 0, cudart.getStream()>>>(vecout, vecin1, vecin2, ndim2, ndim);
         }
 
         void dHadamardcopy(const CudaRuntime &cudart, double *vecout, const double *vecin1, const double *vecin2, size_t ndim2, size_t ndim)
         {
             dim3 nThreadsPerBlock(cudart.blockSize(), 1);
             dim3 nBlocksPerGrid(ceil((double)(ndim) / double(cudart.blockSize())), ndim);
-            dElementwiseScalecopyMV<<<nBlocksPerGrid, nThreadsPerBlock>>>(vecout, vecin1, vecin2, ndim2, ndim);
+            dElementwiseScalecopyMV<<<nBlocksPerGrid, nThreadsPerBlock, 0, cudart.getStream()>>>(vecout, vecin1, vecin2, ndim2, ndim);
         }
 
     }

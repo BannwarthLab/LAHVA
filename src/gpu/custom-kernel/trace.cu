@@ -2,7 +2,7 @@
 /* Routines for  purification includin  purification including purifier class */
 #pragma warning(disable:2282 815)
 #include "impl/gpu/additional-level1.hpp"
-#include "../../gpu-utils/utils.hpp"
+#include "../../../gpu-utils/utils.hpp"
 
 namespace tcgmtensor
 {
@@ -191,15 +191,16 @@ namespace tcgmtensor
             {
                 Vector<double> diag = m.get_diagonal();
                 diag.copy2device(cudart);
-                MatrixTraceFromDiagonal<<<gridS, cudart.blockSize()>>>(diag.gpu_data(), diag.size(), v.gpu_data());
+                MatrixTraceFromDiagonal<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(diag.gpu_data(), diag.size(), v.gpu_data());
             }
             else
             {
                 check_device_alloc(cudart, m);
-                MatrixTrace<<<gridS, cudart.blockSize()>>>(m.gpu_data(), m.shape().first, v.gpu_data()); // compute trace
+                MatrixTrace<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(m.gpu_data(), m.shape().first, v.gpu_data()); // compute trace
             }
 
             v.copy2host(cudart);
+            cudart.synchronize();
             double trace = 0.0;
             // final summation on CPU
             for (int i = 0; i < gridS; i++)
@@ -214,9 +215,10 @@ namespace tcgmtensor
             Vector<double> v(gridS);
             v.copy2device(cudart);
             check_device_alloc(cudart, diag);
-            MatrixTraceFromDiagonal<<<gridS, cudart.blockSize()>>>(diag.gpu_data(), diag.size(), v.gpu_data());
+            MatrixTraceFromDiagonal<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(diag.gpu_data(), diag.size(), v.gpu_data());
 
             v.copy2host(cudart);
+            cudart.synchronize();
             double trace = 0.0;
             // final summation on CPU
             for (int i = 0; i < gridS; i++)
@@ -233,8 +235,9 @@ namespace tcgmtensor
             Vector<double> v(gridS);
             v.copy2device(cudart);
             check_device_alloc(cudart, m);
-            MatrixTrace<<<gridS, cudart.blockSize()>>>(m.gpu_data(), m.shape().first, v.gpu_data()); // compute trace
+            MatrixTrace<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(m.gpu_data(), m.shape().first, v.gpu_data()); // compute trace
             v.copy2host(cudart);
+            cudart.synchronize();
             double trace = 0.0;
             // final summation on CPU
             for (int i = 0; i < gridS; i++)
@@ -248,7 +251,7 @@ namespace tcgmtensor
             // Number of blocks in grid;
             int gridS = cudart.gridSize(m.size(), 1);
             check_device_alloc(cudart, m);
-            SymmetrizeMatrix<<<gridS, cudart.blockSize()>>>(m.shape().first, m.gpu_data()); // compute trace
+            SymmetrizeMatrix<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(m.shape().first, m.gpu_data()); // compute trace
         }
 
         template <>
@@ -257,7 +260,7 @@ namespace tcgmtensor
             // Number of blocks in grid;
             int gridS = cudart.gridSize(m.size(), 1);
             check_device_alloc(cudart, m);
-            SymmetrizeMatrix<<<gridS, cudart.blockSize()>>>(m.shape().first, m.gpu_data()); // compute trace
+            SymmetrizeMatrix<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(m.shape().first, m.gpu_data()); // compute trace
         }
 
         template<>
@@ -266,7 +269,7 @@ namespace tcgmtensor
             int gridS = cudart.gridSize(diag.size(), 1);
             check_device_alloc(cudart, diag);
             check_device_alloc(cudart, m);
-            dGetDiagonal<<<gridS, cudart.blockSize()>>>(diag.size(), m.gpu_data(), diag.gpu_data());
+            dGetDiagonal<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(diag.size(), m.gpu_data(), diag.gpu_data());
 
         }
         
@@ -276,7 +279,7 @@ namespace tcgmtensor
             int gridS = cudart.gridSize(diag.size(), 1);
             check_device_alloc(cudart, diag);
             check_device_alloc(cudart, m);
-            sGetDiagonal<<<gridS, cudart.blockSize()>>>(diag.size(), m.gpu_data(), diag.gpu_data());
+            sGetDiagonal<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(diag.size(), m.gpu_data(), diag.gpu_data());
 
         }
 
@@ -286,7 +289,7 @@ namespace tcgmtensor
             int gridS = cudart.gridSize(diag.size(), 1);
             check_device_alloc(cudart, diag);
             check_device_alloc(cudart, m);
-            dSetDiagonal<<<gridS, cudart.blockSize()>>>(diag.size(), diag.gpu_data(), m.gpu_data());
+            dSetDiagonal<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(diag.size(), diag.gpu_data(), m.gpu_data());
 
         }
 
@@ -296,7 +299,7 @@ namespace tcgmtensor
             int gridS = cudart.gridSize(diag.size(), 1);
             check_device_alloc(cudart, diag);
             check_device_alloc(cudart, m);
-            sSetDiagonal<<<gridS, cudart.blockSize()>>>(diag.size(), diag.gpu_data(), m.gpu_data());
+            sSetDiagonal<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(diag.size(), diag.gpu_data(), m.gpu_data());
 
         }
 

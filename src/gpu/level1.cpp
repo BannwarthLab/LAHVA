@@ -1,6 +1,6 @@
-#include "../utils/utils.hpp"
+#include "../../utils/utils.hpp"
 #include "impl/gpu/level1.hpp"
-#include "../gpu-utils/utils.hpp"
+#include "../../gpu-utils/utils.hpp"
 
 namespace tcgmtensor{
     namespace gpu{
@@ -16,6 +16,7 @@ namespace tcgmtensor{
         check_device_alloc( cudart, Y);
         
         double result;
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDdot(cudart.handle, X.size(), X.gpu_data(), 1, Y.gpu_data(), 1, &result);
         get_cublas_error(istat);
         return result;}
@@ -31,6 +32,7 @@ namespace tcgmtensor{
         check_device_alloc( cudart, Y);
         
         float result;
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasSdot(cudart.handle, X.size(), X.gpu_data(), 1, Y.gpu_data(), 1, &result);
         get_cublas_error(istat);
         return result;
@@ -44,6 +46,7 @@ namespace tcgmtensor{
         check_device_alloc( cudart, Y);
         
         double result;
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDdot(cudart.handle, X.size(), X.gpu_data(), strideX, Y.gpu_data(), strideY, &result);
         get_cublas_error(istat);
         return result;
@@ -56,6 +59,7 @@ namespace tcgmtensor{
         check_device_alloc( cudart, Y);
         
         float result;
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasSdot(cudart.handle, X.size(), X.gpu_data(), strideX, Y.gpu_data(), strideY, &result);
         get_cublas_error(istat);
         return result;
@@ -71,6 +75,7 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDaxpy(cudart.handle, x.size(), &a, x.gpu_data(), 1, y.gpu_data(), 1);
         get_cublas_error(istat);
     }
@@ -84,6 +89,7 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasSaxpy(cudart.handle, x.size(), &a, x.gpu_data(), 1, y.gpu_data(), 1);
         get_cublas_error(istat); 
     }
@@ -100,6 +106,7 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDaxpy(cudart.handle, x.size(), &a, x.gpu_data(), ix, y.gpu_data(), iy);
         get_cublas_error(istat);
     }
@@ -115,6 +122,7 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasSaxpy(cudart.handle, x.size(), &a, x.gpu_data(), ix, y.gpu_data(), iy);
         get_cublas_error(istat);
     }
@@ -129,7 +137,7 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
-        
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDcopy(cudart.handle, x.size(), x.gpu_data(), 1, y.gpu_data(), 1);
         get_cublas_error(istat); 
     }
@@ -142,7 +150,7 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
-        
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasScopy(cudart.handle, x.size(), x.gpu_data(), 1, y.gpu_data(), 1);
         get_cublas_error(istat); 
     }
@@ -158,7 +166,7 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
-        
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDcopy(cudart.handle, x.size(), x.gpu_data(), ix, y.gpu_data(), iy);
         get_cublas_error(istat);
     }
@@ -173,7 +181,7 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
-        
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasScopy(cudart.handle, x.size(), x.gpu_data(), ix, y.gpu_data(), iy);
         get_cublas_error(istat);
     }
@@ -188,7 +196,7 @@ namespace tcgmtensor{
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
-        
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDswap(cudart.handle, x.size(), x.gpu_data(), 1, y.gpu_data(), 1);
         get_cublas_error(istat);
     }
@@ -202,6 +210,7 @@ namespace tcgmtensor{
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
         
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasSswap(cudart.handle, x.size(), x.gpu_data(), 1, y.gpu_data(), 1);
         get_cublas_error(istat);
     }
@@ -217,6 +226,7 @@ namespace tcgmtensor{
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
         
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDswap(cudart.handle, x.size(), x.gpu_data(), ix, y.gpu_data(), iy);
         get_cublas_error(istat);
     }
@@ -232,6 +242,7 @@ namespace tcgmtensor{
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
         
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasSswap(cudart.handle, x.size(), x.gpu_data(), ix, y.gpu_data(), iy);
         get_cublas_error(istat);
     } 
@@ -245,6 +256,7 @@ namespace tcgmtensor{
     void ScaleVector(const CudaRuntime& cudart, const double a, GPUTensor<double>& x) {
         check_device_alloc( cudart, x); 
         
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDscal(cudart.handle, x.size(), &a, x.gpu_data(), 1);
         get_cublas_error(istat);
     }
@@ -255,6 +267,7 @@ namespace tcgmtensor{
     void ScaleVector(const CudaRuntime& cudart, const float a, GPUTensor<float>& x){
         check_device_alloc( cudart, x); 
         
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasSscal(cudart.handle, x.size(), &a, x.gpu_data(), 1);
         get_cublas_error(istat);
     }
@@ -262,6 +275,7 @@ namespace tcgmtensor{
     void ScaleVector(const CudaRuntime& cudart, const double a, GPUTensor<double>& x, size_t ix){
         check_device_alloc( cudart, x); 
         
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDscal(cudart.handle, x.size(), &a, x.gpu_data(), ix);
         get_cublas_error(istat);
     }
@@ -274,6 +288,7 @@ namespace tcgmtensor{
     void ScaleVector(const CudaRuntime& cudart, const float a, GPUTensor<float>& x, size_t ix){
         check_device_alloc( cudart, x); 
         
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasSscal(cudart.handle, x.size(), &a, x.gpu_data(), ix);
         get_cublas_error(istat);
     }

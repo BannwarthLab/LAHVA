@@ -50,7 +50,7 @@ namespace tcgmtensor{
         /// @brief store version number of cuda library
         int version = 0;
         /// @brief streamFlag used when creating stream
-        unsigned int streamFlag_ = cudaStreamDefault;
+        unsigned int streamFlag_ = cudaStreamNonBlocking;
         /// @brief create cublasHandle
         void createHandle();
         /// @brief create Stream
@@ -116,6 +116,8 @@ namespace tcgmtensor{
         /// @return CUDA stream
         cudaStream_t getStream() {return stream_;}
         cudaStream_t getStream() const {return stream_;}
+
+        void cublasSetStream_() const {get_cublas_error(cublasSetStream(handle, stream_));};
         
         /// @brief synchronize device after async. operations
         void synchronize() 

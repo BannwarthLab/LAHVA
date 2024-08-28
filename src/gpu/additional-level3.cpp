@@ -2,7 +2,7 @@
 #include "impl/gpu/level3.hpp"
 #include "impl/gpu/additional-level3.hpp"
 #include "custom-kernel/mixed-precision.h"
-#include "../gpu-utils/utils.hpp"
+#include "../../gpu-utils/utils.hpp"
 
 namespace tcgmtensor{
     namespace gpu

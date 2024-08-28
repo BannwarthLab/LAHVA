@@ -1,5 +1,5 @@
 #include "impl/gpu/additional-level1.hpp"
-#include "../../gpu-utils/utils.hpp"
+#include "../../../gpu-utils/utils.hpp"
 
 namespace tcgmtensor
 {
@@ -79,8 +79,9 @@ namespace tcgmtensor
             int gridS = cudart.gridSize(mat.size(), 1);
             Vector<float> vec(gridS, 0.0);
             vec.copy2device(cudart);
-            sFrobenius<<<gridS, cudart.blockSize()>>>(mat.size(), mat.gpu_data(), vec.gpu_data());
+            sFrobenius<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(mat.size(), mat.gpu_data(), vec.gpu_data());
             vec.copy2host(cudart);
+            cudart.synchronize();
             float norm = vec.sum();
             
             return std::sqrt(norm);
@@ -94,9 +95,10 @@ namespace tcgmtensor
             Vector<double> vec(gridS, 0.0);
             vec.copy2device(cudart);
 
-            dFrobenius<<<gridS, cudart.blockSize()>>>(mat.size(), mat.gpu_data(), vec.gpu_data());
+            dFrobenius<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(mat.size(), mat.gpu_data(), vec.gpu_data());
             
             vec.copy2host(cudart);
+            cudart.synchronize();
             double norm = vec.sum();
             
             return std::sqrt(norm);

@@ -1,7 +1,7 @@
 #include "impl/gpu/additional-level1.hpp"
 #include "impl/gpu/level1.hpp"
 #include "custom-kernel/hadamard.h"
-#include "../gpu-utils/utils.hpp"
+#include "../../gpu-utils/utils.hpp"
 
 namespace tcgmtensor{
     namespace gpu

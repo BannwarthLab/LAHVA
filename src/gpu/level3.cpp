@@ -1,5 +1,5 @@
 #include "impl/gpu/level3.hpp"
-#include "../gpu-utils/utils.hpp"
+#include "../../gpu-utils/utils.hpp"
 
 namespace tcgmtensor
 {
@@ -21,6 +21,7 @@ namespace tcgmtensor
         size_t ldb = get_leading(k, n);
         size_t ldc = get_leading(m, n);
 
+        cudart.cublasSetStream_();
         cublasStatus_t istat =  cublasDgemm(cudart.handle, transa, transb, m, n, k, &alpha, a.gpu_data(), lda, b.gpu_data(), ldb, &beta, c.gpu_data(), ldc);
         get_cublas_error(istat);
     };
@@ -41,6 +42,7 @@ namespace tcgmtensor
         size_t ldb = get_leading(k, n);
         size_t ldc = get_leading(m, n);
 
+        cudart.cublasSetStream_();
         cublasStatus_t istat =  cublasDgemm(cudart.handle, transa, transb, m, n, k, &alpha, a.gpu_data(), lda, b.gpu_data(), ldb, &beta, c.gpu_data(), ldc);
         get_cublas_error(istat);
     };
@@ -61,6 +63,7 @@ namespace tcgmtensor
         size_t ldb = get_leading(k, n);
         size_t ldc = get_leading(m, n);
 
+        cudart.cublasSetStream_();
         cublasStatus_t istat =  cublasSgemm(cudart.handle, transa, transb, m, n, k, &alpha, a.gpu_data(), lda, b.gpu_data(), ldb, &beta, c.gpu_data(), ldc);
         get_cublas_error(istat);
     };
@@ -81,6 +84,7 @@ namespace tcgmtensor
         size_t ldb = get_leading(k, n);
         size_t ldc = get_leading(m, n);
 
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasSgemm(cudart.handle, transa, transb, m, n, k, &alpha, a.gpu_data(), lda, b.gpu_data(), ldb, &beta, c.gpu_data(), ldc);
         get_cublas_error(istat);
     };
@@ -98,6 +102,7 @@ namespace tcgmtensor
         check_device_alloc( cudart, b);
         check_device_alloc( cudart, c);
 
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDsymm(cudart.handle, side, tri_gpu, m, n, &alpha, a.gpu_data(), lda, b.gpu_data(), ldb, &beta, c.gpu_data(), ldc);
         get_cublas_error(istat);
     };
@@ -115,6 +120,7 @@ namespace tcgmtensor
         check_device_alloc( cudart, b);
         check_device_alloc( cudart, c);
 
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDsymm(cudart.handle, side, tri_gpu, m, n, &alpha, a.gpu_data(), lda, b.gpu_data(), ldb, &beta, c.gpu_data(), ldc);
         get_cublas_error(istat);
     };
@@ -132,6 +138,7 @@ namespace tcgmtensor
         check_device_alloc( cudart, b);
         check_device_alloc( cudart, c);
 
+        cudart.cublasSetStream_();
         cublasStatus_t istat = cublasSsymm(cudart.handle, side, tri_gpu, m, n, &alpha, a.gpu_data(), lda, b.gpu_data(), ldb, &beta, c.gpu_data(), ldc);
         get_cublas_error(istat);
     };
@@ -149,6 +156,7 @@ namespace tcgmtensor
         check_device_alloc( cudart, b);
         check_device_alloc( cudart, c);
 
+        cudart.cublasSetStream_(); 
         cublasStatus_t istat = cublasSsymm(cudart.handle, side, tri_gpu, m, n, &alpha, a.gpu_data(), lda, b.gpu_data(), ldb, &beta, c.gpu_data(), ldc);
         get_cublas_error(istat);
     }; 
