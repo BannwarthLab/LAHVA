@@ -56,6 +56,7 @@ tcgmblas_lib = library(
   dependencies: lib_deps,
   include_directories: inc_dirs,
   install: install,
+  link_language: 'cpp',
 )
 tcgmblas_dep = declare_dependency(
   link_with: tcgmblas_lib,
@@ -64,5 +65,6 @@ tcgmblas_dep = declare_dependency(
   variables: {'includedir': meson.current_source_dir() / 'include'},
 )
 
+subdir('app-test')
 install = not (meson.is_subproject() and get_option('default_library') == 'static')
 #subdir('test')

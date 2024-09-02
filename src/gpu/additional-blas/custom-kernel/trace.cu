@@ -191,12 +191,12 @@ namespace tcgmtensor
             {
                 Vector<double> diag = m.get_diagonal();
                 diag.copy2device(cudart);
-                MatrixTraceFromDiagonal<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(diag.gpu_data(), diag.size(), v.gpu_data());
+                MatrixTraceFromDiagonal<<<gridS, cudart.blockSize(), cudart.blockSize()*sizeof(double), cudart.getStream()>>>(diag.gpu_data(), diag.size(), v.gpu_data());
             }
             else
             {
                 check_device_alloc(cudart, m);
-                MatrixTrace<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(m.gpu_data(), m.shape().first, v.gpu_data()); // compute trace
+                MatrixTrace<<<gridS, cudart.blockSize(), cudart.blockSize()*sizeof(double), cudart.getStream()>>>(m.gpu_data(), m.shape().first, v.gpu_data()); // compute trace
             }
 
             v.copy2host(cudart);
@@ -215,7 +215,7 @@ namespace tcgmtensor
             Vector<double> v(gridS);
             v.copy2device(cudart);
             check_device_alloc(cudart, diag);
-            MatrixTraceFromDiagonal<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(diag.gpu_data(), diag.size(), v.gpu_data());
+            MatrixTraceFromDiagonal<<<gridS, cudart.blockSize(), cudart.blockSize()*sizeof(double), cudart.getStream()>>>(diag.gpu_data(), diag.size(), v.gpu_data());
 
             v.copy2host(cudart);
             cudart.synchronize();
@@ -235,7 +235,7 @@ namespace tcgmtensor
             Vector<double> v(gridS);
             v.copy2device(cudart);
             check_device_alloc(cudart, m);
-            MatrixTrace<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(m.gpu_data(), m.shape().first, v.gpu_data()); // compute trace
+            MatrixTrace<<<gridS, cudart.blockSize(), cudart.blockSize()*sizeof(float), cudart.getStream()>>>(m.gpu_data(), m.shape().first, v.gpu_data()); // compute trace
             v.copy2host(cudart);
             cudart.synchronize();
             double trace = 0.0;
@@ -251,7 +251,7 @@ namespace tcgmtensor
             // Number of blocks in grid;
             int gridS = cudart.gridSize(m.size(), 1);
             check_device_alloc(cudart, m);
-            SymmetrizeMatrix<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(m.shape().first, m.gpu_data()); // compute trace
+            SymmetrizeMatrix<<<gridS, cudart.blockSize(), cudart.blockSize()*sizeof(float), cudart.getStream()>>>(m.shape().first, m.gpu_data()); // compute trace
         }
 
         template <>

@@ -4,17 +4,32 @@
 #include <iostream>
 #include <string>
 
+
+void get_cuda_ERROR(cudaError_t stat, const char* file, int line) {
+        if (stat != cudaSuccess) {
+            std::cerr << "CUDA Error: " << cudaGetErrorString(stat) << std::endl << "In File: "<< file << " at line: " << std::to_string(line)<< std::endl;
+            throw std::runtime_error("CUDA Error");
+        }
+    }
+
+    void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line) {
+        if (stat != CUBLAS_STATUS_SUCCESS) {
+            std::cerr << "CUBLAS Error: " << cublasGetStatusString(stat) << std::endl << "In File: "<< file << " at line: " << std::to_string(line)<< std::endl;
+            throw std::runtime_error("CUBLAS Error");
+        }
+    }
 namespace tcgmtensor
 {
     CudaRuntime::CudaRuntime(bool async_copy) 
     {  
         if (async_copy) this->enableAsyncCopy();
+        get_GPU_wmaxMem();
         createHandle();
     };
 
     CudaRuntime::~CudaRuntime() {
-        if (stream_ != nullptr) get_cuda_error(cudaStreamDestroy(stream_));
-        if (handle != nullptr) get_cublas_error(cublasDestroy(handle));
+        if (delete_stream) get_cuda_error(cudaStreamDestroy(stream_));
+        if (delete_handle) get_cublas_error(cublasDestroy(handle));
         //cudaDeviceReset();
     };
 
@@ -58,19 +73,53 @@ namespace tcgmtensor
             createHandle();
     };    
 
+    CudaRuntime::CudaRuntime(CudaRuntime&& other) 
+    {
+        cudaDevice = other.cudaDevice;
+        async_ = other.async_;
+        version = other.version;
+        handle = other.handle;
+        stream_ = other.stream_;
+
+        other.delete_handle = false;
+        other.delete_stream = false;
+        
+    }
     
-    void get_cuda_ERROR(cudaError_t stat, const char* file, int line) {
-        if (stat != cudaSuccess) {
-            std::cerr << "CUDA Error: " << cudaGetErrorString(stat) << std::endl << "In File: "<< file << " at line: " << std::to_string(line)<< std::endl;
-            throw std::runtime_error("CUDA Error");
-        }
+    
+    CudaRuntime::CudaRuntime(const CudaRuntime& other) : CudaRuntime(other.async_)
+    {
+        
     }
 
-    void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line) {
-        if (stat != CUBLAS_STATUS_SUCCESS) {
-            std::cerr << "CUBLAS Error: " << cublasGetStatusString(stat) << std::endl << "In File: "<< file << " at line: " << std::to_string(line)<< std::endl;
-            throw std::runtime_error("CUBLAS Error");
+    CudaRuntime& CudaRuntime::operator=(const CudaRuntime& other) 
+    {
+        if (this != &other)
+        {
+            this->async_ = other.async_;
+            if (this->async_) this->enableAsyncCopy();
+            this->get_GPU_wmaxMem();
+            this->createHandle();
         }
+        return *this;
+        
+    }
+
+    CudaRuntime& CudaRuntime::operator=(CudaRuntime&& other)
+    {
+        if (this != &other)
+        {
+            cudaDevice = other.cudaDevice;
+            async_ = other.async_;
+            version = other.version;
+            handle = other.handle;
+            stream_ = other.stream_;
+
+            other.delete_handle = false;
+            other.delete_stream = false;
+            
+        }
+        return *this;
     }
 
     void CudaRuntime::createHandle() {
@@ -82,6 +131,7 @@ namespace tcgmtensor
         get_cublas_error(stat);
         stat = cublasGetVersion(handle, &version);
         get_cublas_error(stat);
+        delete_handle = true;
     }
 
     void CudaRuntime::print_cuda_version(){
@@ -91,12 +141,14 @@ namespace tcgmtensor
     void CudaRuntime::enableAsyncCopy()
     {
         async_ = true;
-        createStream();
+        stream_ = cudaStreamPerThread;
+        //createStream();
     }
 
     void CudaRuntime::createStream()
     {
         get_cuda_error(cudaStreamCreateWithFlags(&stream_, streamFlag_));
+        delete_stream = true;
     }  
 
     cusolverDnHandle_t CudaRuntime::getcuSolverHandle()

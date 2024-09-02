@@ -64,27 +64,9 @@ namespace tcgmtensor
     T* begin() const {return &data_[0];};
     T* end() const {return &data_[n_entries_-1];};
 
-    T sum() const
-    {
-      T res = (T)0;
-    
-      for (size_t i = 0; i < this->size(); i++)
-      {
-        res += this->data_[i];
-      }
-      return res;
-    }
     void print() const;
 
-    T sum()
-    {
-      T res = (T)0;
-      for (size_t i = 0; i < this->size(); i++)
-      {
-        res += this->data_[i];
-      }
-      return res;
-    }
+
   };
 
   //! Shape of a matrix

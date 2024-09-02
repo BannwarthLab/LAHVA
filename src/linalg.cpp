@@ -10,6 +10,7 @@
 #include "cublas_v2.h"
 #include "cuda_runtime.h"
 #include "utils/utils.hpp"
+#include "impl/tensor.hpp"
 #endif
 
 namespace tcgmtensor
@@ -44,9 +45,11 @@ namespace tcgmtensor
 
     
     template <typename T>
-    Vector<T>::Vector(const Vector& x) : Vector{x.size()}
+    Vector<T>::Vector(const Vector& x) : n_entries_{x.n_entries_}, 
+    data_{new T[x.n_entries_]}, is_owner_{x.is_owner_}
     {
-        std::copy(x.data(), x.data() + x.size(), data_);
+        std::copy(x.begin(), x.end(), data_);
+        this->copyGPUTensor(x);
     };
     
     
@@ -59,8 +62,8 @@ namespace tcgmtensor
         is_owner_ = true;
         n_entries_ = other.size();
         std::copy(other.data(), other.data() + other.size(), data_);
-        
-        if (this->device_ptr_) this->device_ptr_.reset(allocate<T>(this->size()));
+        this->copyGPUTensor(other);
+        //if (this->device_ptr_) this->device_ptr_.reset(allocate<T>(this->size()));
       }
       return *this;
       };

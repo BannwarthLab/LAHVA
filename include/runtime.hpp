@@ -7,9 +7,10 @@
 #include <cusolverDn.h>
 #include "const.h"
 #include <memory>
+#include <iostream>
 //#include <cublas_v2.h>
 #include <cmath>
-#define THREADS_PER_BLOCK 128
+#define THREADS_PER_BLOCK 1024
 //Macro to get the line and file throwing cuda runtime errors
 #define get_cuda_error(arg) get_cuda_ERROR(arg, __FILE__, __LINE__);
 //Macro to get the line and file throwing cublas runtim errors
@@ -17,8 +18,6 @@
 
 #define get_cusolv_error(arg) get_cusolv_ERROR(arg, __FILE__, __LINE__);
 
-namespace tcgmtensor{
-    
     /// @brief get error string for cuda runtime
     /// @param stat error ID
     /// @param file File in which error is raised
@@ -35,6 +34,10 @@ namespace tcgmtensor{
     /// @param file file where error occurs
     /// @param line line where error occurs
     void get_cusolv_ERROR(cusolverStatus_t stat, const char *file, int line);
+
+namespace tcgmtensor{
+    
+    
 
     class cuSolverRuntime;
 
@@ -53,13 +56,16 @@ namespace tcgmtensor{
         unsigned int streamFlag_ = cudaStreamNonBlocking;
         /// @brief create cublasHandle
         void createHandle();
-        /// @brief create Stream
-        void createStream();
+        
         /// @brief blocksize used for launching kernels
         int blockSize_ = THREADS_PER_BLOCK;
         ///
-        std::shared_ptr<cuSolverRuntime> cusolv_; 
+        std::shared_ptr<cuSolverRuntime> cusolv_;
+        bool delete_handle = false;
+        bool delete_stream = false;
     public:
+        /// @brief create Stream
+        void createStream();
         /// @brief cublas Handle
         cublasHandle_t handle = nullptr;
         /// @brief default constructor not checking memory request
@@ -73,6 +79,11 @@ namespace tcgmtensor{
         CudaRuntime(size_t requestedMem);
         /// @brief Destructor, destroying stream and handle if associated
         ~CudaRuntime();
+
+        CudaRuntime(const CudaRuntime& other);
+        CudaRuntime(CudaRuntime&& other);
+        CudaRuntime& operator=(CudaRuntime&& other);
+        CudaRuntime& operator=(const CudaRuntime& other);
 
         //%TODO move and copy Constructor
         ///
@@ -117,7 +128,12 @@ namespace tcgmtensor{
         cudaStream_t getStream() {return stream_;}
         cudaStream_t getStream() const {return stream_;}
 
-        void cublasSetStream_() const {get_cublas_error(cublasSetStream(handle, stream_));};
+        void cublasSetStream_() const 
+        {
+            
+            get_cuda_error(cudaSetDevice(cudaDevice));
+            get_cublas_error(cublasSetStream(handle, stream_));
+        };
         
         /// @brief synchronize device after async. operations
         void synchronize() 
