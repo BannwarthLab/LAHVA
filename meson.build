@@ -65,6 +65,5 @@ tcgmblas_dep = declare_dependency(
   variables: {'includedir': meson.current_source_dir() / 'include'},
 )
 
-subdir('app-test')
 install = not (meson.is_subproject() and get_option('default_library') == 'static')
 #subdir('test')
