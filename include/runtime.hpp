@@ -10,7 +10,7 @@
 #include <iostream>
 //#include <cublas_v2.h>
 #include <cmath>
-#define THREADS_PER_BLOCK 1024
+#define THREADS_PER_BLOCK 512
 //Macro to get the line and file throwing cuda runtime errors
 #define get_cuda_error(arg) get_cuda_ERROR(arg, __FILE__, __LINE__);
 //Macro to get the line and file throwing cublas runtim errors

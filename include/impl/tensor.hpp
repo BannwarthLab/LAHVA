@@ -102,6 +102,7 @@ namespace tcgmtensor
         void release_gpu_ptr() { device_ptr_.reset(); };
         virtual void copyGPUTensor(const GPUTensor<T> &other);
         virtual void moveGPUTensor(GPUTensor<T> &&other);
+        void updateGPUvalues(const CudaRuntime& cudart);
         void allocateGPU(const CudaRuntime& cudart) const;
         void deallocateGPU(const CudaRuntime& cudart) const;
     };

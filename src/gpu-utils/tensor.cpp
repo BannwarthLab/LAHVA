@@ -52,6 +52,13 @@ namespace tcgmtensor
         }
     };
 
+    template<typename T>
+    void GPUTensor<T>::updateGPUvalues(const CudaRuntime& cudart)
+    {
+        this->is_on_device_ = false;
+        this->copy2device(cudart);
+    }
+
     template <typename T>
     const void GPUTensor<T>::copy2device(const CudaRuntime &cudart) const
     {
