@@ -19,87 +19,92 @@ namespace tcgmtensor
     ///////////////////////////////////////////////////////////////////////////
     // Vector class
     ///////////////////////////////////////////////////////////////////////////
-    template<typename T>
-    Vector<T>::Vector( size_type count ) : n_entries_{count}, data_{new T[count]}
-    {   
+    template <typename T>
+    Vector<T>::Vector(size_type count) : n_entries_{count}, data_{new T[count]} {};
+#ifdef _CUDA
+    template <typename T>
+    Vector<T>::Vector(size_type count, const CudaRuntime &cudart) : n_entries_{count}
+    {
+        is_owner_ = false;
+        this->allocateGPU(cudart);
+        this->is_on_device_ = true;
     };
+#endif
 
-    template<typename T>
-    Vector<T>::Vector( size_type count, const T& value) : Vector{count}
+    template <typename T>
+    Vector<T>::Vector(size_type count, const T &value) : Vector{count}
     {
         std::fill(data_, data_ + count, value);
     };
 
-    template<typename T>
-    Vector<T>::Vector(size_type count, T* ptr, bool take_ownership) : 
-    n_entries_{count}, data_{ptr}, is_owner_{take_ownership}
-    {
+    template <typename T>
+    Vector<T>::Vector(size_type count, T *ptr, bool take_ownership) : n_entries_{count}, data_{ptr}, is_owner_{take_ownership} {
 
-    };
+                                                                                                     };
 
     template <typename T>
     Vector<T>::Vector(size_type count, const T *ptr) : Vector{count}
-    {   
+    {
         std::copy(ptr, ptr + count, data_);
     };
 
-    
     template <typename T>
-    Vector<T>::Vector(const Vector& x) : n_entries_{x.n_entries_}, 
-    data_{new T[x.n_entries_]}, is_owner_{x.is_owner_}
+    Vector<T>::Vector(const Vector &x) : n_entries_{x.n_entries_},
+                                         data_{new T[x.n_entries_]}, is_owner_{x.is_owner_}
     {
         std::copy(x.begin(), x.end(), data_);
         this->copyGPUTensor(x);
     };
-    
-    
+
     template <typename T>
-    Vector<T> &Vector<T>::operator=(const Vector& other) {
-    if (this != &other)
-    {
-        if (this->is_owner_) delete[] data_;
-        data_ = new T[other.size()];
-        is_owner_ = true;
-        n_entries_ = other.size();
-        std::copy(other.data(), other.data() + other.size(), data_);
-        this->copyGPUTensor(other);
-        //if (this->device_ptr_) this->device_ptr_.reset(allocate<T>(this->size()));
-      }
-      return *this;
-      };
-    
-    template <typename T>
-    Vector<T> &Vector<T>::operator=(Vector&& other) 
+    Vector<T> &Vector<T>::operator=(const Vector &other)
     {
         if (this != &other)
         {
-        this->data_ = other.data_;
-        
-        if (n_entries_ == other.size())
-        {
-            this->device_ptr_ = std::move(other.device_ptr_);
-            this->is_on_device_ = other.is_on_device_;
-        }
-        else
-        {
-            this->device_ptr_.reset();
-            this->is_on_device_ = false;
-        }
-
-        this->n_entries_ = other.n_entries_;
-        other.data_ = nullptr;
-        other.n_entries_ = 0;
-        this->is_owner_ = other.is_owner_;
-
-        other.is_owner_ = false;
-        other.is_on_device_ = false;
+            if (this->is_owner_)
+                delete[] data_;
+            data_ = new T[other.size()];
+            is_owner_ = true;
+            n_entries_ = other.size();
+            std::copy(other.data(), other.data() + other.size(), data_);
+            this->copyGPUTensor(other);
+            // if (this->device_ptr_) this->device_ptr_.reset(allocate<T>(this->size()));
         }
         return *this;
     };
-    
 
     template <typename T>
-    Vector<T>::~Vector(){
+    Vector<T> &Vector<T>::operator=(Vector &&other)
+    {
+        if (this != &other)
+        {
+            this->data_ = other.data_;
+
+            if (n_entries_ == other.size())
+            {
+                this->device_ptr_ = std::move(other.device_ptr_);
+                this->is_on_device_ = other.is_on_device_;
+            }
+            else
+            {
+                this->device_ptr_.reset();
+                this->is_on_device_ = false;
+            }
+
+            this->n_entries_ = other.n_entries_;
+            other.data_ = nullptr;
+            other.n_entries_ = 0;
+            this->is_owner_ = other.is_owner_;
+
+            other.is_owner_ = false;
+            other.is_on_device_ = false;
+        }
+        return *this;
+    };
+
+    template <typename T>
+    Vector<T>::~Vector()
+    {
         if (is_owner_)
         {
             delete[] data_;
@@ -115,10 +120,6 @@ namespace tcgmtensor
             std::cout << std::endl;
         }
     }
-
-    
-
-    
 
     ///////////////////////////////////////////////////////////////////////////
     // Matrix class
@@ -148,6 +149,16 @@ namespace tcgmtensor
     {
         check_size_(shape.first, shape.second);
     }
+#ifdef _CUDA
+    template <typename T>
+    Matrix<T>::Matrix(const Shape &shape, const CudaRuntime &cudart) : n_rows_{shape.first}, n_cols_{shape.second}
+    {
+        check_size_(shape.first, shape.second);
+        this->allocateGPU(cudart);
+        is_owner_ = false;
+        this->is_on_device_ = true;
+    }
+#endif
 
     template <typename T>
     Matrix<T>::Matrix(const Shape &shape, T val) : Matrix(shape)
@@ -211,8 +222,9 @@ namespace tcgmtensor
     Matrix<T> &Matrix<T>::operator=(const Matrix<T> &other)
     {
         if (this != &other)
-        {   
-            if (is_owner_) delete[] data_;
+        {
+            if (is_owner_)
+                delete[] data_;
             data_ = new T[data_size_(other.n_rows_, other.n_cols_)];
             is_owner_ = true;
             n_rows_ = other.n_rows_;
@@ -231,7 +243,7 @@ namespace tcgmtensor
     {
         this->data_ = other.data_;
 
-        if (n_cols_*n_rows_ == other.n_cols_*other.n_rows_)
+        if (n_cols_ * n_rows_ == other.n_cols_ * other.n_rows_)
         {
             this->device_ptr_ = std::move(other.device_ptr_);
             this->is_on_device_ = other.is_on_device_;
@@ -241,7 +253,7 @@ namespace tcgmtensor
             this->device_ptr_.reset();
             this->is_on_device_ = false;
         }
-    
+
         other.data_ = nullptr;
         other.n_rows_ = 0;
         other.n_cols_ = 0;
@@ -256,7 +268,7 @@ namespace tcgmtensor
     {
         if (this != &other)
         {
-            
+
             if (is_owner_ and data_ != nullptr)
             {
                 delete[] data_;
@@ -265,8 +277,8 @@ namespace tcgmtensor
             n_rows_ = other.n_rows_;
             n_cols_ = other.n_cols_;
             is_owner_ = other.is_owner_;
-            
-            if (n_cols_*n_rows_ == other.n_cols_*other.n_rows_)
+
+            if (n_cols_ * n_rows_ == other.n_cols_ * other.n_rows_)
             {
                 this->device_ptr_ = std::move(other.device_ptr_);
                 this->is_on_device_ = other.is_on_device_;
@@ -281,7 +293,7 @@ namespace tcgmtensor
             other.data_ = nullptr;
             other.n_rows_ = 0;
             other.n_cols_ = 0;
-            other.is_owner_ = false;            
+            other.is_owner_ = false;
         }
         return *this;
     }
@@ -301,7 +313,7 @@ namespace tcgmtensor
     template <typename T>
     Matrix<T> &Matrix<T>::operator+=(T val)
     {
-        #pragma omp for 
+#pragma omp for
         for (size_t i = 0; i < data_size_(n_rows_, n_cols_); i++)
         {
             data_[i] += val;
@@ -331,7 +343,7 @@ namespace tcgmtensor
         assert(n_cols_ == n_rows_);
 
         Matrix<T> copy = *this;
-        #pragma omp parallel for shared(data_, copy)
+#pragma omp parallel for shared(data_, copy)
         for (uint i = 0; i < n_cols_; i++)
         {
             for (uint j = 0; j < n_cols_; j++)
@@ -346,7 +358,7 @@ namespace tcgmtensor
     {
         size_t min_dim = std::min(n_cols_, n_rows_);
         Vector<T> diag(min_dim);
-        #pragma omp parallel for shared(diag,data_) 
+#pragma omp parallel for shared(diag, data_)
         for (size_t i = 0; i < min_dim; i++)
         {
             diag[i] = (data_[data_id_(i, i)]);
@@ -359,7 +371,7 @@ namespace tcgmtensor
     void Matrix<T>::set_diagonal(const Vector<T> &diag)
     {
         size_t min_dim = std::min(n_cols_, n_rows_);
-        #pragma omp parallel for shared(diag,data_) 
+#pragma omp parallel for shared(diag, data_)
         for (size_t i = 0; i < min_dim; i++)
         {
             data_[data_id_(i, i)] = diag[i];
@@ -424,7 +436,7 @@ namespace tcgmtensor
             {
                 throw std::logic_error("Row " + std::to_string(i) + " has wrong length.");
             }
-            #pragma omp for
+#pragma omp for
             for (uint j = 0; j <= i; j++)
             {
                 data_[data_id_(i, j)] = data[i][j];
@@ -437,7 +449,7 @@ namespace tcgmtensor
                                                                                data_{new T[data.size()]}
     {
         check_size_(data.size());
-        #pragma omp for
+#pragma omp for
         for (uint i = 0; i < data_size_(n_); i++)
         {
             data_[i] = data[i];
@@ -555,7 +567,7 @@ namespace tcgmtensor
     void LowTriMatrix<T>::set_diagonal(Vector<T> &diag)
     {
         size_t min_dim = n_;
-        #pragma omp for
+#pragma omp for
         for (size_t i = 0; i < min_dim; i++)
         {
             data_[data_id_(i, i)] = diag[i];

@@ -21,7 +21,9 @@ namespace tcgmtensor
     static const CBLAS_LAYOUT major = CblasColMajor;
     static const CBLAS_UPLO tri = CblasLower;
     static const int l_major = LAPACK_COL_MAJOR;
-    static char l_uplo = 'L'; 
+    static char l_uplo = 'L';
+
+    using Shape = std::pair<uint, uint>; 
 
     class BLASLeft
     {

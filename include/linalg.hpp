@@ -33,6 +33,9 @@ namespace tcgmtensor
 
     Vector() {};
     Vector(size_type count);
+  #ifdef _CUDA
+    Vector(size_type count, const CudaRuntime& cudart);
+  #endif
     Vector(const Vector &x);
     Vector(size_type count,
            const T &value);
@@ -68,9 +71,6 @@ namespace tcgmtensor
 
 
   };
-
-  //! Shape of a matrix
-  using Shape = std::pair<uint, uint>;
 
   //! @brief slim wrapper around a float or double array to allow easy acces with
   //!        two indeces using the () operator.
@@ -123,6 +123,9 @@ namespace tcgmtensor
     //! construct a matrix with dimensions shape.first x shape.second
     //! It is not guaranteed that the values will be initialized!
     Matrix(const Shape &shape);
+  #ifdef _CUDA
+    Matrix(const Shape &shape, const CudaRuntime& cudart);
+  #endif
     //! construct a matrix of shape with initial values val
     Matrix(const Shape &shape, T val);
     //! construct a matrix by giving ownership of the raw data
