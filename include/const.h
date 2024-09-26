@@ -22,6 +22,7 @@ namespace tcgmtensor
     static const CBLAS_UPLO tri = CblasLower;
     static const int l_major = LAPACK_COL_MAJOR;
     static char l_uplo = 'L';
+    static const char major_char = 'C';
 
     using Shape = std::pair<uint, uint>; 
 
