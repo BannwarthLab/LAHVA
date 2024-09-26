@@ -17,7 +17,7 @@ namespace tcgmtensor
             BLAS_INT ldb = get_leading(k, n);
             BLAS_INT ldc = get_leading(m, n);
 
-            mkl_domatadd(major_char, transa, transb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
+            mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
         };
 
         template<>
@@ -33,7 +33,7 @@ namespace tcgmtensor
             BLAS_INT ldb = get_leading(k, n);
             BLAS_INT ldc = get_leading(m, n);
 
-            mkl_somatadd(major_char, transa, transb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
+            mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
         };
 
         template<>
@@ -49,7 +49,7 @@ namespace tcgmtensor
             BLAS_INT ldb = get_leading(k, n);
             BLAS_INT ldc = get_leading(m, n);
 
-            mkl_domatadd(major_char, transa, transb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
+            mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
         };
 
         template<>
@@ -65,7 +65,7 @@ namespace tcgmtensor
             BLAS_INT ldb = get_leading(k, n);
             BLAS_INT ldc = get_leading(m, n);
 
-            mkl_somatadd(major_char, transa, transb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
+            mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
         };
     }
 }
