@@ -160,8 +160,6 @@ namespace tcgmtensor{
         CopyVectors(x.size(), x.data(), ix, y.data(), iy);
     }
 
-    
-
     //Swap routines////////////////////////////////////////////////////////////////////
 
     /*! Simple interface to DSWAP \f$\vec{y}<=>\vec{x}\f$ assuming unit stride
@@ -233,6 +231,43 @@ namespace tcgmtensor{
     */
     void ScaleVector(const float a, Tensor<float>& x, size_t ix){
         ScaleVector(x.size(), a, x.data());
+    }
+
+    //Extrema in Vector routines////////////////////////////////////////////////////////
+    /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
+        \param[in] n size of the vector \f$x\f$
+        \param[in] x pointer to the input vector \f$\vec{x}\f$
+        \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
+    */
+    int IndexMaxFromVector(Tensor<double>& x) {
+        return IndexMaxFromVector(x.size(), x.data());
+    }
+    /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
+        \param[in] n size of the vector \f$x\f$
+        \param[in] x pointer to the input vector \f$\vec{x}\f$
+        \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
+    */
+    int IndexMaxFromVector(Tensor<float>& x) {
+        return IndexMaxFromVector(x.size(), x.data());
+    }
+
+    /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
+        \param[in] n size of the vector \f$x\f$
+        \param[in] x pointer to the input vector \f$\vec{x}\f$
+        \param[in] ix stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
+    */
+    int IndexMaxFromVector(Tensor<double>& x, size_t ix) {
+        return IndexMaxFromVector(x.size(), x.data(), ix);
+    }
+    /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
+        \param[in] n size of the vector \f$x\f$
+        \param[in] x pointer to the input vector \f$\vec{x}\f$
+        \param[in] ix stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
+    */
+    int IndexMaxFromVector(Tensor<float>& x, size_t ix) {
+        return IndexMaxFromVector(x.size(), x.data(), ix);
     }
     }
 }
