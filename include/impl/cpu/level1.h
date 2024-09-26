@@ -18,6 +18,7 @@ namespace tcgmtensor{
     void CopyVectors(const size_t nelemXY, const float* X, float* Y);
     void CopyVectors(const size_t nelemXY, const double* X, const size_t strideX, double* Y, const size_t strideY);
     void CopyVectors(const size_t nelemXY, const float* X, const size_t strideX, float* Y, const size_t strideY);
+    void CopyVectors(const size_t nelemXY, const double* X, float* Y);
 
     void SwapVectors(const size_t nelemXY, double* X, double* Y);
     void SwapVectors(const size_t nelemXY, float* X, float* Y);
@@ -28,6 +29,12 @@ namespace tcgmtensor{
     void ScaleVector(const size_t ndim, const float a, float* x);
     void ScaleVector(const size_t ndim, const double a, double* x, size_t ix);
     void ScaleVector(const size_t ndim, const float a, float* x, size_t ix);
+
+    int IndexMaxFromVector(const size_t ndim, const double* x);
+    int IndexMaxFromVector(const size_t ndim, const float* x);
+    int IndexMaxFromVector(const size_t ndim, const double* x, const size_t ix);
+    int IndexMaxFromVector(const size_t ndim, const float* x, const size_t ix);
+
     }
 }
 

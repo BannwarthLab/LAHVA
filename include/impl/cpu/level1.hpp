@@ -36,6 +36,11 @@ namespace tcgmtensor{
     void ScaleVector(const float a, Tensor<float>& x);
     void ScaleVector(const double a, Tensor<double>& x, size_t ix);
     void ScaleVector(const float a, Tensor<float>& x, size_t ix);
+
+    int IndexMaxFromVector(const Tensor<double>& x);
+    int IndexMaxFromVector(const Tensor<float>& x);
+    int IndexMaxFromVector(const Tensor<double>& x, const size_t ix);
+    int IndexMaxFromVector(const Tensor<float>& x, const size_t ix);
     
     template<typename... Args>
     void AddVectors(const CPURuntime& rt_, Args&&... args) {
@@ -55,6 +60,11 @@ namespace tcgmtensor{
     template<typename... Args>
     void ScaleVector(const CPURuntime& rt_, Args&&... args) {
         (ScaleVector(args...));                
+    }
+
+    template<typename... Args>
+    int IndexMaxFromVector(const CPURuntime& rt_, Args&&... args) {
+        (IndexMaxFromVector(args...));                
     }
     }
 } 

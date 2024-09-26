@@ -179,6 +179,20 @@ namespace tcgmtensor{
     cblas_scopy(n, x, incx, y, incy);
     }
 
+    /*! Copy for \f$\vec{y}=\vec{x}\f$ where y is in floating point precision and x in double precision
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+    */
+    void CopyVectors(const size_t nelemXY, const double* X, float* Y)
+    {
+        
+        //#pragma omp for 
+        for (size_t i = 0; i < nelemXY; i++ )
+        {
+            Y[i] = static_cast<float>(X[i]);
+        }
+    }
+
     //Swap routines////////////////////////////////////////////////////////////////////
 
     /*! Simple interface to DSWAP \f$\vec{y}<=>\vec{x}\f$ assuming unit stride
@@ -272,5 +286,45 @@ namespace tcgmtensor{
         const BLAS_INT incx = (BLAS_INT) ix;
         cblas_sscal(n, a, x, incx);
     }
+
+    //Extrema in Vector routines////////////////////////////////////////////////////////
+    /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in vector \f$x\f$.
+        \param[in] n size of the vector \f$x\f$
+        \param[in] x pointer to the input vector \f$\vec{x}\f$
+        \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
+    */
+    int IndexMaxFromVector(const size_t ndim, const double* x) {
+        const BLAS_INT n = (BLAS_INT) ndim;
+        const BLAS_INT one = 1;
+
+        return cblas_idamax(n, x, one);
+    }
+
+    int IndexMaxFromVector(const size_t ndim, const float* x) {
+        const BLAS_INT n = (BLAS_INT) ndim;
+        const BLAS_INT one = 1;
+
+        return cblas_isamax(n, x, one);
+    }
+    /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in vector \f$x\f$.
+        \param[in] n size of the vector \f$x\f$
+        \param[in] x pointer to the input vector \f$\vec{x}\f$
+        \param[in] ix stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
+    */
+    int IndexMaxFromVector(const size_t ndim, const double* x, size_t ix) {
+        const BLAS_INT n = (BLAS_INT) ndim;
+        const BLAS_INT incx = (BLAS_INT) ix;
+
+        return cblas_idamax(n, x, incx);
+    }
+
+    int IndexMaxFromVector(const size_t ndim, const float* x, size_t ix) {
+        const BLAS_INT n = (BLAS_INT) ndim;
+        const BLAS_INT incx = (BLAS_INT) ix;
+
+        return cblas_isamax(n, x, incx);
+    }
+
     }
 }
