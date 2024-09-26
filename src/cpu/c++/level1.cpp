@@ -239,7 +239,7 @@ namespace tcgmtensor{
         \param[in] x pointer to the input vector \f$\vec{x}\f$
         \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
     */
-    int IndexMaxFromVector(Tensor<double>& x) {
+    int IndexMaxFromVector(const Tensor<double>& x) {
         return IndexMaxFromVector(x.size(), x.data());
     }
     /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
@@ -247,7 +247,7 @@ namespace tcgmtensor{
         \param[in] x pointer to the input vector \f$\vec{x}\f$
         \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
     */
-    int IndexMaxFromVector(Tensor<float>& x) {
+    int IndexMaxFromVector(const Tensor<float>& x) {
         return IndexMaxFromVector(x.size(), x.data());
     }
 
@@ -257,7 +257,7 @@ namespace tcgmtensor{
         \param[in] ix stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
     */
-    int IndexMaxFromVector(Tensor<double>& x, size_t ix) {
+    int IndexMaxFromVector(const Tensor<double>& x, const size_t ix) {
         return IndexMaxFromVector(x.size(), x.data(), ix);
     }
     /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
@@ -266,7 +266,7 @@ namespace tcgmtensor{
         \param[in] ix stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
     */
-    int IndexMaxFromVector(Tensor<float>& x, size_t ix) {
+    int IndexMaxFromVector(const Tensor<float>& x, const size_t ix) {
         return IndexMaxFromVector(x.size(), x.data(), ix);
     }
     }
