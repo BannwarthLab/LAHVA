@@ -19,6 +19,7 @@ namespace tcgmtensor{
     void CopyVectors(const size_t nelemXY, const double* X, const size_t strideX, double* Y, const size_t strideY);
     void CopyVectors(const size_t nelemXY, const float* X, const size_t strideX, float* Y, const size_t strideY);
     void CopyVectors(const size_t nelemXY, const double* X, float* Y);
+    void CopyVectors(const size_t nelemXY, const float* X, double* Y);
 
     void SwapVectors(const size_t nelemXY, double* X, double* Y);
     void SwapVectors(const size_t nelemXY, float* X, float* Y);

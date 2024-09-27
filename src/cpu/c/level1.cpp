@@ -193,6 +193,16 @@ namespace tcgmtensor{
         }
     }
 
+    void CopyVectors(const size_t nelemXY, const float* X, double* Y)
+    {
+        
+        //#pragma omp for 
+        for (size_t i = 0; i < nelemXY; i++ )
+        {
+            Y[i] = static_cast<double>(X[i]);
+        }
+    }
+
     //Swap routines////////////////////////////////////////////////////////////////////
 
     /*! Simple interface to DSWAP \f$\vec{y}<=>\vec{x}\f$ assuming unit stride
