@@ -65,7 +65,7 @@ namespace tcgmtensor
     const size_t size() const override { return n_entries_;}
 
     T* begin() const {return &data_[0];};
-    T* end() const {return &data_[n_entries_-1];};
+    T* end() const {return &data_[n_entries_];};
 
     void print() const;
 

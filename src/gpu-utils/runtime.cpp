@@ -132,10 +132,17 @@ namespace tcgmtensor
         stat = cublasGetVersion(handle, &version);
         get_cublas_error(stat);
         delete_handle = true;
+        print_cuda_version();
+        
+
     }
 
     void CudaRuntime::print_cuda_version(){
-        std::cout << "Cuda version in use: " << std::to_string(version) << std::endl;
+        cudaDeviceProp prop;
+        cudaGetDeviceProperties(&prop, cudaDevice);
+        std::cout << "Async engine count: " << prop.asyncEngineCount << std::endl;
+        std::cout << "Concurrent kernels: " << prop.concurrentKernels << std::endl;
+        std::cout << "Cuda version in use: " << std::to_string(version) << "on device: "<< cudaDevice << std::endl;
     };
 
     void CudaRuntime::enableAsyncCopy()

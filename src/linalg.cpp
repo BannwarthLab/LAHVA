@@ -358,9 +358,11 @@ namespace tcgmtensor
     {
         size_t min_dim = std::min(n_cols_, n_rows_);
         Vector<T> diag(min_dim);
-#pragma omp parallel for shared(diag, data_)
+//        #pragma omp parallel
+//        #pragma omp for ordered schedule(static) 
         for (size_t i = 0; i < min_dim; i++)
         {
+//            #pragma omp ordered
             diag[i] = (data_[data_id_(i, i)]);
         }
 
@@ -371,7 +373,7 @@ namespace tcgmtensor
     void Matrix<T>::set_diagonal(const Vector<T> &diag)
     {
         size_t min_dim = std::min(n_cols_, n_rows_);
-#pragma omp parallel for shared(diag, data_)
+//#pragma omp parallel for shared(diag, data_)
         for (size_t i = 0; i < min_dim; i++)
         {
             data_[data_id_(i, i)] = diag[i];
