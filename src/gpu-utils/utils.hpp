@@ -9,18 +9,17 @@ namespace tcgmtensor
     {
 
         template <typename T>
-        void check_device_alloc(const CudaRuntime &cudart, const GPUTensor<T> &gpu_vec)
+        void check_device_alloc(const CudaRuntime &cudart, const GPUTensor_<T> &gpu_vec)
         {
-            if (!gpu_vec.alloc_on_device())
-            {
-                gpu_vec.copy2device(cudart);
-            }
+            
+            gpu_vec.copy2device(cudart);
+
         };
 
    
 
         template <typename T>
-        std::tuple<size_t, size_t> check_size_mv(const Matrix<T> &m, const Vector<T> &vmult, const Vector<T> &vres, cublasOperation_t trans = CUBLAS_OP_N)
+        std::tuple<size_t, size_t> check_size_mv(const Matrix_<T> &m, const GPUTensor_<T> &vmult, const GPUTensor_<T> &vres, cublasOperation_t trans = CUBLAS_OP_N)
         {
             Shape s = m.shape();
             size_t nrow = s.first;
@@ -40,7 +39,7 @@ namespace tcgmtensor
         };
 
         template <typename T>
-        std::tuple<size_t, size_t> check_size_mv(const LowTriMatrix<T> &m, const Vector<T> &vmult, const Vector<T> &vres, cublasOperation_t trans = CUBLAS_OP_N)
+        std::tuple<size_t, size_t> check_size_mv(const LowTriMatrix_<T> &m, const Vector_<T> &vmult, const Vector_<T> &vres, cublasOperation_t trans = CUBLAS_OP_N)
         {
             Shape s = m.shape();
             size_t nrow = s.first;
@@ -64,8 +63,8 @@ namespace tcgmtensor
         cublasOperation_t get_trans(const char *T);
 
         template <typename T>
-        std::tuple<size_t, size_t, size_t> check_size_mm(const Matrix<T> &a, const Matrix<T> &b,
-                                                         const Matrix<T> &c, cublasOperation_t transa = CUBLAS_OP_N, cublasOperation_t transb = CUBLAS_OP_N)
+        std::tuple<size_t, size_t, size_t> check_size_mm(const Matrix_<T> &a, const Matrix_<T> &b,
+                                                         const Matrix_<T> &c, cublasOperation_t transa = CUBLAS_OP_N, cublasOperation_t transb = CUBLAS_OP_N)
         {
 
             Shape sa = a.shape();

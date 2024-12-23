@@ -1,11 +1,11 @@
-#include "impl/cpu/level3.hpp"
+#include "impl/blas/cpu/level3.hpp"
 #include "../../utils/utils.hpp"
 namespace tcgmtensor
 {
     namespace cpu{ 
     
-    void MatrixMatrixProduct(const char* Ta, const char* Tb, const double alpha, const Matrix<double>& a, 
-                             const Matrix<double>& b, const double beta, Matrix<double>& c)
+    void MatrixMatrixProduct(const char* Ta, const char* Tb, const double alpha, const Matrix_<double>& a, 
+                             const Matrix_<double>& b, const double beta, Matrix_<double>& c)
     {
         CBLAS_TRANSPOSE transa = get_trans(Ta);
         CBLAS_TRANSPOSE transb = get_trans(Tb);
@@ -19,7 +19,7 @@ namespace tcgmtensor
         cblas_dgemm(major, transa, transb, m, n, k, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
     };
 
-    void MatrixMatrixProduct(const Matrix<double>& a, const Matrix<double>& b, Matrix<double>& c,
+    void MatrixMatrixProduct(const Matrix_<double>& a, const Matrix_<double>& b, Matrix_<double>& c,
                              const double alpha, const double beta, const char* Ta, const char* Tb)
     {
         CBLAS_TRANSPOSE transa = get_trans(Ta);
@@ -34,8 +34,8 @@ namespace tcgmtensor
         cblas_dgemm(major, transa, transb, m, n, k, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
     };
                              
-    void MatrixMatrixProduct(const char* Ta, const char* Tb, const float alpha, const Matrix<float>& a, const Matrix<float>& b,
-                             const float beta, Matrix<float>& c)
+    void MatrixMatrixProduct(const char* Ta, const char* Tb, const float alpha, const Matrix_<float>& a, const Matrix_<float>& b,
+                             const float beta, Matrix_<float>& c)
     {
         CBLAS_TRANSPOSE transa = get_trans(Ta);
         CBLAS_TRANSPOSE transb = get_trans(Tb);
@@ -49,7 +49,7 @@ namespace tcgmtensor
         cblas_sgemm(major, transa, transb, m, n, k, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
     };
 
-    void MatrixMatrixProduct(const Matrix<float>& a, const Matrix<float>& b, Matrix<float>& c,
+    void MatrixMatrixProduct(const Matrix_<float>& a, const Matrix_<float>& b, Matrix_<float>& c,
                              const float alpha, const float beta, const char* Ta, const char* Tb)
     {
         CBLAS_TRANSPOSE transa = get_trans(Ta);
@@ -64,8 +64,8 @@ namespace tcgmtensor
         cblas_sgemm(major, transa, transb, m, n, k, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
     };
 
-    void SymMatrixMatrixProduct(const CBLAS_SIDE side, const double alpha, const Matrix<double>& a, const Matrix<double>& b,
-                                const double beta, Matrix<double>& c)
+    void SymMatrixMatrixProduct(const CBLAS_SIDE side, const double alpha, const Matrix_<double>& a, const Matrix_<double>& b,
+                                const double beta, Matrix_<double>& c)
     {
         auto [m, n, k] = check_size_mm(a, b, c);
         BLAS_INT lda = get_leading(m, k);
@@ -74,7 +74,7 @@ namespace tcgmtensor
         cblas_dsymm(major, side, tri, m, n, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
     };
 
-    void SymMatrixMatrixProduct(const Matrix<double>& a, const Matrix<double>& b, Matrix<double>& c,
+    void SymMatrixMatrixProduct(const Matrix_<double>& a, const Matrix_<double>& b, Matrix_<double>& c,
                                 const double alpha, const double beta, const CBLAS_SIDE side)
     {
         auto [m, n, k] = check_size_mm(a, b, c);
@@ -84,8 +84,8 @@ namespace tcgmtensor
         cblas_dsymm(major, side, tri, m, n, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
     };
 
-    void SymMatrixMatrixProduct(const CBLAS_SIDE side, const float alpha, const Matrix<float>& a, const Matrix<float>& b,
-                                const float beta, Matrix<float>& c)
+    void SymMatrixMatrixProduct(const CBLAS_SIDE side, const float alpha, const Matrix_<float>& a, const Matrix_<float>& b,
+                                const float beta, Matrix_<float>& c)
     {
         auto [m, n, k] = check_size_mm(a, b, c);
 
@@ -96,7 +96,7 @@ namespace tcgmtensor
         cblas_ssymm(major, side, tri, m, n, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
     };
 
-    void SymMatrixMatrixProduct(const Matrix<float>& a, const Matrix<float>& b, Matrix<float>& c,
+    void SymMatrixMatrixProduct(const Matrix_<float>& a, const Matrix_<float>& b, Matrix_<float>& c,
                                 const float alpha, const float beta, const CBLAS_SIDE side)
     {
         auto [m, n, k] = check_size_mm(a, b, c);

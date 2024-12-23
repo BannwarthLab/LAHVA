@@ -1,5 +1,5 @@
-#include "impl/gpu/additional-level1.hpp"
-#include "impl/gpu/level1.hpp"
+#include "impl/blas/gpu/additional-level1.hpp"
+#include "impl/blas/gpu/level1.hpp"
 #include "custom-kernel/hadamard.h"
 #include "../../gpu-utils/utils.hpp"
 
@@ -7,7 +7,7 @@ namespace tcgmtensor{
     namespace gpu
     {
         template<>
-        void Hadamard<double>(const CudaRuntime& cudart, const GPUTensor<double>& vecin, GPUTensor<double>& vecinout)
+        void Hadamard<double>(const CudaRuntime& cudart, const GPUTensor_<double>& vecin, GPUTensor_<double>& vecinout)
         {   
             check_device_alloc(cudart, vecinout);
             check_device_alloc(cudart, vecin);
@@ -16,7 +16,7 @@ namespace tcgmtensor{
         }
 
         template<>
-        void Hadamard<float>(const CudaRuntime& cudart, const GPUTensor<float>& vecin, GPUTensor<float>& vecinout)
+        void Hadamard<float>(const CudaRuntime& cudart, const GPUTensor_<float>& vecin, GPUTensor_<float>& vecinout)
         {   
             check_device_alloc(cudart, vecinout);
             check_device_alloc(cudart, vecin);
@@ -27,7 +27,7 @@ namespace tcgmtensor{
 
 
         template<>
-        void Hadamard<double>(const CudaRuntime& cudart, const GPUTensor<double>& vecin, const GPUTensor<double>& vecin2, GPUTensor<double>& vecout)
+        void Hadamard<double>(const CudaRuntime& cudart, const GPUTensor_<double>& vecin, const GPUTensor_<double>& vecin2, GPUTensor_<double>& vecout)
         {
             check_device_alloc(cudart, vecin2);
             check_device_alloc(cudart, vecin);
@@ -37,7 +37,7 @@ namespace tcgmtensor{
         }
 
         template<>
-        void Hadamard<float>(const CudaRuntime& cudart, const GPUTensor<float>& vecin, const GPUTensor<float>& vecin2, GPUTensor<float>& vecout)
+        void Hadamard<float>(const CudaRuntime& cudart, const GPUTensor_<float>& vecin, const GPUTensor_<float>& vecin2, GPUTensor_<float>& vecout)
         {
             check_device_alloc(cudart, vecin2);
             check_device_alloc(cudart, vecin);
@@ -47,7 +47,7 @@ namespace tcgmtensor{
         }
 
         template<>
-        void Hadamard<double>(const CudaRuntime& cudart, const Matrix<double>& vecin, const Vector<double>& vecin2, Matrix<double>& vecout)
+        void Hadamard<double>(const CudaRuntime& cudart, const Matrix_<double>& vecin, const GPUTensor_<double>& vecin2, Matrix_<double>& vecout)
         {
             check_device_alloc(cudart, vecin2);
             check_device_alloc(cudart, vecin);
@@ -57,7 +57,7 @@ namespace tcgmtensor{
         }
 
         template<>
-        void Hadamard<float>(const CudaRuntime& cudart, const Matrix<float>& vecin, const Vector<float>& vecin2, Matrix<float>& vecout)
+        void Hadamard<float>(const CudaRuntime& cudart, const Matrix_<float>& vecin, const GPUTensor_<float>& vecin2, Matrix_<float>& vecout)
         {
             check_device_alloc(cudart, vecin2);
             check_device_alloc(cudart, vecin);

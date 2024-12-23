@@ -1,5 +1,5 @@
 #include "../../../gpu-utils/utils.hpp"
-#include "impl/gpu/level1.hpp"
+#include "impl/blas/gpu/level1.hpp"
 #include "mixed-precision.h"
 
 namespace tcgmtensor
@@ -37,8 +37,8 @@ namespace tcgmtensor
           __syncthreads();
         }
 
-        void SymmetrizedON2ScalingProductGPU(const CudaRuntime& cudart, const Vector<double>& diag1, const Matrix<float>& matrix1,
-                                             const Vector<double>& diag2, const Matrix<float>& matrix2, Matrix<float>& matrix_out)
+        void SymmetrizedON2ScalingProductGPU(const CudaRuntime& cudart, const Vector_<double>& diag1, const Matrix_<float>& matrix1,
+                                             const Vector_<double>& diag2, const Matrix_<float>& matrix2, Matrix_<float>& matrix_out)
         
         {
             int n = diag1.size();
@@ -65,7 +65,7 @@ namespace tcgmtensor
             }
         }
 
-        void CopyVectors(const CudaRuntime& cudart, const GPUTensor<double>& X, GPUTensor<float> &Y)
+        void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<double>& X, GPUTensor_<float> &Y)
         {
             assert(X.size() == Y.size());
             check_device_alloc(cudart, Y);
@@ -75,7 +75,7 @@ namespace tcgmtensor
             CastMatrixDPToSP<<<cudart.gridSize(n,1),cudart.blockSize(), 0, cudart.getStream()>>>(n, X.gpu_data(), Y.gpu_data());
         }
 
-        void CopyVectors(const CudaRuntime& cudart, const GPUTensor<float>& X, GPUTensor<double> &Y)
+        void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<float>& X, GPUTensor_<double> &Y)
         {
             assert(X.size() == Y.size());
             unsigned long long n = X.size();

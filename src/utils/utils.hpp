@@ -7,17 +7,16 @@
 
 namespace tcgmtensor{
     template<typename T>
-    void check_equal_size(const Vector<T>& v1, const Vector<T>& v2){
-        assert(v1.size() == v2.size());
-    };
-
-    template<typename T>
     void check_equal_size(const Tensor<T>& v1, const Tensor<T>& v2){
         assert(v1.size() == v2.size());
     };
+    namespace cpu
+    {
+    
+    
 
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const Matrix<T>& m, const Vector<T>& vmult, const Vector<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const Matrix_<T>& m, const Tensor<T>& vmult, const Tensor<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
@@ -36,7 +35,7 @@ namespace tcgmtensor{
     };
 
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix<T>& m, const Vector<T>& vmult, const Vector<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor<T>& vmult, const Tensor<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
@@ -55,8 +54,8 @@ namespace tcgmtensor{
     };
 
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT, BLAS_INT> check_size_mm(const Matrix<T>& a, const Matrix<T>& b, 
-        const Matrix<T>& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
+    std::tuple<BLAS_INT, BLAS_INT, BLAS_INT> check_size_mm(const Matrix_<T>& a, const Matrix_<T>& b, 
+        const Matrix_<T>& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
         
         Shape sa = a.shape();
         BLAS_INT nrowa = sa.first;
@@ -111,7 +110,8 @@ namespace tcgmtensor{
     };
 
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix<T> m, const Vector<T> vmult){
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor<T>& vmult)
+    {
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
@@ -123,5 +123,5 @@ namespace tcgmtensor{
 
     BLAS_INT get_leading(BLAS_INT nrow, BLAS_INT ncol);
     CBLAS_TRANSPOSE get_trans(const char* T);
-
+    } // namespace cpu
 }

@@ -74,7 +74,7 @@ void CPUTimer::push(std::string label) {
         for (time_record entry : record) 
         {
             float time = this->get(entry.label);
-            std::cout << " - " << entry.label << " :\t" << format_time(time) << std::endl;
+            std::cout << " - " << entry.label << " :\t \t" << format_time(time) << std::endl;
             ttime += time;
         }
 

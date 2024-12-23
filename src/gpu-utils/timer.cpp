@@ -33,7 +33,7 @@ namespace tcgmtensor{
         it = find(last);
         if (it == -1) return;
 
-        istat = cudaEventRecord(record[it].stopEvent, 0);
+        istat = cudaEventRecord(record[it].stopEvent, cudart_->getStream());
         istat = cudaEventSynchronize(record[it].stopEvent);
         istat = cudaEventElapsedTime(&time, record[it].startEvent, record[it].stopEvent);
         get_cuda_error(istat);

@@ -1,6 +1,6 @@
 #include "../../utils/utils.hpp"
-#include "impl/cpu/level1.hpp"
-#include "impl/cpu/level1.h"
+#include "impl/blas/cpu/level1.hpp"
+#include "impl/blas/cpu/level1.h"
 
 namespace tcgmtensor{
     namespace cpu{
@@ -122,7 +122,7 @@ namespace tcgmtensor{
     void CopyVectors(const Tensor<float>& x, Tensor<double>& y) 
     {
         
-        //#pragma omp for 
+        #pragma omp parallel for simd
         for (size_t i = 0; i < x.size() ; i++ )
         {
             y.data()[i] = static_cast<double>(x.data()[i]);
@@ -132,7 +132,7 @@ namespace tcgmtensor{
     void CopyVectors(const Tensor<double>& x, Tensor<float>& y) 
     {
         
-        //#pragma omp for 
+        #pragma omp parallel for simd
         for (size_t i = 0; i < x.size() ; i++ )
         {
             y.data()[i] = static_cast<float>(x.data()[i]);

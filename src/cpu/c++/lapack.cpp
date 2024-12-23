@@ -1,4 +1,4 @@
-#include "impl/cpu/lapack.hpp"
+#include "impl/blas/cpu/lapack.hpp"
 #include <stdexcept>
 namespace tcgmtensor
 {
@@ -6,7 +6,7 @@ namespace tcgmtensor
     namespace cpu
     {
         template <>
-        void SolveGenSysLinEquations<double>(const char *Ta, Matrix<double> &a, Matrix<double> &b)
+        void SolveGenSysLinEquations<double>(const char *Ta, Matrix_<double> &a, Matrix_<double> &b)
         {
             LPCK_INT info = 0;
             if (a.shape().first != a.shape().second)
@@ -20,12 +20,12 @@ namespace tcgmtensor
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
             Vector<LPCK_INT> ipiv(n);
-            info = LAPACKE_dgetrf(l_major, n, n, a.data(), n, ipiv.data());
+            dgetrf_(&n, &n, a.data(), &n, ipiv.data(), &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRF");
             }
-            info = LAPACKE_dgetrs(l_major, *Ta, n, nrhs, a.data(), n, ipiv.data(), b.data(), n);
+            dgetrs_(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRS");
@@ -33,7 +33,7 @@ namespace tcgmtensor
         };
 
         template <>
-        void SolveGenSysLinEquations<float>(const char *Ta, Matrix<float> &a, Matrix<float> &b)
+        void SolveGenSysLinEquations<float>(const char *Ta, Matrix_<float> &a, Matrix_<float> &b)
         {
             LPCK_INT info = 0;
             if (a.shape().first != a.shape().second)
@@ -47,12 +47,12 @@ namespace tcgmtensor
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
             Vector<LPCK_INT> ipiv(n);
-            info = LAPACKE_sgetrf(l_major, n, n, a.data(), n, ipiv.data());
+            sgetrf_(&n, &n, a.data(), &n, ipiv.data(), &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SGETRF");
             }
-            info = LAPACKE_sgetrs(l_major, *Ta, n, nrhs, a.data(), n, ipiv.data(), b.data(), n);
+            sgetrs_(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SGETRS");
@@ -60,7 +60,7 @@ namespace tcgmtensor
         };
 
         template <>
-        void SolveGenSysLinEquations<double>(Matrix<double> &a, Matrix<double> &b, const char *Ta)
+        void SolveGenSysLinEquations<double>(Matrix_<double> &a, Matrix_<double> &b, const char *Ta)
         {
             LPCK_INT info = 0;
             if (a.shape().first != a.shape().second)
@@ -74,12 +74,12 @@ namespace tcgmtensor
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
             Vector<LPCK_INT> ipiv(n);
-            info = LAPACKE_dgetrf(l_major, n, n, a.data(), n, ipiv.data());
+            dgetrf_(&n, &n, a.data(), &n, ipiv.data(), &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRF");
             }
-            info = LAPACKE_dgetrs(l_major, *Ta, n, nrhs, a.data(), n, ipiv.data(), b.data(), n);
+            dgetrs_(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRS");
@@ -87,7 +87,7 @@ namespace tcgmtensor
         };
 
         template <>
-        void SolveGenSysLinEquations<float>(Matrix<float> &a, Matrix<float> &b, const char *Ta)
+        void SolveGenSysLinEquations<float>(Matrix_<float> &a, Matrix_<float> &b, const char *Ta)
         {
             LPCK_INT info = 0;
             if (a.shape().first != a.shape().second)
@@ -101,12 +101,12 @@ namespace tcgmtensor
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
             Vector<LPCK_INT> ipiv(n);
-            info = LAPACKE_sgetrf(l_major, n, n, a.data(), n, ipiv.data());
+            sgetrf_(&n, &n, a.data(), &n, ipiv.data(), &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SGETRF");
             }
-            info = LAPACKE_sgetrs(l_major, *Ta, n, nrhs, a.data(), n, ipiv.data(), b.data(), n);
+            sgetrs_(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SGETRS");
@@ -114,7 +114,7 @@ namespace tcgmtensor
         };
 
         template <>
-        void SolveGenSysLinEquations<double>(const char *Ta, LowTriMatrix<double> &a, Matrix<double> &b)
+        void SolveGenSysLinEquations<double>(const char *Ta, LowTriMatrix_<double> &a, Matrix_<double> &b)
         {
             LPCK_INT info = 0;
             if (a.shape().first != a.shape().second)
@@ -127,13 +127,7 @@ namespace tcgmtensor
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
-           // Vector<LPCK_INT> ipiv(n);
-            //info = LAPACKE_dsptrf(l_major, l_uplo, n, a.data(), ipiv.data());
-            //if (info != 0)
-            //{
-                //throw std::runtime_error("Failure in DSPTRF");
-            //}
-            info = LAPACKE_dtptrs(l_major, l_uplo, *Ta, 'N', n, nrhs, a.data(), b.data(), n);
+            dtptrs_(&l_uplo, Ta, &l_nondiag, &n, &nrhs, a.data(), b.data(), &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DTPTRS");
@@ -141,7 +135,7 @@ namespace tcgmtensor
         };
 
         template <>
-        void SolveGenSysLinEquations<float>(const char *Ta, LowTriMatrix<float> &a, Matrix<float> &b)
+        void SolveGenSysLinEquations<float>(const char *Ta, LowTriMatrix_<float> &a, Matrix_<float> &b)
         {
             LPCK_INT info = 0;
             LPCK_INT n = a.shape().first;
@@ -150,13 +144,7 @@ namespace tcgmtensor
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
-            //Vector<LPCK_INT> ipiv(n);
-            //info = LAPACKE_ssptrf(l_major, l_uplo, n, a.data(), ipiv.data());
-            //if (info != 0)
-            //{
-                //throw std::runtime_error("Failure in SSPTRF");
-            //}
-            info = LAPACKE_stptrs(l_major, l_uplo, *Ta, 'N', n, nrhs, a.data(), b.data(), n);
+            stptrs_(&l_uplo, Ta, &l_nondiag, &n, &nrhs, a.data(), b.data(), &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in STPTRS");
@@ -164,7 +152,7 @@ namespace tcgmtensor
         };
 
         template <>
-        void SolveGenSysLinEquations<double>(LowTriMatrix<double> &a, Matrix<double> &b, const char *Ta)
+        void SolveGenSysLinEquations<double>(LowTriMatrix_<double> &a, Matrix_<double> &b, const char *Ta)
         {
             LPCK_INT info = 0;
             LPCK_INT n = a.shape().first;
@@ -173,13 +161,7 @@ namespace tcgmtensor
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
-            //Vector<LPCK_INT> ipiv(n);
-            //info = LAPACKE_dsptrf(l_major, l_uplo, n, a.data(), ipiv.data());
-            //if (info != 0)
-            //{
-                //throw std::runtime_error("Failure in DSPTRF");
-            //}
-            info = LAPACKE_dtptrs(l_major, l_uplo, *Ta, 'N', n, nrhs, a.data(), b.data(), n);
+            dtptrs_(&l_uplo, Ta, &l_nondiag, &n, &nrhs, a.data(), b.data(), &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DTPTRS");
@@ -187,7 +169,7 @@ namespace tcgmtensor
         };
 
         template <>
-        void SolveGenSysLinEquations<float>(LowTriMatrix<float> &a, Matrix<float> &b, const char *Ta)
+        void SolveGenSysLinEquations<float>(LowTriMatrix_<float> &a, Matrix_<float> &b, const char *Ta)
         {
             LPCK_INT info = 0;
             LPCK_INT n = a.shape().first;
@@ -196,13 +178,7 @@ namespace tcgmtensor
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
-            //Vector<LPCK_INT> ipiv(n);
-            //info = LAPACKE_ssptrf(l_major, l_uplo, n, a.data(), ipiv.data());
-            //if (info != 0)
-            //{
-                //throw std::runtime_error("Failure in SSPTRF");
-            //}
-            info = LAPACKE_stptrs(l_major, l_uplo, *Ta, 'N', n, nrhs, a.data(), b.data(), n);
+            stptrs_(&l_uplo, Ta, &l_nondiag, &n, &nrhs, a.data(), b.data(), &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in STPTRS");
@@ -210,7 +186,7 @@ namespace tcgmtensor
         };
 
         template <>
-        void SolveSymSysLinEquations<double>(LowTriMatrix<double> &a, Matrix<double> &b)
+        void SolveSymSysLinEquations<double>(LowTriMatrix_<double> &a, Matrix_<double> &b)
         {
             LPCK_INT info = 0;
             LPCK_INT n = a.shape().first;
@@ -220,12 +196,12 @@ namespace tcgmtensor
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
             Vector<LPCK_INT> ipiv(n);
-            info = LAPACKE_dsptrf(l_major, l_uplo, n, a.data(), ipiv.data());
+            dsptrf_(&l_uplo, &n, a.data(), ipiv.data(), &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DSPTRF");
             }
-            info = LAPACKE_dsptrs(l_major, l_uplo, n, nrhs, a.data(), ipiv.data(), b.data(), n);
+            dsptrs_(&l_uplo, &n, &nrhs, a.data(), ipiv.data(), b.data(), &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DSPTRS");
@@ -233,7 +209,7 @@ namespace tcgmtensor
         };
 
         template <>
-        void SolveSymSysLinEquations<float>(LowTriMatrix<float> &a, Matrix<float> &b)
+        void SolveSymSysLinEquations<float>(LowTriMatrix_<float> &a, Matrix_<float> &b)
         {
             LPCK_INT info = 0;
             LPCK_INT n = a.shape().first;
@@ -243,28 +219,18 @@ namespace tcgmtensor
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
             Vector<LPCK_INT> ipiv(n);
-            info = LAPACKE_ssptrf(l_major, l_uplo, n, a.data(), ipiv.data());
+            ssptrf_(&l_uplo, &n, a.data(), ipiv.data(), &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SSPTRF");
             }
-            info = LAPACKE_ssptrs(l_major, l_uplo, n, nrhs, a.data(), ipiv.data(), b.data(), n);
+            ssptrs_(&l_uplo, &n, &nrhs, a.data(), ipiv.data(), b.data(), &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SSPTRS");
             }
         };
 
-        template void SolveGenSysLinEquations<double>(const char *Ta, Matrix<double> &a, Matrix<double> &b);
-        template void SolveGenSysLinEquations<float>(const char *Ta, Matrix<float> &a, Matrix<float> &b);
-        template void SolveGenSysLinEquations<double>(Matrix<double> &a, Matrix<double> &b, const char *Ta);
-        template void SolveGenSysLinEquations<float>(Matrix<float> &a, Matrix<float> &b, const char *Ta);
-        template void SolveGenSysLinEquations<double>(const char *Ta, LowTriMatrix<double> &a, Matrix<double> &b);
-        template void SolveGenSysLinEquations<float>(const char *Ta, LowTriMatrix<float> &a, Matrix<float> &b);
-        template void SolveGenSysLinEquations<double>(LowTriMatrix<double> &a, Matrix<double> &b, const char *Ta);
-        template void SolveGenSysLinEquations<float>(LowTriMatrix<float> &a, Matrix<float> &b, const char *Ta);
-        template void SolveSymSysLinEquations<double>(LowTriMatrix<double> &a, Matrix<double> &b);
-        template void SolveSymSysLinEquations<float>(LowTriMatrix<float> &a, Matrix<float> &b);
         
     } // namespace cpu
 

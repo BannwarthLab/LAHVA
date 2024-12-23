@@ -37,13 +37,31 @@ elif cc_id == 'pgi' or cc_id == 'nvidia_hpc'
   )
 endif
 
-omp_dep = dependency('openmp')
-lib_deps += omp_dep
+#lib_deps += omp_dep
+
+cpp_dep = cc.find_library('stdc++')
+lib_deps += cpp_dep
+
+omp_dep = dependency('openmp', required: false)
+
+if omp_dep.found() 
+  lib_deps += omp_dep
+elif build_machine.system() == 'darwin' and cc_id == 'clang'
+  add_project_arguments(['-Xpreprocessor','-fopenmp'],language: 'cpp')
+  add_project_arguments(['-I/opt/homebrew/opt/libomp/include'], language: 'cpp')
+  add_project_link_arguments(['-lomp'],language: 'cpp')
+  add_project_link_arguments(['-L/opt/homebrew/opt/libomp/lib'], language: 'cpp')
+endif
 
 lapack_vendor = get_option('lapack')
 if lapack_vendor == 'auto'
   if cc_id == 'intel'
     lapack_vendor = 'mkl'
+  endif
+ 
+  if build_machine.system() == 'darwin'
+    lapack_vendor = 'apple'
+    add_project_arguments(['-D_APPLE'],language: 'cpp') 
   endif
 endif
 
@@ -88,6 +106,8 @@ elif lapack_vendor == 'custom'
   foreach lib: get_option('custom_libraries')
     lib_deps += cc.find_library(lib)
   endforeach
+elif lapack_vendor == 'apple'
+  add_project_link_arguments(['-framework','Accelerate'], language: 'cpp')
 
 else
   lapack_dep = dependency('lapack', required: false)

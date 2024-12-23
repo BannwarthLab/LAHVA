@@ -1,4 +1,4 @@
-#include "impl/cpu/level2.h"
+#include "impl/blas/cpu/level2.h"
 #include "../../utils/utils.hpp"
 
 namespace tcgmtensor{

@@ -7,8 +7,8 @@ namespace tcgmtensor
 {
     namespace gpu
     {
-        void SymmetrizedON2ScalingProductGPU(const CudaRuntime& cudart, const Vector<double>& diag1, const Matrix<float>& matrix1,
-                                             const Vector<double>& diag2, const Matrix<float>& matrix2, Matrix<float>& matrix_out);
+        void SymmetrizedON2ScalingProductGPU(const CudaRuntime& cudart, const Vector_<double>& diag1, const Matrix_<float>& matrix1,
+                                             const Vector_<double>& diag2, const Matrix_<float>& matrix2, Matrix_<float>& matrix_out);
     } // namespace gpu
     
 } // namespace tcgmtensor
