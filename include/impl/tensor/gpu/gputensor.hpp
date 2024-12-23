@@ -13,7 +13,6 @@ namespace tcgmtensor
         class GPUTensor_ : public virtual Tensor<T>
         {
         public:
-
             /// @brief copy data to device, by allocating a pointer and copying over
             /// @param cudart Cuda Runtime instance
             /// @return none
@@ -27,8 +26,7 @@ namespace tcgmtensor
             virtual const T *gpu_data() const = 0;
             virtual T *gpu_data() = 0;
 
-            //virtual const std::shared_ptr<GPUAllocator_<T>> get_gpuallocator() const = 0;
-            
+            // virtual const std::shared_ptr<GPUAllocator_<T>> get_gpuallocator() const = 0;
         };
 
         template <typename T, typename Allocator = CudaHostAllocator<T>, typename GPUAllocator = CudaDeviceAllocator<T>>
@@ -38,15 +36,15 @@ namespace tcgmtensor
             using gpualloc_t = GPUAllocator;
 
         public:
-            GPUTensor(size_t count, const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator()) : CPUTensor<T, Allocator>{count, cpualloc}, gpualloc_{alloc} {};
-            GPUTensor(const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator()) : CPUTensor<T, Allocator>{cpualloc}, gpualloc_{alloc} {};
+            GPUTensor(size_t count, const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator()) 
+            : CPUTensor<T, Allocator>{count, cpualloc}, gpualloc_{alloc} {};
+            GPUTensor(const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator()) 
+            : CPUTensor<T, Allocator>{cpualloc}, gpualloc_{alloc} {};
             GPUTensor(const GPUAllocator &alloc) : CPUTensor<T, Allocator>{}, gpualloc_{alloc}, gpu_buffer{true} {};
             virtual ~GPUTensor() {};
-            GPUTensor(const GPUTensor &other) : 
-            CPUTensor<T, Allocator>{other}, 
-            gpualloc_{other.get_gpuallocator()}, 
-            is_on_device_{false} 
-            {};
+            GPUTensor(const GPUTensor &other) : CPUTensor<T, Allocator>{other},
+                                                gpualloc_{other.get_gpuallocator()},
+                                                is_on_device_{false} {};
             GPUTensor(GPUTensor &&other) : CPUTensor<T, Allocator>{std::move(other)}
             {
                 this->gpualloc_ = other.get_gpuallocator();
@@ -74,7 +72,7 @@ namespace tcgmtensor
                         CPUTensor<T, Allocator>::operator=(other);
                     }
                     this->is_on_device_ = false;
-                    
+
                     this->gpu_buffer = other.gpu_buffer;
                 }
                 return *this;
@@ -120,10 +118,8 @@ namespace tcgmtensor
                     get_cuda_error(cudaHostRegister((void *)this->data(), this->size() * sizeof(T), cudaHostRegisterDefault));
                     registered = true;
                 }
-                
             };
 
-            
             void unregisterMem(const CudaRuntime &cudart) const
             {
                 if (registered)
@@ -131,7 +127,6 @@ namespace tcgmtensor
                     get_cuda_error(cudaHostUnregister((void *)this->data()));
                     registered = false;
                 }
-                
             };
             /// @brief copy data to device, by allocating a pointer and copying over
             /// @param cudart Cuda Runtime instance
@@ -167,7 +162,8 @@ namespace tcgmtensor
         void GPUTensor<T, Allocator, GPUAllocator>::deallocateGPU() const
         {
             this->device_ptr_.reset();
-            if (!gpu_buffer) this->is_on_device_ = false;
+            if (!gpu_buffer)
+                this->is_on_device_ = false;
         };
 
         template <typename T, typename Allocator, typename GPUAllocator>
@@ -189,7 +185,7 @@ namespace tcgmtensor
                 }
                 this->is_on_device_ = true;
                 if (this->data() != nullptr)
-                this->gpualloc_.H2DCopy(this->device_ptr_.get(), this->data(), this->size() * sizeof(T));
+                    this->gpualloc_.H2DCopy(this->device_ptr_.get(), this->data(), this->size() * sizeof(T));
             }
 
             if (!this->device_ptr_)
@@ -205,12 +201,11 @@ namespace tcgmtensor
             {
                 gpualloc_.D2HCopy(this->device_ptr_.get(), this->data(), this->size() * sizeof(T));
                 this->is_on_device_ = false;
-                if ((cudart.criticalMem()) && (cudart.criticalSize(this->size()*sizeof(T)))) 
+                if ((cudart.criticalMem()) && (cudart.criticalSize(this->size() * sizeof(T))))
                 {
                     this->deallocateGPU(cudart);
                 }
                 cudart.synchronize();
-
             }
         };
 

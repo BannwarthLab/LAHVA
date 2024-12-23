@@ -315,7 +315,7 @@ int test_inner_vf_prod_cpp(CudaRuntime& cudart){
 
 
 int main(void){
-    CudaRuntime cudart(5,2);
+    CudaRuntime cudart;
     cudart.print_cuda_version();
     int stat = 0;
     stat += test_v_addition_cpp(cudart);

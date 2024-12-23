@@ -38,6 +38,7 @@ namespace tcgmtensor
         Vector(size_type count, const T &value, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr  &gpualloc = GPUAllocator());
         Vector(size_type count, T *ptr, bool take_onwership = true, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr  &gpualloc = GPUAllocator());
         Vector(size_type count, const T *ptr, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr  &gpualloc = GPUAllocator());
+        Vector(std::initializer_list<T> init, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator());
         ~Vector();
         Vector &operator=(const Vector &other);
         Vector &operator=(Vector &&other);
@@ -88,6 +89,13 @@ namespace tcgmtensor
     {
         std::copy(ptr, ptr + count, this->data_);
     };
+
+    template <class T, class Allocator, class GPUAllocator>
+Vector<T, Allocator, GPUAllocator>::Vector(std::initializer_list<T> init, const alloc_ptr &alloc, const gpualloc_ptr &gpualloc)
+    : GPUTensor<T, Allocator, GPUAllocator>(init.size(), alloc, gpualloc), Vector_<T>()
+{
+    std::copy(init.begin(), init.end(), this->data_);
+}
 
     template <typename T, class Allocator, class GPUAllocator>
     Vector<T, Allocator, GPUAllocator>::Vector(const Vector &x) : 

@@ -21,27 +21,12 @@ namespace tcgmtensor
             using alloc_ptr = CPUAllocator<T>;
             Vector() {this->no_alloc = true;};
             Vector(size_type count, const alloc_ptr &alloc = Allocator());
-            template <typename U>
-            Vector(size_type count, const CPUAllocator<U> &alloc)
-            : CPUTensor<T,Allocator>(count, alloc)
-            { };
             Vector(const Vector &x);
             Vector(size_type count, const T &value, const alloc_ptr &alloc = Allocator());
 
-            template <typename U>
-            Vector(size_type count, const T &value, const std::shared_ptr<CPUAllocator<U>> &alloc)
-            : Vector<T,Allocator>(count, value, Allocator(*alloc))
-            { };
             Vector(size_type count, T *ptr, bool take_onwership = true, const alloc_ptr &alloc = Allocator());
-            template <typename U>
-            Vector(size_type count, T *ptr, bool take_onwership = true, const std::shared_ptr<CPUAllocator<U>> &alloc = Allocator())
-            : Vector<T,Allocator>(count, ptr, take_onwership, Allocator(*alloc))
-            { }; 
             Vector(size_type count, const T *ptr, const alloc_ptr &alloc = Allocator());
-            template <typename U>
-            Vector(size_type count, const T *ptr, const std::shared_ptr<CPUAllocator<U>> &alloc)
-            : Vector<T,Allocator>(count, ptr, Allocator(*alloc))
-            { };  
+            Vector(std::initializer_list<T> init, const alloc_ptr &alloc = Allocator());
             ~Vector();
             Vector &operator=(const Vector &other);
             Vector &operator=(Vector &&other);
@@ -93,6 +78,13 @@ namespace tcgmtensor
         Vector<T, Allocator>::Vector(const Vector &x) : CPUTensor<T, Allocator>{x} {
 
                                                         };
+        template <class T, class Allocator>
+    Vector<T, Allocator>::Vector(std::initializer_list<T> init, const alloc_ptr &alloc)
+    : CPUTensor<T, Allocator>(init.size(), alloc), Vector_<T>()
+    {
+        this->no_alloc = true;
+        std::copy(init.begin(), init.end(), this->data_);
+    }
 
         template <typename T, class Allocator>
         Vector<T, Allocator> &Vector<T, Allocator>::operator=(const Vector &other)

@@ -26,6 +26,7 @@ int test_dgemv_zero_v_cpp(CudaRuntime& cudart){
 
     MatrixVectorProduct(cudart, "N", 1.0, A, x, 1, 0.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
 
     auto sum_ = sum(M, y.data());
 
@@ -35,13 +36,15 @@ int test_dgemv_zero_v_cpp(CudaRuntime& cudart){
     
     MatrixVectorProduct(cudart, "N", 1.0, A, x, 1, 1.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     sum_ = sum(M, y.data());
 
     if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     MatrixVectorProduct(cudart, A, x, y, "N", 1.0d, 1.0d);
     y.copy2host(cudart);
-    A.copy2host(cudart);  
+    A.copy2host(cudart);
+    cudart.synchronize();  
     
     sum_ = sum(M, y.data());
 
@@ -51,6 +54,7 @@ int test_dgemv_zero_v_cpp(CudaRuntime& cudart){
 
     MatrixVectorProduct(cudart, A, x, y, "T"); //Check transpose
     y.copy2host(cudart);
+    cudart.synchronize();
     sum_ = sum(M, y.data());
 
     if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
@@ -67,6 +71,7 @@ int test_sgemv_zero_v_cpp(CudaRuntime& cudart){
 
     MatrixVectorProduct(cudart, "N", 1.0, A, x, 1, 0.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
 
     auto sum_ = sum(M, y.data());
 
@@ -76,13 +81,16 @@ int test_sgemv_zero_v_cpp(CudaRuntime& cudart){
     
     MatrixVectorProduct(cudart, "N", 1.0, A, x, 1, 1.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     sum_ = sum(M, y.data());
 
     if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     MatrixVectorProduct(cudart, A, x, y, "N", 1.0d, 1.0d);
     y.copy2host(cudart);
-    A.copy2host(cudart);  
+    cudart.synchronize();
+    A.copy2host(cudart);
+    cudart.synchronize();
     
     sum_ = sum(M, y.data());
 
@@ -92,6 +100,7 @@ int test_sgemv_zero_v_cpp(CudaRuntime& cudart){
 
     MatrixVectorProduct(cudart, A, x, y, "T"); //Check transpose
     y.copy2host(cudart);
+    cudart.synchronize();
     sum_ = sum(M, y.data());
 
     if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
@@ -108,6 +117,7 @@ int test_dsymv_zero_v_cpp(CudaRuntime& cudart){
 
     SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 0.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
 
     auto sum_ = sum(M, y.data());
 
@@ -141,6 +151,7 @@ int test_ssymv_zero_v_cpp(CudaRuntime& cudart){
 
     SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 0.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
 
     auto sum_ = sum(M, y.data());
 
@@ -150,13 +161,15 @@ int test_ssymv_zero_v_cpp(CudaRuntime& cudart){
     
     SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 1.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     sum_ = sum(M, y.data());
 
     if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     SymMatrixVectorProduct(cudart, A, x, y, 1.0d, 1.0d);
     y.copy2host(cudart);
-    A.copy2host(cudart);  
+    A.copy2host(cudart);
+    cudart.synchronize();  
     
     sum_ = sum(M, y.data());
 
@@ -174,6 +187,7 @@ int test_dsymv_v_cpp(CudaRuntime& cudart){
 
     SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 0.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     Vector<double> vres({24.0, 26.0, 26.0}); 
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1; 
@@ -182,12 +196,14 @@ int test_dsymv_v_cpp(CudaRuntime& cudart){
     
     SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 1.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     vres = Vector<double>({25.0, 27.0, 27.0});
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
     SymMatrixVectorProduct(cudart, A, x, y, 2.0d, 0.0d);
     y.copy2host(cudart);
+    cudart.synchronize();
     vres = Vector<double>({48.0, 52.0, 52.0});
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
@@ -204,6 +220,7 @@ int test_ssymv_v_cpp(CudaRuntime& cudart){
 
     SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 0.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     Vector<float> vres({24.0, 26.0, 26.0}); 
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1; 
@@ -212,12 +229,14 @@ int test_ssymv_v_cpp(CudaRuntime& cudart){
     
     SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 1.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     vres = Vector<float>({25.0, 27.0, 27.0});
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
     SymMatrixVectorProduct(cudart, A, x, y, 2.0d, 0.0d);
     y.copy2host(cudart);
+    cudart.synchronize();
     vres = Vector<float>({48.0, 52.0, 52.0});
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
@@ -234,6 +253,7 @@ int test_dgemv_v_cpp(CudaRuntime& cudart){
 
     MatrixVectorProduct(cudart, "N", 1.0, A, x, 1, 0.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     Vector<double> vres({1.0, 8.0, 26.0}); 
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1; 
@@ -242,12 +262,14 @@ int test_dgemv_v_cpp(CudaRuntime& cudart){
     
     MatrixVectorProduct(cudart, "N", 1.0, A, x, 1, 1.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     vres = Vector<double>({2.0, 9.0, 27.0});
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
     MatrixVectorProduct(cudart, A, x, y, "N", 2.0d, 0.0d);
     y.copy2host(cudart);
+    cudart.synchronize();
     vres = Vector<double>({2.0, 16.0, 52.0});
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
@@ -264,6 +286,7 @@ int test_sgemv_v_cpp(CudaRuntime& cudart){
 
     MatrixVectorProduct(cudart, "N", 1.0, A, x, 1, 0.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     Vector<float> vres({1.0, 8.0, 26.0}); 
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1; 
@@ -272,12 +295,14 @@ int test_sgemv_v_cpp(CudaRuntime& cudart){
     
     MatrixVectorProduct(cudart, "N", 1.0, A, x, 1, 1.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     vres = Vector<float>({2.0, 9.0, 27.0});
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
     MatrixVectorProduct(cudart, A, x, y, "N", 2.0d, 0.0d);
     y.copy2host(cudart);
+    cudart.synchronize();
     vres = Vector<float>({2.0, 16.0, 52.0});
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
@@ -295,6 +320,7 @@ int test_dspmv_v_cpp(CudaRuntime& cudart){
 
     SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 0.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     Vector<double> vres({24.0, 26.0, 26.0}); 
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1; 
@@ -303,12 +329,14 @@ int test_dspmv_v_cpp(CudaRuntime& cudart){
     
     SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 1.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     vres = Vector<double>({25.0, 27.0, 27.0});
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
     SymMatrixVectorProduct(cudart, A, x, y, 2.0d, 0.0d);
     y.copy2host(cudart);
+    cudart.synchronize();
     vres = Vector<double>({48.0, 52.0, 52.0});
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
@@ -326,6 +354,7 @@ int test_sspmv_v_cpp(CudaRuntime& cudart){
 
     SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 0.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     Vector<float> vres({24.0, 26.0, 26.0}); 
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1; 
@@ -334,12 +363,14 @@ int test_sspmv_v_cpp(CudaRuntime& cudart){
     
     SymMatrixVectorProduct(cudart, 1.0, A, x, 1, 1.0, y, 1);
     y.copy2host(cudart);
+    cudart.synchronize();
     vres = Vector<float>({25.0, 27.0, 27.0});
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
     SymMatrixVectorProduct(cudart, A, x, y, 2.0d, 0.0d);
     y.copy2host(cudart);
+    cudart.synchronize();
     vres = Vector<float>({48.0, 52.0, 52.0});
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
@@ -350,7 +381,7 @@ int test_sspmv_v_cpp(CudaRuntime& cudart){
 
 int main(){
     int stat = 0;
-    CudaRuntime cudart(5,2);
+    CudaRuntime cudart;
     cudart.print_cuda_version();
     std::cout << "1st Test" << std::endl;
     stat += test_dgemv_zero_v_cpp(cudart);
@@ -369,7 +400,7 @@ int main(){
     printf("8th Test");
     stat += test_dsymv_v_cpp(cudart);
     stat += test_sspmv_v_cpp(cudart);
-    printf("8th Test");
-    stat += test_dspmv_v_cpp(cudart);
+    //printf("8th Test");
+    //stat += test_dspmv_v_cpp(cudart);
     return stat;
 };

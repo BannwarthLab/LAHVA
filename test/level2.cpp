@@ -369,7 +369,7 @@ int test_dsymv_lowtri_cpp(){
 int test_ssymv_lowtri_cpp(){
     int stat_ = 0;
     float* vdtri_ = new float[6] {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
-    LowTriMatrix<float> A(3, vdtri_);
+    LowTriMatrix<float> A(3, vdtri_, true);
     Vector<float> x({1.0, 2.0, 3.0});
     Vector<float> y(3, 0.0);
 
