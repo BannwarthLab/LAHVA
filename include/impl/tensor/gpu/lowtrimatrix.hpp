@@ -165,6 +165,17 @@ namespace tcgmtensor
     }
 
     template <typename T, class Allocator, class GPUAllocator>
+    LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(uint n, T *data, bool take_ownership, const alloc_ptr &cpualloc, const gpualloc_ptr &gpualloc)
+    : n_{n}, GPUTensor<T, Allocator, GPUAllocator>{cpualloc, gpualloc}  
+    {
+        this->data_ = data;
+        this->count_ = data_size_(n);
+        this->is_owner_ = take_ownership;
+    
+    }
+
+
+    template <typename T, class Allocator, class GPUAllocator>
     LowTriMatrix<T, Allocator, GPUAllocator>::~LowTriMatrix()
     {
     

@@ -1,5 +1,5 @@
 # This file is part of tblite.
-# SPDX-Identifier: LGPL-3.0-or-later
+# SPDX-License-Identifier: LGPL-3.0-or-later
 #
 # tblite is free software: you can redistribute it and/or modify it under
 # the terms of the GNU Lesser General Public License as published by
@@ -13,7 +13,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with tblite.  If not, see <https://www.gnu.org/licenses/>.
-
+gpu = get_option('gpu')
+debug = get_option('buildtype')
 os = host_machine.system()
 cc = meson.get_compiler('cpp')
 cc_id = cc.get_id()
@@ -122,4 +123,23 @@ else
   lib_deps += blas_dep
 endif
 
+if debug == 'release'
+  add_project_arguments('-DNDEBUG', language: ['cpp', 'cuda'])
+endif
 
+if gpu == true
+  arches = get_option('gpu_arch')
+  has_nvcc = add_languages('cuda', native: false)
+  cuda = dependency('cuda', modules: ['cudart', 'cublas', 'cusolver', 'cusparse'])
+  foreach arch : arches
+    add_project_arguments(['-gencode=arch=compute_@0@,code=sm_@1@'.format(arch, arch)], language: 'cuda')
+  endforeach
+  if cc_id != 'gcc'
+    cc_bin = find_program(cc.cmd_array()[0])
+    add_project_arguments(['--allow-unsupported-compiler', '-ccbin', cc_bin.full_path()], language: 'cuda')
+  endif
+
+  lib_deps += cuda
+  add_project_arguments(['-D_CUDA'], language: ['cuda', 'cpp'])
+  add_project_arguments(['-diag-disable=2282'], language: ['cpp'])
+endif

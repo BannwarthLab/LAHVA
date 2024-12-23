@@ -3,7 +3,7 @@ tblite_exe = executable(
   sources: files(
     'omp.cpp'
   ),
-  dependencies: tcgmblas_dep,
+  dependencies: lahva_dep,
   install: install,
   link_language: 'cpp',
 )

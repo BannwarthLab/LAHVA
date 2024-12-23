@@ -170,6 +170,17 @@ namespace tcgmtensor
             this->data_[i] = data[i];
         }
     }
+    
+    
+    template <typename T, class Allocator>
+    LowTriMatrix<T, Allocator>::LowTriMatrix(uint n, T *data, bool take_ownership,const alloc_ptr &cpualloc)
+    : n_{n}, CPUTensor<T, Allocator>{cpualloc}
+    {
+        this->data_ = data;
+        this->count_ = data_size_(n);
+        this->is_owner_ = take_ownership;
+    
+    }
 
     template <typename T, class Allocator>
     LowTriMatrix<T, Allocator>::~LowTriMatrix()
