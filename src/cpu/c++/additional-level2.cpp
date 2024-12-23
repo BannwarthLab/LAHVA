@@ -1,12 +1,12 @@
-#include "impl/cpu/additional-level2.hpp"
+#include "impl/blas/cpu/additional-level2.hpp"
 #include "../../utils/utils.hpp"
 namespace tcgmtensor
 {
     namespace cpu
     {
         template<>
-        void AddMatrices<double>(const char* Ta, const char* Tb, const double alpha, const Matrix<double>& a, const Matrix<double>& b,
-        const double beta, Matrix<double>& c)
+        void AddMatrices<double>(const char* Ta, const char* Tb, const double alpha, const Matrix_<double>& a, const Matrix_<double>& b,
+        const double beta, Matrix_<double>& c)
         {
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
@@ -21,8 +21,8 @@ namespace tcgmtensor
         };
 
         template<>
-        void AddMatrices<float>(const char* Ta, const char* Tb, const float alpha, const Matrix<float>& a, const Matrix<float>& b,
-        const float beta, Matrix<float>& c)
+        void AddMatrices<float>(const char* Ta, const char* Tb, const float alpha, const Matrix_<float>& a, const Matrix_<float>& b,
+        const float beta, Matrix_<float>& c)
         {
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
@@ -37,7 +37,7 @@ namespace tcgmtensor
         };
 
         template<>
-        void AddMatrices<double>(const Matrix<double>& a, const Matrix<double>& b, Matrix<double>& c,
+        void AddMatrices<double>(const Matrix_<double>& a, const Matrix_<double>& b, Matrix_<double>& c,
         const double alpha, const double beta, const char* Ta, const char* Tb)
         {
             CBLAS_TRANSPOSE transa = get_trans(Ta);
@@ -53,7 +53,7 @@ namespace tcgmtensor
         };
 
         template<>
-        void AddMatrices<float>(const Matrix<float>& a, const Matrix<float>& b, Matrix<float>& c,
+        void AddMatrices<float>(const Matrix_<float>& a, const Matrix_<float>& b, Matrix_<float>& c,
         const float alpha , const float beta, const char* Ta, const char* Tb)
         {
             CBLAS_TRANSPOSE transa = get_trans(Ta);

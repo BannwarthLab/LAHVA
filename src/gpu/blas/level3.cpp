@@ -1,12 +1,12 @@
-#include "impl/gpu/level3.hpp"
+#include "impl/blas/gpu/level3.hpp"
 #include "../../gpu-utils/utils.hpp"
 
 namespace tcgmtensor
 {
     namespace gpu{
 
-    void MatrixMatrixProduct(const CudaRuntime& cudart, const char* Ta, const char* Tb, const double alpha, const Matrix<double>& a, 
-                             const Matrix<double>& b, const double beta, Matrix<double>& c)
+    void MatrixMatrixProduct(const CudaRuntime& cudart, const char* Ta, const char* Tb, const double alpha, const Matrix_<double>& a, 
+                             const Matrix_<double>& b, const double beta, Matrix_<double>& c)
     {
         cublasOperation_t transa = get_trans(Ta);
         cublasOperation_t transb = get_trans(Tb);
@@ -26,7 +26,7 @@ namespace tcgmtensor
         get_cublas_error(istat);
     };
 
-    void MatrixMatrixProduct(const CudaRuntime& cudart, const Matrix<double>& a, const Matrix<double>& b, Matrix<double>& c,
+    void MatrixMatrixProduct(const CudaRuntime& cudart, const Matrix_<double>& a, const Matrix_<double>& b, Matrix_<double>& c,
                              const double alpha, const double beta, const char* Ta, const char* Tb)
     {
         cublasOperation_t transa = get_trans(Ta);
@@ -47,8 +47,8 @@ namespace tcgmtensor
         get_cublas_error(istat);
     };
                              
-    void MatrixMatrixProduct(const CudaRuntime& cudart, const char* Ta, const char* Tb, const float alpha, const Matrix<float>& a, const Matrix<float>& b,
-                             const float beta, Matrix<float>& c)
+    void MatrixMatrixProduct(const CudaRuntime& cudart, const char* Ta, const char* Tb, const float alpha, const Matrix_<float>& a, const Matrix_<float>& b,
+                             const float beta, Matrix_<float>& c)
     {
         cublasOperation_t transa = get_trans(Ta);
         cublasOperation_t transb = get_trans(Tb);
@@ -68,7 +68,7 @@ namespace tcgmtensor
         get_cublas_error(istat);
     };
 
-    void MatrixMatrixProduct(const CudaRuntime& cudart, const Matrix<float>& a, const Matrix<float>& b, Matrix<float>& c,
+    void MatrixMatrixProduct(const CudaRuntime& cudart, const Matrix_<float>& a, const Matrix_<float>& b, Matrix_<float>& c,
                              const float alpha, const float beta, const char* Ta, const char* Tb)
     {
         cublasOperation_t transa = get_trans(Ta);
@@ -89,8 +89,8 @@ namespace tcgmtensor
         get_cublas_error(istat);
     };
 
-    void SymMatrixMatrixProduct(const CudaRuntime& cudart, const cublasSideMode_t side, const double alpha, const Matrix<double>& a, const Matrix<double>& b,
-                                const double beta, Matrix<double>& c)
+    void SymMatrixMatrixProduct(const CudaRuntime& cudart, const cublasSideMode_t side, const double alpha, const Matrix_<double>& a, const Matrix_<double>& b,
+                                const double beta, Matrix_<double>& c)
     {
         auto [m, n, k] = check_size_mm(a, b, c);
 
@@ -107,7 +107,7 @@ namespace tcgmtensor
         get_cublas_error(istat);
     };
 
-    void SymMatrixMatrixProduct(const CudaRuntime& cudart, const Matrix<double>& a, const Matrix<double>& b, Matrix<double>& c,
+    void SymMatrixMatrixProduct(const CudaRuntime& cudart, const Matrix_<double>& a, const Matrix_<double>& b, Matrix_<double>& c,
                                 const double alpha, const double beta, const cublasSideMode_t side)
     {
         auto [m, n, k] = check_size_mm(a, b, c);
@@ -125,8 +125,8 @@ namespace tcgmtensor
         get_cublas_error(istat);
     };
 
-    void SymMatrixMatrixProduct(const CudaRuntime& cudart, const cublasSideMode_t side, const float alpha, const Matrix<float>& a, const Matrix<float>& b,
-                                const float beta, Matrix<float>& c)
+    void SymMatrixMatrixProduct(const CudaRuntime& cudart, const cublasSideMode_t side, const float alpha, const Matrix_<float>& a, const Matrix_<float>& b,
+                                const float beta, Matrix_<float>& c)
     {
         auto [m, n, k] = check_size_mm(a, b, c);
 
@@ -143,7 +143,7 @@ namespace tcgmtensor
         get_cublas_error(istat);
     };
 
-    void SymMatrixMatrixProduct(const CudaRuntime& cudart, const Matrix<float>& a, const Matrix<float>& b, Matrix<float>& c,
+    void SymMatrixMatrixProduct(const CudaRuntime& cudart, const Matrix_<float>& a, const Matrix_<float>& b, Matrix_<float>& c,
                                 const float alpha, const float beta, const cublasSideMode_t side)
     {
         auto [m, n, k] = check_size_mm(a, b, c);

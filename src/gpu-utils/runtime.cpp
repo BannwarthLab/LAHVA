@@ -29,7 +29,10 @@ namespace tcgmtensor
 
     CudaRuntime::~CudaRuntime() {
         if (delete_stream) get_cuda_error(cudaStreamDestroy(stream_));
-        if (delete_handle) get_cublas_error(cublasDestroy(handle));
+        if (delete_handle) 
+        {
+            get_cublas_error(cublasDestroy(handle));
+        }
         //cudaDeviceReset();
     };
 
@@ -59,18 +62,16 @@ namespace tcgmtensor
         return availmem;
     }
 
-    CudaRuntime::CudaRuntime(size_t max_dim, size_t n_mat) : 
-    CudaRuntime( n_mat * sizeof(double)*max_dim*max_dim)
+    CudaRuntime::CudaRuntime(size_t max_dim, size_t n_mat, bool async) : 
+    CudaRuntime( n_mat * 8*max_dim*max_dim, async)
     {
-
+        
     };
 
-    CudaRuntime::CudaRuntime(size_t requestedMem)
+    CudaRuntime::CudaRuntime(size_t requestedMem, bool async)
     {
-        size_t availmem = get_GPU_wmaxMem();
-
-        if (requestedMem > availmem) cudaDevice = -1;
-            createHandle();
+        if (async) this->enableAsyncCopy();
+        check_mem(requestedMem);   
     };    
 
     CudaRuntime::CudaRuntime(CudaRuntime&& other) 
@@ -84,6 +85,22 @@ namespace tcgmtensor
         other.delete_handle = false;
         other.delete_stream = false;
         
+    }
+
+    void CudaRuntime::check_mem(size_t requestedMem) 
+    {
+        availMem_ = get_GPU_wmaxMem();
+        if (requestedMem > availMem_) 
+        {
+            cudaDevice = -1;
+            return;
+        } 
+        if ((double)((double)requestedMem / (double)availMem_) > 0.60)
+        {
+            critical_memory = true;
+        }
+
+        createHandle();
     }
     
     
@@ -114,6 +131,8 @@ namespace tcgmtensor
             version = other.version;
             handle = other.handle;
             stream_ = other.stream_;
+            delete_handle = other.delete_handle;
+            delete_stream = other.delete_stream;
 
             other.delete_handle = false;
             other.delete_stream = false;
@@ -125,6 +144,9 @@ namespace tcgmtensor
     void CudaRuntime::createHandle() {
         cublasStatus_t stat;
         cudaError_t stat_;
+        if (delete_handle) get_cublas_error(cublasDestroy(handle));
+        
+        
         stat_ = cudaSetDevice(cudaDevice);
         get_cuda_error(stat_); 
         stat = cublasCreate(&handle);
@@ -132,9 +154,7 @@ namespace tcgmtensor
         stat = cublasGetVersion(handle, &version);
         get_cublas_error(stat);
         delete_handle = true;
-        print_cuda_version();
         
-
     }
 
     void CudaRuntime::print_cuda_version(){

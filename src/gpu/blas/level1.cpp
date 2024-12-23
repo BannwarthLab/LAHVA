@@ -1,5 +1,5 @@
 #include "../../utils/utils.hpp"
-#include "impl/gpu/level1.hpp"
+#include "impl/blas/gpu/level1.hpp"
 #include "../../gpu-utils/utils.hpp"
 
 namespace tcgmtensor{
@@ -9,7 +9,7 @@ namespace tcgmtensor{
         \param[in] X Vector
         \param[in] Y Vector
     */ 
-    double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor<double>& X, const GPUTensor<double>& Y)
+    double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<double>& X, const GPUTensor_<double>& Y)
     {   
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
@@ -25,7 +25,7 @@ namespace tcgmtensor{
         \param[in] X Vector
         \param[in] Y Vector
     */ 
-    float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor<float>& X, const GPUTensor<float>& Y)
+    float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<float>& X, const GPUTensor_<float>& Y)
     { 
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
@@ -39,7 +39,7 @@ namespace tcgmtensor{
     }
 
     // strided Vector product
-    double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor<double>& X, const size_t strideX, const GPUTensor<double>& Y, const size_t strideY)
+    double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<double>& X, const size_t strideX, const GPUTensor_<double>& Y, const size_t strideY)
     {
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
@@ -52,7 +52,7 @@ namespace tcgmtensor{
         return result;
     }
 
-    float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor<float>& X, const size_t strideX, const GPUTensor<float>& Y, const size_t strideY)
+    float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<float>& X, const size_t strideX, const GPUTensor_<float>& Y, const size_t strideY)
     {
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
@@ -71,7 +71,7 @@ namespace tcgmtensor{
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
     */
-    void AddVectors(const CudaRuntime& cudart, const double a, const GPUTensor<double>& x, GPUTensor<double>& y) {
+    void AddVectors(const CudaRuntime& cudart, const double a, const GPUTensor_<double>& x, GPUTensor_<double>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -85,7 +85,7 @@ namespace tcgmtensor{
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
     */
-    void AddVectors(const CudaRuntime& cudart, const float a, const GPUTensor<float>& x, GPUTensor<float>& y) {
+    void AddVectors(const CudaRuntime& cudart, const float a, const GPUTensor_<float>& x, GPUTensor_<float>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -102,7 +102,7 @@ namespace tcgmtensor{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void AddVectors(const CudaRuntime& cudart, const double a, const GPUTensor<double>& x, size_t ix, GPUTensor<double>& y, size_t iy) {
+    void AddVectors(const CudaRuntime& cudart, const double a, const GPUTensor_<double>& x, size_t ix, GPUTensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -118,7 +118,7 @@ namespace tcgmtensor{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void AddVectors(const CudaRuntime& cudart, const float a, const GPUTensor<float>& x, size_t ix, GPUTensor<float>& y, size_t iy) {
+    void AddVectors(const CudaRuntime& cudart, const float a, const GPUTensor_<float>& x, size_t ix, GPUTensor_<float>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -133,7 +133,7 @@ namespace tcgmtensor{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void CopyVectors(const CudaRuntime& cudart, const GPUTensor<double>& x, GPUTensor<double>& y) {
+    void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<double>& x, GPUTensor_<double>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -146,7 +146,7 @@ namespace tcgmtensor{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void CopyVectors(const CudaRuntime& cudart, const GPUTensor<float>& x, GPUTensor<float>& y) {
+    void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<float>& x, GPUTensor_<float>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -162,7 +162,7 @@ namespace tcgmtensor{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void CopyVectors(const CudaRuntime& cudart, const GPUTensor<double>& x, size_t ix, GPUTensor<double>& y, size_t iy) {
+    void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<double>& x, size_t ix, GPUTensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -177,7 +177,7 @@ namespace tcgmtensor{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void CopyVectors(const CudaRuntime& cudart, const GPUTensor<float>& x, size_t ix, GPUTensor<float>& y, size_t iy) {
+    void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<float>& x, size_t ix, GPUTensor_<float>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -192,7 +192,7 @@ namespace tcgmtensor{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void SwapVectors(const CudaRuntime& cudart, GPUTensor<double>& x, GPUTensor<double>& y) {
+    void SwapVectors(const CudaRuntime& cudart, GPUTensor_<double>& x, GPUTensor_<double>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -205,7 +205,7 @@ namespace tcgmtensor{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void SwapVectors(const CudaRuntime& cudart, GPUTensor<float>& x, GPUTensor<float>& y) {
+    void SwapVectors(const CudaRuntime& cudart, GPUTensor_<float>& x, GPUTensor_<float>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -221,7 +221,7 @@ namespace tcgmtensor{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void SwapVectors(const CudaRuntime& cudart, GPUTensor<double>& x, size_t ix, GPUTensor<double>& y, size_t iy) {
+    void SwapVectors(const CudaRuntime& cudart, GPUTensor_<double>& x, size_t ix, GPUTensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -237,7 +237,7 @@ namespace tcgmtensor{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void SwapVectors(const CudaRuntime& cudart, GPUTensor<float>& x, size_t ix, GPUTensor<float>& y, size_t iy) {
+    void SwapVectors(const CudaRuntime& cudart, GPUTensor_<float>& x, size_t ix, GPUTensor_<float>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -253,7 +253,7 @@ namespace tcgmtensor{
         \param[in, out] x \f$\vec{x}\f$
         \param[in,out] a \f$\alpha\f$
     */
-    void ScaleVector(const CudaRuntime& cudart, const double a, GPUTensor<double>& x) {
+    void ScaleVector(const CudaRuntime& cudart, const double a, GPUTensor_<double>& x) {
         check_device_alloc( cudart, x); 
         
         cudart.cublasSetStream_();
@@ -264,7 +264,7 @@ namespace tcgmtensor{
         \param[in, out] x \f$\vec{x}\f$
         \param[in,out] a \f$\alpha\f$
     */
-    void ScaleVector(const CudaRuntime& cudart, const float a, GPUTensor<float>& x){
+    void ScaleVector(const CudaRuntime& cudart, const float a, GPUTensor_<float>& x){
         check_device_alloc( cudart, x); 
         
         cudart.cublasSetStream_();
@@ -272,7 +272,7 @@ namespace tcgmtensor{
         get_cublas_error(istat);
     }
 
-    void ScaleVector(const CudaRuntime& cudart, const double a, GPUTensor<double>& x, size_t ix){
+    void ScaleVector(const CudaRuntime& cudart, const double a, GPUTensor_<double>& x, size_t ix){
         check_device_alloc( cudart, x); 
         
         cudart.cublasSetStream_();
@@ -285,7 +285,7 @@ namespace tcgmtensor{
         \param[in,out] a \f$\alpha\f$
         stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
     */
-    void ScaleVector(const CudaRuntime& cudart, const float a, GPUTensor<float>& x, size_t ix){
+    void ScaleVector(const CudaRuntime& cudart, const float a, GPUTensor_<float>& x, size_t ix){
         check_device_alloc( cudart, x); 
         
         cudart.cublasSetStream_();

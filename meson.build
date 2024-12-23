@@ -1,5 +1,5 @@
 project(
-  'tcgm-c-blas',
+  'lahva',
   'c',
   'cpp',
   
@@ -17,7 +17,7 @@ install = not (meson.is_subproject() and get_option('default_library') == 'stati
 gpu = get_option('gpu')
 debug = get_option('buildtype')
 if debug == 'release'
-  add_project_argumnts('-DNDEBUG', language: ['cpp', 'cuda'])
+  add_project_arguments('-DNDEBUG', language: ['cpp', 'cuda'])
 endif
 lib_deps = []
 
@@ -25,7 +25,8 @@ if gpu == true
   has_nvcc = add_languages('cuda', native: false)
   cuda = dependency('cuda', modules: ['cudart', 'cublas','cusolver','cusparse'])
   cudast = import('unstable-cuda')
-  add_project_arguments(['-use_fast_math', '-gencode=arch=compute_86,code=sm_86', '-gencode=arch=compute_75,code=sm_75', '--allow-unsupported-compiler', '-ccbin', '/mnt/group-lib/intel_oneAPI/compiler/2023.2.0/linux/bin/intel64/icpc'], language: 'cuda')
+  add_project_arguments([ '-gencode=arch=compute_86,code=sm_86', '-gencode=arch=compute_70,code=sm_70', '-gencode=arch=compute_89,code=sm_89', '-gencode=arch=compute_80,code=sm_80', '--allow-unsupported-compiler', '-ccbin', '/mnt/group-lib/intel_oneAPI/compiler/2023.2.0/linux/bin/intel64/icpc'], language: 'cuda')
+
   lib_deps += cuda
   add_project_arguments(['-D_CUDA'], language: ['cuda', 'cpp'])
   add_project_arguments(['-diag-disable=2282'], language: ['cpp'])
@@ -34,6 +35,8 @@ endif
 
 inc_dirs = []
 subdir('config')
+
+
 
 inc_dirs += include_directories('include') 
 #inc_dirs += include_directories('include/impl/cpu')
@@ -45,11 +48,9 @@ inc_dirs += include_directories('include')
 srcs = []
 subdir('src')
 
-add_project_link_arguments(['-static-libgcc'],language: 'cpp')
-
 #lib_deps += [dependency('boost'), dependency('cuda', version : '>=10', modules : ['cublas'])]
 # Library target
-tcgmblas_lib = library(
+lahva_lib = library(
   meson.project_name(),
   sources: srcs,
   #version: meson.project_version(),
@@ -58,7 +59,7 @@ tcgmblas_lib = library(
   install: install,
   link_language: 'cpp',
 )
-tcgmblas_dep = declare_dependency(
+lahva_dep = declare_dependency(
   link_with: tcgmblas_lib,
   include_directories: inc_dirs,
   dependencies: lib_deps,
@@ -66,4 +67,5 @@ tcgmblas_dep = declare_dependency(
 )
 
 install = not (meson.is_subproject() and get_option('default_library') == 'static')
+subdir('app-test')
 #subdir('test')

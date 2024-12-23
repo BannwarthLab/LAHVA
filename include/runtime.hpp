@@ -56,14 +56,16 @@ namespace tcgmtensor{
         unsigned int streamFlag_ = cudaStreamNonBlocking;
         /// @brief create cublasHandle
         void createHandle();
-        
+        size_t availMem_ = 0; 
         /// @brief blocksize used for launching kernels
         int blockSize_ = THREADS_PER_BLOCK;
         ///
         std::shared_ptr<cuSolverRuntime> cusolv_;
         bool delete_handle = false;
         bool delete_stream = false;
+        bool critical_memory = false;
     public:
+
         /// @brief create Stream
         void createStream();
         /// @brief cublas Handle
@@ -73,10 +75,10 @@ namespace tcgmtensor{
         /// @brief Constructor checking memory request via tensor size
         /// @param max_dim maximum dimension of tensor
         /// @param n_mat number of amtrcies
-        CudaRuntime(size_t max_dim, size_t n_mat);
+        CudaRuntime(size_t max_dim, size_t n_mat, bool asnyc_copy = false);
         /// @brief Constructor checking memory request via number of bytes needed
         /// @param requestedMem hnumber of bytes needed for computation
-        CudaRuntime(size_t requestedMem);
+        CudaRuntime(size_t requestedMem, bool async = false);
         /// @brief Destructor, destroying stream and handle if associated
         ~CudaRuntime();
 
@@ -101,11 +103,16 @@ namespace tcgmtensor{
         
         /// @brief get CUDA Device ID
         /// @return CUDA device id
-        inline size_t device_id() {return cudaDevice;};
+        inline int device_id() {return cudaDevice;};
         /// @brief get CUDA Device ID
         /// @return CUDA device id
-        const inline size_t device_id() const {return cudaDevice;};
+        const inline int device_id() const {return cudaDevice;};
 
+        void check_mem(size_t requestedMem);
+
+        bool criticalSize(size_t ArrayMem) const {return ((double)((double)ArrayMem / (double)availMem_) > 0.025);}
+
+        bool criticalMem() const {return critical_memory;};
         /// @brief Change block size
         /// @param blockSize new block size
         inline void setblockSize(int blockSize) {blockSize_ = blockSize;}

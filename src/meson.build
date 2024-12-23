@@ -1,11 +1,8 @@
 subdir('cpu')
 subdir('utils')
 
-if get_option('gpu')
+if gpu == true
     subdir('gpu')
     subdir('gpu-utils')
 endif
 
-srcs += files(
-    'linalg.cpp',
-)

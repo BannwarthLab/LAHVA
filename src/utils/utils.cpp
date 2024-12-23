@@ -5,6 +5,10 @@
 
 namespace tcgmtensor
 {
+    namespace cpu
+    {
+
+    
     BLAS_INT get_leading(BLAS_INT nrow, BLAS_INT ncol) {
     if (major == CblasColMajor) 
     {
@@ -30,5 +34,5 @@ namespace tcgmtensor
             return CblasNoTrans;
         }
     };
-
+}
 } // namespace tcgmtensor

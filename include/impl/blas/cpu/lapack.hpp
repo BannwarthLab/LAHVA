@@ -6,15 +6,15 @@ namespace tcgmtensor{
     namespace cpu
     {
         template<typename T>
-        void SolveGenSysLinEquations(const char* Ta, Matrix<T>& a, Matrix<T>& b);
+        void SolveGenSysLinEquations(const char* Ta, Matrix_<T>& a, Matrix_<T>& b);
         template<typename T>
-        void SolveGenSysLinEquations(Matrix<T>& a, Matrix<T>& b, const char* Ta = "N");
+        void SolveGenSysLinEquations(Matrix_<T>& a, Matrix_<T>& b, const char* Ta = "N");
         template<typename T>
-        void SolveGenSysLinEquations(const char* Ta, LowTriMatrix<T>& a, Matrix<T>& b);
+        void SolveGenSysLinEquations(const char* Ta, LowTriMatrix_<T>& a, Matrix_<T>& b);
         template<typename T>
-        void SolveGenSysLinEquations(LowTriMatrix<T>& a, Matrix<T>& b, const char* Ta = "N");
+        void SolveGenSysLinEquations(LowTriMatrix_<T>& a, Matrix_<T>& b, const char* Ta = "N");
         template<typename T>
-        void SolveSymSysLinEquations(LowTriMatrix<T>& a, Matrix<T>& b);
+        void SolveSymSysLinEquations(LowTriMatrix_<T>& a, Matrix_<T>& b);
 
         template<typename... Args>
         void SolveGenSysLinEquations(const CPURuntime& cudart_, Args&&... args)

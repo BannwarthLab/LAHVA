@@ -1,6 +1,10 @@
 #ifndef TCGMBLAS_GPUTIMER_HPP
 #define TCGMBLAS_GPUTIMER_HPP
+#ifdef _CUDA
 #include "runtime.hpp"
+#else
+typedef unsigned long long cudaEvent_t;
+#endif
 #include <chrono>
 #include <string>
 #include <vector>
@@ -36,18 +40,20 @@ public:
         int find(std::string label);
         void resize(int n);
 };
-
+#ifdef _CUDA
 class GPUTimer : public Timer{
-
-public:
-    GPUTimer() {};
-    ~GPUTimer() {};
+    protected:
+        CudaRuntime * cudart_;
+    public:
+        GPUTimer() {};
+        GPUTimer(CudaRuntime* cudart) {cudart_ = cudart;};
+        ~GPUTimer() {};
     public:
         void push(std::string label) override;
         void pop() override;
         float get(std::string label) override;
 };
-
+#endif
 class CPUTimer : public Timer{
 public:
     CPUTimer() {};

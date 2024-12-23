@@ -1,4 +1,4 @@
-#include "impl/cpu/lapack.h"
+#include "impl/blas/cpu/lapack.h"
 #include <stdexcept>
 namespace tcgmtensor{
 
@@ -9,12 +9,12 @@ namespace tcgmtensor{
             LPCK_INT info = 0;
             LPCK_INT* ipiv = new LPCK_INT[n];
 
-            info = LAPACKE_dgetrf(l_major, n, n, a, n, ipiv);
+            dgetrf_(&n, &n, a, &n, ipiv, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRF");
             }
-            info = LAPACKE_dgetrs(l_major, *T, n, nrhs, a, n, ipiv, b, n);
+            dgetrs_(T, &n, &nrhs, a, &n, ipiv, b, &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRS");
@@ -27,12 +27,12 @@ namespace tcgmtensor{
             LPCK_INT info = 0;
             LPCK_INT* ipiv = new LPCK_INT[n];
 
-            info = LAPACKE_dgetrf(l_major, n, n, a, n, ipiv);
+            dgetrf_(&n, &n, a, &n, ipiv, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRF");
             }
-            info = LAPACKE_dgetrs(l_major, *T, n, nrhs, a, n, ipiv, b, n);
+            dgetrs_(T, &n, &nrhs, a, &n, ipiv, b, &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRS");
@@ -46,12 +46,12 @@ namespace tcgmtensor{
             LPCK_INT info = 0;
             LPCK_INT* ipiv = new LPCK_INT[n];
 
-            info = LAPACKE_sgetrf(l_major, n, n, a, n, ipiv);
+            sgetrf_(&n, &n, a, &n, ipiv, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SGETRF");
             }
-            info = LAPACKE_sgetrs(l_major, *T, n, nrhs, a, n, ipiv, b, n);
+            sgetrs_(T, &n, &nrhs, a, &n, ipiv, b, &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SGETRS");
@@ -64,12 +64,12 @@ namespace tcgmtensor{
             LPCK_INT info = 0;
             LPCK_INT* ipiv = new LPCK_INT[n];
 
-            info = LAPACKE_sgetrf(l_major, n, n, a, n, ipiv);
+            sgetrf_(&n, &n, a, &n, ipiv, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SGETRF");
             }
-            info = LAPACKE_sgetrs(l_major, *T, n, nrhs, a, n, ipiv, b, n);
+            sgetrs_(T, &n, &nrhs, a, &n, ipiv, b, &n, &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SGETRS");

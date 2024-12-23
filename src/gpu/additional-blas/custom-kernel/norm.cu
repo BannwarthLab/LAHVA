@@ -1,11 +1,11 @@
-#include "impl/gpu/additional-level1.hpp"
+#include "impl/blas/gpu/additional-level1.hpp"
 #include "../../../gpu-utils/utils.hpp"
 
 namespace tcgmtensor
 {
     namespace gpu
     {
-        __global__ static void sFrobenius(const unsigned long long size, const float* mat, float* sum)
+        __global__ static void Frobenius(const unsigned long long size, const float* mat, float* sum)
         {
             unsigned long long tid = threadIdx.x;
             unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -39,7 +39,7 @@ namespace tcgmtensor
                 sum[blockIdx.x] = temp[0]; 
         }
 
-        __global__ static void dFrobenius(const unsigned long long size, const double* mat, double* sum)
+        __global__ static void Frobenius(const unsigned long long size, const double* mat, double* sum)
         {
             unsigned long long tid = threadIdx.x;
             unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -72,37 +72,16 @@ namespace tcgmtensor
                 sum[blockIdx.x] = temp[0]; 
         }
 
-        template<>
-        float FrobeniusNorm(const CudaRuntime& cudart, const GPUTensor<float>& mat)
+        template<typename T>
+        void FrobeniusKernel(const CudaRuntime& cudart, unsigned long long ndim, const T* mat, T* vec)
         {
-            check_device_alloc(cudart, mat);
-            int gridS = cudart.gridSize(mat.size(), 1);
-            Vector<float> vec(gridS, 0.0);
-            vec.copy2device(cudart);
-            sFrobenius<<<gridS, cudart.blockSize(), cudart.blockSize()*sizeof(float), cudart.getStream()>>>(mat.size(), mat.gpu_data(), vec.gpu_data());
-            vec.copy2host(cudart);
-            cudart.synchronize();
-            float norm = vec.sum();
+            int gridS = cudart.gridSize(ndim, 1);
+            Frobenius<<<gridS, cudart.blockSize(), cudart.blockSize()*sizeof(float), cudart.getStream()>>>(ndim, mat, vec);
             
-            return std::sqrt(norm);
         }
 
-        template<>
-        double FrobeniusNorm(const CudaRuntime& cudart, const GPUTensor<double>& mat)
-        {
-            check_device_alloc(cudart, mat);
-            int gridS = cudart.gridSize(mat.size(), 1);
-            Vector<double> vec(gridS, 0.0);
-            vec.copy2device(cudart);
-
-            dFrobenius<<<gridS, cudart.blockSize(), cudart.blockSize()*sizeof(double), cudart.getStream()>>>(mat.size(), mat.gpu_data(), vec.gpu_data());
-            
-            vec.copy2host(cudart);
-            cudart.synchronize();
-            double norm = vec.sum();
-            
-            return std::sqrt(norm);
-        }
+        template void FrobeniusKernel(const CudaRuntime& cudart, unsigned long long ndim, const float* mat, float* vec); 
+        template void FrobeniusKernel(const CudaRuntime& cudart, unsigned long long ndim, const double* mat, double* vec);  
     } // namespace gpu
     
 } // namespace tcgmtensor
