@@ -1,10 +1,10 @@
-#ifndef TCGMTENSOR_ADD_LEVEL1_CPU_HPP
-#define TCGMTENSOR_ADD_LEVEL1_CPU_HPP
+#ifndef LAHVA_ADD_LEVEL1_CPU_HPP
+#define LAHVA_ADD_LEVEL1_CPU_HPP
 #include "linalg.hpp"
 #include "const.h"
 #include "level1.h"
 
-namespace tcgmtensor{
+namespace lahva{
     namespace cpu
     {
         

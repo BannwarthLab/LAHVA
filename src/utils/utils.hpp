@@ -5,7 +5,7 @@
 
 #include <assert.h>
 
-namespace tcgmtensor{
+namespace lahva{
     template<typename T>
     void check_equal_size(const Tensor<T>& v1, const Tensor<T>& v2){
         assert(v1.size() == v2.size());

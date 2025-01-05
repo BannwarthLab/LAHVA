@@ -1,11 +1,5 @@
-#include "linalg.hpp"
-#include "tcgmblas.hpp"
-#include "utils.hpp"
-#include "runtime.hpp"
-#include <iostream>
-#include <numeric>
-using namespace tcgmtensor::gpu;
-using namespace tcgmtensor;
+#include "common.h"
+using namespace lahva::gpu;
 #define M 10
 #define N 5 
 

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <omp.h>
 #include <vector>
-using namespace tcgmtensor;
+using namespace lahva;
 template<typename T>
 using CPUAll = CudaHostAllocator<T>;
 template<typename T>

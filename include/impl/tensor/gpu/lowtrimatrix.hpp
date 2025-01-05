@@ -3,7 +3,7 @@
 #include "impl/tensor/gpu/gputensor.hpp"
 #include "impl/tensor/cpu/lowtrimatrix.hpp"
 
-namespace tcgmtensor
+namespace lahva
 {
     namespace gpu
     {
@@ -284,4 +284,4 @@ namespace tcgmtensor
     }
 
 } // namespace gpu
-} // namespace tcgmtensor
+} // namespace lahva

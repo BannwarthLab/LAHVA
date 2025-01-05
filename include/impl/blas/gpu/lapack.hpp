@@ -2,7 +2,7 @@
 #include "runtime.hpp"
 #include "linalg.hpp"
 
-namespace tcgmtensor{
+namespace lahva{
 
     namespace gpu
     {

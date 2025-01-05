@@ -1,6 +1,6 @@
 #include "const.h"
 
-namespace tcgmtensor{
+namespace lahva{
 
     namespace cpu
     {

@@ -1,7 +1,7 @@
 #include <math.h>
 #include "hadamard.h"
 
-namespace tcgmtensor
+namespace lahva
 {
     namespace gpu
     {

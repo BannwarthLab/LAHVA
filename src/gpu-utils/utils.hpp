@@ -1,12 +1,33 @@
-#ifndef TCGMBLAS_GPU_UTILS_HPP
-#define TCGMBLAS_GPU_UTILS_HPP
+#ifndef LAHVA_GPU_UTILS_HPP
+#define LAHVA_GPU_UTILS_HPP
 #include "linalg.hpp"
 #include "runtime.hpp"
 
-namespace tcgmtensor
+namespace lahva
 {
     namespace gpu
     {
+        static unsigned int as_uint(const float x) 
+        {
+            return *(unsigned int*)&x;
+        }
+
+        static float as_float(const unsigned int x) 
+        {
+            return *(float*)&x;
+        }
+        static float hacky_truncate_r(const float x, const int r)
+        {
+            return as_float((as_uint(x)>>r)<<r);
+        }
+        // Used to mimic formating to half precision or tf32 value. Truncates to 10 bit mantissa
+        static float hacky_truncate(const float x, uint bits = 13)
+        {
+            return hacky_truncate_r(x, bits);
+        }
+
+    // trcuates r bits of float mantissa
+        
 
         template <typename T>
         void check_device_alloc(const CudaRuntime &cudart, const GPUTensor_<T> &gpu_vec)
@@ -62,9 +83,9 @@ namespace tcgmtensor
 
         cublasOperation_t get_trans(const char *T);
 
-        template <typename T>
-        std::tuple<size_t, size_t, size_t> check_size_mm(const Matrix_<T> &a, const Matrix_<T> &b,
-                                                         const Matrix_<T> &c, cublasOperation_t transa = CUBLAS_OP_N, cublasOperation_t transb = CUBLAS_OP_N)
+        template <typename T, typename U, typename V>
+        std::tuple<size_t, size_t, size_t> check_size_mm(const Matrix_<T> &a, const Matrix_<U> &b,
+                                                         const Matrix_<V> &c, cublasOperation_t transa = CUBLAS_OP_N, cublasOperation_t transb = CUBLAS_OP_N)
         {
 
             Shape sa = a.shape();

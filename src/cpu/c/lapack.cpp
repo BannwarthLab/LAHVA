@@ -1,6 +1,6 @@
 #include "impl/blas/cpu/lapack.h"
 #include <stdexcept>
-namespace tcgmtensor{
+namespace lahva{
 
     namespace cpu
     {

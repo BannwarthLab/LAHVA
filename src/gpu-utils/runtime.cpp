@@ -18,7 +18,7 @@ void get_cuda_ERROR(cudaError_t stat, const char* file, int line) {
             throw std::runtime_error("CUBLAS Error");
         }
     }
-namespace tcgmtensor
+namespace lahva
 {
     CudaRuntime::CudaRuntime(bool async_copy) 
     {  
@@ -94,7 +94,8 @@ namespace tcgmtensor
         {
             cudaDevice = -1;
             return;
-        } 
+        }
+        //std::cout <<  "requested: " << requestedMem/std::pow(1024,3)  << "GB available: " << availMem_ / std::pow(1024,3) << " GB" << std::endl;    
         if ((double)((double)requestedMem / (double)availMem_) > 0.60)
         {
             critical_memory = true;

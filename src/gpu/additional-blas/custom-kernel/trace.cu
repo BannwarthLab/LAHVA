@@ -4,7 +4,7 @@
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "../../../gpu-utils/utils.hpp"
 
-namespace tcgmtensor
+namespace lahva
 {
     namespace gpu
     {

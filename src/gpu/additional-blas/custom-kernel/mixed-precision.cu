@@ -1,12 +1,15 @@
 #include "../../../gpu-utils/utils.hpp"
 #include "impl/blas/gpu/level1.hpp"
-#include "mixed-precision.h"
-
-namespace tcgmtensor
+#include "impl/blas/gpu/additional-level1.hpp"
+#include "impl/blas/gpu/additional-level2.hpp"
+//#include "mixed-precision.h"
+#include "impl/blas/gpu/level1.hpp"
+#include "common.h"
+namespace lahva
 {
     namespace gpu
     {
-         __global__ static void SymmetrizedDiagonalMatrixMatrixProductKernel_Mixed(unsigned long long ndim, const double scale, const double *diag,
+        __global__ static void SymmetrizedDiagonalMatrixMatrixProductKernel_Mixed(unsigned long long ndim, const double scale, const double *diag,
                                                                                   const float *matrixIn, float *matrixOut)
         {
             // unsigned long long id = blockDim.x < ndim ? (blockIdx.x*blockDim.x)%ndim+threadIdx.x : threadIdx.x  ;
@@ -23,23 +26,78 @@ namespace tcgmtensor
             }
         }
 
-        __global__  static  void CastMatrixSPToDP(const unsigned long long ntot, const float *MatIn, double *MatOut)
+        template <typename inprec, typename outprec>
+        __global__ void CastMatrix(const unsigned long long ntot, const inprec *MatIn, outprec *MatOut)
         {
-          unsigned long long id = blockIdx.x*blockDim.x+threadIdx.x;
-          if(id < ntot) MatOut[id]=(double) MatIn[id]; //fast_float2double(MatIn[id]);
-          __syncthreads();
+            unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
+            if (id < ntot)
+                MatOut[id] = (outprec)(MatIn[id]); // fast_float2double(MatIn[id]);
+            __syncthreads();
         }
 
-        __global__  static  void CastMatrixDPToSP(const unsigned long long ntot, const double *MatIn, float *MatOut)
+ 
+        template <typename inprec, typename outprec>
+        __global__ void IncrVectors(const unsigned long long ntot, const inprec *MatIn, outprec *MatOut)
         {
-          unsigned long long id = blockIdx.x*blockDim.x+threadIdx.x;
-          if(id < ntot) MatOut[id]=(double) MatIn[id]; //fast_float2double(MatIn[id]);
-          __syncthreads();
+            unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
+            if (id < ntot)
+                MatOut[id] += (outprec)(MatIn[id]); // fast_float2double(MatIn[id]);
+            __syncthreads();
         }
 
-        void SymmetrizedON2ScalingProductGPU(const CudaRuntime& cudart, const Vector_<double>& diag1, const Matrix_<float>& matrix1,
-                                             const Vector_<double>& diag2, const Matrix_<float>& matrix2, Matrix_<float>& matrix_out)
+        template <typename T>
+        __device__ T truncateSignificantDigits(T value, int significantDigits)
+        {
         
+            // Handle the case where the value is zero
+            if (value == 0.0)
+            {
+                return 0.0;
+            }
+
+            // Calculate the factor based on the number of significant digits
+            T factor = pow(10.0, significantDigits - ceil(log10(fabs(value))));
+            return trunc(value * factor) / factor;
+        }
+
+        template <>
+        __global__ void IncrVectors(const unsigned long long ntot, const float *MatIn, double *MatOut)
+        {
+            unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
+            if (id < ntot)
+                MatOut[id] += truncateSignificantDigits(MatIn[id], 8); // fast_float2double(MatIn[id]);
+            __syncthreads();
+        }
+
+
+        template <typename inprec, typename outprec>
+        __global__ void DecomposeMatrixKernel(const unsigned long long ntot, const inprec *MatIn, outprec *MatOut1, outprec *MatOut2)
+        {
+            unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
+            if (id < ntot)
+            {
+                inprec trunc_ = truncateSignificantDigits(MatIn[id], getDig<outprec>());
+                MatOut1[id] = trunc_;
+                MatOut2[id] = getSub(MatIn[id], trunc_);
+            }; // fast_float2double(MatIn[id]);
+            //__syncthreads();
+        }
+
+        template <>
+        __global__ void DecomposeMatrixKernel(const unsigned long long ntot, const float *MatIn, __half *MatOut1, __half *MatOut2)
+        {
+            unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
+            if (id < ntot)
+            {
+                MatOut1[id] = __float2half(MatIn[id]);
+                MatOut2[id] = getSub<float>(MatIn[id], MatOut1[id]);
+            }; // fast_float2double(MatIn[id]);
+            //__syncthreads();
+        }
+
+        void SymmetrizedON2ScalingProductGPU(const CudaRuntime &cudart, const Vector_<double> &diag1, const Matrix_<float> &matrix1,
+                                             const Vector_<double> &diag2, const Matrix_<float> &matrix2, Matrix_<float> &matrix_out)
+
         {
             int n = diag1.size();
 
@@ -65,27 +123,55 @@ namespace tcgmtensor
             }
         }
 
-        void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<double>& X, GPUTensor_<float> &Y)
+        template <typename in, typename out>
+        void AddVectors(const CudaRuntime &cudart, const GPUTensor_<in> &X, GPUTensor_<out> &Y)
         {
             assert(X.size() == Y.size());
             check_device_alloc(cudart, Y);
             check_device_alloc(cudart, X);
-            
+
             unsigned long long n = X.size();
-            CastMatrixDPToSP<<<cudart.gridSize(n,1),cudart.blockSize(), 0, cudart.getStream()>>>(n, X.gpu_data(), Y.gpu_data());
+            IncrVectors<in, out><<<cudart.gridSize(n, 1), cudart.blockSize(), 0, cudart.getStream()>>>(n, X.gpu_data(), Y.gpu_data());
         }
 
-        void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<float>& X, GPUTensor_<double> &Y)
+        void CopyVectors(const CudaRuntime &cudart, const GPUTensor_<double> &X, GPUTensor_<float> &Y)
+        {
+            assert(X.size() == Y.size());
+            check_device_alloc(cudart, Y);
+            check_device_alloc(cudart, X);
+
+            unsigned long long n = X.size();
+            CastMatrix<double, float><<<cudart.gridSize(n, 1), cudart.blockSize(), 0, cudart.getStream()>>>(n, X.gpu_data(), Y.gpu_data());
+        }
+
+        void CopyVectors(const CudaRuntime &cudart, const GPUTensor_<float> &X, GPUTensor_<double> &Y)
         {
             assert(X.size() == Y.size());
             unsigned long long n = X.size();
             check_device_alloc(cudart, X);
             check_device_alloc(cudart, Y);
 
-            CastMatrixSPToDP<<<cudart.gridSize(n,1),cudart.blockSize(), 0, cudart.getStream()>>>(n, X.gpu_data(), Y.gpu_data());
+            CastMatrix<float, double><<<cudart.gridSize(n, 1), cudart.blockSize(), 0, cudart.getStream()>>>(n, X.gpu_data(), Y.gpu_data());
         }
+
+        template <typename inprec, typename outprec>
+        void DecomposeVector2MP(const CudaRuntime &cudart, const GPUTensor_<inprec> &in, GPUTensor_<outprec> &out1, GPUTensor_<outprec> &out2)
+        {
+
+            assert(in.size() == out1.size());
+            assert(in.size() == out2.size());
+            unsigned long long n = in.size();
+            check_device_alloc(cudart, in);
+            check_device_alloc(cudart, out1);
+            check_device_alloc(cudart, out2);
+
+            DecomposeMatrixKernel<inprec, outprec><<<cudart.gridSize(n, 1), cudart.blockSize(), 0, cudart.getStream()>>>(n, in.gpu_data(), out1.gpu_data(), out2.gpu_data());
+        }
+
+        template void AddVectors<float, double>(const CudaRuntime &cudart, const GPUTensor_<float> &X, GPUTensor_<double> &Y);
+        template void AddVectors<double, float>(const CudaRuntime &cudart, const GPUTensor_<double> &X, GPUTensor_<float> &Y);
+        template void DecomposeVector2MP<double, float>(const CudaRuntime &, const GPUTensor_<double> &in, GPUTensor_<float> &out1, GPUTensor_<float> &out2);
+        template void DecomposeVector2MP<float, __half>(const CudaRuntime &, const GPUTensor_<float> &in, GPUTensor_<__half> &out1, GPUTensor_<__half> &out2);
     } // namespace gpu
 
-    
-    
-} // namespace tcgmtensor
+} // namespace lahva

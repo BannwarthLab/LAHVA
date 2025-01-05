@@ -1,6 +1,6 @@
 #include "impl/blas/cpu/level3.hpp"
 #include "../../utils/utils.hpp"
-namespace tcgmtensor
+namespace lahva
 {
     namespace cpu{ 
     
@@ -108,4 +108,4 @@ namespace tcgmtensor
         cblas_ssymm(major, side, tri, m, n, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
     }; 
     }
-} // namespace tcgmtensor
+} // namespace lahva

@@ -2,7 +2,7 @@
 #include <memory>
 #include "impl/tensor/cpu/tensor.hpp"
 
-namespace tcgmtensor
+namespace lahva
 {
     namespace cpu
     {
@@ -122,4 +122,4 @@ namespace tcgmtensor
         }
 
     }
-} // namespace tcgmtensor
+} // namespace lahva

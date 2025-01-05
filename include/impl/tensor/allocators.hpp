@@ -3,7 +3,7 @@
 #include "runtime.hpp"
 #endif
 
-namespace tcgmtensor
+namespace lahva
 {
     template <typename T>
     class CPUAllocator
@@ -199,4 +199,4 @@ namespace tcgmtensor
         void setStream(cudaStream_t stream) const {stream_ = stream;};
     };
 #endif
-} // namespace tcgmtensor
+} // namespace lahva

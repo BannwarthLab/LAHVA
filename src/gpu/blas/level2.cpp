@@ -2,7 +2,7 @@
 #include "../../gpu-utils/utils.hpp"
 
 
-namespace tcgmtensor{
+namespace lahva{
     namespace gpu{
     /*! @brief Simple interface to DGEMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
     or \f$\vec{y}=alpha*\mathbf{A}^\intercal*\vec{x}+beta*\vec{y}\f$ or 

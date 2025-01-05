@@ -1,5 +1,5 @@
-#ifndef TCGMBLAS_BLAS_HPP
-#define TCGMBLAS_BLAS_HPP
+#ifndef LAHVA_BLAS_HPP
+#define LAHVA_BLAS_HPP
 
 #include "impl/blas/cpu/level1.hpp"
 #include "impl/blas/cpu/level2.hpp"

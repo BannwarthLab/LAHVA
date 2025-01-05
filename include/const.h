@@ -1,5 +1,5 @@
-#ifndef TCGMBLAS_CONST_H
-#define TCGMBLAS_CONST_H
+#ifndef LAHVA_CONST_H
+#define LAHVA_CONST_H
 #ifdef W_MKL
 #include <mkl.h>
 typedef MKL_INT BLAS_INT;
@@ -20,7 +20,7 @@ typedef int32_t LPCK_INT;
 #include "cublas_v2.h"
 #endif
 
-namespace tcgmtensor
+namespace lahva
 {
     static const CBLAS_LAYOUT major = CblasColMajor;
     static const CBLAS_UPLO tri = CblasLower;

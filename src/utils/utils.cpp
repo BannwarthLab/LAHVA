@@ -3,7 +3,7 @@
 #include <cstring>
 #include <iostream>
 
-namespace tcgmtensor
+namespace lahva
 {
     namespace cpu
     {
@@ -35,4 +35,4 @@ namespace tcgmtensor
         }
     };
 }
-} // namespace tcgmtensor
+} // namespace lahva

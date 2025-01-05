@@ -1,16 +1,9 @@
-#include "linalg.hpp"
-#include "const.h"
-#include "tcgmblas.h"
-#include "tcgmblas.hpp"
-#include "utils.hpp"
-#include <numeric>
-#include <iostream>
+#include "common.h"
 
 #define M 10
 #define N 5 
 
-using namespace tcgmtensor::cpu;
-using namespace tcgmtensor;
+using namespace lahva::cpu;
 
 const double thr2 = 5.0e-15;
 const float thr = 5.0e-7;

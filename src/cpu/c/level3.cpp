@@ -1,7 +1,7 @@
 #include "impl/blas/cpu/level3.h"
 #include "../../utils/utils.hpp"
 
-namespace tcgmtensor{
+namespace lahva{
     namespace cpu{
     void MatrixMatrixProduct(const char* Ta, const char* Tb, const size_t m, const size_t n, const size_t k, 
                              const double alpha, const double* a, const double* b, const double beta, double* c) 

@@ -1,9 +1,9 @@
-#ifndef TCGMBLAS_GPU_LEVEL_3_HPP
-#define TCGMBLAS_GPU_LEVEL_3_HPP
+#ifndef LAHVA_GPU_LEVEL_3_HPP
+#define LAHVA_GPU_LEVEL_3_HPP
 #include "linalg.hpp"
 #include "const.h"
 #include "runtime.hpp"
-namespace tcgmtensor{
+namespace lahva{
     namespace gpu {
     void MatrixMatrixProduct(const CudaRuntime& cudart, const char* Ta, const char* Tb, const double alpha, const Matrix_<double>& a, const Matrix_<double>& b,
                              const double beta, Matrix_<double>& c);
@@ -22,6 +22,13 @@ namespace tcgmtensor{
                                 const float beta, Matrix_<float>& c);
     void SymMatrixMatrixProduct(const CudaRuntime& cudart, const Matrix_<float>& a, const Matrix_<float>& b, Matrix_<float>& c,
                                 const float alpha = 1.0 , const float beta = 0.0, const cublasSideMode_t side = CUBLAS_SIDE_LEFT);
+    void MatrixMatrixProductTF32(const CudaRuntime& cudart, const char* Ta, const char* Tb, const float alpha, const Matrix_<float>& a, const Matrix_<float>& b,
+                             const float beta, Matrix_<float>& c);
+    void MatrixMatrixProductTF32(const CudaRuntime& cudart, const Matrix_<float>& a, const Matrix_<float>& b, Matrix_<float>& c,
+                             const float alpha = 1.0 , const float beta = 0.0, const char* Ta = "N", const char* Tb = "N");
+
+    void MatrixMatrixProductFP16(const CudaRuntime& cudart, const Matrix_<__half>& a, const Matrix_<__half>& b, Matrix_<float>& c,
+                             const float alpha = 1.0 , const float beta = 0.0, const char* Ta = "N", const char* Tb = "N");                         
     }
 }
 #endif

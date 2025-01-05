@@ -11,7 +11,7 @@ void get_cusolv_ERROR(cusolverStatus_t stat, const char *file, int line)
             throw std::runtime_error("cuSolver Error");
         }
     }
-namespace tcgmtensor
+namespace lahva
 {
     cuSolverRuntime::cuSolverRuntime()
     {

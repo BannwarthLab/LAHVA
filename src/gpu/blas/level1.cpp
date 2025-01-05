@@ -2,7 +2,7 @@
 #include "impl/blas/gpu/level1.hpp"
 #include "../../gpu-utils/utils.hpp"
 
-namespace tcgmtensor{
+namespace lahva{
     namespace gpu{
     /*! @brief Take inner product of two Vectors of doubles
         \param[in] nelemXY number of elements in Vectors X and Y

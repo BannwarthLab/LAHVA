@@ -6,7 +6,7 @@
 #include "impl/blas/cpu/level1.h"
 #include "const.h"
 
-namespace tcgmtensor
+namespace lahva
 {
     namespace cpu
     {
@@ -334,4 +334,4 @@ namespace tcgmtensor
         cpu::CopyVectors(diag.size(), diag.data(), 1, this->data(), max_dim+1);
     }
     } // namespace gpu
-} // namespace tcgmtensor
+} // namespace lahva

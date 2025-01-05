@@ -1,10 +1,10 @@
-#ifndef TCGMBLAS_GPU_LEVEL2_HPP
-#define TCGMBLAS_GPU_LEVEL2_HPP
+#ifndef LAHVA_GPU_LEVEL2_HPP
+#define LAHVA_GPU_LEVEL2_HPP
 #include "const.h"
 #include "linalg.hpp"
 #include "runtime.hpp"
 
-namespace tcgmtensor{
+namespace lahva{
     namespace gpu{ 
     void MatrixVectorProduct(const CudaRuntime& cudart, const char* T, const double alpha, const Matrix_<double>& a, const Vector_<double>& x, 
                              const size_t incx, const double beta, Vector_<double>& y, const size_t incy);

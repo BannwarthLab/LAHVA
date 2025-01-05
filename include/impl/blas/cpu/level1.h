@@ -1,8 +1,8 @@
-#ifndef TCGMBLAS_C_LEVEL1_H
-#define TCGMBLAS_C_LEVEL1_H
+#ifndef LAHVA_C_LEVEL1_H
+#define LAHVA_C_LEVEL1_H
 #include "const.h"
 
-namespace tcgmtensor{
+namespace lahva{
     namespace cpu{ 
     double InnerVectorProduct(const size_t nelemXY, const double* X, const double* Y);
     float InnerVectorProduct(const size_t nelemXY, const float* X, const float* Y);

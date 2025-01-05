@@ -3,7 +3,7 @@
 #pragma warning(disable:2282 815 858)
 #include "linalg.hpp"
 #include "runtime.hpp"
-namespace tcgmtensor
+namespace lahva
 {
     namespace gpu
     {
@@ -11,4 +11,4 @@ namespace tcgmtensor
                                              const Vector_<double>& diag2, const Matrix_<float>& matrix2, Matrix_<float>& matrix_out);
     } // namespace gpu
     
-} // namespace tcgmtensor
+} // namespace lahva

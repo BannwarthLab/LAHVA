@@ -1,11 +1,11 @@
-#ifndef TCGMBLAS_GPU_LEVEL1_HPP
-#define TCGMBLAS_GPU_LEVEL1_HPP
+#ifndef LAHVA_GPU_LEVEL1_HPP
+#define LAHVA_GPU_LEVEL1_HPP
 #include "const.h"
 #include "linalg.hpp"
 #include "runtime.hpp"
 
 
-namespace tcgmtensor{
+namespace lahva{
     namespace gpu{
     double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<double>& X, const GPUTensor_<double>& Y);
     float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<float>& X, const GPUTensor_<float>& Y);
@@ -33,6 +33,10 @@ namespace tcgmtensor{
     void ScaleVector(const CudaRuntime& cudart, float a, GPUTensor_<float>& x);
     void ScaleVector(const CudaRuntime& cudart, double a, GPUTensor_<double>& x, size_t ix);
     void ScaleVector(const CudaRuntime& cudart, float a, GPUTensor_<float>& x, size_t ix);
+
+    template<typename inprec, typename outprec>
+    void AddVectors(const CudaRuntime& cudart, const GPUTensor_<inprec>& in, GPUTensor_<outprec>& out);
+
     }
 } 
 

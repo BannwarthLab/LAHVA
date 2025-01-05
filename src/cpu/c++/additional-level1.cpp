@@ -1,7 +1,7 @@
 #include "impl/blas/cpu/additional-level1.hpp"
 #include <omp.h>
 #include "../../utils/utils.hpp"
-namespace tcgmtensor
+namespace lahva
 {
     namespace cpu
     {
@@ -88,4 +88,4 @@ namespace tcgmtensor
         template float FrobeniusInnerProduct<float>(const CPURuntime& rt, const Matrix_<float>& mat1, const Matrix_<float>& mat2);
     } // namespace cpu
     
-} // namespace tcgmtensor
+} // namespace lahva

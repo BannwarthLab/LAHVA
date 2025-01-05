@@ -3,7 +3,7 @@
 #include "impl/tensor/gpu/gputensor.hpp"
 #include "impl/tensor/cpu/vector.hpp"
 
-namespace tcgmtensor
+namespace lahva
 {
     namespace gpu
     {
@@ -146,4 +146,4 @@ Vector<T, Allocator, GPUAllocator>::Vector(std::initializer_list<T> init, const 
     }
 
 } // namespace gpu
-} // namespace tcgmtensor
+} // namespace lahva

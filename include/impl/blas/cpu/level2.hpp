@@ -1,9 +1,9 @@
-#ifndef TCGMBLAS_C_LEVEL2_HPP
-#define TCGMBLAS_C_LEVEL2_HPP
+#ifndef LAHVA_C_LEVEL2_HPP
+#define LAHVA_C_LEVEL2_HPP
 #include "const.h"
 #include "linalg.hpp"
 
-namespace tcgmtensor{
+namespace lahva{
     namespace cpu{ 
     void MatrixVectorProduct(const char* T, const double alpha, const Matrix_<double>& a, const Vector_<double>& x, 
                              const size_t incx, const double beta, Vector_<double>& y, const size_t incy);

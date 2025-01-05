@@ -4,7 +4,7 @@
 #include "impl/tensor/cpu/tensor.hpp"
 #include "runtime.hpp"
 
-namespace tcgmtensor
+namespace lahva
 {
     namespace gpu
     {
@@ -210,4 +210,4 @@ namespace tcgmtensor
         };
 
     } // namespace gpu
-} // namespace tcgmtensor
+} // namespace lahva

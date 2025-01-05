@@ -1,9 +1,9 @@
-#ifndef TCGMTENSOR_ADD_LEVEL1_HPP
-#define TCGMTENSOR_ADD_LEVEL1_HPP
+#ifndef LAHVA_ADD_LEVEL1_HPP
+#define LAHVA_ADD_LEVEL1_HPP
 #include "linalg.hpp"
 #include "runtime.hpp"
 #include "../../../../src/gpu-utils/utils.hpp"
-namespace tcgmtensor{
+namespace lahva{
     namespace gpu
     {
         //Currently only floar 
@@ -38,18 +38,20 @@ namespace tcgmtensor{
 
         template<typename T>
         void SymmetrizeMatrix(const CudaRuntime& cudart, Matrix_<T>&);
+
         template<typename T>
-        void FrobeniusKernel(const CudaRuntime& cudart, unsigned long long ndim, const T* mat, T* vec);
+        void FrobeniusKernel(const CudaRuntime& cudart, const unsigned long long ndim, const T* mat, T* vec);
+        
         template<typename T, typename U, typename V>
         T FrobeniusNorm(const CudaRuntime& cudart, const GPUTensor<T, U, V>& mat)
         {
             check_device_alloc(cudart, mat);
             Vector<T, U, V> vec(cudart.gridSize(mat.size(), 1), 0.0);
             ScaleVector(cudart, 0.0, vec);
-            FrobeniusKernel(cudart, mat.size(), mat.gpu_data(), vec.gpu_data());
+            FrobeniusKernel<T>(cudart, mat.size(), mat.gpu_data(), vec.gpu_data());
             vec.copy2host(cudart);
             cudart.synchronize();
-            float norm = vec.sum();
+            float norm = vec[0];
             return std::sqrt(norm);
         };
 
@@ -123,6 +125,21 @@ namespace tcgmtensor{
             return (double)v.sum();
         }
 
+        template<typename inprec, typename outprec>
+        void DecomposeVector2MP(const CudaRuntime& cudart, const GPUTensor_<inprec>& in, GPUTensor_<outprec> &out1, GPUTensor_<outprec> &out2);
+
+        template<typename T, typename U, typename V, typename Tout>
+        void DecomposeMatrix(const CudaRuntime& cudart, const GPUTensor<T, U, V>& min, Vector<Tout, U, V>& mout1, Vector<Tout, U, V>& mout2)
+        {
+            if (min.size() != mout1.size())
+                Vector<Tout, U, V> mout1(min.size(), cudart);
+            
+            if (min.size() != mout2.size())
+                Vector<Tout, U, V> mout2(min.size(), cudart);
+
+            DecomposeVector2MP<T, Tout>(cudart, min, mout1, mout2);
+
+        }
 
     } // namespace gpu
     

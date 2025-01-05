@@ -1,5 +1,5 @@
-#ifndef TCGMBLAS_GPU_RUNTIME_HPP
-#define TCGMBLAS_GPU_RUNTIME_HPP
+#ifndef LAHVA_GPU_RUNTIME_HPP
+#define LAHVA_GPU_RUNTIME_HPP
 
 #pragma warning(disable:2282)
 #pragma warning(disable:815 858) 
@@ -35,7 +35,7 @@
     /// @param line line where error occurs
     void get_cusolv_ERROR(cusolverStatus_t stat, const char *file, int line);
 
-namespace tcgmtensor{
+namespace lahva{
     
     
 
@@ -124,7 +124,7 @@ namespace tcgmtensor{
         /// @param base Tensor length as 1D
         /// @param exp dimension of Tensor
         /// @return grid Size for Kernel excution
-        inline int gridSize(size_t base, size_t exp) const {return (int)ceil(((float)std::pow(base, exp)+blockSize_-1)/blockSize_);};
+        inline int gridSize(size_t base, size_t exp) const {return (int)ceil(((float)std::pow(base, exp))/blockSize_);};
         
         /// @brief get device id of GPU with maximum working memory
         /// @return device ID of GPU with max memory
@@ -135,7 +135,7 @@ namespace tcgmtensor{
         cudaStream_t getStream() {return stream_;}
         cudaStream_t getStream() const {return stream_;}
 
-        void cublasSetStream_() const 
+        inline void cublasSetStream_() const 
         {
             
             get_cuda_error(cudaSetDevice(cudaDevice));

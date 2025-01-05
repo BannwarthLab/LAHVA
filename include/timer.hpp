@@ -1,5 +1,5 @@
-#ifndef TCGMBLAS_GPUTIMER_HPP
-#define TCGMBLAS_GPUTIMER_HPP
+#ifndef LAHVA_GPUTIMER_HPP
+#define LAHVA_GPUTIMER_HPP
 #ifdef _CUDA
 #include "runtime.hpp"
 #else
@@ -9,7 +9,7 @@ typedef unsigned long long cudaEvent_t;
 #include <string>
 #include <vector>
 
-namespace tcgmtensor{
+namespace lahva{
 class time_record {
     public:
         std::string label;

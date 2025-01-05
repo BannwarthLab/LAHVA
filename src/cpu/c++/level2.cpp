@@ -1,7 +1,7 @@
 #include "impl/blas/cpu/level2.hpp"
 #include "../../utils/utils.hpp"
 
-namespace tcgmtensor{
+namespace lahva{
     namespace cpu{
     /*! @brief Simple interface to DGEMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
     or \f$\vec{y}=alpha*\mathbf{A}^\intercal*\vec{x}+beta*\vec{y}\f$ or 

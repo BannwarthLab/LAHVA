@@ -2,7 +2,7 @@
 #include "runtime.hpp"
 #include <string>
 
-namespace tcgmtensor {
+namespace lahva {
     namespace gpu
     {
         size_t get_leading(size_t nrow, size_t ncol) {

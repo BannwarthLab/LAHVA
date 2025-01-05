@@ -1,6 +1,6 @@
 #include "impl/blas/gpu/additional-level2.hpp"
 #include "../../gpu-utils/utils.hpp"
-namespace tcgmtensor
+namespace lahva
 {
     namespace gpu
     {

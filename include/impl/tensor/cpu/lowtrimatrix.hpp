@@ -3,7 +3,7 @@
 #include "impl/tensor/cpu/tensor.hpp"
 
 
-namespace tcgmtensor
+namespace lahva
 {
     namespace cpu
     {
@@ -291,4 +291,4 @@ namespace tcgmtensor
     }
 
 } // namespace gpu
-} // namespace tcgmtensor
+} // namespace lahva

@@ -1,5 +1,5 @@
-#ifndef TCGMTENSOR_TENSOR_HPP
-#define TCGMTENSOR_TENSOR_HPP
+#ifndef LAHVA_TENSOR_HPP
+#define LAHVA_TENSOR_HPP
 
 #include <memory>
 #include <iterator>
@@ -7,7 +7,7 @@
 #include <iostream>
 
 #include "impl/tensor/allocators.hpp"
-namespace tcgmtensor
+namespace lahva
 {
 
     /// @brief Abstract base class for tensor
@@ -150,6 +150,6 @@ namespace tcgmtensor
         const Allocator get_allocator() const { return alloc_; };
     };
 
-} // namespace tcgmtensor
+} // namespace lahva
 
 #endif

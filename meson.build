@@ -21,6 +21,10 @@ subdir('config')
 
 
 inc_dirs += include_directories('include') 
+if gpu == true
+  inc_dirs += include_directories('src/gpu/additional-blas')
+endif
+
 
 # Collect source of the project
 srcs = []

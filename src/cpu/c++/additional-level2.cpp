@@ -1,6 +1,6 @@
 #include "impl/blas/cpu/additional-level2.hpp"
 #include "../../utils/utils.hpp"
-namespace tcgmtensor
+namespace lahva
 {
     namespace cpu
     {

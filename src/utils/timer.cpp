@@ -3,7 +3,7 @@
 #include <iostream>
 #include <chrono>
 
-namespace tcgmtensor{
+namespace lahva{
 void CPUTimer::push(std::string label) {
         int it;
         it = find(label);

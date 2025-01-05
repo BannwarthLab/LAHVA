@@ -4,7 +4,7 @@
 #include "cublas_v2.h"
 #include "runtime.hpp"
 
-namespace tcgmtensor
+namespace lahva
 {
     namespace gpu
     {
@@ -16,4 +16,4 @@ namespace tcgmtensor
         void dHadamardcopy(const CudaRuntime& cudart, double* vecout, const double* vecin1, const double* vecin2, size_t ndim2, size_t ndim);
     } // namespace gpu
     
-} // namespace tcgmtensor
+} // namespace lahva

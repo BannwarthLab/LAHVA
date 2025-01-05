@@ -1,7 +1,7 @@
 #include "impl/blas/gpu/lapack.hpp"
 #include "../gpu-utils/utils.hpp"
 
-namespace tcgmtensor
+namespace lahva
 {
     namespace gpu
     {
@@ -118,4 +118,4 @@ namespace tcgmtensor
 
     }
     
-} // namespace tcgmtensor
+} // namespace lahva

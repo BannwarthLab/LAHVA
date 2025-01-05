@@ -1,7 +1,7 @@
 #include "const.h"
 #include "linalg.hpp"
 
-namespace tcgmtensor{
+namespace lahva{
 
     namespace cpu
     {

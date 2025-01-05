@@ -42,4 +42,13 @@ if gpu == true
     link_language: 'cpp', 
   ),
   )
+
+  test('test-mp',
+  executable(
+    '@0@-test-mp'.format(meson.project_name()),
+    sources: files('test-mp.cpp','utils.cpp'),
+    dependencies: lahva_dep,
+    link_language: 'cpp', 
+  ),
+  )
 endif

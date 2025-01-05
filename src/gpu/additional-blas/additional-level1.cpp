@@ -3,7 +3,7 @@
 #include "custom-kernel/hadamard.h"
 #include "../../gpu-utils/utils.hpp"
 
-namespace tcgmtensor{
+namespace lahva{
     namespace gpu
     {
         template<>

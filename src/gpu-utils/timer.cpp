@@ -5,7 +5,7 @@
 #include "timer.hpp"
 
 
-namespace tcgmtensor{
+namespace lahva{
     void GPUTimer::push(std::string label) {
         int it;
         cudaError_t istat;

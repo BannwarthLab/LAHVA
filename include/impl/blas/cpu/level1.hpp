@@ -1,9 +1,9 @@
-#ifndef TCGMBLAS_C_LEVEL1_HPP
-#define TCGMBLAS_C_LEVEL1_HPP
+#ifndef LAHVA_C_LEVEL1_HPP
+#define LAHVA_C_LEVEL1_HPP
 #include "const.h"
 #include "linalg.hpp"
 
-namespace tcgmtensor{
+namespace lahva{
     namespace cpu{
     double InnerVectorProduct(const Tensor<double>& X, const Tensor<double>& Y);
     float InnerVectorProduct(const Tensor<float>& X, const Tensor<float>& Y);
