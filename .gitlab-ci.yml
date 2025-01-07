@@ -21,6 +21,8 @@ stages:          # List of stages for jobs, and their order of execution
 
 build-job:       # This job runs in the build stage, which runs first.
   stage: build
+  tags:
+    - cpu
   script:
     - apptainer build intel/oneapi-basekit:2024.2.1-0-devel-rockylinux9
     - echo "Compile complete."
