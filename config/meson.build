@@ -141,5 +141,4 @@ if gpu == true
 
   lib_deps += cuda
   add_project_arguments(['-D_CUDA'], language: ['cuda', 'cpp'])
-  add_project_arguments(['-diag-disable=2282'], language: ['cpp'])
 endif

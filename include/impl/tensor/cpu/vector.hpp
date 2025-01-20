@@ -80,7 +80,7 @@ namespace lahva
                                                         };
         template <class T, class Allocator>
     Vector<T, Allocator>::Vector(std::initializer_list<T> init, const alloc_ptr &alloc)
-    : CPUTensor<T, Allocator>(init.size(), alloc), Vector_<T>()
+    : Vector_<T>(), CPUTensor<T, Allocator>(init.size(), alloc)
     {
         this->no_alloc = true;
         std::copy(init.begin(), init.end(), this->data_);

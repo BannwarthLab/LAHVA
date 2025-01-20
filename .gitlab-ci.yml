@@ -16,15 +16,204 @@
 # This specific template is located at:
 # https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
 
-stages:          # List of stages for jobs, and their order of execution
-  - build
+include:
+  - local: common-scripts.yml
 
-build-job:       # This job runs in the build stage, which runs first.
+stages:
+  - build-container          # List of stages for jobs, and their order of execution
+  - build
+  - test
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - containers/
+
+build-ubuntu20.4:
+  stage: build-container
+  cache:
+    key: "gcc-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  tags:
+    - shell
+  script:
+    - mkdir -p containers
+    - if [ ! -e "containers/20.4-gcc-9.sif" ] ; then apptainer build containers/20.4-gcc-9.sif apptainer_recipe/20.4-gcc-9.def ; fi
+
+
+build-ubuntu20.4-intel-2023.2.0:
+  stage: build-container
+  cache:
+    key: "intel-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  tags:
+    - shell
+  script:
+    - mkdir -p containers
+    - if [ ! -e "containers/20.4-intel-2023.2.0.sif" ] ; then apptainer build containers/20.4-intel-2023.2.0.sif apptainer_recipe/20.4-intel-2023.2.0.def ; fi
+
+build-ubuntu20.4-intel-2023.2.0-sand:
+  stage: build-container
+  cache:
+    key: "intel-sand-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  tags:
+    - shell
+  script:
+    - mkdir -p containers
+    - if [ ! -e "containers/20.4-intel-2023.2.0-sand.sif" ] ; then apptainer build --sandbox --fakeroot containers/20.4-intel-2023.2.0-sand.sif apptainer_recipe/20.4-intel-2023.2.0.def ; fi
+
+build-ubuntu20.4-cuda-11-8-gcc-9:
+  stage: build-container
+  cache:
+    key: "gcc-cuda-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  tags:
+    - shell
+  script:
+    - mkdir -p containers
+    - if [ ! -e "containers/20.4-cuda-11-8-gcc-9.sif" ] ; then apptainer build containers/20.4-cuda-11-8-gcc-9.sif apptainer_recipe/20.4-cuda-11.8-gcc-9.def ; fi
+
+
+build-ubuntu20.4-cuda-11-8-intel-2023.2.0:
+  stage: build-container
+  cache:
+    key: "intel-cuda-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  tags:
+    - shell
+  script:
+    - mkdir -p containers
+    - if [ ! -e "containers/20.4-cuda-11-8-intel-2023.2.0.sif" ] ; then apptainer build containers/20.4-cuda-11-8-intel-2023.2.0.sif apptainer_recipe/20.4-cuda-11.8-intel-2023.2.0.def ; fi
+
+
+ubuntu-20.4-gcc-9-openblas:       # This job runs in the build stage, which runs first.
   stage: build
+  cache:
+    key: "gcc-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4
+  variables:
+    IMAGE_NAME: ""
+    CONTAINER_NAME: "containers/20.4-gcc-9.sif"
+    APPTAINER_EXEC_ARGS: "" 
   tags:
     - cpu
   script:
-    - apptainer build intel docker://intel/oneapi-basekit:2024.2.1-0-devel-rockylinux9
-    - echo "Compile complete."
+    - !reference [.cpu_prep, script]
+    - export CC=gcc CXX=g++
+    - meson setup _build --buildtype=debug -Dlapack=openblas -Dgpu=false
+    - !reference [.meson_compile, script]
+
+ubuntu-20.4-intel-2023.2.0-mkl:       # This job runs in the build stage, which runs first.
+  stage: build
+  cache:
+    key: "intel-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4-intel-2023.2.0
+  variables:
+    IMAGE_NAME: ""
+    CONTAINER_NAME: "containers/20.4-intel-2023.2.0.sif"
+    APPTAINER_EXEC_ARGS: "" 
+  tags:
+    - cpu
+  script:
+    - !reference [.cpu_prep, script]
+    - export CC=icc CXX=icpc
+    - meson setup _build --buildtype=debug -Dlapack=mkl -Dgpu=false
+    - !reference [.meson_compile, script]
+    - meson test
+
+ubuntu-20.4-intel-2023.2.0-openblas:       # This job runs in the build stage, which runs first.
+  stage: build
+  cache:
+    key: "intel-sand-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4-intel-2023.2.0
+  variables:
+    CONTAINER_NAME: "containers/20.4-intel-2023.2.0-sand.sif"
+    APPTAINER_EXEC_ARGS: "--writable-tmpfs --fakeroot"
+    APPTAINER_BUILD_ARGS: "--sandbox" 
+  tags:
+    - cpu
+  script:
+    - !reference [.cpu_prep, script]
+    - apt install -y libopenblas-dev liblapack-dev --no-install-recommends
+    - export CC=icc CXX=icpc
+    - meson setup _build --buildtype=debug -Dlapack=mkl -Dgpu=false
+    - !reference [.meson_compile, script]
+    - meson test
+
+ubuntu-20.4-gcc-9-mkl:       # This job runs in the build stage, which runs first.
+  stage: build
+  cache:
+    key: "intel-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4-intel-2023.2.0
+  variables:
+    CONTAINER_NAME: "containers/20.4-intel-2023.2.0.sif"
+    APPTAINER_EXEC_ARGS: "" 
+  tags:
+    - cpu
+  script:
+    - !reference [.cpu_prep, script]
+    - export CC=gcc CXX=g++
+    - meson setup _build --buildtype=debug -Dlapack=mkl -Dgpu=false
+    - !reference [.meson_compile, script]
+    - meson test  
+
+ubuntu-20.4-cu-11.8-gcc-9-openblas:       # This job runs in the build stage, which runs first.
+  stage: build
+  cache:
+    key: "gcc-cuda-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4-cuda-11-8-gcc-9
+  variables:
+    CONTAINER_NAME: "containers/20.4-cuda-11-8-gcc-9.sif"
+    APPTAINER_EXEC_ARGS: "--nv" 
+  tags:
+    - cpu
+    - gpu 
+  script:
+    - !reference [.cpu_prep, script]
+    - !reference [.gpu_prep, script]
+    - meson setup _build --buildtype=debug -Dlapack=openblas
+    - !reference [.meson_compile, script]
+    - meson test
 
 
+ubuntu-20.4-cu-11.8-intel-mkl:       # This job runs in the build stage, which runs first.
+  stage: build
+  cache:
+    key: "intel-cuda-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4-cuda-11-8-intel-2023.2.0
+  variables:
+    CONTAINER_NAME: "containers/20.4-cuda-11-8-intel-2023.2.0.sif"
+    APPTAINER_EXEC_ARGS: "--nv"
+  tags:
+    - cpu
+  script:
+    - !reference [.cpu_prep, script]
+    - !reference [.gpu_prep, script]
+    - export CC=icc CXX=icpc
+    - meson setup _build --buildtype=debug -Dlapack=mkl
+    - !reference [.meson_compile, script]
+    - meson test

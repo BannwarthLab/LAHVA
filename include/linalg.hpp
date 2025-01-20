@@ -5,9 +5,6 @@
 #include <vector>
 #include <iterator>
 #include <assert.h>
-#pragma warning(disable : 2282)
-#pragma warning(disable : 815)
-#pragma warning(disable : 858)
 #include <iostream>
 #include "impl/tensor/cpu/tensor.hpp"
 #ifdef _CUDA

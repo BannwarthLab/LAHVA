@@ -21,7 +21,6 @@ template <typename TYPE>
 constexpr TYPE getTypeMax()
 {
     // fprintf(OUTPUT, "OzBLAS error: TYPE is not specified in getTypeMax.\n");
-    exit(1);
     return 0;
 }
 template <>
@@ -42,7 +41,6 @@ template <typename TYPE>
 constexpr TYPE getTypeMin()
 {
     // fprintf(OUTPUT, "OzBLAS error: TYPE is not specified in getTypeMin.\n");
-    exit(1);
     return 0;
 }
 template <>

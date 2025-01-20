@@ -1,18 +1,17 @@
-#include "impl/blas/gpu/lapack.hpp"
 #include "../gpu-utils/utils.hpp"
 
 namespace lahva
 {
     namespace gpu
     {
-        template<typename T, typename Allocator, typename GPUAllocator>
-        void SolveGenSysLinEquations<T, Allocator, GPUAllocator>(CudaRuntime& cudart, const char* Ta, Matrix<T, Allocator, GPUAllocator>& a, Matrix<T, Allocator, GPUAllocator>& b)
+        template<typename T, class Allocator, class GPUAllocator>
+        void SolveGenSysLinEquations(CudaRuntime& cudart, const char* Ta, Matrix<T, Allocator, GPUAllocator>& a, Matrix<T, Allocator, GPUAllocator>& b)
         {
 
             check_device_alloc(cudart, a);
             check_device_alloc(cudart, b);
             cudaDataType data = CUDA_R_64F; 
-            using MyVector = Vector<int64_t, Allocator<inte64_t>, GPUAllocator<T>> ;
+            using MyVector = Vector<int64_t, Allocator, GPUAllocator> ;
             if ( a.shape().first != a.shape().second)
             {
                 throw std::runtime_error("A should be symmetric");
@@ -61,7 +60,7 @@ namespace lahva
         };
 
         template<typename T, typename Allocator, typename GPUAllocator>
-        void SolveGenSysLinEquations<T,Allocator, GPUAllocator>(CudaRuntime& cudart, Matrix<T, Allocator, GPUAllocator>& a, Matrix<T, Allocator, GPUAllocator>& b, const char* Ta)
+        void SolveGenSysLinEquations(CudaRuntime& cudart, Matrix<T, Allocator, GPUAllocator>& a, Matrix<T, Allocator, GPUAllocator>& b, const char* Ta)
         {
 
             check_device_alloc(cudart, a);

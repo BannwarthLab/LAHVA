@@ -33,7 +33,7 @@ namespace lahva{
         {
             m.set_diagonal(vec);
         }; 
-
+#ifdef _CUDA
         template<typename T, typename U, typename V>
         void GetDiagonal(const CPURuntime& cudart, const gpu::Matrix<T, U, V>& mat, gpu::Vector<T, U, V>& vec)
         {
@@ -47,12 +47,14 @@ namespace lahva{
             cpu::CopyVectors(vec.size(), mat.data(), max_dim+1 ,vec.data(), 1);
         };
 
+
         template<typename T, typename U, typename V>
         void SetDiagonal(const CPURuntime& cudart, const gpu::Vector<T, U, V>& vec, gpu::Matrix<T, U, V>& m)
         {
             m.set_diagonal(vec);
         };  
 
+#endif
         template<typename T>
         using func_t1D = T (*) (T);
 

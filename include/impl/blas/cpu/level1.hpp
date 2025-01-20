@@ -64,7 +64,7 @@ namespace lahva{
 
     template<typename... Args>
     int IndexMaxFromVector(const CPURuntime& rt_, Args&&... args) {
-        (IndexMaxFromVector(args...));                
+        return (IndexMaxFromVector(args...));                
     }
     }
 } 

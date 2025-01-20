@@ -12,11 +12,23 @@ typedef int32_t BLAS_INT;
 typedef int32_t LPCK_INT; 
 #else
 #include <cblas.h>
-#include <lapacke.h>
+    #ifdef OPENBLAS_GENERIC
+    typedef blasint BLAS_INT;
+    #else
+    typedef int32_t BLAS_INT;
+    #endif
+#include <lapack.h>
+    #ifdef OPENBLAS_GENERIC
+    typedef blasint LPCK_INT;
+    #else
+    typedef int32_t LPCK_INT;
+    #endif
 #endif
 #include <omp.h>
+#include <climits>
+#include <utility>
+#include <cmath>
 #ifdef _CUDA
-#pragma warning(disable : 2282)
 #include "cublas_v2.h"
 #endif
 
