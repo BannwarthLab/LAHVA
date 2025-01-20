@@ -1,6 +1,5 @@
 #pragma once
 
-#pragma warning(disable:2282 815 858)
 #include "linalg.hpp"
 #include "runtime.hpp"
 namespace lahva

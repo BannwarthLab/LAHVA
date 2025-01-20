@@ -7,26 +7,7 @@ namespace lahva
 {
     namespace gpu
     {
-        static unsigned int as_uint(const float x) 
-        {
-            return *(unsigned int*)&x;
-        }
 
-        static float as_float(const unsigned int x) 
-        {
-            return *(float*)&x;
-        }
-        static float hacky_truncate_r(const float x, const int r)
-        {
-            return as_float((as_uint(x)>>r)<<r);
-        }
-        // Used to mimic formating to half precision or tf32 value. Truncates to 10 bit mantissa
-        static float hacky_truncate(const float x, uint bits = 13)
-        {
-            return hacky_truncate_r(x, bits);
-        }
-
-    // trcuates r bits of float mantissa
         
 
         template <typename T>

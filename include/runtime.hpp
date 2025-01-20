@@ -1,8 +1,6 @@
 #ifndef LAHVA_GPU_RUNTIME_HPP
 #define LAHVA_GPU_RUNTIME_HPP
 
-#pragma warning(disable:2282)
-#pragma warning(disable:815 858) 
 #include <cuda_runtime.h>
 #include <cusolverDn.h>
 #include "const.h"

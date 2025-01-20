@@ -3,6 +3,9 @@ using namespace lahva::gpu;
 #define M 10
 #define N 5 
 
+template<typename T>
+using MLow = LowTriMatrix<T, StdAllocator<T>, CudaDeviceAllocator<T>>;
+
 float vf[9] = {1.0, 4.0, 5.0, 0.0, 2.0, 6.0, 0.0, 0.0, 3.0};
 double vd[9] = {1.0, 4.0, 5.0, 0.0, 2.0, 6.0, 0.0, 0.0, 3.0};
 float *pf = vf;
@@ -308,7 +311,7 @@ int test_dspmv_v_cpp(CudaRuntime& cudart){
     int stat_ = 0;
     Shape s(3,3);
     double* vdtri_ = new double[6] {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
-    LowTriMatrix<double> A(3, vdtri_);
+    MLow<double> A(3, vdtri_);
     Vector<double> x({1.0, 2.0, 3.0});
     Vector<double> y(3, 0.0);
 
@@ -334,7 +337,7 @@ int test_dspmv_v_cpp(CudaRuntime& cudart){
     vres = Vector<double>({48.0, 52.0, 52.0});
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
-
+    
     return stat_;
 }
 
@@ -342,7 +345,7 @@ int test_sspmv_v_cpp(CudaRuntime& cudart){
     int stat_ = 0;
     Shape s(3,3);
     float* vdtri_ = new float[6] {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
-    LowTriMatrix<float> A(3, vdtri_);
+    MLow<float> A(3, vdtri_);
     Vector<float> x({1.0, 2.0, 3.0});
     Vector<float> y(3, 0.0);
 
@@ -393,8 +396,9 @@ int main(){
     stat += test_ssymv_v_cpp(cudart);
     printf("8th Test");
     stat += test_dsymv_v_cpp(cudart);
+    
     stat += test_sspmv_v_cpp(cudart);
     //printf("8th Test");
-    //stat += test_dspmv_v_cpp(cudart);
+    stat += test_dspmv_v_cpp(cudart);
     return stat;
 };

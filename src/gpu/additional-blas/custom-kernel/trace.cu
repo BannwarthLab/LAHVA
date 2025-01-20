@@ -1,6 +1,5 @@
 /* purification.cu */
 /* Routines for  purification includin  purification including purifier class */
-#pragma warning(disable:2282 815)
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "../../../gpu-utils/utils.hpp"
 
