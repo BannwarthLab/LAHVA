@@ -145,7 +145,6 @@ ubuntu-20.4-intel-2023.2.0-openblas:       # This job runs in the build stage, w
   variables:
     CONTAINER_NAME: "containers/20.4-intel-2023.2.0-sand.sif"
     APPTAINER_EXEC_ARGS: "--writable-tmpfs"
-    APPTAINER_BUILD_ARGS: "--sandbox" 
   tags:
     - cpu
   script:
