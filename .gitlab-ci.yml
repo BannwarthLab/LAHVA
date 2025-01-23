@@ -144,14 +144,14 @@ ubuntu-20.4-intel-2023.2.0-openblas:       # This job runs in the build stage, w
     - build-ubuntu20.4-intel-2023.2.0
   variables:
     CONTAINER_NAME: "containers/20.4-intel-2023.2.0-sand.sif"
-    APPTAINER_EXEC_ARGS: "--writable-tmpfs --fakeroot"
+    APPTAINER_EXEC_ARGS: ""
     APPTAINER_BUILD_ARGS: "--sandbox" 
   tags:
     - cpu
   script:
     - !reference [.cpu_prep, script]
     - export CC=icc CXX=icpc
-    - meson setup _build --buildtype=debug -Dlapack=mkl -Dgpu=false
+    - meson setup _build --buildtype=debug -Dlapack=openblas -Dgpu=false
     - !reference [.meson_compile, script]
     - meson test
 
