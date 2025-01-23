@@ -123,10 +123,6 @@ else
   lib_deps += blas_dep
 endif
 
-if debug == 'release'
-  add_project_arguments('-DNDEBUG', language: ['cpp', 'cuda'])
-endif
-
 if gpu == true
   arches = get_option('gpu_arch')
   has_nvcc = add_languages('cuda', native: false)
@@ -141,4 +137,11 @@ if gpu == true
 
   lib_deps += cuda
   add_project_arguments(['-D_CUDA'], language: ['cuda', 'cpp'])
+endif
+
+if debug == 'release'
+  add_project_arguments('-DNDEBUG', language: ['cpp'])
+  if gpu == true
+    add_project_arguments('-DNDEBUG', language: 'cuda')
+  endif
 endif

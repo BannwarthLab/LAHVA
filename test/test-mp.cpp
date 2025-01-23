@@ -1,5 +1,8 @@
 #include "common.h"
 #include <random>
+#include "utils.hpp"
+
+
 
 using namespace lahva::gpu;
 template <typename T>
@@ -21,7 +24,7 @@ void fill_with_rd_values(Matrix<T>& m)
 void CompareGEMMS(Shape& shape)
 {
     CudaRuntime cudart(false);
-    cudart.setblockSize(1024);
+    //cudart.setblockSize(1024);
     CPUTimer timer;
     
     Matrix<float> A(shape);
@@ -57,29 +60,30 @@ void CompareGEMMS(Shape& shape)
     C1.copy2host(cudart);
     cudart.synchronize();
     std::cout << "C1(0,0)\t" << C1(0,0) << std::endl;
-    AddVectors(cudart, -1.0, C, C1);
-    C1.copy2host(cudart);
-    cudart.synchronize();
+    std::cout << "TF32: Forb. Norm " << FrobeniusNorm(cudart, C1, C1)  << std::endl;
+    std::cout << "TF32: Forb. Norm " << FrobeniusNorm(cudart, C1, C)  << std::endl;
+    std::cout << "TF32: Forb. CPU  " << FrobeniusNorm( C1, C) << std::endl;  
     
-    std::cout << "TF32: Forb. Norm " << FrobeniusNorm( C1) << std::endl; 
+    std::cout << "TF32: Forb. Norm " << compareNumbers(FrobeniusNorm(cudart, C1, C), FrobeniusNorm( C1, C), 1) << std::endl; 
+    
     std::cout << "TF32: Forb. Sum " << C1.sum() << " " << C1(0,0) << std::endl;
 
-    Matrix<float> C2(shape);
-    C2.copy2device(cudart);
+    //Matrix<float> C2(shape);
+    //C2.copy2device(cudart);
 
-    timer.push("Markidis");
-    MatrixMatrixProductMP(cudart, A, B, C2, 1.0, 0.0);
-    cudart.synchronize();
-    timer.pop();
+    //timer.push("Markidis");
+    //MatrixMatrixProductMP(cudart, A, B, C2, 1.0, 0.0);
+    //cudart.synchronize();
+    //timer.pop();
 
-    C2.copy2host(cudart);
-    cudart.synchronize();
-    std::cout << "C2(0,0)\t" << C2(0,0) << std::endl;
-    AddVectors(cudart, -1.0, C, C2);
-    C2.copy2host(cudart);
-    cudart.synchronize();
-    std::cout << "Markidis: Forb. Norm " << FrobeniusNorm( C2) << " " << FrobeniusNorm(cudart, C2) << std::endl; 
-    std::cout << "Markidis: Forb. Sum " << C2.sum()<< " " << C2(0,0) << std::endl; 
+    //C2.copy2host(cudart);
+    //cudart.synchronize();
+    //std::cout << "C2(0,0)\t" << C2(0,0) << std::endl;
+    //AddVectors(cudart, -1.0, C, C2);
+    //C2.copy2host(cudart);
+    //cudart.synchronize();
+    //std::cout << "Markidis: Forb. Norm " << FrobeniusNorm( C2) << " " << FrobeniusNorm(cudart, C2) << std::endl; 
+    //std::cout << "Markidis: Forb. Sum " << C2.sum()<< " " << C2(0,0) << std::endl; 
 
     timer.print_entries();
 }
@@ -90,7 +94,7 @@ int main()
     for (int i = 1; i < 10; i++)
     {
         std::cout.precision(12);
-        int n = int((i*10)/8)*8;
+        int n = int((i*102)/8)*8;
         std::cout << "Shape: " << n << "x" << n << std::endl;
         Shape shape(n, n);
         CompareGEMMS(shape);

@@ -18,35 +18,14 @@ namespace lahva
                                              Vector<double, Allocator, GPUAllocator>& dout, Matrix<float, All2, GPUAll2>& mout, bool fast = false)
         {
             fast = true;
-            //if (fast)
-            //{
-                std::cout.precision(7);
+
             
-                std::cout << "mout" << std::endl;
-                Matrix<float, All2, GPUAll2> moutd(m1.shape(), m1.get_allocator(), m1.get_gpuallocator());
-                Matrix<float, All2, GPUAll2> moutd2(m1.shape(), m1.get_allocator(), m1.get_gpuallocator());
-                MatrixMatrixProductMP(cudart, m1, m2, moutd, 1.0, 0.0);
-                MatrixMatrixProductTF32(cudart, m1, m2, moutd2, 1.0, 0.0);
-                MatrixMatrixProduct(cudart, m1, m2, mout, 1.0, 0.0);
-                // SymMatrixMatrixProduct(cudart, m1, m2, mout);
-            //}
-
-            AddVectors(cudart, -1.0, mout, moutd);
-            std::cout << "FrobeniusNorm: "  << FrobeniusNorm(cudart, moutd) << std::endl;
-
-            moutd2.copy2host(cudart);
-            cudart.synchronize();
-            moutd2.print();
-            AddVectors(cudart, -1.0, mout, moutd2);
-            std::cout << "FrobeniusNorm: TF32 "  << FrobeniusNorm(cudart, moutd2) << std::endl;
-            moutd2.copy2host(cudart);
-            cudart.synchronize();
-            moutd2.print();
-
+            MatrixMatrixProduct(cudart, m1, m2, mout);
             SymmetrizeMatrix(cudart, mout);
             Hadamard(cudart, d1, d2, dout);
             SymmetrizedON2ScalingProductGPU(cudart, d1, m1, d2, m2, mout);
             SymmetrizeMatrix(cudart, mout);
+            
         };
 
     

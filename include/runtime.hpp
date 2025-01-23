@@ -122,7 +122,7 @@ namespace lahva{
         /// @param base Tensor length as 1D
         /// @param exp dimension of Tensor
         /// @return grid Size for Kernel excution
-        inline int gridSize(size_t base, size_t exp) const {return (int)ceil(((float)std::pow(base, exp))/blockSize_);};
+        inline int gridSize(size_t base, size_t exp) const {return (int)ceil(((float)std::pow(base, exp)+blockSize_-1)/blockSize_);};
         
         /// @brief get device id of GPU with maximum working memory
         /// @return device ID of GPU with max memory

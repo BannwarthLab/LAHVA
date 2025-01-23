@@ -14,6 +14,10 @@ namespace lahva{
 
         template<typename T>
         T FrobeniusNorm(const Tensor<T>& mat);
+
+        template<typename T>
+        T FrobeniusNorm(const Tensor<T>& mat, const Tensor<T>& mat2);
+
         template<typename T>
         T FrobeniusNorm(const CPURuntime& cudart, const Tensor<T>& mat);
 
