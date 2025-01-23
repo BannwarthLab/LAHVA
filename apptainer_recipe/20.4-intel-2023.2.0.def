@@ -15,6 +15,7 @@ From: intel/oneapi-hpckit:2023.2-devel-ubuntu20.04
 
     # Clean up
     apt-get clean
+    apt install -y libopenblas-dev liblapack-dev --no-install-recommends
 
 %environment
     # Set up environment variables for CUDA
