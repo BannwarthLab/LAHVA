@@ -42,17 +42,35 @@ namespace lahva{
         template<typename T>
         void FrobeniusKernel(const CudaRuntime& cudart, const unsigned long long ndim, const T* mat, T* vec);
         
+        template<typename T>
+        void FrobeniusKernel2(const CudaRuntime& cudart, const unsigned long long ndim, const T* mat1, const T* mat2, T* vec);
+
         template<typename T, typename U, typename V>
         T FrobeniusNorm(const CudaRuntime& cudart, const GPUTensor<T, U, V>& mat)
         {
             check_device_alloc(cudart, mat);
-            Vector<T, U, V> vec(cudart.gridSize(mat.size(), 1), 0.0);
+            Vector<T, U, V> vec(cudart.gridSize(mat.size(), 1));
             ScaleVector(cudart, 0.0, vec);
             FrobeniusKernel<T>(cudart, mat.size(), mat.gpu_data(), vec.gpu_data());
             vec.copy2host(cudart);
             cudart.synchronize();
-            float norm = vec[0];
+            float norm = vec.sum();
             return std::sqrt(norm);
+        };
+
+        template<typename T, typename U, typename V>
+        T FrobeniusNorm(const CudaRuntime& cudart, const GPUTensor<T, U, V>& mat, const GPUTensor<T, U, V>& mat2)
+        {
+            //check_size_mm(mat, mat2);
+            check_device_alloc(cudart, mat);
+            check_device_alloc(cudart, mat2);
+            Vector<T, U, V> vec(cudart.gridSize(mat.size(), 1));
+            ScaleVector(cudart, 0.0, vec);
+            FrobeniusKernel2<T>(cudart, mat.size(), mat.gpu_data(), mat2.gpu_data(), vec.gpu_data());
+            vec.copy2host(cudart);
+            cudart.synchronize();
+            float norm = vec.sum();
+            return norm;
         };
 
         template<typename T, typename U, typename V>

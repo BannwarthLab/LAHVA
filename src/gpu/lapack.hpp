@@ -11,7 +11,7 @@ namespace lahva
             check_device_alloc(cudart, a);
             check_device_alloc(cudart, b);
             cudaDataType data = CUDA_R_64F; 
-            using MyVector = Vector<int64_t, Allocator, GPUAllocator> ;
+            using MyVector = Vector<int64_t> ;
             if ( a.shape().first != a.shape().second)
             {
                 throw std::runtime_error("A should be symmetric");

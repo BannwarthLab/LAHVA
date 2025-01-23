@@ -1,6 +1,20 @@
 #pragma once
 #include <float.h>
 
+#include <numeric>
+#include <algorithm>
+#include <cmath>
+#include <limits>
+
+template <typename T>
+bool compareNumbers(T a, T b, int n)
+{
+    return abs(a - b) < std::pow(10.0, n) * std::max(
+    std::numeric_limits<T>::epsilon() * std::max(abs(a), abs(b)),
+    std::numeric_limits<T>::denorm_min()
+);
+}
+
 bool check(int actual, int expected, const char *msg);
 
 bool check(double actual, double expected, double tol, const char *msg);

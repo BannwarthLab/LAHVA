@@ -153,12 +153,14 @@ namespace lahva
         // symmetrize matrix
         __global__ static void SymmetrizeMatrix(unsigned long long ndim, float *matrix)
         {
-            unsigned long long id = blockIdx.y;
+            unsigned long long id = blockIdx.y * blockDim.y + threadIdx.y;
             unsigned long long jd = threadIdx.x + blockIdx.x * blockDim.x;
             // 0.5*(matrix * diag + matrix^T * diag)
             if (id < ndim && jd < ndim)
             {
-                matrix[id * ndim + jd] = 0.5 * (matrix[id * ndim + jd] + matrix[jd * ndim + id]);
+                float avg = 0.5 * (matrix[id * ndim + jd] + matrix[jd * ndim + id]);
+                matrix[id * ndim + jd] = avg;
+                matrix[jd * ndim + id] = avg;
             }
         }
         
@@ -166,12 +168,14 @@ namespace lahva
         // symmetrize matrix
         __global__ static void SymmetrizeMatrix(unsigned long long ndim, double *matrix)
         {
-            unsigned long long id = blockIdx.y;
+            unsigned long long id = blockIdx.y * blockDim.y + threadIdx.y;
             unsigned long long jd = threadIdx.x + blockIdx.x * blockDim.x;
             // 0.5*(matrix * diag + matrix^T * diag)
             if (id < ndim && jd < ndim)
             {
-                matrix[id * ndim + jd] = 0.5 * (matrix[id * ndim + jd] + matrix[jd * ndim + id]);
+                double  avg = 0.5 * (matrix[id * ndim + jd] + matrix[jd * ndim + id]);
+                matrix[id * ndim + jd] = avg;
+                matrix[jd * ndim + id] = avg;
             }
         }
         
@@ -251,18 +255,22 @@ namespace lahva
         void SymmetrizeMatrix<float>(const CudaRuntime &cudart, Matrix_<float> &m)
         {
             // Number of blocks in grid;
-            int gridS = cudart.gridSize(m.size(), 1);
+            int N = m.shape().first;
+            dim3 blockSize(16, 16); // 16x16 threads per block
+            dim3 gridSize((N + blockSize.x - 1) / blockSize.x, (N + blockSize.y - 1) / blockSize.y);
             check_device_alloc(cudart, m);
-            SymmetrizeMatrix<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(m.shape().first, m.gpu_data()); // compute trace
+            SymmetrizeMatrix<<<gridSize, blockSize, 0, cudart.getStream()>>>(m.shape().first, m.gpu_data()); // compute trace
         }
 
         template <>
         void SymmetrizeMatrix<double>(const CudaRuntime &cudart, Matrix_<double> &m)
         {
             // Number of blocks in grid;
-            int gridS = cudart.gridSize(m.size(), 1);
+            int N = m.shape().first;
+            dim3 blockSize(16, 16); // 16x16 threads per block
+            dim3 gridSize((N + blockSize.x - 1) / blockSize.x, (N + blockSize.y - 1) / blockSize.y);
             check_device_alloc(cudart, m);
-            SymmetrizeMatrix<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(m.shape().first, m.gpu_data()); // compute trace
+            SymmetrizeMatrix<<<gridSize, blockSize, 0, cudart.getStream()>>>(m.shape().first, m.gpu_data()); // compute trace
         }
 
         template<>

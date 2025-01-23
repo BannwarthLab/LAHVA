@@ -156,9 +156,9 @@ namespace lahva
         CudaDeviceAsyncAllocator() noexcept {} // not required, unless used
         CudaDeviceAsyncAllocator(const cudaStream_t stream) : stream_{stream} {};
         template <class U>
-        CudaDeviceAsyncAllocator(CudaDeviceAsyncAllocator<U> const &) : CudaDeviceAsyncAllocator<T>{} {std::cout << "Calling the copy constrcut" << std::endl;}
+        CudaDeviceAsyncAllocator(CudaDeviceAsyncAllocator<U> const &) : CudaDeviceAsyncAllocator<T>{} {};
         template <class U>
-        CudaDeviceAsyncAllocator(GPUAllocator_<U> const &) : CudaDeviceAsyncAllocator<T>{} {std::cout << "Calling the copy constrcut" << std::endl;}
+        CudaDeviceAsyncAllocator(GPUAllocator_<U> const &) : CudaDeviceAsyncAllocator<T>{} {};
 
         value_type * // Use pointer if pointer is not a value_type*
         allocate(std::size_t n) const override 

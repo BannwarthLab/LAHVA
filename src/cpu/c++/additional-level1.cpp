@@ -43,15 +43,29 @@ namespace lahva
         T FrobeniusNorm(const Tensor<T>& mat)
         {
             T norm = 0;
-            #pragma omp parallel for simd reduction(+:norm)  
+            #pragma omp parallel for reduction(+:norm)  
             for (int i = 0 ; i < mat.size() ; i++)
             {
-                T mult = std::pow(mat.data()[i],2);
-                norm += mult;
+                norm = fma(mat.data()[i], mat.data()[i], norm);
             };
             norm = std::sqrt(norm);
             return norm;
         }
+
+        template<typename T>
+        T FrobeniusNorm(const Tensor<T>& mat, const Tensor<T>& mat2)
+        {
+            T norm = 0;
+            //#pragma omp parallel for reduction(+:norm)  
+            for (int i = 0 ; i < mat.size() ; i++)
+            {
+                T diff = mat.data()[i] - mat2.data()[i];
+                norm = fma(diff, diff, norm);
+            };
+            //norm = std::sqrt(norm);
+            return norm;
+        }
+
 
         template<typename T>
         T FrobeniusNorm(const CPURuntime& rt, const Tensor<T>& mat)
@@ -80,6 +94,8 @@ namespace lahva
 
         template float FrobeniusNorm<float>(const Tensor<float>& mat);
         template double FrobeniusNorm<double>(const Tensor<double>& mat);
+        template float FrobeniusNorm<float>(const Tensor<float>& mat, const Tensor<float>& mat2);
+        template double FrobeniusNorm<double>(const Tensor<double>& mat, const Tensor<double>& mat2);
         template double FrobeniusNorm<double>(const CPURuntime& rt, const Tensor<double>& mat);
         template float FrobeniusNorm<float>(const CPURuntime& rt, const Tensor<float>& mat);
         template float FrobeniusInnerProduct<float>(const Matrix_<float>& mat1, const Matrix_<float>& mat2);
