@@ -65,7 +65,7 @@ build-ubuntu20.4-intel-2023.2.0-sand:
   script:
     - mkdir -p containers
     - if [ ! -e "containers/20.4-intel-2023.2.0-sand.sif" ] ; then apptainer build --sandbox --fakeroot containers/20.4-intel-2023.2.0-sand.sif apptainer_recipe/20.4-intel-2023.2.0.def ; fi
-    - apptainer exec --fakeroot --writable apt install -y libopenblas-dev liblapack-dev --no-install-recommends
+    - apptainer exec --fakeroot --writable containers/20.4-intel-2023.2.0-sand.sif apt install -y libopenblas-dev liblapack-dev --no-install-recommends
 
 build-ubuntu20.4-cuda-11-8-gcc-9:
   stage: build-container
