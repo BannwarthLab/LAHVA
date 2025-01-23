@@ -51,8 +51,7 @@ build-ubuntu20.4-intel-2023.2.0:
   tags:
     - shell
   script:
-    - mkdir -p containers
-    - rm -f containers/20.4-intel-2023.2.0.sif
+    - mkdir -p containers 
     - if [ ! -e "containers/20.4-intel-2023.2.0.sif" ] ; then apptainer build containers/20.4-intel-2023.2.0.sif apptainer_recipe/20.4-intel-2023.2.0.def ; fi
 
 build-ubuntu20.4-cuda-11-8-gcc-9:
