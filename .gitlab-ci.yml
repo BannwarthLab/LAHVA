@@ -65,6 +65,7 @@ build-ubuntu20.4-intel-2023.2.0-sand:
   script:
     - mkdir -p containers
     - if [ ! -e "containers/20.4-intel-2023.2.0-sand.sif" ] ; then apptainer build --sandbox --fakeroot containers/20.4-intel-2023.2.0-sand.sif apptainer_recipe/20.4-intel-2023.2.0.def ; fi
+    - appatainer exec --fakeroot --writable apt install -y libopenblas-dev liblapack-dev --no-install-recommends
 
 build-ubuntu20.4-cuda-11-8-gcc-9:
   stage: build-container
@@ -149,7 +150,6 @@ ubuntu-20.4-intel-2023.2.0-openblas:       # This job runs in the build stage, w
     - cpu
   script:
     - !reference [.cpu_prep, script]
-    - apt install -y libopenblas-dev liblapack-dev --no-install-recommends
     - export CC=icc CXX=icpc
     - meson setup _build --buildtype=debug -Dlapack=mkl -Dgpu=false
     - !reference [.meson_compile, script]
