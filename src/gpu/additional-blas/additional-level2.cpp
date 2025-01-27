@@ -15,10 +15,10 @@ namespace lahva
             check_device_alloc( cudart, b);
             check_device_alloc( cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, n, transa);
+            size_t ldb = get_leading(m, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();
@@ -36,10 +36,10 @@ namespace lahva
             check_device_alloc( cudart, b);
             check_device_alloc( cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, n, transa);
+            size_t ldb = get_leading(m, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();
@@ -57,10 +57,10 @@ namespace lahva
             check_device_alloc( cudart, b);
             check_device_alloc( cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, n, transa);
+            size_t ldb = get_leading(m, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();
@@ -78,10 +78,10 @@ namespace lahva
             check_device_alloc( cudart, b);
             check_device_alloc( cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, n, transa);
+            size_t ldb = get_leading(m, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();

@@ -110,6 +110,60 @@ namespace lahva{
     };
 
     template<typename T>
+    std::tuple<BLAS_INT, BLAS_INT> check_same_shape_mm(const Matrix_<T>& a, const Matrix_<T>& b, 
+        const Matrix_<T>& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
+        
+        Shape sa = a.shape();
+        BLAS_INT nrowa = sa.first;
+        BLAS_INT ncola = sa.second;
+
+        Shape sb = b.shape();
+        BLAS_INT nrowb = sb.first;
+        BLAS_INT ncolb = sb.second;
+
+        Shape sc = c.shape();
+        BLAS_INT nrowc = sc.first;
+        BLAS_INT ncolc = sc.second;
+
+        if (transa == CblasNoTrans) {
+            if (transb == CblasNoTrans)
+            {
+                assert(ncola == ncolb);
+                assert(nrowa == nrowb);
+                assert(ncolb == ncolc);
+                assert(nrowb == nrowc);
+            }
+            else // B is transposed
+            {
+                assert(ncola == nrowb);
+                assert(nrowa == ncolb);
+                assert(ncola == ncolc);
+                assert(nrowa == nrowc);
+            }   
+        }
+        else // A is transposed 
+        {
+           if (transb == CblasNoTrans)
+            {
+                assert(nrowa == ncolb);
+                assert(ncola == nrowb);
+                assert(ncolb == ncolc);
+                assert(nrowb == nrowc);
+            }
+            else // A and B are transposed
+            {
+                assert(nrowa == nrowb);
+                assert(ncola == ncolb);
+                assert(ncolb == nrowc);
+                assert(nrowa == ncolc);
+            }    
+        }
+        
+
+        return std::make_tuple(nrowc, ncolc);
+    };
+
+    template<typename T>
     std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor<T>& vmult)
     {
         Shape s = m.shape();
@@ -121,7 +175,7 @@ namespace lahva{
         return std::make_tuple(nrow, ncol);
     };
 
-    BLAS_INT get_leading(BLAS_INT nrow, BLAS_INT ncol);
+    BLAS_INT get_leading(BLAS_INT nrow, BLAS_INT ncol, CBLAS_TRANSPOSE trans = CblasNoTrans);
     CBLAS_TRANSPOSE get_trans(const char* T);
     } // namespace cpu
 }

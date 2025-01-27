@@ -5,8 +5,17 @@
 namespace lahva {
     namespace gpu
     {
-        size_t get_leading(size_t nrow, size_t ncol) {
-            return std::max((size_t) 1, nrow);
+        size_t get_leading(size_t nrow, size_t ncol, cublasOperation_t transa){ 
+
+            if (transa == CUBLAS_OP_N)
+            {
+                return std::max((size_t) 1, nrow);
+            }
+            else
+            {
+                return std::max((size_t) 1, ncol);
+            }
+
         };
 
         cublasOperation_t get_trans(const char* T){

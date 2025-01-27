@@ -11,14 +11,14 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
 
-            BLAS_INT lda = get_leading(m, k);
-            BLAS_INT ldb = get_leading(k, n);
+            BLAS_INT lda = get_leading(m, n, transa);
+            BLAS_INT ldb = get_leading(m, n, transb);
             BLAS_INT ldc = get_leading(m, n);
-#ifdef _MKL
+#ifdef W_MKL
             mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#elifdef OPENBLAS_GENERIC
+#elif OPENBLAS_GENERIC
             // copy B into C, potetially transpose
             cblas_domatcopy(major_char, *Tb, b.shape().first, b.shape().second, b.data(), ldb, c.data(), ldc);
             // copy A inplay, if transpose
@@ -37,15 +37,15 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
 
-            BLAS_INT lda = get_leading(m, k);
-            BLAS_INT ldb = get_leading(k, n);
+            BLAS_INT lda = get_leading(m, n, transa);
+            BLAS_INT ldb = get_leading(m, n, transb);
             BLAS_INT ldc = get_leading(m, n);
 
-#ifdef _MKL
+#ifdef W_MKL
             mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#elifdef OPENBLAS_GENERIC
+#elif OPENBLAS_GENERIC
             // copy B into C, potetially transpose
             cblas_somatcopy(major_char, *Tb, b.shape().first, b.shape().second, b.data(), ldb, c.data(), ldc);
             // copy A inplay, if transpose
@@ -64,15 +64,15 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
 
-            BLAS_INT lda = get_leading(m, k);
-            BLAS_INT ldb = get_leading(k, n);
+            BLAS_INT lda = get_leading(m, n, transa);
+            BLAS_INT ldb = get_leading(m, n, transb);
             BLAS_INT ldc = get_leading(m, n);
 
-#ifdef _MKL
+#ifdef W_MKL
             mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#elifdef OPENBLAS_GENERIC
+#elif OPENBLAS_GENERIC
             // copy B into C, potetially transpose
             cblas_domatcopy(major_char, *Tb, b.shape().first, b.shape().second, b.data(), ldb, c.data(), ldc);
             // copy A inplay, if transpose
@@ -91,15 +91,15 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
 
-            BLAS_INT lda = get_leading(m, k);
-            BLAS_INT ldb = get_leading(k, n);
+            BLAS_INT lda = get_leading(m, n, transa);
+            BLAS_INT ldb = get_leading(m, n, transb);
             BLAS_INT ldc = get_leading(m, n);
 
-#ifdef _MKL
+#ifdef W_MKL
             mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#elifdef OPENBLAS_GENERIC
+#elif OPENBLAS_GENERIC
             // copy B into C, potetially transpose
             cblas_somatcopy(major_char, *Tb, b.shape().first, b.shape().second, b.data(), ldb, c.data(), ldc);
             // copy A inplay, if transpose

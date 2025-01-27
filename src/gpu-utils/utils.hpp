@@ -60,7 +60,7 @@ namespace lahva
             return std::make_tuple(nrow, ncol);
         };
 
-        size_t get_leading(size_t nrow, size_t ncol);
+        size_t get_leading(size_t nrow, size_t ncol, cublasOperation_t transa = CUBLAS_OP_N);
 
         cublasOperation_t get_trans(const char *T);
 
@@ -120,6 +120,60 @@ namespace lahva
 
             return std::make_tuple(nrowc, ncolc, k);
         };
+
+        template<typename T>
+    std::tuple<size_t, size_t> check_same_shape_mm(const Matrix_<T>& a, const Matrix_<T>& b, 
+        const Matrix_<T>& c, cublasOperation_t transa = CUBLAS_OP_N, cublasOperation_t transb = CUBLAS_OP_N){
+        
+        Shape sa = a.shape();
+        size_t nrowa = sa.first;
+        size_t ncola = sa.second;
+
+        Shape sb = b.shape();
+        size_t nrowb = sb.first;
+        size_t ncolb = sb.second;
+
+        Shape sc = c.shape();
+        size_t nrowc = sc.first;
+        size_t ncolc = sc.second;
+
+        if (transa == CUBLAS_OP_N) {
+            if (transb == CUBLAS_OP_N)
+            {
+                assert(ncola == ncolb);
+                assert(nrowa == nrowb);
+                assert(ncolb == ncolc);
+                assert(nrowb == nrowc);
+            }
+            else // B is transposed
+            {
+                assert(ncola == nrowb);
+                assert(nrowa == ncolb);
+                assert(ncola == ncolc);
+                assert(nrowa == nrowc);
+            }   
+        }
+        else // A is transposed 
+        {
+           if (transb == CUBLAS_OP_N)
+            {
+                assert(nrowa == ncolb);
+                assert(ncola == nrowb);
+                assert(ncolb == ncolc);
+                assert(nrowb == nrowc);
+            }
+            else // A and B are transposed
+            {
+                assert(nrowa == nrowb);
+                assert(ncola == ncolb);
+                assert(ncolb == nrowc);
+                assert(nrowa == ncolc);
+            }    
+        }
+        
+
+        return std::make_tuple(nrowc, ncolc);
+    };
 
     } // namespace gpu
 

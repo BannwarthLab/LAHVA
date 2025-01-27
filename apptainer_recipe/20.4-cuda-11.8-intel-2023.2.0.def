@@ -9,7 +9,7 @@ From: intel/oneapi-hpckit:2023.2-devel-ubuntu20.04
         apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
         wget \
-        curl \
+        curl git \
         pip
 
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb
