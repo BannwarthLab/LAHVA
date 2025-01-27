@@ -7,7 +7,7 @@
 #include "impl/tensor/gpu/vector.hpp"
 #include "impl/blas/cpu/level1.h"
 #include "const.h"
-
+#include <initializer_list>
 namespace lahva
 {
     namespace gpu
@@ -85,6 +85,8 @@ namespace lahva
         //! It is not guaranteed that the values will be initialized!
         Matrix(const Shape &shape, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator());
 
+        Matrix(const Shape &shape, std::initializer_list<T> init, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator());
+
         template <typename U>
         Matrix(const Shape &shape, const CudaRuntime &cudart, const U &alloc)
             : Matrix<T,Allocator,GPUAllocator>(shape, cudart)
@@ -160,6 +162,14 @@ namespace lahva
     {
         check_size_(shape.first, shape.second);
     }
+
+    template <typename T, class Allocator, class GPUAllocator>
+    Matrix<T, Allocator, GPUAllocator>::Matrix(const Shape &shape, std::initializer_list<T> init,const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
+    Matrix(shape, alloc, gpualloc)
+    {
+        assert(init.size() == this->count_);
+        std::copy(init.begin(), init.end(), this->data_);
+    };
 
     template <typename T, class Allocator, class GPUAllocator>
     Matrix<T, Allocator, GPUAllocator>::Matrix(const Shape &shape, const CudaRuntime &cudart, const gpualloc_ptr &gpualloc) : 

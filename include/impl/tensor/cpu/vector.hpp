@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include "impl/tensor/cpu/tensor.hpp"
-
+#include <initializer_list>
 namespace lahva
 {
     namespace cpu

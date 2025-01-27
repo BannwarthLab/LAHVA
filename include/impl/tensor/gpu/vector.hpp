@@ -2,7 +2,7 @@
 #include "runtime.hpp"
 #include "impl/tensor/gpu/gputensor.hpp"
 #include "impl/tensor/cpu/vector.hpp"
-
+#include <initializer_list>
 namespace lahva
 {
     namespace gpu

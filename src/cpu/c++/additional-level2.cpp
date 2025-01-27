@@ -1,5 +1,6 @@
 #include "impl/blas/cpu/additional-level2.hpp"
 #include "../../utils/utils.hpp"
+#include "impl/blas/cpu/level1.hpp"
 namespace lahva
 {
     namespace cpu
@@ -22,13 +23,18 @@ namespace lahva
 
 #ifdef OPENBLAS_GENERIC
             // copy B into C, potetially transpose
-            cblas_domatcopy(major_char, *Tb, b.shape().first, b.shape().second, b.data(), ldb, c.data(), ldc);
-            // copy A inplay, if transpose
+            cblas_domatcopy(major, transb, b.shape().first, b.shape().second, beta, b.data(), ldb, c.data(), ldc);
+            // copy A inplace, if transpose
             if (transa == CblasTrans)
             {
-                cblas_dimatcopy(major_char, *Ta, a.shape().first, a.shape().second, a.data(), lda);
+                Matrix<double> tmp(c.shape(), 0.0);
+                cblas_domatcopy(major, transa, a.shape().first, a.shape().second, alpha, a.data(), lda, tmp.data(), ldc);
+                AddVectors(1.0, tmp, c);
             }
-            cblas_dgeadd(major_char, m, n, alpha, a.data(), lda, beta, c.data(), ldc);
+            else
+            {
+                AddVectors(alpha, a, c);
+            }
 #endif
         };
 
@@ -51,13 +57,18 @@ namespace lahva
 
 #ifdef OPENBLAS_GENERIC
             // copy B into C, potetially transpose
-            cblas_somatcopy(major_char, *Tb, b.shape().first, b.shape().second, b.data(), ldb, c.data(), ldc);
-            // copy A inplay, if transpose
+            cblas_somatcopy(major, transb, b.shape().first, b.shape().second, beta, b.data(), ldb, c.data(), ldc);
+            // copy A inplace, if transpose
             if (transa == CblasTrans)
             {
-                cblas_simatcopy(major_char, *Ta, a.shape().first, a.shape().second, a.data(), lda);
+                Matrix<float> tmp(c.shape(), 0.0);
+                cblas_somatcopy(major, transa, a.shape().first, a.shape().second, alpha, a.data(), lda, tmp.data(), ldc);
+                AddVectors(1.0, tmp, c);
             }
-            cblas_sgeadd(major_char, m, n, alpha, a.data(), lda, beta, c.data(), ldc);
+            else
+            {
+                AddVectors(alpha, a, c);
+            }
 #endif
         };
 
@@ -80,13 +91,18 @@ namespace lahva
 
 #ifdef OPENBLAS_GENERIC
             // copy B into C, potetially transpose
-            cblas_domatcopy(major_char, *Tb, b.shape().first, b.shape().second, b.data(), ldb, c.data(), ldc);
-            // copy A inplay, if transpose
+            cblas_domatcopy(major, transb, b.shape().first, b.shape().second, beta, b.data(), ldb, c.data(), ldc);
+            // copy A inplace, if transpose
             if (transa == CblasTrans)
             {
-                cblas_dimatcopy(major_char, *Ta, a.shape().first, a.shape().second, a.data(), lda);
+                Matrix<double> tmp(c.shape(), 0.0);
+                cblas_domatcopy(major, transa, a.shape().first, a.shape().second, alpha, a.data(), lda, tmp.data(), ldc);
+                AddVectors(1.0, tmp, c);
             }
-            cblas_dgeadd(major_char, m, n, alpha, a.data(), lda, beta, c.data(), ldc);
+            else
+            {
+                AddVectors(alpha, a, c);
+            }
 #endif
         };
 
@@ -109,13 +125,18 @@ namespace lahva
 
 #ifdef OPENBLAS_GENERIC
             // copy B into C, potetially transpose
-            cblas_somatcopy(major_char, *Tb, b.shape().first, b.shape().second, b.data(), ldb, c.data(), ldc);
-            // copy A inplay, if transpose
+            cblas_somatcopy(major, transb, b.shape().first, b.shape().second, beta, b.data(), ldb, c.data(), ldc);
+            // copy A inplace, if transpose
             if (transa == CblasTrans)
             {
-                cblas_simatcopy(major_char, *Ta, a.shape().first, a.shape().second, a.data(), lda);
+                Matrix<float> tmp(c.shape(), 0.0);
+                cblas_somatcopy(major, transa, a.shape().first, a.shape().second, alpha, a.data(), lda, tmp.data(), ldc);
+                AddVectors(1.0, tmp, c);
             }
-            cblas_sgeadd(major_char, m, n, alpha, a.data(), lda, beta, c.data(), ldc);
+            else
+            {
+                AddVectors(alpha, a, c);
+            }
 #endif
         };
     }

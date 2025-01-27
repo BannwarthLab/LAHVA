@@ -5,7 +5,7 @@
 #include "impl/tensor/cpu/vector.hpp"
 #include "impl/blas/cpu/level1.h"
 #include "const.h"
-
+#include <initializer_list>
 namespace lahva
 {
     namespace cpu
@@ -85,6 +85,7 @@ namespace lahva
         //! construct a Matrix with dimensions shape.first x shape.second
         //! It is not guaranteed that the values will be initialized!
         Matrix(const Shape &shape, const alloc_ptr &alloc = Allocator());
+        Matrix(const Shape &shape, std::initializer_list<T> init, const alloc_ptr &alloc = Allocator());
         template<typename U>
         Matrix(const Shape& shape, const std::shared_ptr<CPUAllocator<U>> &alloc)
         : Matrix<T, Allocator>{shape, Allocator(*alloc)} {};
@@ -181,6 +182,15 @@ namespace lahva
     {
         std::fill(this->data_, this->data_ + data_size_(n_rows_, n_cols_), val);
     }
+
+    template <typename T, class Allocator>
+    Matrix<T, Allocator>::Matrix(const Shape &shape, std::initializer_list<T> init, const alloc_ptr &alloc) :
+    Matrix(shape, alloc)
+    {
+        assert(init.size() == this->count_);
+        std::copy(init.begin(), init.end(), this->data_);
+    };
+    
 
      template <typename T, class Allocator>
     Matrix<T, Allocator>::Matrix(uint n, const alloc_ptr &alloc) : 
