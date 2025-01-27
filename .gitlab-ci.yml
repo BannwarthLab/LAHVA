@@ -99,9 +99,10 @@ ubuntu-20.4-gcc-9-openblas:       # This job runs in the build stage, which runs
     - export CC=gcc CXX=g++
     - meson setup _build --buildtype=debug -Dlapack=openblas -Dgpu=false
     - !reference [.meson_compile, script]
+    - meson test
   artifacts:
     paths:
-      - _build/meson-logs/testlog.txt
+      - meson-logs/testlog.txt
 
 ubuntu-20.4-intel-2023.2.0-mkl:       # This job runs in the build stage, which runs first.
   stage: build
@@ -125,7 +126,7 @@ ubuntu-20.4-intel-2023.2.0-mkl:       # This job runs in the build stage, which 
     - meson test
   artifacts:
     paths:
-      - _build/meson-logs/testlog.txt
+      - meson-logs/testlog.txt
 
 ubuntu-20.4-intel-2023.2.0-openblas:       # This job runs in the build stage, which runs first.
   stage: build
@@ -148,7 +149,7 @@ ubuntu-20.4-intel-2023.2.0-openblas:       # This job runs in the build stage, w
     - meson test
   artifacts:
     paths:
-      - _build/meson-logs/testlog.txt
+      - meson-logs/testlog.txt
 
 ubuntu-20.4-gcc-9-mkl:       # This job runs in the build stage, which runs first.
   stage: build
@@ -171,7 +172,7 @@ ubuntu-20.4-gcc-9-mkl:       # This job runs in the build stage, which runs firs
     - meson test
   artifacts:
     paths:
-      - _build/meson-logs/testlog.txt  
+      - meson-logs/testlog.txt  
 
 ubuntu-20.4-cu-11.8-gcc-9-openblas:       # This job runs in the build stage, which runs first.
   stage: build
@@ -193,7 +194,9 @@ ubuntu-20.4-cu-11.8-gcc-9-openblas:       # This job runs in the build stage, wh
     - meson setup _build --buildtype=debug -Dlapack=openblas
     - !reference [.meson_compile, script]
     - meson test
-
+  artifacts:
+    paths:
+      - meson-logs/testlog.txt 
 
 ubuntu-20.4-cu-11.8-intel-mkl:       # This job runs in the build stage, which runs first.
   stage: build
@@ -217,4 +220,4 @@ ubuntu-20.4-cu-11.8-intel-mkl:       # This job runs in the build stage, which r
     - meson test
   artifacts:
     paths:
-      - _build/meson-logs/testlog.txt
+      - meson-logs/testlog.txt
