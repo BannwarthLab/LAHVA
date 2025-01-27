@@ -31,7 +31,7 @@ int test_add_matrices(CudaRuntime& cudart)
     Matrix<T> B(Shape(2,3), getbm<T>());
     Matrix<T> C(A.shape(), 0.0);
 
-    AddMatrices(A, B, C, (T) 1.0, (T) 1.0);
+    AddMatrices(cudart, A, B, C, (T) 1.0, (T) 1.0);
     C.copy2host(cudart);
     cudart.synchronize();
     Matrix<T> res(A.shape(), getres<T>());
@@ -41,7 +41,7 @@ int test_add_matrices(CudaRuntime& cudart)
         return 1;
     }
 
-    AddMatrices("N", "N", (T)1.0, A, B, (T)1.0, C);
+    AddMatrices(cudart, "N", "N", (T)1.0, A, B, (T)1.0, C);
     C.copy2host(cudart);
     cudart.synchronize();
     if (!(check(C.data(), res.data(), 1e-6, res.size(), "AddMatrices")))
@@ -61,7 +61,7 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
     Matrix<T> C(A.shape(), 0.0);
     A.print();
     B.print();
-    AddMatrices(A, B, C, (T)1.0, (T)1.0, "N", "T");
+    AddMatrices(cudart, A, B, C, (T)1.0, (T)1.0, "N", "T");
     C.copy2host(cudart);
     cudart.synchronize();
     Matrix<T> res(A.shape(), {8.0, 12.0, 11.0, 15.0, 14.0, 18.0});
@@ -72,7 +72,7 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
         return 1;
     }
 
-    AddMatrices("N", "T", (T) 1.0, A, B, (T) 1.0, C);
+    AddMatrices(cudart, "N", "T", (T) 1.0, A, B, (T) 1.0, C);
     C.copy2host(cudart);
     cudart.synchronize();
     if (!(check(C.data(), res.data(), 1e-6, res.size(), "AddMatrcies B transposed")))
@@ -84,7 +84,7 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
     B = Matrix<T>(Shape(2,3), getbm<T>());
     A = Matrix<T>(Shape(3,2), getam<T>());
 
-    AddMatrices(A, B, C, (T) 1.0, (T) 1.0, "T", "N");
+    AddMatrices(cudart, A, B, C, (T) 1.0, (T) 1.0, "T", "N");
     C.copy2host(cudart);
     cudart.synchronize();
     if (!(check(C.data(), res.data(), 1e-6, res.size(), "AddMatrices A transposed")))
@@ -93,7 +93,7 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
         return 1;
     }
 
-    AddMatrices("T", "N", (T) 1.0, A, B, (T) 1.0, C);
+    AddMatrices(cudart, "T", "N", (T) 1.0, A, B, (T) 1.0, C);
     C.copy2host(cudart);
     cudart.synchronize();
     if (!(check(C.data(), res.data(), 1e-6, res.size(), "AddMatrices  A transposed")))
@@ -106,7 +106,7 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
     res = Matrix<T>(Shape(3,2), {8.0, 12.0, 16.0, 10.0, 14.0, 18.0});
     C = Matrix<T>(Shape(3,2), 0.0);
 
-    AddMatrices(A, B, C, (T) 1.0, (T) 1.0, "T", "T");
+    AddMatrices(cudart, A, B, C, (T) 1.0, (T) 1.0, "T", "T");
     C.copy2host(cudart);
     cudart.synchronize();
     if (!(check(C.data(), res.data(), 1e-6, res.size(), "AddMatrices A and B transposed")))
@@ -115,7 +115,7 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
         return 1;
     }
 
-    AddMatrices("T", "T", (T) 1.0, A, B, (T) 1.0, C);
+    AddMatrices(cudart, "T", "T", (T) 1.0, A, B, (T) 1.0, C);
     C.copy2host(cudart);
     cudart.synchronize(); 
     if (!(check(C.data(), res.data(), 1e-6, res.size(), "AddMatrices A and B transposed")))
