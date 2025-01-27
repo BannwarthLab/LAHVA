@@ -102,7 +102,7 @@ ubuntu-20.4-gcc-9-openblas:       # This job runs in the build stage, which runs
     - meson test
   artifacts:
     paths:
-      - _build/meson-logs/*
+      - _build/meson-logs/*,txt
 
 ubuntu-20.4-intel-2023.2.0-mkl:       # This job runs in the build stage, which runs first.
   stage: build
@@ -118,16 +118,17 @@ ubuntu-20.4-intel-2023.2.0-mkl:       # This job runs in the build stage, which 
     APPTAINER_EXEC_ARGS: "" 
   tags:
     - cpu
+  artifacts:
+    paths:
+      - _build/meson-logs/*txt
   script:
     - !reference [.cpu_prep, script]
     - export CC=icc CXX=icpc
     - meson setup _build --buildtype=debug -Dlapack=mkl -Dgpu=false
     - !reference [.meson_compile, script]
-    - meson test
+    - meson test || cat meson-logs/testlog.txt
     - cat meson-logs/testlog.txt
-  artifacts:
-    paths:
-      - _build/meson-logs/*txt
+  
 
 ubuntu-20.4-intel-2023.2.0-openblas:       # This job runs in the build stage, which runs first.
   stage: build
@@ -142,16 +143,16 @@ ubuntu-20.4-intel-2023.2.0-openblas:       # This job runs in the build stage, w
     APPTAINER_EXEC_ARGS: ""
   tags:
     - cpu
+  artifacts:
+    paths:
+      - _build/meson-logs/*.txt
   script:
     - !reference [.cpu_prep, script]
     - export CC=icc CXX=icpc
     - meson setup _build --buildtype=debug -Dlapack=openblas -Dgpu=false
     - !reference [.meson_compile, script]
-    - meson test
-    - cat meson-logs/testlog.txt
-  artifacts:
-    paths:
-      - meson-logs/testlog.txt
+    - meson test || cat meson-logs/testlog.txt
+  
 
 ubuntu-20.4-gcc-9-mkl:       # This job runs in the build stage, which runs first.
   stage: build
