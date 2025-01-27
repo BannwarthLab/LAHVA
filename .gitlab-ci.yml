@@ -178,7 +178,7 @@ ubuntu-20.4-gcc-9-mkl:       # This job runs in the build stage, which runs firs
     - meson test
     - cat meson-logs/testlog.txt
   artifacts:
-  when: on_failure
+    when: on_failure
     paths:
       - meson-logs/testlog.txt  
 
@@ -203,7 +203,7 @@ ubuntu-20.4-cu-11.8-gcc-9-openblas:       # This job runs in the build stage, wh
     - !reference [.meson_compile, script]
     - meson test
   artifacts:
-  when: on_failure
+    when: on_failure
     paths:
       - meson-logs/testlog.txt 
 
