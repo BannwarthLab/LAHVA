@@ -18,7 +18,9 @@ namespace lahva
             BLAS_INT ldc = get_leading(m, n);
 #ifdef W_MKL
             mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#elif OPENBLAS_GENERIC
+#endif
+
+#ifdef OPENBLAS_GENERIC
             // copy B into C, potetially transpose
             cblas_domatcopy(major_char, *Tb, b.shape().first, b.shape().second, b.data(), ldb, c.data(), ldc);
             // copy A inplay, if transpose
@@ -45,7 +47,9 @@ namespace lahva
 
 #ifdef W_MKL
             mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#elif OPENBLAS_GENERIC
+#endif
+
+#ifdef OPENBLAS_GENERIC
             // copy B into C, potetially transpose
             cblas_somatcopy(major_char, *Tb, b.shape().first, b.shape().second, b.data(), ldb, c.data(), ldc);
             // copy A inplay, if transpose
@@ -72,7 +76,9 @@ namespace lahva
 
 #ifdef W_MKL
             mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#elif OPENBLAS_GENERIC
+#endif
+
+#ifdef OPENBLAS_GENERIC
             // copy B into C, potetially transpose
             cblas_domatcopy(major_char, *Tb, b.shape().first, b.shape().second, b.data(), ldb, c.data(), ldc);
             // copy A inplay, if transpose
@@ -99,7 +105,9 @@ namespace lahva
 
 #ifdef W_MKL
             mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#elif OPENBLAS_GENERIC
+#endif
+
+#ifdef OPENBLAS_GENERIC
             // copy B into C, potetially transpose
             cblas_somatcopy(major_char, *Tb, b.shape().first, b.shape().second, b.data(), ldb, c.data(), ldc);
             // copy A inplay, if transpose
