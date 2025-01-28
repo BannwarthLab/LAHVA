@@ -1,5 +1,6 @@
 #include "common.h"
 #include "utils.hpp"
+#include <algorithm>
 
 using namespace lahva::cpu;
 
