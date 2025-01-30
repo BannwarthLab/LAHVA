@@ -87,7 +87,7 @@ namespace lahva
         
     }
 
-    void CudaRuntime::check_mem(size_t requestedMem) 
+    void CudaRuntime::check_mem(size_t requestedMem, bool force_new_handle) 
     {
         availMem_ = get_GPU_wmaxMem();
         if (requestedMem > availMem_) 
@@ -101,7 +101,10 @@ namespace lahva
             critical_memory = true;
         }
 
-        createHandle();
+        if ((handle == nullptr) or force_new_handle)
+        {
+            createHandle();
+        }
     }
     
     
@@ -169,12 +172,13 @@ namespace lahva
     void CudaRuntime::enableAsyncCopy()
     {
         async_ = true;
-        stream_ = cudaStreamPerThread;
+        //stream_ = cudaStreamPerThread;
         //createStream();
     }
 
     void CudaRuntime::createStream()
     {
+        if (delete_stream) get_cuda_error(cudaStreamDestroy(stream_));
         get_cuda_error(cudaStreamCreateWithFlags(&stream_, streamFlag_));
         delete_stream = true;
     }  

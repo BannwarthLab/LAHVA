@@ -45,9 +45,9 @@ namespace lahva{
         /// @brief cudaDevice ID defaults to 1
         int cudaDevice = 0;
         /// @brief cuda Stream for asynchronous tasks
-        cudaStream_t stream_ = 0;
+        cudaStream_t stream_ = cudaStreamPerThread;
         /// @brief flag to do memCopyAsync
-        bool async_ = false;
+        bool async_ = true;
         /// @brief store version number of cuda library
         int version = 0;
         /// @brief streamFlag used when creating stream
@@ -106,7 +106,7 @@ namespace lahva{
         /// @return CUDA device id
         const inline int device_id() const {return cudaDevice;};
 
-        void check_mem(size_t requestedMem);
+        void check_mem(size_t requestedMem, bool force_new_handle = false);
 
         bool criticalSize(size_t ArrayMem) const {return ((double)((double)ArrayMem / (double)availMem_) > 0.025);}
 
