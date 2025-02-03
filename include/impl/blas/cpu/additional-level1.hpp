@@ -19,6 +19,12 @@ namespace lahva{
         T FrobeniusNorm(const Tensor<T>& mat, const Tensor<T>& mat2);
 
         template<typename T>
+        T FrobeniusNorm(const CPURuntime& cudart, const Tensor<T>& mat, const Tensor<T>& mat2)
+        {
+            return FrobeniusNorm(mat, mat2);
+        };
+
+        template<typename T>
         T FrobeniusNorm(const CPURuntime& cudart, const Tensor<T>& mat);
 
         template<typename T>
@@ -84,13 +90,12 @@ namespace lahva{
                 mat.data()[i] = funcPtr();
             }
         };
-        
 
-        template<typename T>
-        void SetValue(T value , Tensor<T>& mat)
-        {
-           
-        };
+        template<typename... Args>
+        void ApplyKernel(const CPURuntime& rt_, Args&&... args) {
+            (ApplyKernel(args...));                    
+        }
+        
 
        
     } // namespace gpu

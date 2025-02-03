@@ -56,7 +56,7 @@ namespace lahva{
         void createHandle();
         size_t availMem_ = 0; 
         /// @brief blocksize used for launching kernels
-        int blockSize_ = THREADS_PER_BLOCK;
+        mutable int blockSize_ = THREADS_PER_BLOCK;
         ///
         std::shared_ptr<cuSolverRuntime> cusolv_;
         bool delete_handle = false;
@@ -114,6 +114,9 @@ namespace lahva{
         /// @brief Change block size
         /// @param blockSize new block size
         inline void setblockSize(int blockSize) {blockSize_ = blockSize;}
+         /// @brief Change block size
+        /// @param blockSize new block size
+        inline void setblockSize(int blockSize) const {blockSize_ = blockSize;}
         /// @brief get blocksize
         /// @return blocksize for Kernel execution
         inline int blockSize() const {return blockSize_;};

@@ -41,7 +41,7 @@ int test_add_matrices()
         return 1;
     }
 
-    AddMatrices("N", "N", (T)1.0, A, B, (T)1.0, C);
+    AddMatrices("N", "N", (T)1.0, A, (T)1.0, B, C);
 
     if (!(check(C.data(), res.data(), 1e-6, res.size(), "AddMatrices")))
     {
@@ -70,7 +70,7 @@ int test_add_matrices_transposed()
         return 1;
     }
 
-    AddMatrices("N", "T", (T) 1.0, A, B, (T) 1.0, C);
+    AddMatrices("N", "T", (T) 1.0, A, (T) 1.0, B, C);
 
     if (!(check(C.data(), res.data(), 1e-6, res.size(), "AddMatrcies B transposed")))
     {
@@ -89,7 +89,7 @@ int test_add_matrices_transposed()
         return 1;
     }
 
-    AddMatrices("T", "N", (T) 1.0, A, B, (T) 1.0, C);
+    AddMatrices("T", "N", (T) 1.0, A, (T) 1.0, B, C);
 
     if (!(check(C.data(), res.data(), 1e-6, res.size(), "AddMatrices  A transposed")))
     {
@@ -109,7 +109,7 @@ int test_add_matrices_transposed()
         return 1;
     }
 
-    AddMatrices("T", "T", (T) 1.0, A, B, (T) 1.0, C);
+    AddMatrices("T", "T", (T) 1.0, A, (T) 1.0, B, C);
 
     if (!(check(C.data(), res.data(), 1e-6, res.size(), "AddMatrices A and B transposed")))
     {

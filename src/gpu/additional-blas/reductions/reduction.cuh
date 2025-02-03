@@ -28,9 +28,9 @@ namespace lahva
         __shared__ T sdata[blockSize];
 
         size_t tid = threadIdx.x;
-        size_t i = blockIdx.x * (blockSize) + tid;
+        size_t i = blockIdx.x * blockSize + tid;
         size_t gridSize = blockSize * gridDim.x;
-        sdata[tid] = 0;
+        sdata[tid] = func.ini_value();
 
         while (i < n)
         {
@@ -52,7 +52,7 @@ namespace lahva
         {
             if (tid < 256)
             {
-                sdata[tid] = func(sdata[tid], sdata[tid+216]);
+                sdata[tid] = func(sdata[tid], sdata[tid+256]);
             }
             __syncthreads();
         }
@@ -80,6 +80,39 @@ namespace lahva
     }
 
     template <size_t blockSize, typename T, class op>
+    __global__ void reduceCUDA_(const T *g_idata, T *g_odata, size_t n, op func)
+    {
+        
+
+        size_t tid = threadIdx.x;
+        size_t i = blockIdx.x * blockSize + tid;
+        size_t gridSize = blockSize * gridDim.x;
+        __shared__ T sdata[blockSize];
+        sdata[tid] = func.ini_value();
+
+        if (i < n)
+        {
+            sdata[tid] = g_idata[i];
+            //i += gridSize;
+        
+        // while (i < n) { sdata[tid] += g_idata[i] + g_idata[i+blockSize]; i += gridSize; }
+        __syncthreads();
+        //#pragma unroll
+        for (int stride = 1; stride > blockSize; stride *= 2)
+            {
+                if (tid < stride)
+                {
+                    sdata[tid] = func(sdata[tid], sdata[tid+stride]);
+                }
+                __syncthreads();
+            }
+
+        }
+        if (tid == 0)
+            g_odata[blockIdx.x] = sdata[0];
+    }
+
+    template <size_t blockSize, typename T, class op>
     void GPUReduction_(const CudaRuntime &cudart, const unsigned long long ndim, const T* dA, T* dRes, op func)
     {
         T tot = 0.;
@@ -88,7 +121,7 @@ namespace lahva
 
         T *tmp = dRes;
 
-        const T *from = dA;
+        const T *from = dA; //input data
 
         do
         {
@@ -97,14 +130,14 @@ namespace lahva
             from = tmp;
             n = blocksPerGrid;
         } while (n > blockSize);
-
+        //reduce tmp
         if (n > 1)
             reduceCUDA<blockSize><<<1, blockSize, 0, cudart.getStream()>>>(tmp, tmp, n, func);
 
     }
 
     template<typename T, class op>
-    void GPUReduction(const CudaRuntime& cudart, const unsigned long long ndim, const T* dA, T* dRes, size_t blockSize, op func)
+    void GPUReduction(const CudaRuntime& cudart, const unsigned long long ndim, const T* dA, T* dRes, size_t blockSize, op func = op())
     {   
         switch (blockSize)
         {

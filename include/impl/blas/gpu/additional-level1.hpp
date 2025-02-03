@@ -1,8 +1,8 @@
 #ifndef LAHVA_ADD_LEVEL1_HPP
 #define LAHVA_ADD_LEVEL1_HPP
 #include "linalg.hpp"
-#include "runtime.hpp"
 #include "../../../../src/gpu-utils/utils.hpp"
+#include "kernels.cuh"
 namespace lahva{
     namespace gpu
     {
@@ -158,6 +158,51 @@ namespace lahva{
             DecomposeVector2MP<T, Tout>(cudart, min, mout1, mout2);
 
         }
+
+        template<typename T, class op>
+        void ApplyKernel(const CudaRuntime& cudart, GPUTensor_<T>& in, op operation = op());
+
+        template<typename T>
+        T Sum_(const CudaRuntime& cudart, const GPUTensor_<T>& in, GPUTensor_<T>& res);
+
+        template<typename T>
+        T MaxElement_(const CudaRuntime& cudart, const GPUTensor_<T>& in, GPUTensor_<T>& res);
+
+        template<typename T>
+        T MinElement_(const CudaRuntime& cudart, const GPUTensor_<T>& in, GPUTensor_<T>& res);
+
+        template<typename T, typename U, typename V>
+        T Sum(const CudaRuntime& cudart, const GPUTensor<T, U, V>& in)
+        {
+            unsigned long long n = in.size();
+            unsigned long long blockSize = cudart.blockSize();
+            size_t blocksPerGrid = std::ceil((1. * n) / blockSize);
+            Vector<T, U, V> v(blocksPerGrid);
+            return Sum_(cudart, in, v);
+        };
+
+        template<typename T, typename U, typename V>
+        T MaxElement(const CudaRuntime& cudart, const GPUTensor<T, U, V>& in)
+        {
+            unsigned long long n = in.size();
+            cudart.setblockSize(64);
+            unsigned long long blockSize = cudart.blockSize();
+            size_t blocksPerGrid = std::ceil((1. * n) / blockSize);
+            Vector<T, U, V> v(blocksPerGrid);
+            T res = MaxElement_(cudart, in, v);
+            cudart.setblockSize(512);
+            return res;
+        };
+
+        template<typename T, typename U, typename V>
+        T MinElement(const CudaRuntime& cudart, const GPUTensor<T, U, V>& in)
+        {
+            unsigned long long n = in.size();
+            unsigned long long blockSize = cudart.blockSize();
+            size_t blocksPerGrid = std::ceil((1. * n) / blockSize);
+            Vector<T, U, V> v(blocksPerGrid);
+            return MinElement_(cudart, in, v);
+        };
 
     } // namespace gpu
     

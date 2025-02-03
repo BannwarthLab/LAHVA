@@ -6,8 +6,8 @@ namespace lahva
     namespace cpu
     {
         template <>
-        void AddMatrices<double>(const char *Ta, const char *Tb, const double alpha, const Matrix_<double> &a, const Matrix_<double> &b,
-                                 const double beta, Matrix_<double> &c)
+        void AddMatrices<double>(const char *Ta, const char *Tb, const double alpha, const Matrix_<double> &a,const double beta,
+                                 const Matrix_<double> &b, Matrix_<double> &c)
         {
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
@@ -39,8 +39,8 @@ namespace lahva
         };
 
         template <>
-        void AddMatrices<float>(const char *Ta, const char *Tb, const float alpha, const Matrix_<float> &a, const Matrix_<float> &b,
-                                const float beta, Matrix_<float> &c)
+        void AddMatrices<float>(const char *Ta, const char *Tb, const float alpha, const Matrix_<float> &a, const float beta,
+                                const Matrix_<float> &b, Matrix_<float> &c)
         {
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
