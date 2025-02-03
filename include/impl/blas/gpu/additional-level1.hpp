@@ -182,10 +182,43 @@ namespace lahva{
         };
 
         template<typename T, typename U, typename V>
+        T Sum(const CudaRuntime& cudart, const GPUTensor<T, U, V>& in, Vector<T, U, V>& v)
+        {
+            unsigned long long n = in.size();
+            unsigned long long blockSize = cudart.blockSize();
+            size_t blocksPerGrid = std::ceil((1. * n) / blockSize);
+            assert(v.size() == blocksPerGrid);
+            return Sum_(cudart, in, v);
+        };
+
+        template<typename T, typename U, typename V>
+        T MaxElement(const CudaRuntime& cudart, const GPUTensor<T, U, V>& in, Vector<T, U, V>& v)
+        {
+            unsigned long long n = in.size();
+            unsigned long long blockSize = cudart.blockSize();
+            size_t blocksPerGrid = std::ceil((1. * n) / blockSize);
+            if (v.size() != blocksPerGrid)
+                v = Vector<T, U, V>(blocksPerGrid);
+            T res = MaxElement_(cudart, in, v);
+            cudart.setblockSize(512);
+            return res;
+        };
+
+        template<typename T, typename U, typename V>
+        T MinElement(const CudaRuntime& cudart, const GPUTensor<T, U, V>& in, Vector<T, U, V>& v )
+        {
+            unsigned long long n = in.size();
+            unsigned long long blockSize = cudart.blockSize();
+            size_t blocksPerGrid = std::ceil((1. * n) / blockSize);
+            if (v.size() != blocksPerGrid)
+                v = Vector<T, U, V>(blocksPerGrid);
+            return MinElement_(cudart, in, v);
+        };
+
+        template<typename T, typename U, typename V>
         T MaxElement(const CudaRuntime& cudart, const GPUTensor<T, U, V>& in)
         {
             unsigned long long n = in.size();
-            cudart.setblockSize(64);
             unsigned long long blockSize = cudart.blockSize();
             size_t blocksPerGrid = std::ceil((1. * n) / blockSize);
             Vector<T, U, V> v(blocksPerGrid);
@@ -203,6 +236,7 @@ namespace lahva{
             Vector<T, U, V> v(blocksPerGrid);
             return MinElement_(cudart, in, v);
         };
+        
 
     } // namespace gpu
     
