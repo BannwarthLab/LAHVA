@@ -261,7 +261,7 @@ coverage:       # This job runs in the build stage, which runs first.
   artifacts:
     when: on_success
     paths:
-      - meson-logs/coveragereport/
+      - _build/meson-logs/coveragereport/
 
 publish-coverage:
   stage: deploy
@@ -270,7 +270,7 @@ publish-coverage:
   tags:
     - shell
   script:
-    - mv meson-logs/coveragereport/ public/
+    - mv _build/meson-logs/coveragereport/ public/
   artifacts:
     paths:
       - public
