@@ -1,5 +1,5 @@
 subdir('custom-kernel')
-subdir('custom-gemm')
+#subdir('custom-gemm')
 srcs += files(
     'additional-level1.cpp',
     'additional-level1.cu',
