@@ -27,14 +27,14 @@ std::initializer_list<T> getres()
 template<typename T>
 int test_add_matrices(CudaRuntime& cudart)
 {
-    Matrix<T> A(Shape(2,3), getam<T>());
-    Matrix<T> B(Shape(2,3), getbm<T>());
+    Matrix<T> A(Shape(2,3), {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});
+    Matrix<T> B(Shape(2,3), {7.0, 8.0, 9.0, 10.0, 11.0, 12.0});
     Matrix<T> C(A.shape(), 0.0);
 
     AddMatrices(cudart, A, B, C, (T) 1.0, (T) 1.0);
     C.copy2host(cudart);
     cudart.synchronize();
-    Matrix<T> res(A.shape(), getres<T>());
+    Matrix<T> res(A.shape(), {8.0, 10.0, 12.0, 14.0, 16.0, 18.0});
     if (!(check(C.data(), res.data(), 1e-6, res.size(), "AddMatrices")))
     {
         std::cout << "Test failed: AddMatrices" << std::endl;
@@ -56,8 +56,8 @@ int test_add_matrices(CudaRuntime& cudart)
 template<typename T>
 int test_add_matrices_transposed(CudaRuntime& cudart)
 {
-    Matrix<T> A(Shape(2,3), getam<T>());
-    Matrix<T> B(Shape(3,2), getbm<T>());
+    Matrix<T> A(Shape(2,3), {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});
+    Matrix<T> B(Shape(3,2), {7.0, 8.0, 9.0, 10.0, 11.0, 12.0});
     Matrix<T> C(A.shape(), 0.0);
     A.print();
     B.print();
@@ -81,8 +81,8 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
         return 1;
     }    
 
-    B = Matrix<T>(Shape(2,3), getbm<T>());
-    A = Matrix<T>(Shape(3,2), getam<T>());
+    B = Matrix<T>(Shape(2,3), {7.0, 8.0, 9.0, 10.0, 11.0, 12.0});
+    A = Matrix<T>(Shape(3,2), {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});
 
     AddMatrices(cudart, A, B, C, (T) 1.0, (T) 1.0, "T", "N");
     C.copy2host(cudart);
@@ -102,7 +102,7 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
         return 1;
     }
 
-    A = Matrix<T>(Shape(2,3), getam<T>());
+    A = Matrix<T>(Shape(2,3), {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});
     res = Matrix<T>(Shape(3,2), {8.0, 12.0, 16.0, 10.0, 14.0, 18.0});
     C = Matrix<T>(Shape(3,2), 0.0);
 
