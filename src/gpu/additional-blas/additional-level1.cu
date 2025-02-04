@@ -2,6 +2,7 @@
 #include "../../gpu-utils/utils.hpp"
 #include "reductions/reduction.cuh"
 #include "reductions/common.cuh"
+#include "additional-level1.cuh"
 namespace lahva
 {
     namespace gpu
