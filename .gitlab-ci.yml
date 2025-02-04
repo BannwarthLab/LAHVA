@@ -23,6 +23,7 @@ stages:
   - build-container          # List of stages for jobs, and their order of execution
   - build
   - test
+  - deploy
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"
