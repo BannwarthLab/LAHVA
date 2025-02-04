@@ -233,3 +233,44 @@ ubuntu-20.4-cu-11.8-intel-mkl:       # This job runs in the build stage, which r
     when: on_failure
     paths:
       - _build/meson-logs/*txt
+
+
+coverage:       # This job runs in the build stage, which runs first.
+  stage: test
+  cache:
+    key: "gcc-cuda-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4-cuda-11-8-gcc-9
+  variables:
+    CONTAINER_NAME: "containers/20.4-cuda-11-8-gcc-9.sif"
+    APPTAINER_EXEC_ARGS: "--nv" 
+  tags:
+    - cpu
+    - gpu 
+  script:
+    - !reference [.cpu_prep, script]
+    - !reference [.gpu_prep, script]
+    - export CC=gcc CXX=g++
+    - meson setup _build -Db_coverage=true -Dlapack=openblas
+    - !reference [.meson_compile, script]
+    - meson test
+    - ninja coverage
+  artifacts:
+    when: on_success
+    paths:
+      - meson-logs/coveragereport/
+
+publish-coverage:
+  stage: deploy
+  dependencies:
+    - coverage 
+  tags:
+    - shell
+  script:
+    - mv meson-logs/coveragereport/ public/
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
