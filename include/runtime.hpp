@@ -44,8 +44,7 @@ namespace lahva{
     protected:
         /// @brief cudaDevice ID defaults to 1
         int cudaDevice = 0;
-        /// @brief cuda Stream for asynchronous tasks
-        cudaStream_t stream_ = cudaStreamPerThread;
+        
         /// @brief flag to do memCopyAsync
         bool async_ = true;
         /// @brief store version number of cuda library
@@ -62,7 +61,10 @@ namespace lahva{
         bool delete_handle = false;
         bool delete_stream = false;
         bool critical_memory = false;
+        float critical_memory_threshold = 0.6;
     public:
+
+        mutable std::shared_ptr<cudaStream_t> stream_ = std::make_shared<cudaStream_t>(cudaStreamPerThread);
 
         /// @brief create Stream
         void createStream();
@@ -98,6 +100,7 @@ namespace lahva{
         void print_cuda_version();
         /// @brief set internal async falg to true and createStream
         void enableAsyncCopy();
+        void setCriticalMemoryRatio(float ratio) {critical_memory_threshold = ratio;};
         
         /// @brief get CUDA Device ID
         /// @return CUDA device id
@@ -133,25 +136,28 @@ namespace lahva{
         
         /// @brief get async. stream
         /// @return CUDA stream
-        cudaStream_t getStream() {return stream_;}
-        cudaStream_t getStream() const {return stream_;}
+        cudaStream_t& getStream() {return *(stream_);}
+        cudaStream_t& getStream() const {return *(stream_);}
+
+        void getStream_ptr(std::shared_ptr<cudaStream_t>& stream) {stream = stream_;}
+        void getStream_ptr(std::shared_ptr<cudaStream_t>& stream) const {stream = stream_;}
 
         inline void cublasSetStream_() const 
         {
             
             get_cuda_error(cudaSetDevice(cudaDevice));
-            get_cublas_error(cublasSetStream(handle, stream_));
+            get_cublas_error(cublasSetStream(handle, *stream_));
         };
         
         /// @brief synchronize device after async. operations
         void synchronize() 
         {
-            get_cuda_error(cudaStreamSynchronize(stream_));    
+            get_cuda_error(cudaStreamSynchronize(*stream_));    
         }
 
         void synchronize() const
         {
-            get_cuda_error(cudaStreamSynchronize(stream_));    
+            get_cuda_error(cudaStreamSynchronize(*stream_));    
         }
     
     };

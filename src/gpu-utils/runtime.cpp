@@ -28,7 +28,7 @@ namespace lahva
     };
 
     CudaRuntime::~CudaRuntime() {
-        if (delete_stream) get_cuda_error(cudaStreamDestroy(stream_));
+        if (delete_stream) get_cuda_error(cudaStreamDestroy(*stream_));
         if (delete_handle) 
         {
             get_cublas_error(cublasDestroy(handle));
@@ -65,13 +65,13 @@ namespace lahva
     CudaRuntime::CudaRuntime(size_t max_dim, size_t n_mat, bool async) : 
     CudaRuntime( n_mat * 8*max_dim*max_dim, async)
     {
-        
     };
 
     CudaRuntime::CudaRuntime(size_t requestedMem, bool async)
-    {
+    {   
         if (async) this->enableAsyncCopy();
-        check_mem(requestedMem);   
+        
+        check_mem(requestedMem, true);   
     };    
 
     CudaRuntime::CudaRuntime(CudaRuntime&& other) 
@@ -89,14 +89,20 @@ namespace lahva
 
     void CudaRuntime::check_mem(size_t requestedMem, bool force_new_handle) 
     {
-        availMem_ = get_GPU_wmaxMem();
+        if (cudaDevice == -1) 
+        get_GPU_wmaxMem();
+        
+        size_t totmem, freemem;
+        get_cuda_error(cudaMemGetInfo(&freemem, &totmem));
+        availMem_ = freemem;
+        
         if (requestedMem > availMem_) 
         {
             cudaDevice = -1;
             return;
         }
-        //std::cout <<  "requested: " << requestedMem/std::pow(1024,3)  << "GB available: " << availMem_ / std::pow(1024,3) << " GB" << std::endl;    
-        if ((double)((double)requestedMem / (double)availMem_) > 0.60)
+          
+        if ((float)((float)requestedMem / (float) availMem_) > critical_memory_threshold)
         {
             critical_memory = true;
         }
@@ -150,7 +156,7 @@ namespace lahva
         cudaError_t stat_;
         if (delete_handle) get_cublas_error(cublasDestroy(handle));
         
-        
+        std::cout << "Using device: " << cudaDevice << std::endl;
         stat_ = cudaSetDevice(cudaDevice);
         get_cuda_error(stat_); 
         stat = cublasCreate(&handle);
@@ -178,8 +184,8 @@ namespace lahva
 
     void CudaRuntime::createStream()
     {
-        if (delete_stream) get_cuda_error(cudaStreamDestroy(stream_));
-        get_cuda_error(cudaStreamCreateWithFlags(&stream_, streamFlag_));
+        if (delete_stream) get_cuda_error(cudaStreamDestroy(*stream_));
+        get_cuda_error(cudaStreamCreateWithFlags(stream_.get(), streamFlag_));
         delete_stream = true;
     }  
 
@@ -188,7 +194,7 @@ namespace lahva
         if (!this->cusolv_)
         {
             cusolv_ = std::make_shared<cuSolverRuntime>();
-            if (stream_ == 0) this->createStream();
+            //if (stream_ == 0) this->createStream();
             cusolv_->setStream(this->getStream());
         }
         return this->cusolv_->getHandle();

@@ -62,7 +62,7 @@ namespace lahva
         virtual void operator()(T *ptr) = 0;
         virtual void H2DCopy(void *d_ptr,const void *h_ptr, const size_t buffersize) const = 0;
         virtual void D2HCopy(void *d_ptr, void *h_ptr, const size_t buffersize) const = 0;
-        virtual void setStream(cudaStream_t stream) const {};
+        virtual void setStream(std::shared_ptr<cudaStream_t>& stream) const {};
     };
 
     template <typename T>
@@ -151,10 +151,10 @@ namespace lahva
     public:
         using value_type = T;
 
-        mutable cudaStream_t stream_ = 0;
+        mutable std::shared_ptr<cudaStream_t> stream_ ;
 
         CudaDeviceAsyncAllocator() noexcept {} // not required, unless used
-        CudaDeviceAsyncAllocator(const cudaStream_t stream) : stream_{stream} {};
+        CudaDeviceAsyncAllocator( std::shared_ptr<cudaStream_t>& stream) : stream_{stream} {};
         template <class U>
         CudaDeviceAsyncAllocator(CudaDeviceAsyncAllocator<U> const &) : CudaDeviceAsyncAllocator<T>{} {};
         template <class U>
@@ -164,19 +164,19 @@ namespace lahva
         allocate(std::size_t n) const override 
         {
             value_type *ptr;
-            get_cuda_error(cudaMallocAsync((void **)&ptr, n * sizeof(value_type), stream_));
+            get_cuda_error(cudaMallocAsync((void **)&ptr, n * sizeof(value_type), *stream_));
             return ptr;
         }
         void
         deallocate(value_type *ptr, std::size_t n) noexcept // Use pointer if pointer is not a value_type*
         {
-            get_cuda_error(cudaFreeAsync(ptr, stream_));
+            get_cuda_error(cudaFreeAsync(ptr, *stream_));
         }
 
         void
         deallocate(value_type *ptr) noexcept // Use pointer if pointer is not a value_type*
         {
-            get_cuda_error(cudaFreeAsync(ptr, stream_));
+            get_cuda_error(cudaFreeAsync(ptr, *stream_));
         }
 
         void operator()(T *ptr)
@@ -189,14 +189,15 @@ namespace lahva
 
         void H2DCopy(void *d_ptr, const void *h_ptr, const size_t buffersize) const
         {
-            get_cuda_error(cudaMemcpyAsync(d_ptr, h_ptr, buffersize, cudaMemcpyHostToDevice, stream_));
+            get_cuda_error(cudaMemcpyAsync(d_ptr, h_ptr, buffersize, cudaMemcpyHostToDevice, *stream_));
         };
 
         void D2HCopy(void *d_ptr, void *h_ptr, const size_t buffersize) const
         {
-            get_cuda_error(cudaMemcpyAsync(h_ptr, d_ptr, buffersize, cudaMemcpyDeviceToHost, stream_));
+            get_cuda_error(cudaMemcpyAsync(h_ptr, d_ptr, buffersize, cudaMemcpyDeviceToHost, *stream_));
         };
-        void setStream(cudaStream_t stream) const {stream_ = stream;};
+        void setStream(std::shared_ptr<cudaStream_t>& stream)  const {
+             stream_ = stream;};
     };
 #endif
 } // namespace lahva
