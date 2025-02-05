@@ -263,6 +263,7 @@ coverage:       # This job runs in the build stage, which runs first.
     paths:
       - _build/meson-logs/coveragereport/
 
+image: alpine:latest
 publish-coverage:
   stage: deploy
   dependencies:
