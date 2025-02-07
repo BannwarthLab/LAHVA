@@ -118,7 +118,7 @@ else
   lib_deps += lapack_dep
   blas_dep = dependency('blas', required: false)
   if not blas_dep.found()
-    blas_dep = cc.find_library('blas')
+    blas_dep = cc.find_library('cblas')
   endif
   lib_deps += blas_dep
 endif

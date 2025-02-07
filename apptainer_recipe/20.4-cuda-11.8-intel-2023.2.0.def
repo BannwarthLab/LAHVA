@@ -19,7 +19,7 @@ From: intel/oneapi-hpckit:2023.2-devel-ubuntu20.04
     # Install CUDA
     apt-get update
     apt-get install -y cuda-compiler-11-8 cuda-cudart-dev-11-8 cuda-compiler-11-8 libcusolver-dev-11-8 libcublas-dev-11-8 libcusparse-dev-11-8 --no-install-recommends
-
+    apt install -y libopenblas-dev liblapacke-dev --no-install-recommends
     # Clean up
     apt-get clean
 
