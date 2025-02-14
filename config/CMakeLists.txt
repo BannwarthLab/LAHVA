@@ -4,7 +4,18 @@ option(LAPACK_VENDOR "BLAS/LAPCK Vendor")
 set(CUSTOM_LIBRARIES "")
 option(WITH_TESTS "Copmile Testsuite" ON)
 
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type")
+# Set build type as CMake does not provide defaults
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(
+    CMAKE_BUILD_TYPE "RelWithDebInfo"
+    CACHE STRING "Build type to be used."
+    FORCE
+  )
+  message(
+    STATUS
+    "Setting build type to '${CMAKE_BUILD_TYPE}' as none was specified."
+  )
+endif()
 
 # Compiler-specific arguments
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -30,7 +41,7 @@ endif()
 if(LAPACK_VENDOR MATCHES OFF)
   set(LAPACK_VENDOR "auto")
 endif()
-message(STATUS ${LAPACK_VENDOR})
+
 # LAPACK vendor selection
 if(LAPACK_VENDOR MATCHES "auto")
   if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
@@ -88,3 +99,59 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 set(PRE_FLAGS ${PRE_FLAGS} PARENT_SCOPE)
+
+if(NOT DEFINED "${PROJECT_NAME}-dependency-method")
+  set(
+    "${PROJECT_NAME}-dependency-method"
+    "subproject" "cmake" "pkgconf" "fetch"
+  )
+endif()
+
+set(
+  "${PROJECT_NAME}-module-dir"
+  "${PROJECT_NAME}/${CMAKE_Fortran_COMPILER_ID}-${CMAKE_Fortran_COMPILER_VERSION}"
+  CACHE STRING
+  "Subdirectory to install generated module files to"
+)
+set(
+  module-dir
+  "${${PROJECT_NAME}-module-dir}"
+)
+set(module-dir "${module-dir}" PARENT_SCOPE)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" PARENT_SCOPE)
+install(
+  DIRECTORY
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+)
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/template.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+)
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+  VERSION "${PROJECT_VERSION}"
+  COMPATIBILITY SameMinorVersion
+)
+install(
+  FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
+)
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/template.pc"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc"
+  @ONLY
+)
+install(
+  FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+)

@@ -41,7 +41,6 @@ set(PRE_FLAGS "")
 add_subdirectory("config")
 
 if(GPU)
-  message(STATUS ${CMAKE_CUDA_ARCHITECTURES})
   if(CMAKE_CUDA_ARCHITECTURES)
     set_property(TARGET "${PROJECT_NAME}-lib" PROPERTY CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES})
   else()
