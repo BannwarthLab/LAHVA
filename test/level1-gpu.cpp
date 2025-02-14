@@ -1,4 +1,4 @@
-#include <common.h>
+#include "common.h"
 using namespace lahva::gpu;
 const double thr2 = 5.0e-15;
 const float thr = 5.0e-7;

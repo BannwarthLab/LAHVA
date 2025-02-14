@@ -1,6 +1,6 @@
 #include "impl/blas/cpu/additional-level1.hpp"
 #include <omp.h>
-#include "../../utils/utils.hpp"
+#include "../../../utils/utils.hpp"
 namespace lahva
 {
     namespace cpu

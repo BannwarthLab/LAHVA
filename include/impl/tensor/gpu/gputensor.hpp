@@ -3,7 +3,7 @@
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
 #include "runtime.hpp"
-
+#include "const.h"
 namespace lahva
 {
     namespace gpu
@@ -16,14 +16,14 @@ namespace lahva
             /// @brief copy data to device, by allocating a pointer and copying over
             /// @param cudart Cuda Runtime instance
             /// @return none
-            virtual const void copy2device(const CudaRuntime &cudart) const = 0;
+            virtual void copy2device(const CudaRuntime &cudart) const = 0;
             /// @brief copy data to host,
             /// @param cudart
             virtual void copy2host(const CudaRuntime &cudart) = 0;
 
             virtual inline bool alloc_on_device() const = 0;
 
-            virtual const T *gpu_data() const = 0;
+            virtual T *gpu_data() const = 0;
             virtual T *gpu_data() = 0;
 
             // virtual const std::shared_ptr<GPUAllocator_<T>> get_gpuallocator() const = 0;
@@ -132,14 +132,14 @@ namespace lahva
             /// @brief copy data to device, by allocating a pointer and copying over
             /// @param cudart Cuda Runtime instance
             /// @return none
-            const void copy2device(const CudaRuntime &cudart) const override;
+            void copy2device(const CudaRuntime &cudart) const override;
             /// @brief copy data to host,
             /// @param cudart
             void copy2host(const CudaRuntime &cudart) override;
 
             inline bool alloc_on_device() const override { return this->is_on_device_; };
 
-            const T *gpu_data() const override { return device_ptr_.get(); };
+            T *gpu_data() const override { return device_ptr_.get(); };
             T *gpu_data() override { return device_ptr_.get(); };
 
             void release_gpu_ptr() { device_ptr_.reset(); };
@@ -148,7 +148,7 @@ namespace lahva
             void allocateGPU(const CudaRuntime &) const;
             //void deallocateGPU() const;
             void deallocateGPU(const CudaRuntime &) const;
-            const GPUAllocator get_gpuallocator() const { return std::move(gpualloc_); };
+            GPUAllocator get_gpuallocator() const { return std::move(gpualloc_); };
             GPUAllocator get_gpuallocator() { return gpualloc_; };
         };
 
@@ -178,7 +178,7 @@ namespace lahva
         }
 
         template <typename T, typename Allocator, typename GPUAllocator>
-        const void GPUTensor<T, Allocator, GPUAllocator>::copy2device(const CudaRuntime &cudart) const
+        void GPUTensor<T, Allocator, GPUAllocator>::copy2device(const CudaRuntime &cudart) const
         {
             if (!this->is_on_device_)
             {

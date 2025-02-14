@@ -130,7 +130,6 @@ ubuntu-20.4-intel-2023.2.0-mkl:       # This job runs in the build stage, which 
     - meson setup _build --buildtype=debug -Dlapack=mkl -Dgpu=false
     - !reference [.meson_compile, script]
     - meson test 
-    - cat meson-logs/testlog.txt
   
 
 ubuntu-20.4-intel-2023.2.0-openblas:       # This job runs in the build stage, which runs first.
@@ -177,11 +176,109 @@ ubuntu-20.4-gcc-9-mkl:       # This job runs in the build stage, which runs firs
     - meson setup _build --buildtype=debug -Dlapack=mkl -Dgpu=false
     - !reference [.meson_compile, script]
     - meson test
-    - cat meson-logs/testlog.txt
   artifacts:
     when: on_failure
     paths:
-      - meson-logs/testlog.txt  
+      - meson-logs/testlog.txt
+
+ubuntu-20.4-gcc-9-openblas-cmake:       # This job runs in the build stage, which runs first.
+  stage: build
+  cache:
+    key: "gcc-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4
+  variables:
+    IMAGE_NAME: ""
+    CONTAINER_NAME: "containers/20.4-gcc-9.sif"
+    APPTAINER_EXEC_ARGS: "" 
+  tags:
+    - cpu
+  script:
+    - !reference [.cpu_prep, script]
+    - export CC=gcc CXX=g++
+    - cmake -B _build .
+    - !reference [.cmake_compile, script]
+    - ctest
+  artifacts:
+    when: on_failure
+    paths:
+      - _build/meson-logs/*,txt
+
+ubuntu-20.4-intel-2023.2.0-mkl-cmake:       # This job runs in the build stage, which runs first.
+  stage: build
+  cache:
+    key: "intel-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4-intel-2023.2.0
+  variables:
+    IMAGE_NAME: ""
+    CONTAINER_NAME: "containers/20.4-intel-2023.2.0.sif"
+    APPTAINER_EXEC_ARGS: "" 
+  tags:
+    - cpu
+  artifacts:
+    when:  on_failure
+    paths:
+      - _build/meson-logs/*txt
+  script:
+    - !reference [.cpu_prep, script]
+    - export CC=icc CXX=icpc
+    - cmake -B _build .
+    - !reference [.cmake_compile, script]
+    - ctest
+  
+
+ubuntu-20.4-intel-2023.2.0-openblas-cmake:       # This job runs in the build stage, which runs first.
+  stage: build
+  cache:
+    key: "intel-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4-intel-2023.2.0
+  variables:
+    CONTAINER_NAME: "containers/20.4-intel-2023.2.0.sif"
+    APPTAINER_EXEC_ARGS: ""
+  tags:
+    - cpu
+  artifacts:
+    when:  on_failure
+    paths:
+      - _build/meson-logs/*.txt
+  script:
+    - !reference [.cpu_prep, script]
+    - export CC=icc CXX=icpc
+    - cmake -B _build -DLAPACK_VENDOR=openblas .
+    - !reference [.cmake_compile, script]
+    - ctest
+
+ubuntu-20.4-gcc-9-mkl-cmake:       # This job runs in the build stage, which runs first.
+  stage: build
+  cache:
+    key: "intel-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4-intel-2023.2.0
+  variables:
+    CONTAINER_NAME: "containers/20.4-intel-2023.2.0.sif"
+    APPTAINER_EXEC_ARGS: "" 
+  tags:
+    - cpu
+  script:
+    - !reference [.cpu_prep, script]
+    - export CC=gcc CXX=g++
+    - cmake -B _build -DLAPACK_VENDOR=mkl .
+    - !reference [.cmake_compile, script]
+    - ctest
+  artifacts:
+    when: on_failure
+    paths:
+      - meson-logs/testlog.txt    
 
 ubuntu-20.4-cu-11.8-gcc-9-openblas:       # This job runs in the build stage, which runs first.
   stage: build
@@ -229,7 +326,6 @@ ubuntu-20.4-cu-11.8-intel-mkl:       # This job runs in the build stage, which r
     - meson setup _build --buildtype=debug -Dlapack=mkl
     - !reference [.meson_compile, script]
     - meson test
-    - cat meson-logs/testlog.txt
   artifacts:
     when: on_failure
     paths:
@@ -256,7 +352,6 @@ ubuntu-20.4-cu-11.8-intel-openblas:       # This job runs in the build stage, wh
     - meson setup _build --buildtype=debug -Dlapack=openblas
     - !reference [.meson_compile, script]
     - meson test
-    - cat meson-logs/testlog.txt
   artifacts:
     when: on_failure
     paths:
@@ -282,7 +377,108 @@ ubuntu-20.4-cu-11.8-gcc-9-mkl:       # This job runs in the build stage, which r
     - meson setup _build --buildtype=debug -Dlapack=mkl
     - !reference [.meson_compile, script]
     - meson test
-    - cat meson-logs/testlog.txt
+  artifacts:
+    when: on_failure
+    paths:
+      - _build/meson-logs/*txt
+
+ubuntu-20.4-cu-11.8-gcc-9-openblas-cmake:       # This job runs in the build stage, which runs first.
+  stage: build
+  cache:
+    key: "gcc-cuda-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4-cuda-11-8-gcc-9
+  variables:
+    CONTAINER_NAME: "containers/20.4-cuda-11-8-gcc-9.sif"
+    APPTAINER_EXEC_ARGS: "--nv" 
+  tags:
+    - cpu
+    - gpu 
+  script:
+    - !reference [.cpu_prep, script]
+    - !reference [.gpu_prep, script]
+    - export CC=gcc CXX=g++
+    - cmake -B _build -DLAPACK_VENDOR=auto -DGPU=ON .
+    - !reference [.cmake_compile, script]
+    - ctest
+  artifacts:
+    when: on_failure
+    paths:
+      - meson-logs/testlog.txt 
+
+ubuntu-20.4-cu-11.8-intel-mkl-cmake:       # This job runs in the build stage, which runs first.
+  stage: build
+  cache:
+    key: "intel-cuda-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4-cuda-11-8-intel-2023.2.0
+  variables:
+    CONTAINER_NAME: "containers/20.4-cuda-11-8-intel-2023.2.0.sif"
+    APPTAINER_EXEC_ARGS: "--nv"
+  tags:
+    - cpu
+  script:
+    - !reference [.cpu_prep, script]
+    - !reference [.gpu_prep, script]
+    - export CC=icc CXX=icpc
+    - cmake -B _build -DLAPACK_VENDOR=auto -DGPU=ON .
+    - !reference [.cmake_compile, script]
+    - ctest
+  artifacts:
+    when: on_failure
+    paths:
+      - _build/meson-logs/*txt
+
+
+ubuntu-20.4-cu-11.8-intel-openblas-cmake:       # This job runs in the build stage, which runs first.
+  stage: build
+  cache:
+    key: "intel-cuda-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4-cuda-11-8-intel-2023.2.0
+  variables:
+    CONTAINER_NAME: "containers/20.4-cuda-11-8-intel-2023.2.0.sif"
+    APPTAINER_EXEC_ARGS: "--nv"
+  tags:
+    - cpu
+  script:
+    - !reference [.cpu_prep, script]
+    - !reference [.gpu_prep, script]
+    - export CC=icc CXX=icpc
+    - cmake -B _build -DLAPACK_VENDOR=auto -DGPU=ON .
+    - !reference [.cmake_compile, script]
+    - ctest
+  artifacts:
+    when: on_failure
+    paths:
+      - _build/meson-logs/*txt
+
+ubuntu-20.4-cu-11.8-gcc-9-mkl-cmake:       # This job runs in the build stage, which runs first.
+  stage: build
+  cache:
+    key: "intel-cuda-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  dependencies:
+    - build-ubuntu20.4-cuda-11-8-intel-2023.2.0
+  variables:
+    CONTAINER_NAME: "containers/20.4-cuda-11-8-intel-2023.2.0.sif"
+    APPTAINER_EXEC_ARGS: "--nv"
+  tags:
+    - cpu
+  script:
+    - !reference [.cpu_prep, script]
+    - !reference [.gpu_prep, script]
+    - export CC=gcc CXX=g++
+    - cmake -B _build -DLAPACK_VENDOR=auto -DGPU=ON .
+    - !reference [.cmake_compile, script]
+    - ctest
   artifacts:
     when: on_failure
     paths:
