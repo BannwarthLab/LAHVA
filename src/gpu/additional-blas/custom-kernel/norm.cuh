@@ -12,7 +12,7 @@ namespace lahva
             __shared__ T tmp_[blockSize];
             unsigned long long tid = threadIdx.x;
             unsigned long long id = blockIdx.x * blockDim.x + tid;
-            size_t gridSize = blockSize * gridDim.x;
+            //size_t gridSize = blockSize * gridDim.x;
 
             
     

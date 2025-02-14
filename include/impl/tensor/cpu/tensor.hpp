@@ -3,9 +3,8 @@
 
 #include <memory>
 #include <iterator>
-
 #include <iostream>
-
+#include "const.h"
 #include "impl/tensor/allocators.hpp"
 namespace lahva
 {
@@ -25,10 +24,10 @@ namespace lahva
 
         /// @brief return size of Tensor
         /// @return size of values
-        virtual const size_t size() const = 0;
+        virtual size_t size() const = 0;
         /// @brief return pointer to the underlying data
         /// @return ptr to begin of buffer
-        virtual const T *data() const = 0;
+        virtual T *data() const = 0;
 
         T sum() const
         {
@@ -110,8 +109,8 @@ namespace lahva
         }
 
         T *data() override { return data_; };
-        const T *data() const override { return data_; };
-        const size_t size() const override { return count_; };
+        T *data() const override { return data_; };
+        size_t size() const override { return count_; };
         size_t size() override { return count_; };
 
         CPUTensor<T, Allocator> &operator=(const CPUTensor<T, Allocator> &other)

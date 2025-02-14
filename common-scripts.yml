@@ -19,3 +19,9 @@
     - cd _build
     - meson compile
     - echo "Compile complete."
+
+.cmake_compile:
+  script:
+    - cd _build
+    - make
+    - echo "Compile complete."

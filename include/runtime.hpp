@@ -107,7 +107,7 @@ namespace lahva{
         inline int device_id() {return cudaDevice;};
         /// @brief get CUDA Device ID
         /// @return CUDA device id
-        const inline int device_id() const {return cudaDevice;};
+        inline int device_id() const {return cudaDevice;};
 
         void check_mem(size_t requestedMem, bool force_new_handle = false);
 

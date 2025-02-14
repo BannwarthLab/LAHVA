@@ -1,5 +1,5 @@
 #include "impl/blas/cpu/additional-level2.hpp"
-#include "../../utils/utils.hpp"
+#include "../../../utils/utils.hpp"
 #include "impl/blas/cpu/level1.hpp"
 namespace lahva
 {
@@ -17,11 +17,10 @@ namespace lahva
             BLAS_INT lda = get_leading(m, n, transa);
             BLAS_INT ldb = get_leading(m, n, transb);
             BLAS_INT ldc = get_leading(m, n);
-#ifdef W_MKL
+#if defined(_MKL_H_)
             mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#endif
 
-#ifdef OPENBLAS_GENERIC
+#elif defined(OPENBLAS_GENERIC)
             // copy B into C, potetially transpose
             cblas_domatcopy(major, transb, b.shape().first, b.shape().second, beta, b.data(), ldb, c.data(), ldc);
             // copy A inplace, if transpose
@@ -51,11 +50,9 @@ namespace lahva
             BLAS_INT ldb = get_leading(m, n, transb);
             BLAS_INT ldc = get_leading(m, n);
 
-#ifdef W_MKL
+#if defined(_MKL_H_)
             mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#endif
-
-#ifdef OPENBLAS_GENERIC
+#elif defined(OPENBLAS_GENERIC)
             // copy B into C, potetially transpose
             cblas_somatcopy(major, transb, b.shape().first, b.shape().second, beta, b.data(), ldb, c.data(), ldc);
             // copy A inplace, if transpose
@@ -85,11 +82,9 @@ namespace lahva
             BLAS_INT ldb = get_leading(m, n, transb);
             BLAS_INT ldc = get_leading(m, n);
 
-#ifdef W_MKL
+#if defined(_MKL_H_)
             mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#endif
-
-#ifdef OPENBLAS_GENERIC
+#elif defined(OPENBLAS_GENERIC)
             // copy B into C, potetially transpose
             cblas_domatcopy(major, transb, b.shape().first, b.shape().second, beta, b.data(), ldb, c.data(), ldc);
             // copy A inplace, if transpose
@@ -119,11 +114,9 @@ namespace lahva
             BLAS_INT ldb = get_leading(m, n, transb);
             BLAS_INT ldc = get_leading(m, n);
 
-#ifdef W_MKL
+#if defined(_MKL_H_)
             mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#endif
-
-#ifdef OPENBLAS_GENERIC
+#elif defined(OPENBLAS_GENERIC)
             // copy B into C, potetially transpose
             cblas_somatcopy(major, transb, b.shape().first, b.shape().second, beta, b.data(), ldb, c.data(), ldc);
             // copy A inplace, if transpose
