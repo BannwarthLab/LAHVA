@@ -23,17 +23,20 @@ option(CUSTOM_LIBRARIES "Custom libraries for LAPACK" "")
 option(WITH_TESTS "Copmile Testsuite" OFF)
 
 add_library(
-  "${PROJECT_NAME}" SHARED
+  "${PROJECT_NAME}-lib" SHARED
 )
 
+file(GLOB_RECURSE LAHVA_HEADER "include/*.h*")
+
 set_target_properties(
-  "${PROJECT_NAME}"
+  "${PROJECT_NAME}-lib"
   PROPERTIES
   POSITION_INDEPENDENT_CODE TRUE
   OUTPUT_NAME "${PROJECT_NAME}"
   VERSION "${PROJECT_VERSION}"
   SOVERSION "${PROJECT_VERSION_MAJOR}"
   WINDOWS_EXPORT_ALL_SYMBOLS TRUE
+  PUBLIC_HEADER "${LAHVA_HEADER}"
   #Fortran_MODULE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include"
 )
 set(PRE_FLAGS "")
@@ -42,9 +45,9 @@ add_subdirectory("config")
 
 if(GPU)
   if(CMAKE_CUDA_ARCHITECTURES)
-    set_property(TARGET "${PROJECT_NAME}" PROPERTY CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES})
+    set_property(TARGET "${PROJECT_NAME}-lib" PROPERTY CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES})
   else()
-    set_property(TARGET "${PROJECT_NAME}" PROPERTY CUDA_ARCHITECTURES native)
+    set_property(TARGET "${PROJECT_NAME}-lib" PROPERTY CUDA_ARCHITECTURES native)
   endif()
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED)
@@ -60,7 +63,7 @@ if(GPU)
     >)
   endif()
 
-  target_link_libraries("${PROJECT_NAME}" PUBLIC "CUDA::cudart" "CUDA::cublas" "CUDA::cusolver" "CUDA::cusparse")
+  target_link_libraries("${PROJECT_NAME}-lib" PUBLIC "CUDA::cudart" "CUDA::cublas" "CUDA::cusolver" "CUDA::cusparse")
   list(APPEND PRE_FLAGS "_CUDA")
 endif()
 
@@ -70,27 +73,33 @@ set(HEADER_FILES)
 add_subdirectory("src")
 
 target_sources(
-  "${PROJECT_NAME}" PRIVATE
+  "${PROJECT_NAME}-lib" PRIVATE
   ${SRC_FILES}
 )
 
 # LAHVA library target
 add_compile_definitions(${PRE_FLAGS})
 
+message(STATUS ${CMAKE_CURRENT_SOURCE_DIR})
+
 if (GPU)
+  message(STATUS ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(
-  "${PROJECT_NAME}"
+  "${PROJECT_NAME}-lib"
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/gpu/additional-blas>
   $<INSTALL_INTERFACE:include>
 )
 
 else()
+  message(STATUS ${CMAKE_CURRENT_SOURCE_DIR})
   target_include_directories(
-    "${PROJECT_NAME}"
+    "${PROJECT_NAME}-lib"
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include>
   )
 endif()
@@ -100,16 +109,19 @@ endif()
 
 
 # Export targets for other projects
+add_library("${PROJECT_NAME}" INTERFACE)
+target_link_libraries("${PROJECT_NAME}" INTERFACE "${PROJECT_NAME}-lib")
 
 install(
   TARGETS
   "${PROJECT_NAME}"
-  #"${PROJECT_NAME}-lib"
+  "${PROJECT_NAME}-lib"
   EXPORT
   "${PROJECT_NAME}-targets"
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  PUBLIC_HEADER DESTINATION include
 )
 install(
   EXPORT
@@ -128,7 +140,14 @@ install(
   "${CMAKE_CURRENT_BINARY_DIR}/include/"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${module-dir}"
 )
-
+export(TARGETS
+  "${PROJECT_NAME}"
+  "${PROJECT_NAME}-lib"
+  NAMESPACE
+  lahva::
+  FILE
+  "${PROJECT_NAME}-targets.cmake"
+)
 
 # add the testsuite
 if (WITH_TESTS)
