@@ -128,7 +128,11 @@ if gpu == true
   has_nvcc = add_languages('cuda', native: false)
   cuda = dependency('cuda', modules: ['cudart', 'cublas', 'cusolver', 'cusparse'])
   foreach arch : arches
-    add_project_arguments(['-gencode=arch=compute_@0@,code=sm_@1@'.format(arch, arch)], language: 'cuda')
+    if arch == 'native'
+      add_project_arguments(['-gencode=arch=@0@,code=@1@'.format(arch, arch)], language: 'cuda')
+    else
+      add_project_arguments(['-gencode=arch=compute_@0@,code=sm_@1@'.format(arch, arch)], language: 'cuda')
+    endif
   endforeach
   if cc_id != 'gcc'
     cc_bin = find_program(cc.cmd_array()[0])

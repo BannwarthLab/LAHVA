@@ -1,5 +1,6 @@
 #pragma once
-
+#include <cuda_runtime.h>
+#include <mma.h>
 namespace lahva
 {
     namespace gpu

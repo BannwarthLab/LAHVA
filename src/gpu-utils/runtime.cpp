@@ -45,10 +45,12 @@ namespace lahva
 
         freemem = 0;
         totmem = 0;
-        cudaError_t stat = cudaGetDeviceCount(&ndev);
-        get_cuda_error(stat);
+	cudaError_t stat;
+	//cudaError_t stat = cudaGetDeviceCount(&ndev);
+        ndev = 1;
+	//get_cuda_error(stat);
         for (int i = 0; i < ndev; ++i) {
-            stat = cudaSetDevice(i);
+            //stat = cudaSetDevice(i);
             stat = cudaMemGetInfo(&freemem, &totmem);
             if (stat != 0) {
             get_cuda_error(stat);
@@ -101,7 +103,7 @@ namespace lahva
             cudaDevice = -1;
             return;
         }
-          
+        
         if ((float)((float)requestedMem / (float) availMem_) > critical_memory_threshold)
         {
             critical_memory = true;
@@ -156,7 +158,6 @@ namespace lahva
         cudaError_t stat_;
         if (delete_handle) get_cublas_error(cublasDestroy(handle));
         
-        std::cout << "Using device: " << cudaDevice << std::endl;
         stat_ = cudaSetDevice(cudaDevice);
         get_cuda_error(stat_); 
         stat = cublasCreate(&handle);

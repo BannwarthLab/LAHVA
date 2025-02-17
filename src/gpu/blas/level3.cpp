@@ -199,7 +199,6 @@ namespace lahva
         auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
         cudaDataType_t data_type = CUDA_R_32F;
         cublasComputeType_t computeType = CUBLAS_COMPUTE_32F_FAST_TF32;
-        std::cout << "here" << std::endl;
         size_t lda = get_leading(m, k);
         size_t ldb = get_leading(k, n);
         size_t ldc = get_leading(m, n);

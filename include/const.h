@@ -1,5 +1,6 @@
 #ifndef LAHVA_CONST_H
 #define LAHVA_CONST_H
+#include <stdint.h>
 #ifdef W_MKL
 #include <mkl.h>
 typedef MKL_INT BLAS_INT;

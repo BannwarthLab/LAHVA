@@ -139,8 +139,8 @@ namespace lahva
 
             inline bool alloc_on_device() const override { return this->is_on_device_; };
 
-            T *gpu_data() const override { return device_ptr_.get(); };
-            T *gpu_data() override { return device_ptr_.get(); };
+            T *gpu_data() const override { return this->device_ptr_.get(); };
+            T *gpu_data() override { return this->device_ptr_.get(); };
 
             void release_gpu_ptr() { device_ptr_.reset(); };
 

@@ -23,11 +23,11 @@ option(CUSTOM_LIBRARIES "Custom libraries for LAPACK" "")
 option(WITH_TESTS "Copmile Testsuite" OFF)
 
 add_library(
-  "${PROJECT_NAME}-lib" SHARED
+  "${PROJECT_NAME}" SHARED
 )
 
 set_target_properties(
-  "${PROJECT_NAME}-lib"
+  "${PROJECT_NAME}"
   PROPERTIES
   POSITION_INDEPENDENT_CODE TRUE
   OUTPUT_NAME "${PROJECT_NAME}"
@@ -42,9 +42,9 @@ add_subdirectory("config")
 
 if(GPU)
   if(CMAKE_CUDA_ARCHITECTURES)
-    set_property(TARGET "${PROJECT_NAME}-lib" PROPERTY CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES})
+    set_property(TARGET "${PROJECT_NAME}" PROPERTY CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES})
   else()
-    set_property(TARGET "${PROJECT_NAME}-lib" PROPERTY CUDA_ARCHITECTURES native)
+    set_property(TARGET "${PROJECT_NAME}" PROPERTY CUDA_ARCHITECTURES native)
   endif()
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED)
@@ -60,7 +60,7 @@ if(GPU)
     >)
   endif()
 
-  target_link_libraries("${PROJECT_NAME}-lib" PUBLIC "CUDA::cudart" "CUDA::cublas" "CUDA::cusolver" "CUDA::cusparse")
+  target_link_libraries("${PROJECT_NAME}" PUBLIC "CUDA::cudart" "CUDA::cublas" "CUDA::cusolver" "CUDA::cusparse")
   list(APPEND PRE_FLAGS "_CUDA")
 endif()
 
@@ -70,7 +70,7 @@ set(HEADER_FILES)
 add_subdirectory("src")
 
 target_sources(
-  "${PROJECT_NAME}-lib" PRIVATE
+  "${PROJECT_NAME}" PRIVATE
   ${SRC_FILES}
 )
 
@@ -79,23 +79,19 @@ add_compile_definitions(${PRE_FLAGS})
 
 if (GPU)
 target_include_directories(
-  "${PROJECT_NAME}-lib"
+  "${PROJECT_NAME}"
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/gpu/additional-blas>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${module-dir}>
+  $<INSTALL_INTERFACE:include>
 )
 
 else()
   target_include_directories(
-    "${PROJECT_NAME}-lib"
+    "${PROJECT_NAME}"
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${module-dir}>
+    $<INSTALL_INTERFACE:include>
   )
 endif()
 if(NOT EXISTS "${PROJECT_BINARY_DIR}/include")
@@ -104,16 +100,16 @@ endif()
 
 
 # Export targets for other projects
-add_library("${PROJECT_NAME}" INTERFACE)
-target_link_libraries("${PROJECT_NAME}" INTERFACE "${PROJECT_NAME}-lib")
+
 install(
   TARGETS
   "${PROJECT_NAME}"
-  "${PROJECT_NAME}-lib"
+  #"${PROJECT_NAME}-lib"
   EXPORT
   "${PROJECT_NAME}-targets"
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 install(
   EXPORT

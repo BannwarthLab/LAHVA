@@ -5,26 +5,50 @@ namespace lahva
 
     namespace cpu
     {
-        template <>
-        void SolveGenSysLinEquations<double>(const char *Ta, Matrix_<double> &a, Matrix_<double> &b)
+
+        void LUFactorization(Matrix_<double>& a, Vector<LPCK_INT>& ipiv)
         {
             LPCK_INT info = 0;
             if (a.shape().first != a.shape().second)
             {
                 throw std::runtime_error("A should be symmetric");
             };
+            
             LPCK_INT n = a.shape().first;
-            LPCK_INT nrhs = b.shape().second;
-            if (b.shape().first != n)
-            {
-                throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
-            }
-            Vector<LPCK_INT> ipiv(n);
+            assert(ipiv.size() == n);
             dgetrf_(&n, &n, a.data(), &n, ipiv.data(), &info);
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRF");
             }
+        };
+
+        void LUFactorization(Matrix_<float>& a, Vector<LPCK_INT>& ipiv)
+        {
+            LPCK_INT info = 0;
+            if (a.shape().first != a.shape().second)
+            {
+                throw std::runtime_error("A should be symmetric");
+            };
+            
+            LPCK_INT n = a.shape().first;
+            assert(ipiv.size() == n);
+            sgetrf_(&n, &n, a.data(), &n, ipiv.data(), &info);
+            if (info != 0)
+            {
+                throw std::runtime_error("Failure in DGETRF");
+            }
+        };
+
+        template <>
+        void SolveGenSysLinEquations<double>(const char *Ta, Matrix_<double> &a, Matrix_<double> &b)
+        {
+            LPCK_INT info = 0;
+            LPCK_INT n = a.shape().first;
+            LPCK_INT nrhs = b.shape().second;
+            Vector<LPCK_INT> ipiv(n);
+            LUFactorization(a, ipiv);
+            
             dgetrs_(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
             if (info != 0)
             {
@@ -36,22 +60,15 @@ namespace lahva
         void SolveGenSysLinEquations<float>(const char *Ta, Matrix_<float> &a, Matrix_<float> &b)
         {
             LPCK_INT info = 0;
-            if (a.shape().first != a.shape().second)
-            {
-                throw std::runtime_error("A should be symmetric");
-            };
             LPCK_INT n = a.shape().first;
             LPCK_INT nrhs = b.shape().second;
+            Vector<LPCK_INT> ipiv(n);
+            LUFactorization(a, ipiv);
             if (b.shape().first != n)
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
-            Vector<LPCK_INT> ipiv(n);
-            sgetrf_(&n, &n, a.data(), &n, ipiv.data(), &info);
-            if (info != 0)
-            {
-                throw std::runtime_error("Failure in SGETRF");
-            }
+
             sgetrs_(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
             if (info != 0)
             {
@@ -63,21 +80,13 @@ namespace lahva
         void SolveGenSysLinEquations<double>(Matrix_<double> &a, Matrix_<double> &b, const char *Ta)
         {
             LPCK_INT info = 0;
-            if (a.shape().first != a.shape().second)
-            {
-                throw std::runtime_error("A should be symmetric");
-            };
             LPCK_INT n = a.shape().first;
             LPCK_INT nrhs = b.shape().second;
+            Vector<LPCK_INT> ipiv(n);
+            LUFactorization(a, ipiv);
             if (b.shape().first != n)
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
-            }
-            Vector<LPCK_INT> ipiv(n);
-            dgetrf_(&n, &n, a.data(), &n, ipiv.data(), &info);
-            if (info != 0)
-            {
-                throw std::runtime_error("Failure in DGETRF");
             }
             dgetrs_(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
             if (info != 0)
@@ -90,21 +99,13 @@ namespace lahva
         void SolveGenSysLinEquations<float>(Matrix_<float> &a, Matrix_<float> &b, const char *Ta)
         {
             LPCK_INT info = 0;
-            if (a.shape().first != a.shape().second)
-            {
-                throw std::runtime_error("A should be symmetric");
-            };
             LPCK_INT n = a.shape().first;
             LPCK_INT nrhs = b.shape().second;
+            Vector<LPCK_INT> ipiv(n);
+            LUFactorization(a, ipiv);
             if (b.shape().first != n)
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
-            }
-            Vector<LPCK_INT> ipiv(n);
-            sgetrf_(&n, &n, a.data(), &n, ipiv.data(), &info);
-            if (info != 0)
-            {
-                throw std::runtime_error("Failure in SGETRF");
             }
             sgetrs_(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
             if (info != 0)
@@ -231,6 +232,101 @@ namespace lahva
             }
         };
 
+        template <>
+        void InvertTriMatrix<double>(Matrix_<double> &a)
+        {
+            LPCK_INT info = 0;
+            LPCK_INT n = a.shape().first;
+            
+            dtrtri_(&l_uplo, &l_nondiag, &n, a.data(), &n, &info);
+            if (info != 0)
+            {
+                throw std::runtime_error("Failure in DTRTRI");
+            }
+        };
+
+        template <>
+        void InvertTriMatrix<float>(Matrix_<float> &a)
+        {
+            LPCK_INT info = 0;
+            LPCK_INT n = a.shape().first;
+            
+            strtri_(&l_uplo, &l_nondiag, &n, a.data(), &n, &info);
+            if (info != 0)
+            {
+                throw std::runtime_error("Failure in DTRTRI");
+            }
+        };
+
+        template <>
+        void SymEigenvalueDecomposition<double>(Matrix_<double> &a, Vector_<double>& eigenvalues, char l_jobz)
+        {
+            
+            LPCK_INT info = 0;
+            LPCK_INT n = a.shape().first;
+            if (a.shape().first != a.shape().second)
+            {
+                throw std::runtime_error("A should be symmetric");
+            };
+            
+            if (l_jobz != 'N' && l_jobz != 'V')
+            {
+                throw std::runtime_error("l_jobz should be 'N' or 'V'");
+            }
+            LPCK_INT size_work = 2 * n - 1;
+            LPCK_INT size_iwork = 1;
+            if (l_jobz == 'V')
+            {
+                size_work = 1 + 6 * n + 2 * n * n;
+                size_iwork = 3 + 5 * n;
+            }
+            
+            Vector<double> work(size_work);
+            Vector<LPCK_INT> iwork(size_iwork);
+            Vector<double> w(n);
+            
+            dsyevd_(&l_jobz, &l_uplo, &n, a.data(), &n, eigenvalues.data(), work.data(), &size_work, iwork.data(),
+            &size_iwork, &info);
+            if (info != 0)
+            {
+                throw std::runtime_error("Failure in DSYEV");
+            }
+        };
+
+        template <>
+        void SymEigenvalueDecomposition<float>(Matrix_<float> &a, Vector_<float>& eigenvalues, char l_jobz)
+        {
+            
+            LPCK_INT info = 0;
+            LPCK_INT n = a.shape().first;
+            if (a.shape().first != a.shape().second)
+            {
+                throw std::runtime_error("A should be symmetric");
+            };
+            
+            if (l_jobz != 'N' && l_jobz != 'V')
+            {
+                throw std::runtime_error("l_jobz should be 'N' or 'V'");
+            }
+            LPCK_INT size_work = 2 * n - 1;
+            LPCK_INT size_iwork = 1;
+            if (l_jobz == 'V')
+            {
+                size_work = 1 + 6 * n + 2 * n * n;
+                size_iwork = 3 + 5 * n;
+            }
+            
+            Vector<float> work(size_work);
+            Vector<LPCK_INT> iwork(size_iwork);
+            Vector<float> w(n);
+            
+            ssyevd_(&l_jobz, &l_uplo, &n, a.data(), &n, eigenvalues.data(), work.data(), &size_work, iwork.data(),
+            &size_iwork, &info);
+            if (info != 0)
+            {
+                throw std::runtime_error("Failure in DSYEV");
+            }
+        }; 
         
     } // namespace cpu
 

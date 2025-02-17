@@ -41,6 +41,6 @@ option(
 option(
   'gpu_arch', 
   type: 'array',
-  value: ['86','89','80'],
+  value: ['86'],
   description: 'GPU architecture version string',
 )

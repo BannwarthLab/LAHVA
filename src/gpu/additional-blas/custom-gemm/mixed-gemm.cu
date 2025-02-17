@@ -1,271 +1,93 @@
 #include "../../../gpu-utils/utils.hpp"
-
+#include "impl/blas/gpu/additional-level3.hpp"
+#include "wmma-gemm.cuh"
 
 namespace lahva
 {
     namespace gpu
     {
 
-    
-
-// GEMM kernel v06.
-// Each thread in the block processes THREAD_TILE_SIZE_Y *
-// THREAD_TILE_SIZE_X output values. Number of threads BLOCK_TILE_SIZE_Y *
-// BLOCK_TILE_SIZE_X / (THREAD_TILE_SIZE_Y * THREAD_TILE_SIZE_X)
-template <typename T, size_t BLOCK_TILE_SIZE_X, size_t BLOCK_TILE_SIZE_Y,
-          size_t BLOCK_TILE_SIZE_K, size_t WARP_TILE_SIZE_X,
-          size_t WARP_TILE_SIZE_Y, size_t THREAD_TILE_SIZE_X,
-          size_t THREAD_TILE_SIZE_Y, size_t NUM_THREADS_PER_WARP_X,
-          size_t NUM_THREADS_PER_WARP_Y>
-__global__ void gemm_v06_vectorized(size_t m, size_t n, size_t k, T alpha,
-                                    T const* A, size_t lda, T const* B,
-                                    size_t ldb, T beta, T* C, size_t ldc)
+        template <typename T1, typename T2>
+void launch_wmma_mm(T1 const* A, T1 const* B, T2* C, uint32_t m, uint32_t n,
+                    uint32_t k, bool is_A_transpose, bool is_B_transpose,
+                    cudaStream_t stream, float alpha, float beta)
 {
-    static_assert(NUM_THREADS_PER_WARP_X * NUM_THREADS_PER_WARP_Y == 32U);
-    constexpr size_t NUM_WARPS_X{BLOCK_TILE_SIZE_X / WARP_TILE_SIZE_X};
-    static_assert(BLOCK_TILE_SIZE_X % WARP_TILE_SIZE_X == 0U);
-    constexpr size_t NUM_WARPS_Y{BLOCK_TILE_SIZE_Y / WARP_TILE_SIZE_Y};
-    static_assert(BLOCK_TILE_SIZE_Y % WARP_TILE_SIZE_Y == 0U);
-    constexpr unsigned int NUM_THREAD_TILES_PER_WARP_X{
-        WARP_TILE_SIZE_X / (THREAD_TILE_SIZE_X * NUM_THREADS_PER_WARP_X)};
-    constexpr unsigned int NUM_THREAD_TILES_PER_WARP_Y{
-        WARP_TILE_SIZE_Y / (THREAD_TILE_SIZE_Y * NUM_THREADS_PER_WARP_Y)};
-    static_assert(
-        WARP_TILE_SIZE_X % (THREAD_TILE_SIZE_X * NUM_THREADS_PER_WARP_X) == 0U);
-    static_assert(
-        WARP_TILE_SIZE_Y % (THREAD_TILE_SIZE_Y * NUM_THREADS_PER_WARP_Y) == 0U);
+    // Assume there is no padding in our data.
+    uint32_t const lda{is_A_transpose ? k : m};
+    uint32_t const ldb{is_B_transpose ? n : k};
+    uint32_t const ldc{m};
 
-    constexpr unsigned int NUM_THREADS_X{NUM_WARPS_X * NUM_THREADS_PER_WARP_X};
-    constexpr unsigned int NUM_THREADS_Y{NUM_WARPS_Y * NUM_THREADS_PER_WARP_Y};
-    // Avoid using blockDim.x * blockDim.y as the number of threads per block.
-    // Because it is a runtime constant and the compiler cannot optimize the
-    // loop unrolling based on that.
-    // Use a compile time constant instead.
-    constexpr size_t NUM_THREADS{NUM_THREADS_X * NUM_THREADS_Y};
+    constexpr int WMMA_M{16};
+    constexpr int WMMA_N{16};
+    constexpr int WMMA_K{16};
 
-    // Cache a tile of A and B in shared memory for data reuse.
-    __shared__ T
-        A_thread_block_tile_transposed[BLOCK_TILE_SIZE_K][BLOCK_TILE_SIZE_Y];
-    __shared__ T B_thread_block_tile[BLOCK_TILE_SIZE_K][BLOCK_TILE_SIZE_X];
+    constexpr int WARP_SIZE{32};
 
-    // A_vals is cached in the register.
-    T A_vals[NUM_THREAD_TILES_PER_WARP_Y][THREAD_TILE_SIZE_Y] = {
-        static_cast<T>(0)};
-    // B_vals is cached in the register.
-    T B_vals[NUM_THREAD_TILES_PER_WARP_X][THREAD_TILE_SIZE_X] = {
-        static_cast<T>(0)};
+    dim3 gridDim;
+    dim3 blockDim;
 
-    size_t const thread_linear_idx{threadIdx.y * blockDim.x + threadIdx.x};
-    size_t const warp_linear_idx{thread_linear_idx / 32U};
-    size_t const warp_row_idx{warp_linear_idx / NUM_WARPS_X};
-    size_t const warp_col_idx{warp_linear_idx % NUM_WARPS_X};
-    size_t const thread_linear_idx_in_warp{thread_linear_idx % 32U};
-    size_t const thread_linear_row_idx_in_warp{thread_linear_idx_in_warp /
-                                               NUM_THREADS_PER_WARP_X};
-    size_t const thread_linear_col_idx_in_warp{thread_linear_idx_in_warp %
-                                               NUM_THREADS_PER_WARP_X};
+    // blockDim.x must be a multple of warpSize
+    // Block size of 128x4 means we have 16 (4x4) warps,
+    // each warp computes a 16x16 output tile,
+    // and a block computes a 64x64 output tile.
+    // Each block has 4x4 warps, totalling 4x4x32 threads.
+    int const num_warps_x = 4;
+    int const num_warps_y = 4;
+    blockDim.x = num_warps_x * WARP_SIZE;
+    blockDim.y = num_warps_y;
+    // Round up.
+    gridDim.x = (m + (WMMA_M * num_warps_x - 1)) / (WMMA_M * num_warps_x);
+    gridDim.y = (n + WMMA_N * num_warps_y - 1) / (WMMA_N * num_warps_y);
 
-    // Number of outer loops to perform the sum of inner products.
-    // C_thread_block_tile =
-    // \sigma_{thread_block_tile_idx=0}^{num_thread_block_tiles-1} A[:,
-    // thread_block_tile_idx:BLOCK_TILE_SIZE_K] *
-    // B[thread_block_tile_idx:BLOCK_TILE_SIZE_K, :]
-    size_t const num_thread_block_tiles{(k + BLOCK_TILE_SIZE_K - 1) /
-                                        BLOCK_TILE_SIZE_K};
-    // Each thread in the block processes NUM_THREAD_TILES_PER_WARP_Y *
-    // NUM_THREAD_TILES_PER_WARP_X * THREAD_TILE_SIZE_Y *
-    // THREAD_TILE_SIZE_X output values.
-    T C_thread_results[NUM_THREAD_TILES_PER_WARP_Y][NUM_THREAD_TILES_PER_WARP_X]
-                      [THREAD_TILE_SIZE_Y][THREAD_TILE_SIZE_X] = {
-                          static_cast<T>(0)};
-
-    constexpr size_t NUM_VECTOR_UNITS{sizeof(int4) / sizeof(T)};
-    static_assert(sizeof(int4) % sizeof(T) == 0U);
-    static_assert(BLOCK_TILE_SIZE_K % NUM_VECTOR_UNITS == 0U);
-    static_assert(BLOCK_TILE_SIZE_X % NUM_VECTOR_UNITS == 0U);
-    constexpr size_t VECTORIZED_THREAD_TILE_SIZE_X{THREAD_TILE_SIZE_X /
-                                                   NUM_VECTOR_UNITS};
-    static_assert(THREAD_TILE_SIZE_X % NUM_VECTOR_UNITS == 0U);
-    constexpr size_t VECTORIZED_THREAD_TILE_SIZE_Y{THREAD_TILE_SIZE_Y /
-                                                   NUM_VECTOR_UNITS};
-    static_assert(THREAD_TILE_SIZE_Y % NUM_VECTOR_UNITS == 0U);
-
-    for (size_t thread_block_tile_idx{0U};
-         thread_block_tile_idx < num_thread_block_tiles;
-         ++thread_block_tile_idx)
+    // C = A * B
+    if ((!is_A_transpose) && (!is_B_transpose))
     {
-        load_data_to_shared_memory_transposed_vectorized<
-            T, BLOCK_TILE_SIZE_X, BLOCK_TILE_SIZE_Y, BLOCK_TILE_SIZE_K,
-            NUM_THREADS>(A, lda, B, ldb, A_thread_block_tile_transposed,
-                         B_thread_block_tile, thread_block_tile_idx,
-                         thread_linear_idx, m, n, k);
-        __syncthreads();
-
-// Perform A[:, thread_block_tile_idx:BLOCK_TILE_SIZE_K] *
-// B[thread_block_tile_idx:BLOCK_TILE_SIZE_K, :] where A[:,
-// thread_block_tile_idx:BLOCK_TILE_SIZE_K] and
-// B[thread_block_tile_idx:BLOCK_TILE_SIZE_K, :] are cached in the
-// shared memory as A_thread_block_tile and B_thread_block_tile,
-// respectively. This inner product is further decomposed to
-// BLOCK_TILE_SIZE_K outer products. A_thread_block_tile *
-// B_thread_block_tile = \sigma_{k_i=0}^{BLOCK_TILE_SIZE_K-1}
-// A_thread_block_tile[:, k_i] @ B_thread_block_tile[k_i, :] Note that
-// both A_thread_block_tile and B_thread_block_tile can be cached in the
-// register.
-#pragma unroll
-        for (size_t k_i{0U}; k_i < BLOCK_TILE_SIZE_K; ++k_i)
-        {
-#pragma unroll
-            for (size_t thread_tile_repeat_row_idx{0U};
-                 thread_tile_repeat_row_idx < NUM_THREAD_TILES_PER_WARP_Y;
-                 ++thread_tile_repeat_row_idx)
-            {
-                size_t const A_thread_block_tile_row_idx{
-                    warp_row_idx * WARP_TILE_SIZE_Y +
-                    thread_tile_repeat_row_idx *
-                        (WARP_TILE_SIZE_Y / NUM_THREAD_TILES_PER_WARP_Y) +
-                    thread_linear_row_idx_in_warp * THREAD_TILE_SIZE_Y};
-                size_t const A_thread_block_tile_col_idx{k_i};
-#pragma unroll
-                for (size_t thread_tile_y_vector_idx{0U};
-                     thread_tile_y_vector_idx < VECTORIZED_THREAD_TILE_SIZE_Y;
-                     ++thread_tile_y_vector_idx)
-                {
-                    *reinterpret_cast<int4*>(
-                        &A_vals[thread_tile_repeat_row_idx]
-                               [thread_tile_y_vector_idx * NUM_VECTOR_UNITS]) =
-                        *reinterpret_cast<int4 const*>(
-                            &A_thread_block_tile_transposed
-                                [A_thread_block_tile_col_idx]
-                                [A_thread_block_tile_row_idx +
-                                 thread_tile_y_vector_idx * NUM_VECTOR_UNITS]);
-                }
-            }
-#pragma unroll
-            for (size_t thread_tile_repeat_col_idx{0U};
-                 thread_tile_repeat_col_idx < NUM_THREAD_TILES_PER_WARP_X;
-                 ++thread_tile_repeat_col_idx)
-            {
-                size_t const B_thread_block_tile_row_idx{k_i};
-                size_t const B_thread_block_tile_col_idx{
-                    warp_col_idx * WARP_TILE_SIZE_X +
-                    thread_tile_repeat_col_idx *
-                        (WARP_TILE_SIZE_X / NUM_THREAD_TILES_PER_WARP_X) +
-                    thread_linear_col_idx_in_warp * THREAD_TILE_SIZE_X};
-#pragma unroll
-                for (size_t thread_tile_x_vector_idx{0U};
-                     thread_tile_x_vector_idx < VECTORIZED_THREAD_TILE_SIZE_X;
-                     ++thread_tile_x_vector_idx)
-                {
-                    *reinterpret_cast<int4*>(
-                        &B_vals[thread_tile_repeat_col_idx]
-                               [thread_tile_x_vector_idx * NUM_VECTOR_UNITS]) =
-                        *reinterpret_cast<int4 const*>(
-                            &B_thread_block_tile[B_thread_block_tile_row_idx]
-                                                [B_thread_block_tile_col_idx +
-                                                 thread_tile_x_vector_idx *
-                                                     NUM_VECTOR_UNITS]);
-                }
-            }
-
-// Compute NUM_THREAD_TILES_PER_WARP_Y * NUM_THREAD_TILES_PER_WARP_X outer
-// products.
-#pragma unroll
-            for (size_t thread_tile_repeat_row_idx{0U};
-                 thread_tile_repeat_row_idx < NUM_THREAD_TILES_PER_WARP_Y;
-                 ++thread_tile_repeat_row_idx)
-            {
-#pragma unroll
-                for (size_t thread_tile_repeat_col_idx{0U};
-                     thread_tile_repeat_col_idx < NUM_THREAD_TILES_PER_WARP_X;
-                     ++thread_tile_repeat_col_idx)
-                {
-#pragma unroll
-                    for (size_t thread_tile_y_idx{0U};
-                         thread_tile_y_idx < THREAD_TILE_SIZE_Y;
-                         ++thread_tile_y_idx)
-                    {
-#pragma unroll
-                        for (size_t thread_tile_x_idx{0U};
-                             thread_tile_x_idx < THREAD_TILE_SIZE_X;
-                             ++thread_tile_x_idx)
-                        {
-                            C_thread_results[thread_tile_repeat_row_idx]
-                                            [thread_tile_repeat_col_idx]
-                                            [thread_tile_y_idx]
-                                            [thread_tile_x_idx] +=
-                                A_vals[thread_tile_repeat_row_idx]
-                                      [thread_tile_y_idx] *
-                                B_vals[thread_tile_repeat_col_idx]
-                                      [thread_tile_x_idx];
-                        }
-                    }
-                }
-            }
-        }
-        __syncthreads();
+        wmma_gemm_a_col_major_b_col_major<T1, T2, WMMA_M, WMMA_N, WMMA_K,
+                                          nvcuda::wmma::col_major,
+                                          nvcuda::wmma::col_major>
+            <<<gridDim, blockDim, 0, stream>>>(A, B, C, m, n, k, lda, ldb, ldc,
+                                               is_A_transpose, is_B_transpose,
+                                               alpha, beta);
     }
-
-// Write the results to DRAM.
-#pragma unroll
-    for (size_t thread_tile_repeat_row_idx{0U};
-         thread_tile_repeat_row_idx < NUM_THREAD_TILES_PER_WARP_Y;
-         ++thread_tile_repeat_row_idx)
+    // C = A^T * B
+    else if ((is_A_transpose) && (!is_B_transpose))
     {
-#pragma unroll
-        for (size_t thread_tile_repeat_col_idx{0U};
-             thread_tile_repeat_col_idx < NUM_THREAD_TILES_PER_WARP_X;
-             ++thread_tile_repeat_col_idx)
-        {
-#pragma unroll
-            for (size_t thread_tile_y_idx{0U};
-                 thread_tile_y_idx < THREAD_TILE_SIZE_Y; ++thread_tile_y_idx)
-            {
-#pragma unroll
-                for (size_t thread_tile_x_vector_idx{0U};
-                     thread_tile_x_vector_idx < VECTORIZED_THREAD_TILE_SIZE_X;
-                     ++thread_tile_x_vector_idx)
-                {
-                    size_t const C_row_idx{
-                        blockIdx.y * BLOCK_TILE_SIZE_Y +
-                        warp_row_idx * WARP_TILE_SIZE_Y +
-                        thread_tile_repeat_row_idx *
-                            (WARP_TILE_SIZE_Y / NUM_THREAD_TILES_PER_WARP_Y) +
-                        thread_linear_row_idx_in_warp * THREAD_TILE_SIZE_Y +
-                        thread_tile_y_idx};
-                    size_t const C_col_idx{
-                        blockIdx.x * BLOCK_TILE_SIZE_X +
-                        warp_col_idx * WARP_TILE_SIZE_X +
-                        thread_tile_repeat_col_idx *
-                            (WARP_TILE_SIZE_X / NUM_THREAD_TILES_PER_WARP_X) +
-                        thread_linear_col_idx_in_warp * THREAD_TILE_SIZE_X +
-                        thread_tile_x_vector_idx * NUM_VECTOR_UNITS};
-
-                    if (C_row_idx < m && C_col_idx < n)
-                    {
-                        int4 C_vals{*reinterpret_cast<int4 const*>(
-                            &C[C_row_idx * ldc + C_col_idx])};
-#pragma unroll
-                        for (size_t i{0U}; i < NUM_VECTOR_UNITS; ++i)
-                        {
-                            reinterpret_cast<T*>(&C_vals)[i] =
-                                alpha *
-                                    C_thread_results[thread_tile_repeat_row_idx]
-                                                    [thread_tile_repeat_col_idx]
-                                                    [thread_tile_y_idx]
-                                                    [thread_tile_x_vector_idx *
-                                                         NUM_VECTOR_UNITS +
-                                                     i] +
-                                beta * reinterpret_cast<T const*>(&C_vals)[i];
-                        }
-                        *reinterpret_cast<int4*>(
-                            &C[C_row_idx * ldc + C_col_idx]) = C_vals;
-                    }
-                }
-            }
-        }
+        wmma_gemm_a_col_major_b_col_major<T1, T2, WMMA_M, WMMA_N, WMMA_K,
+                                          nvcuda::wmma::row_major,
+                                          nvcuda::wmma::col_major>
+            <<<gridDim, blockDim, 0, stream>>>(A, B, C, m, n, k, lda, ldb, ldc,
+                                               is_A_transpose, is_B_transpose,
+                                               alpha, beta);
     }
+    // C = A * B^T
+    else if ((!is_A_transpose) && (is_B_transpose))
+    {
+        wmma_gemm_a_col_major_b_col_major<T1, T2, WMMA_M, WMMA_N, WMMA_K,
+                                          nvcuda::wmma::col_major,
+                                          nvcuda::wmma::row_major>
+            <<<gridDim, blockDim, 0, stream>>>(A, B, C, m, n, k, lda, ldb, ldc,
+                                               is_A_transpose, is_B_transpose,
+                                               alpha, beta);
+    }
+    // C = A^T * B^T
+    else
+    {
+        wmma_gemm_a_col_major_b_col_major<T1, T2, WMMA_M, WMMA_N, WMMA_K,
+                                          nvcuda::wmma::row_major,
+                                          nvcuda::wmma::row_major>
+            <<<gridDim, blockDim, 0, stream>>>(A, B, C, m, n, k, lda, ldb, ldc,
+                                               is_A_transpose, is_B_transpose,
+                                               alpha, beta);
+    }
+    
 }
+
+    //template void launch_wmma_mm<float, float>(float const* A, float const* B, float* C, uint32_t m, uint32_t n,
+    //                uint32_t k, bool is_A_transpose, bool is_B_transpose,
+    //                cudaStream_t stream);
+    template void launch_wmma_mm<__half, float>(__half const* A, __half const* B, float* C, uint32_t m, uint32_t n,
+                    uint32_t k, bool is_A_transpose, bool is_B_transpose,
+                    cudaStream_t stream, float alpha, float beta);
 
 }
 }
