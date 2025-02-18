@@ -62,14 +62,14 @@ meson test -C _build
 
 One of the more common applications is to use LAHVA as a subproject in other projects to reuse the implemented tensor classes and its BLAS interface.
 
-Using `meosn` this is rather straightforward, the following dependency should be added to the `meson.build` file.
+Using `meson` this is rather straightforward, the following dependency should be added to the `meson.build` file.
 
 ```python
 lahva_dep = dependency(
   'lahva',
   version: '>=0.0.0',
   fallback: ['lahva', 'lahva_dep'],
-  default_options: ['default_library=static','gpu=true'],
+  default_options: ['default_library=static'],
 )
 ```
 

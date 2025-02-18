@@ -35,12 +35,14 @@ option(
   'gpu',
   type: 'boolean',
   value: true,
+  yield: true,
   description: 'Compile with cuBLAS wrapper for capable GPUs only.',
 )
 
 option(
   'gpu_arch', 
   type: 'array',
-  value: ['86'],
+  value: ['native'],
+  yield: true,
   description: 'GPU architecture version string',
 )

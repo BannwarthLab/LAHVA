@@ -129,7 +129,7 @@ if gpu == true
   cuda = dependency('cuda', modules: ['cudart', 'cublas', 'cusolver', 'cusparse'])
   foreach arch : arches
     if arch == 'native'
-      add_project_arguments(['-gencode=arch=@0@,code=@1@'.format(arch, arch)], language: 'cuda')
+      add_project_arguments(['-arch=@0@'.format(arch)], language: 'cuda')
     else
       add_project_arguments(['-gencode=arch=compute_@0@,code=sm_@1@'.format(arch, arch)], language: 'cuda')
     endif
