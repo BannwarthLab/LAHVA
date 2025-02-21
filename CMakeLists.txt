@@ -80,10 +80,8 @@ target_sources(
 # LAHVA library target
 add_compile_definitions(${PRE_FLAGS})
 
-message(STATUS ${CMAKE_CURRENT_SOURCE_DIR})
 
 if (GPU)
-  message(STATUS ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(
   "${PROJECT_NAME}-lib"
   PUBLIC
@@ -94,7 +92,6 @@ target_include_directories(
 )
 
 else()
-  message(STATUS ${CMAKE_CURRENT_SOURCE_DIR})
   target_include_directories(
     "${PROJECT_NAME}-lib"
     PUBLIC
