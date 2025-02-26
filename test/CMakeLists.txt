@@ -29,8 +29,12 @@ if(GPU)
   target_link_libraries(${PROJECT_NAME}-level2-gpu-tester PRIVATE ${PROJECT_NAME})
   add_test(NAME level2-gpu COMMAND ${PROJECT_NAME}-level2-gpu-tester)
 
-  add_executable(${PROJECT_NAME}-add-level2-gpu-tester additional-level2-gpu.cpp utils.cpp)
-  target_link_libraries(${PROJECT_NAME}-add-level2-gpu-tester PRIVATE ${PROJECT_NAME})
-  add_test(NAME additional-level-2-gpu COMMAND ${PROJECT_NAME}-add-level2-gpu-tester)
+  add_executable(${PROJECT_NAME}-add-level1-gpu-tester additional-level1-gpu.cpp utils.cpp)
+  target_link_libraries(${PROJECT_NAME}-add-level1-gpu-tester PRIVATE ${PROJECT_NAME})
+  add_test(NAME additional-level-1-gpu COMMAND ${PROJECT_NAME}-add-level1-gpu-tester)
+
+  add_executable(${PROJECT_NAME}-gpu-misc gpu-misc.cpp)
+  target_link_libraries(${PROJECT_NAME}-gpu-misc PRIVATE ${PROJECT_NAME})
+  add_test(NAME gpu-misc COMMAND ${PROJECT_NAME}-gpu-misc)
 
 endif()

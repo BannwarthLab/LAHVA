@@ -43,14 +43,17 @@ public:
 #ifdef _CUDA
 class GPUTimer : public Timer{
     protected:
-        CudaRuntime * cudart_;
+        mutable std::shared_ptr<cudaStream_t> stream_ ;
     public:
         GPUTimer() {};
-        GPUTimer(CudaRuntime* cudart) {cudart_ = cudart;};
+
+        GPUTimer(CudaRuntime* cudart) {stream_ = cudart->getStreamPtr();};
         ~GPUTimer() {};
     public:
         void push(std::string label) override;
+        void push(std::string label, const cudaStream_t& stream);
         void pop() override;
+        void pop(const cudaStream_t& stream);
         float get(std::string label) override;
 };
 #endif

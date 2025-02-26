@@ -155,7 +155,7 @@ namespace lahva
         template <typename T, typename Allocator, typename GPUAllocator>
         void GPUTensor<T, Allocator, GPUAllocator>::allocateGPU(const CudaRuntime &cudart) const
         {
-            this->gpualloc_.setStream(cudart.stream_);
+            this->gpualloc_.setStream(cudart.getStreamPtr());
             this->device_ptr_.get_deleter() = this->gpualloc_;
             this->device_ptr_.reset(gpualloc_.allocate(this->size()));
         };
@@ -163,7 +163,7 @@ namespace lahva
         template <typename T, typename Allocator, typename GPUAllocator>
         void GPUTensor<T, Allocator, GPUAllocator>::deallocateGPU(const CudaRuntime& cudart) const
         {
-            this->gpualloc_.setStream(cudart.stream_);
+            this->gpualloc_.setStream(cudart.getStreamPtr());
             this->device_ptr_.get_deleter() = this->gpualloc_;
             this->device_ptr_.reset();
             if (!gpu_buffer)
@@ -190,7 +190,7 @@ namespace lahva
                 this->is_on_device_ = true;
                 if (this->data() != nullptr)
                 {
-                    this->gpualloc_.setStream(cudart.stream_);
+                    this->gpualloc_.setStream(cudart.getStreamPtr());
                     this->gpualloc_.H2DCopy(this->device_ptr_.get(), this->data(), this->size() * sizeof(T));
                 }
                     
@@ -207,7 +207,8 @@ namespace lahva
         {
             if (this->is_on_device_)
             {
-                this->gpualloc_.setStream(cudart.stream_);
+                this->gpualloc_.setStream(cudart.getStreamPtr());
+                std::cout << *(cudart.getStreamPtr()) << std::endl; 
                 gpualloc_.D2HCopy(this->device_ptr_.get(), this->data(), this->size() * sizeof(T));
                 this->is_on_device_ = false;
                 if ((cudart.criticalMem()) && (cudart.criticalSize(this->size() * sizeof(T))))

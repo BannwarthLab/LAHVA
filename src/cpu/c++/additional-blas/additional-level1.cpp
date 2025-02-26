@@ -56,13 +56,13 @@ namespace lahva
         T FrobeniusNorm(const Tensor<T>& mat, const Tensor<T>& mat2)
         {
             T norm = 0;
-            //#pragma omp parallel for reduction(+:norm)  
+            #pragma omp parallel for reduction(+:norm)  
             for (int i = 0 ; i < mat.size() ; i++)
             {
                 T diff = mat.data()[i] - mat2.data()[i];
                 norm = fma(diff, diff, norm);
             };
-            //norm = std::sqrt(norm);
+            norm = std::sqrt(norm);
             return norm;
         }
 

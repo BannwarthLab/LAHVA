@@ -170,13 +170,28 @@ namespace lahva
         void
         deallocate(value_type *ptr, std::size_t n) noexcept // Use pointer if pointer is not a value_type*
         {
-            get_cuda_error(cudaFreeAsync(ptr, *stream_));
+            if (stream_)
+            {
+                get_cuda_error(cudaFreeAsync(ptr, *stream_));
+            }
+            else
+            {
+                get_cuda_error(cudaFree(ptr));
+            }
+            
         }
 
         void
         deallocate(value_type *ptr) noexcept // Use pointer if pointer is not a value_type*
         {
-            get_cuda_error(cudaFreeAsync(ptr, *stream_));
+            if (stream_)
+            {
+                get_cuda_error(cudaFreeAsync(ptr, *stream_));
+            }
+            else
+            {
+                get_cuda_error(cudaFree(ptr));
+            }
         }
 
         void operator()(T *ptr)

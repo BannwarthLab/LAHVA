@@ -62,9 +62,9 @@ namespace lahva{
         bool delete_stream = false;
         bool critical_memory = false;
         float critical_memory_threshold = 0.6;
-    public:
-
+        
         mutable std::shared_ptr<cudaStream_t> stream_ = std::make_shared<cudaStream_t>(cudaStreamPerThread);
+    public:
 
         /// @brief create Stream
         void createStream();
@@ -138,6 +138,9 @@ namespace lahva{
         /// @return CUDA stream
         cudaStream_t& getStream() {return *(stream_);}
         cudaStream_t& getStream() const {return *(stream_);}
+
+        std::shared_ptr<cudaStream_t>& getStreamPtr() {return stream_;}
+        std::shared_ptr<cudaStream_t>& getStreamPtr() const {return stream_;}
 
         void getStream_ptr(std::shared_ptr<cudaStream_t>& stream) {stream = stream_;}
         void getStream_ptr(std::shared_ptr<cudaStream_t>& stream) const {stream = stream_;}
