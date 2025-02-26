@@ -45,8 +45,9 @@ int test_Frobenius_norm(const CudaRuntime& cudart)
     T res_cpu = 0.0;
     res_cpu = FrobeniusNorm(A);
     
-    IsEqual(res_gpu, res_cpu);
-    if (!IsEqual(res_gpu, res_cpu))
+    T eps = std::abs( std::nextafter(res_cpu, +INFINITY) -res_cpu);
+
+    if (!check(res_gpu, res_cpu, eps*10, "FrobeniusNorm"))
     {
         std::cout << "Test failed: FrobeniusNorm" << std::endl;
         return 1;
