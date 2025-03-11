@@ -3,6 +3,7 @@
 #include "reductions/reduction.cuh"
 #include "reductions/common.cuh"
 #include "additional-level1.cuh"
+#include "additional-level1.hpp"
 namespace lahva
 {
     namespace gpu
@@ -14,6 +15,8 @@ namespace lahva
 
             ApplyKernel_<<<cudart.gridSize(in.size(), 1), cudart.blockSize(), 0, cudart.getStream()>>>(in.size(), in.gpu_data(), operation);
         }
+
+        
 
         template<typename T>
         T Sum_(const CudaRuntime& cudart, const GPUTensor_<T>& in, GPUTensor_<T>& res)
@@ -56,6 +59,13 @@ namespace lahva
             return res[0];
         }
 
+        template<typename in, typename out>
+        void CopyTensors(const unsigned long size, const in* d_in, out* d_out)
+        {
+            unsigned int blockSize = 512;
+            int gridSize = (int)ceil(((float)size/blockSize));
+            CopyTensors_<in, out><<<gridSize, blockSize, 0, 0>>>(size, d_in, d_out);
+        }
 
         template float MaxElement_<float>(const CudaRuntime& cudart, const GPUTensor_<float>& in, GPUTensor_<float>& res);
         template double MaxElement_<double>(const CudaRuntime& cudart, const GPUTensor_<double>& in, GPUTensor_<double>& res);
@@ -65,6 +75,8 @@ namespace lahva
         template double Sum_<double>(const CudaRuntime& cudart, const GPUTensor_<double>& in, GPUTensor_<double>& res);
         template void ApplyKernel<float, fabs_gpu<float>>(const CudaRuntime& cudart, GPUTensor_<float>& in, fabs_gpu<float> operation);
         template void ApplyKernel<double, fabs_gpu<double>>(const CudaRuntime& cudart, GPUTensor_<double>& in, fabs_gpu<double> operation);
+        template void CopyTensors<double, double>(const unsigned long size, const double* d_in, double* d_out);
+        template void CopyTensors<float, float>(const unsigned long size, const float* d_in, float* d_out);
     } // namespace gpu
     
 } // namespace lahva

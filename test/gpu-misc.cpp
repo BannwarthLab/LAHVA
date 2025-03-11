@@ -29,6 +29,36 @@ int test_std_vector_async(CudaRuntime& cudart)
     return 0;
 };
 
+int test_std_vector_push_GPU_values(CudaRuntime& cudart)
+{
+    std::vector<Vector> vecs;
+    Vector vec = Vector(10, 0.0f);
+    // we create empty vectors without streams 
+    //vecs.resize(10);
+    Vector vec_tot(10, 1.0f);
+    for (int i = 0; i < 50; i++)
+    {
+        
+        lahva::gpu::AddVectors(cudart, 1.0, vec_tot, vec);
+        vecs.push_back(vec);
+        lahva::gpu::ScaleVector(cudart, 0.0, vec);   
+    }
+    lahva::gpu::ScaleVector(cudart, 0.0, vec_tot);
+    
+    for (int i = 0; i < 50; i++)
+    {
+        lahva::gpu::AddVectors(cudart, 1.0, vecs[i], vec_tot);
+    }
+    vec_tot.copy2host(cudart);
+    cudart.synchronize();
+    std::cout << vec_tot.sum() << std::endl;
+    if (vec_tot.sum() != (50*10)) return 1;
+
+    //vecs.push_back(vec);
+    // then we just deallocate them and see if that works without a segfault or cuda error
+    return 0;
+};
+
 int test_GPUTimer_stdConst(CudaRuntime& cudart)
 {
     GPUTimer timer;
@@ -101,6 +131,7 @@ int main()
     stat += test_GPUTimer(cudart);
     stat += test_GPUTimer_stream(cudart);
     stat += test_GPUTimer_stream_no_pop(cudart);
+    stat += test_std_vector_push_GPU_values(cudart);
 
 
     return stat;

@@ -4,6 +4,7 @@
 #include "impl/tensor/cpu/tensor.hpp"
 #include "runtime.hpp"
 #include "const.h"
+#include "additional-level1.hpp"
 namespace lahva
 {
     namespace gpu
@@ -45,7 +46,14 @@ namespace lahva
             virtual ~GPUTensor() {this->device_ptr_.get_deleter() = this->gpualloc_;};
             GPUTensor(const GPUTensor &other) : CPUTensor<T, Allocator>{other},
                                                 gpualloc_{other.get_gpuallocator()},
-                                                is_on_device_{false} {};
+                                                is_on_device_{other.is_on_device_} 
+            {
+                if (other.is_on_device_)
+                {
+                    this->device_ptr_.reset(gpualloc_.allocate(this->size()));
+                    CopyTensors(other.size(), other.gpu_data(), this->gpu_data());
+                }
+            };
             GPUTensor(GPUTensor &&other) : CPUTensor<T, Allocator>{std::move(other)}
             {
                 this->gpualloc_ = other.get_gpuallocator();
@@ -72,9 +80,14 @@ namespace lahva
                     {
                         CPUTensor<T, Allocator>::operator=(other);
                     }
-                    this->is_on_device_ = false;
-
+                    this->is_on_device_ = other.is_on_device_;
                     this->gpu_buffer = other.gpu_buffer;
+                    
+                    if (other.is_on_device_)
+                    {
+                        this->device_ptr_.reset(gpualloc_.allocate(this->size()));
+                        CopyTensors(other.size(), other.gpu_data(), this->gpu_data());
+                    }
                 }
                 return *this;
             };
@@ -208,7 +221,6 @@ namespace lahva
             if (this->is_on_device_)
             {
                 this->gpualloc_.setStream(cudart.getStreamPtr());
-                std::cout << *(cudart.getStreamPtr()) << std::endl; 
                 gpualloc_.D2HCopy(this->device_ptr_.get(), this->data(), this->size() * sizeof(T));
                 this->is_on_device_ = false;
                 if ((cudart.criticalMem()) && (cudart.criticalSize(this->size() * sizeof(T))))

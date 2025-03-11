@@ -164,7 +164,15 @@ namespace lahva
         allocate(std::size_t n) const override 
         {
             value_type *ptr;
-            get_cuda_error(cudaMallocAsync((void **)&ptr, n * sizeof(value_type), *stream_));
+            if (stream_)
+            {
+                get_cuda_error(cudaMallocAsync((void **)&ptr, n * sizeof(value_type), *stream_));
+            }
+            else
+            {
+                get_cuda_error(cudaMalloc((void **)&ptr, n * sizeof(value_type)));
+            }
+            
             return ptr;
         }
         void
@@ -204,12 +212,27 @@ namespace lahva
 
         void H2DCopy(void *d_ptr, const void *h_ptr, const size_t buffersize) const
         {
-            get_cuda_error(cudaMemcpyAsync(d_ptr, h_ptr, buffersize, cudaMemcpyHostToDevice, *stream_));
+            if (stream_ )
+            {
+                get_cuda_error(cudaMemcpyAsync(d_ptr, h_ptr, buffersize, cudaMemcpyHostToDevice, *stream_));
+            }
+            else
+            {
+                get_cuda_error(cudaMemcpy(d_ptr, h_ptr, buffersize, cudaMemcpyHostToDevice));    
+            }
+            
         };
 
         void D2HCopy(void *d_ptr, void *h_ptr, const size_t buffersize) const
         {
-            get_cuda_error(cudaMemcpyAsync(h_ptr, d_ptr, buffersize, cudaMemcpyDeviceToHost, *stream_));
+            if (stream_)
+            {
+                get_cuda_error(cudaMemcpyAsync(h_ptr, d_ptr, buffersize, cudaMemcpyDeviceToHost, *stream_));
+            }
+            else
+            {
+                get_cuda_error(cudaMemcpy(h_ptr, d_ptr, buffersize, cudaMemcpyDeviceToHost));
+            }
         };
         void setStream(std::shared_ptr<cudaStream_t>& stream)  const {
              stream_ = stream;};
