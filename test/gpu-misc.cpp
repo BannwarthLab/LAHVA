@@ -7,13 +7,23 @@ using Vector =  gpu::Vector<double, CudaHostAllocator<double>, CudaDeviceAsyncAl
 int test_std_vector_async(CudaRuntime& cudart)
 {
     std::vector<Vector> vecs;
-    Vector vec = Vector(10, 0.0f);
+    Vector vec = Vector(10, 1.0f);
     // we create empty vectors without streams 
     //vecs.resize(10);
+    Vector vec_tot(10, 0.0f);
     for (int i = 0; i < 50; i++)
     {
         vecs.push_back(vec);
+        
     }
+    for (int i = 0; i < 50; i++)
+    {
+        lahva::gpu::AddVectors(cudart, 1.0, vecs[i], vec_tot);
+    }
+    vec_tot.copy2host(cudart);
+    cudart.synchronize();
+    if (vec_tot.sum() != (50*10)) return 1;
+
     //vecs.push_back(vec);
     // then we just deallocate them and see if that works without a segfault or cuda error
     return 0;
