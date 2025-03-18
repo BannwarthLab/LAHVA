@@ -84,11 +84,77 @@ In accordance with the purpose of this library, these classes are available in a
 
 In general, there are two ways to use the provided Tensor classes:
 a) in a static fashion, i.e. import one namespace and use it in that way. This works best outside of classes.
-
+b) in a polymorphic fashion, where the actual tensor type is resolved only at runtime using a template parameter in a class of our implementation.
 
 ### Setup Tensor classes
 
+#### Static fashion
 
+For CPU-only tensor classes, we import the `linalg.hpp` header that defines the tensor classes and then use the namespace `lahva::cpu`.
+
+```
+#include <linalg.hpp>
+
+lahva::cpu::Vector<double> p(5, 2.0);
+
+using namespace lahva::cpu;
+// construct a 5 by 5 matrix, using the Shape struct and initializing the values to 1.0
+Matrix<float> s(Shape(5, 5), 1.0);
+```
+
+For tensor classes, that also have GPU-compatibility, we include the same header but use the namespace `lahva::gpu`.
+In comparison to the CPU tensor, GPU tensors rely on two Allocators one for the CPU memory space and for the GPU memory space that also handles memory transfers between host and device.
+
+```
+#include <linalg.hpp>
+
+lahva::gpu::Vector<double> p(5, 2.0);
+
+using namespace lahva::gpu;
+// similar to the CPU Matrix, we have a quadratic 5 x 5 matrix
+// here we explicitly give the template parameters for the Allocators instead of relying on default values. 
+Matrix<float, CudaHostAllocator<float>, CudaDeviceAsyncAllocator<float>> s(5, 1.0);
+```
+
+#### Polymorphic fashion
+
+In order to change between CPU and GPU tensors in a polymorphic fashion, a few additional components come in handy.
+We provide an example for this infrastructure in `example/lahva_wrap.hpp`. We extend the namespaces `lahva::cpu` and `lahva::gpu` with empty structs. These are used as template parameters and markers to lead the compiler to use the appropriate functions and classes from the CPU or GPU namespace. In an application we would include this `lahva_wrap.hpp`, and implement our `TestClass` as follows:
+
+For the `testclass.hpp`:
+```
+#include "example/lahva_wrap.hpp"
+
+using namespace lahva::cpu;
+using namespace lahva::gpu;
+
+template<typename blas_impl>
+class TestClass
+{
+  public:
+    template<typename U>
+    using Vector = typename TensorFactory<blas_impl>::template Vector<U>;
+    template<typename U>
+    using Matrix = typename TensorFactory<blas_impl>::template Matrix<U>;   
+    template<typename U>
+    using LowTriMatrix = typename TensorFactory<blas_impl>::template LowTriMatrix<U>;
+  private:
+    Vector<double> vec1;
+    Matrix<float> mat2;
+    LowTriMatrix<int> low3;
+}
+```
+
+When creating the classes in a `impl.cpp` file for example we would create a CPU-only and a GPU and CPU class.
+
+```
+#include "testclass.hpp"
+
+TestClass<cpuBLAS> test_cpu;
+TestClass<gpuBLAS> test_gpu;
+```
+
+To see the effect of this design choice you can visit one of our libraries based on LAHVA: [GAMBITS](https://git.rwth-aachen.de/bannwarthlab/gambits). 
 
 ## Support
 
