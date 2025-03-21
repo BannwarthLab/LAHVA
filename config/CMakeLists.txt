@@ -52,6 +52,11 @@ if(LAPACK_VENDOR MATCHES "auto")
   endif()
 endif()
 
+if(INSTALL_OPENBLAS)
+  lahva_find_package(OpenBLAS)
+  set (LAPACK_VENDOR "openblas")
+endif()
+
 if(LAPACK_VENDOR STREQUAL "mkl")
   list(APPEND PRE_FLAGS "W_MKL")
   set(BLA_VENDOR Intel10_64lp)

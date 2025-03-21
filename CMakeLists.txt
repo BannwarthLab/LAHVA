@@ -18,6 +18,7 @@ include(GNUInstallDirs)
 option(GPU "Enable GPU support" OFF)
 option(LAPACK_VENDOR "Specify LAPACK vendor" "auto")
 option(CUSTOM_LIBRARIES "Custom libraries for LAPACK" "")
+option(INSTALL_OPENBLAS "Install OpenBLAS" OFF)
 #option(CUDA_ARCHITECTURES "NVIDIA Compute Capability (list of strings)" "89;86;80")
 
 option(WITH_TESTS "Copmile Testsuite" OFF)
@@ -66,6 +67,8 @@ if(GPU)
   target_link_libraries("${PROJECT_NAME}-lib" PUBLIC "CUDA::cudart" "CUDA::cublas" "CUDA::cusolver" "CUDA::cusparse")
   list(APPEND PRE_FLAGS "_CUDA")
 endif()
+
+include_directories()
 
 # Collect source of the project
 set(SRC_FILES)
