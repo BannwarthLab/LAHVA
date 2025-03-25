@@ -97,9 +97,7 @@ elif lapack_vendor == 'openblas'
   lib_deps += openblas_dep
   if not cc.links('external dsytrs; call dsytrs(); end', dependencies: openblas_dep)
     lapack_dep = dependency('lapack', required: false)
-    if (not cc.has_header('lapack.h', dependencies: lapack_dep))
-      add_project_arguments(['-DNETLIB_HEADER'], language: 'cpp')
-    endif
+    
     if not lapack_dep.found()
       lapack_dep = cc.find_library('lapack')
     endif
@@ -115,7 +113,6 @@ elif lapack_vendor == 'apple'
 
 else
   lapack_dep = dependency('lapack', required: false)
-  cc.has_header('lapack.h', dependencies: lapack_dep)
   if not lapack_dep.found()
     lapack_dep = cc.find_library('lapack')
   endif
@@ -125,6 +122,16 @@ else
     blas_dep = cc.find_library('blas')
   endif
   lib_deps += blas_dep
+endif
+
+if cc.has_header('lapack.h')
+  message('LAPACK header found')
+else
+  message('LAPACK not found, using netlib headers')
+  add_project_arguments(['-DNETLIB_HEADER'], language: 'cpp')
+  if gpu == true
+    add_project_arguments(['-DNETLIB_HEADER'], language: 'cuda')
+  endif
 endif
 
 if gpu == true
