@@ -12,4 +12,8 @@
     typedef int32_t LPCK_INT;
     #endif
 #endif
+#ifdef W_MKL
+#include <mkl.h>
+typedef lapack_int LPCK_INT;
+#endif
 #endif // LAHVA_LAPACK_WRAP_HPP

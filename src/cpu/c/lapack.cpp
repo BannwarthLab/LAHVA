@@ -1,14 +1,17 @@
 #include "impl/blas/cpu/lapack.h"
 #include <stdexcept>
+#include "lapack_wrap.hpp"
 namespace lahva{
 
     namespace cpu
     {
-        void SolveGenSysLinEquations(const char* T, const LPCK_INT n, double* a, const LPCK_INT nrhs, double* b)
+        void SolveGenSysLinEquations(const char* T, const int n_, double* a, const int nrhs_, double* b)
         {
             LPCK_INT info = 0;
+            LPCK_INT n = n_;
+            LPCK_INT nrhs = nrhs_;
             LPCK_INT* ipiv = new LPCK_INT[n];
-
+            
             dgetrf_(&n, &n, a, &n, ipiv, &info);
             if (info != 0)
             {
@@ -22,11 +25,13 @@ namespace lahva{
             delete[] ipiv;
         };
 
-        void SolveGenSysLinEquations(const LPCK_INT n, double* a, const LPCK_INT nrhs, double* b, const char* T)
+        void SolveGenSysLinEquations(const int n_, double* a, const int nrhs_, double* b, const char* T)
         {
             LPCK_INT info = 0;
+            LPCK_INT n = n_;
+            LPCK_INT nrhs = nrhs_;
             LPCK_INT* ipiv = new LPCK_INT[n];
-
+            
             dgetrf_(&n, &n, a, &n, ipiv, &info);
             if (info != 0)
             {
@@ -41,11 +46,13 @@ namespace lahva{
         };
 
 
-        void SolveGenSysLinEquations(const char* T, const LPCK_INT n, float* a, const LPCK_INT nrhs, float* b)
+        void SolveGenSysLinEquations(const char* T, const int n_, float* a, const int nrhs_, float* b)
         {
             LPCK_INT info = 0;
+            LPCK_INT n = n_;
+            LPCK_INT nrhs = nrhs_;
             LPCK_INT* ipiv = new LPCK_INT[n];
-
+           
             sgetrf_(&n, &n, a, &n, ipiv, &info);
             if (info != 0)
             {
@@ -59,11 +66,13 @@ namespace lahva{
             delete[] ipiv;
         };
 
-        void SolveGenSysLinEquations(const LPCK_INT n, float* a, const LPCK_INT nrhs, float* b, const char* T)
+        void SolveGenSysLinEquations(const int n_, float* a, const int nrhs_, float* b, const char* T)
         {
             LPCK_INT info = 0;
+            LPCK_INT n = n_;
+            LPCK_INT nrhs = nrhs_;
             LPCK_INT* ipiv = new LPCK_INT[n];
-
+            
             sgetrf_(&n, &n, a, &n, ipiv, &info);
             if (info != 0)
             {
