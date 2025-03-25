@@ -86,6 +86,16 @@ else()
     list(APPEND lib_deps ${LAPACK_LIB})
   endif()
 
+  find_file(LAPACK_HEADER_FILE "lapack.h" PATHS /usr/include /usr/local/include)
+
+  if(LAPACK_HEADER_FILE)
+    message(STATUS "Found header file: ${LAPACK_HEADER_FILE}")
+    target_include_directories("${PROJECT_NAME}-lib" PUBLIC "${LAPACK_HEADER_FILE}")
+  else()
+    message(FATAL_ERROR "Header file not found")
+    add_compile_definitions(NETLIB_HEADER)
+  endif()
+
   find_package(BLAS REQUIRED GLOBAL)
   if("${BLAS_LIBRARIES}" MATCHES "intel")
     list(APPEND PRE_FLAGS "W_MKL")
@@ -111,18 +121,6 @@ if(NOT DEFINED "${PROJECT_NAME}-dependency-method")
     "subproject" "cmake" "pkgconf" "fetch"
   )
 endif()
-
-set(
-  "${PROJECT_NAME}-module-dir"
-  "${PROJECT_NAME}/${CMAKE_Fortran_COMPILER_ID}-${CMAKE_Fortran_COMPILER_VERSION}"
-  CACHE STRING
-  "Subdirectory to install generated module files to"
-)
-set(
-  module-dir
-  "${${PROJECT_NAME}-module-dir}"
-)
-set(module-dir "${module-dir}" PARENT_SCOPE)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" PARENT_SCOPE)

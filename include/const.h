@@ -18,7 +18,11 @@ typedef int32_t LPCK_INT;
     #else
     typedef int32_t BLAS_INT;
     #endif
+#ifdef NETLIB_HEADER
+#include <netlib/lapack.h>
+#else
 #include <lapack.h>
+#endif
     #ifdef OPENBLAS_GENERIC
     typedef blasint LPCK_INT;
     #else

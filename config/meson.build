@@ -97,6 +97,9 @@ elif lapack_vendor == 'openblas'
   lib_deps += openblas_dep
   if not cc.links('external dsytrs; call dsytrs(); end', dependencies: openblas_dep)
     lapack_dep = dependency('lapack', required: false)
+    if (not cc.has_header('lapack.h', dependencies: lapack_dep))
+      add_project_arguments(['-DNETLIB_HEADER'], language: 'cpp')
+    endif
     if not lapack_dep.found()
       lapack_dep = cc.find_library('lapack')
     endif
@@ -112,6 +115,7 @@ elif lapack_vendor == 'apple'
 
 else
   lapack_dep = dependency('lapack', required: false)
+  cc.has_header('lapack.h', dependencies: lapack_dep)
   if not lapack_dep.found()
     lapack_dep = cc.find_library('lapack')
   endif
