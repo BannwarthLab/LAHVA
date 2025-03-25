@@ -4,7 +4,6 @@
 #include <memory>
 #include <iterator>
 #include <iostream>
-#include "const.h"
 #include "impl/tensor/allocators.hpp"
 namespace lahva
 {

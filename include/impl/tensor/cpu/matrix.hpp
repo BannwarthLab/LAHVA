@@ -4,7 +4,6 @@
 #include "impl/tensor/cpu/tensor.hpp"
 #include "impl/tensor/cpu/vector.hpp"
 #include "impl/blas/cpu/level1.h"
-#include "const.h"
 #include <initializer_list>
 namespace lahva
 {

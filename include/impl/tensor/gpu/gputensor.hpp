@@ -3,7 +3,6 @@
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
 #include "runtime.hpp"
-#include "const.h"
 #include "additional-level1.hpp"
 namespace lahva
 {
