@@ -27,8 +27,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "PGI" OR CMAKE_CXX_COMPILER_ID MATCHES "NVI
 endif()
 
 # Dependencies
-# find_library(STDCPP_LIB stdc++)
-# list(APPEND lib_deps ${STDCPP_LIB})
 find_package(OpenMP REQUIRED)
 target_link_libraries("${PROJECT_NAME}-lib" PUBLIC "OpenMP::OpenMP_CXX")
 
@@ -122,8 +120,10 @@ if(NOT DEFINED "${PROJECT_NAME}-dependency-method")
   )
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" PARENT_SCOPE)
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+  file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+endif()
 install(
   DIRECTORY
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/"

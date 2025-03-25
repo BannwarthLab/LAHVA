@@ -123,7 +123,7 @@ else
   endif
   lib_deps += blas_dep
 endif
-
+if lapack_vendor != 'mkl'
 if cc.has_header('lapack.h')
   message('LAPACK header found')
 else
@@ -132,6 +132,7 @@ else
   if gpu == true
     add_project_arguments(['-DNETLIB_HEADER'], language: 'cuda')
   endif
+endif
 endif
 
 if gpu == true

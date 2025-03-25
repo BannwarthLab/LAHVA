@@ -26,7 +26,9 @@ typedef int32_t LPCK_INT;
 #ifdef _CUDA
 #include "cublas_v2.h"
 #endif
-
+#ifndef uint
+typedef unsigned int uint;
+#endif
 namespace lahva
 {
     static const CBLAS_LAYOUT major = CblasColMajor;
