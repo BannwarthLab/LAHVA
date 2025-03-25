@@ -1,6 +1,6 @@
 #include "const.h"
 #include "linalg.hpp"
-
+#include "lapack_wrap.hpp"
 namespace lahva{
 
     namespace cpu

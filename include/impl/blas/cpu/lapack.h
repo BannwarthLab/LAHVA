@@ -1,5 +1,5 @@
 #include "const.h"
-
+#include "lapack_wrap.hpp"
 namespace lahva{
 
     namespace cpu

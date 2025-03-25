@@ -5,7 +5,7 @@
 #include <mkl.h>
 typedef MKL_INT BLAS_INT;
 typedef lapack_int LPCK_INT;
-#elif _APPLE
+#elif defined(_APPLE)
 #define ACCELERATE_NEW_LAPACK
 #include <Accelerate/Accelerate.h>
 typedef CBLAS_ORDER CBLAS_LAYOUT;
@@ -17,16 +17,6 @@ typedef int32_t LPCK_INT;
     typedef blasint BLAS_INT;
     #else
     typedef int32_t BLAS_INT;
-    #endif
-#ifdef NETLIB_HEADER
-#include <netlib/lapack.h>
-#else
-#include <lapack.h>
-#endif
-    #ifdef OPENBLAS_GENERIC
-    typedef blasint LPCK_INT;
-    #else
-    typedef int32_t LPCK_INT;
     #endif
 #endif
 #include <omp.h>
