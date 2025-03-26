@@ -319,6 +319,7 @@ ubuntu-20.4-cu-11.8-intel-mkl:       # This job runs in the build stage, which r
     APPTAINER_EXEC_ARGS: "--nv"
   tags:
     - cpu
+    - gpu
   script:
     - !reference [.cpu_prep, script]
     - !reference [.gpu_prep, script]
@@ -345,6 +346,7 @@ ubuntu-20.4-cu-11.8-intel-openblas:       # This job runs in the build stage, wh
     APPTAINER_EXEC_ARGS: "--nv"
   tags:
     - cpu
+    - gpu
   script:
     - !reference [.cpu_prep, script]
     - !reference [.gpu_prep, script]
@@ -370,6 +372,7 @@ ubuntu-20.4-cu-11.8-gcc-9-mkl:       # This job runs in the build stage, which r
     APPTAINER_EXEC_ARGS: "--nv"
   tags:
     - cpu
+    - gpu
   script:
     - !reference [.cpu_prep, script]
     - !reference [.gpu_prep, script]
@@ -421,6 +424,7 @@ ubuntu-20.4-cu-11.8-intel-mkl-cmake:       # This job runs in the build stage, w
     APPTAINER_EXEC_ARGS: "--nv"
   tags:
     - cpu
+    - gpu
   script:
     - !reference [.cpu_prep, script]
     - !reference [.gpu_prep, script]
@@ -447,6 +451,7 @@ ubuntu-20.4-cu-11.8-intel-openblas-cmake:       # This job runs in the build sta
     APPTAINER_EXEC_ARGS: "--nv"
   tags:
     - cpu
+    - gpu
   script:
     - !reference [.cpu_prep, script]
     - !reference [.gpu_prep, script]
@@ -472,6 +477,7 @@ ubuntu-20.4-cu-11.8-gcc-9-mkl-cmake:       # This job runs in the build stage, w
     APPTAINER_EXEC_ARGS: "--nv"
   tags:
     - cpu
+    - gpu
   script:
     - !reference [.cpu_prep, script]
     - !reference [.gpu_prep, script]
