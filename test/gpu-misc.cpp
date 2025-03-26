@@ -40,6 +40,7 @@ int test_std_vector_push_GPU_values(CudaRuntime& cudart)
     {
         
         lahva::gpu::AddVectors(cudart, 1.0, vec_tot, vec);
+        cudart.synchronize();
         vecs.push_back(vec);
         cudart.synchronize();
         lahva::gpu::ScaleVector(cudart, 0.0, vec);   

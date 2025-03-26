@@ -41,6 +41,7 @@ set_target_properties(
   #Fortran_MODULE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include"
 )
 set(PRE_FLAGS "")
+set(COMPILER_FLAGS "")
 # General configuration information
 add_subdirectory("config")
 
@@ -79,10 +80,10 @@ target_sources(
   "${PROJECT_NAME}-lib" PRIVATE
   ${SRC_FILES}
 )
-
+message(STATUS "Compile flags " ${COMPILER_FLAGS})
 # LAHVA library target
 add_compile_definitions(${PRE_FLAGS})
-
+target_compile_options(${PROJECT_NAME}-lib PUBLIC $<$<COMPILE_LANGUAGE:CXX>:  ${COMPILER_FLAGS}>)
 
 if (GPU)
 target_include_directories(

@@ -7,10 +7,10 @@ typedef MKL_INT BLAS_INT;
 typedef lapack_int LPCK_INT;
 #elif defined(_APPLE)
 #define ACCELERATE_NEW_LAPACK
+typedef int64_t BLAS_INT;
 #include <Accelerate/Accelerate.h>
+typedef __LAPACK_int LPCK_INT;
 typedef CBLAS_ORDER CBLAS_LAYOUT;
-typedef int32_t BLAS_INT;
-typedef int32_t LPCK_INT; 
 #else
 #include <cblas.h>
     #ifdef OPENBLAS_GENERIC
@@ -19,7 +19,9 @@ typedef int32_t LPCK_INT;
     typedef int32_t BLAS_INT;
     #endif
 #endif
+#ifdef W_OPENMP
 #include <omp.h>
+#endif
 #include <climits>
 #include <utility>
 #include <cmath>

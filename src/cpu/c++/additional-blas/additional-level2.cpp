@@ -34,6 +34,8 @@ namespace lahva
             {
                 AddVectors(alpha, a, c);
             }
+#elif defined(__ACCELERATE__)
+            appleblas_dgeadd(major, transa, transb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
 #endif
         };
 
@@ -66,6 +68,8 @@ namespace lahva
             {
                 AddVectors(alpha, a, c);
             }
+#elif defined(__ACCELERATE__)
+            appleblas_sgeadd(major, transa, transb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
 #endif
         };
 
@@ -98,6 +102,8 @@ namespace lahva
             {
                 AddVectors(alpha, a, c);
             }
+#elif defined(__ACCELERATE__)
+            appleblas_dgeadd(major, transa, transb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
 #endif
         };
 
@@ -130,6 +136,8 @@ namespace lahva
             {
                 AddVectors(alpha, a, c);
             }
+#elif defined(__ACCELERATE__)
+            appleblas_sgeadd(major, transa, transb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
 #endif
         };
     }

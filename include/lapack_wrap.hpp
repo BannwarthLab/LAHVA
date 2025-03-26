@@ -1,6 +1,6 @@
 #ifndef LAHVA_LAPACK_WRAP_HPP
 #define LAHVA_LAPACK_WRAP_HPP
-#if not defined(ACCELERATE_NEW_LAPACK) and not defined(W_MKL)
+#if not defined(W_MKL) and not defined(_APPLE)
 #ifdef NETLIB_HEADER
 #include <netlib/lapack.h>
 #else
@@ -12,8 +12,18 @@
     typedef int32_t LPCK_INT;
     #endif
 #endif
+#ifdef _APPLE
+#define ACCELERATE_NEW_LAPACK
+typedef int64_t BLAS_INT;
+#include <Accelerate/Accelerate.h>
+
+typedef __LAPACK_int LPCK_INT;
+
+typedef CBLAS_ORDER CBLAS_LAYOUT;
+#endif
 #ifdef W_MKL
 #include <mkl.h>
 typedef lapack_int LPCK_INT;
 #endif
+
 #endif // LAHVA_LAPACK_WRAP_HPP

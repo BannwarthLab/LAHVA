@@ -28,7 +28,7 @@ int test_dgemv_zero_v_cpp(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
 
     y = Vector<double>(M, 1.0);
     
@@ -36,13 +36,13 @@ int test_dgemv_zero_v_cpp(){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
-    MatrixVectorProduct(A, x, y, "N", 1.0d, 1.0d);
+    MatrixVectorProduct(A, x, y, "N", 1.0, 1.0);
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     A = Matrix<double>(Shape(N,M), 1.0);
 
@@ -50,7 +50,7 @@ int test_dgemv_zero_v_cpp(){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     return stat_;
 }
@@ -66,7 +66,7 @@ int test_sgemv_zero_v_cpp(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
 
     y = Vector<float>(M, 1.0);
     
@@ -74,13 +74,13 @@ int test_sgemv_zero_v_cpp(){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
-    MatrixVectorProduct(A, x, y, "N", 1.0d, 1.0d);
+    MatrixVectorProduct(A, x, y, "N", 1.0, 1.0);
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     A = Matrix<float>(Shape(N,M), 1.0);
 
@@ -88,7 +88,7 @@ int test_sgemv_zero_v_cpp(){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     return stat_;
 }
@@ -114,7 +114,7 @@ int test_dgemv_v_cpp(){
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
-    MatrixVectorProduct(A, x, y, "N", 2.0d, 0.0d);
+    MatrixVectorProduct(A, x, y, "N", 2.0, 0.0);
 
     vres = Vector<double>({2.0, 16.0, 52.0});
 
@@ -144,7 +144,7 @@ int test_sgemv_v_cpp(){
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
-    MatrixVectorProduct(A, x, y, "N", 2.0d, 0.0d);
+    MatrixVectorProduct(A, x, y, "N", 2.0, 0.0);
 
     vres = Vector<float>({2.0, 16.0, 52.0});
 
@@ -164,20 +164,20 @@ int test_dsymv_zero_v_cpp(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
 
     y = Vector<double>(M, 1.0);
     
     SymMatrixVectorProduct(1.0, A, x, 1, 1.0, y, 1);
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
-    SymMatrixVectorProduct(A, x, y, 1.0d, 1.0d);
+    SymMatrixVectorProduct(A, x, y, 1.0, 1.0);
     
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     return stat_;
 }
@@ -193,20 +193,20 @@ int test_ssymv_zero_v_cpp(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
 
     y = Vector<float>(M, 1.0);
     
     SymMatrixVectorProduct(1.0, A, x, 1, 1.0, y, 1);
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
-    SymMatrixVectorProduct(A, x, y, 1.0d, 1.0d);  
+    SymMatrixVectorProduct(A, x, y, 1.0, 1.0);  
     
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     return stat_;
 }
@@ -233,7 +233,7 @@ int test_dsymv_v_cpp(){
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
-    SymMatrixVectorProduct(A, x, y, 2.0d, 0.0d);
+    SymMatrixVectorProduct(A, x, y, 2.0, 0.0);
 
     vres = Vector<double>({48.0, 52.0, 52.0});
 
@@ -264,7 +264,7 @@ int test_ssymv_v_cpp(){
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
-    SymMatrixVectorProduct(A, x, y, 2.0d, 0.0d);
+    SymMatrixVectorProduct(A, x, y, 2.0, 0.0);
 
     vres = Vector<float>({48.0, 52.0, 52.0});
 
@@ -284,20 +284,20 @@ int test_dsymv_zero_lowtri_cpp(){
 
     double sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector. LowTri1")) stat_ += 1; 
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector. LowTri1")) stat_ += 1; 
 
     y = Vector<double>(M, 1.0);
     
     SymMatrixVectorProduct(1.0, A, x, 1, 1.0, y, 1);
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector. LowTri2")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector. LowTri2")) stat_ += 1;
 
-    SymMatrixVectorProduct(A, x, y, 1.0d, 1.0d);
+    SymMatrixVectorProduct(A, x, y, 1.0, 1.0);
     
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector. LowTri3")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector. LowTri3")) stat_ += 1;
 
     return stat_;
 }
@@ -313,20 +313,20 @@ int test_ssymv_zero_lowtri_cpp(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector. LowTri1")) stat_ += 1; 
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector. LowTri1")) stat_ += 1; 
 
     y = Vector<float>(M, 1.0);
     
     SymMatrixVectorProduct(1.0, A, x, 1, 1.0, y, 1);
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector. LowTri2")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector. LowTri2")) stat_ += 1;
 
-    SymMatrixVectorProduct(A, x, y, 1.0d, 1.0d);  
+    SymMatrixVectorProduct(A, x, y, 1.0, 1.0);  
     
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector. LowTRi3")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector. LowTRi3")) stat_ += 1;
 
     return stat_;
 }
@@ -350,7 +350,7 @@ int test_dsymv_lowtri_cpp(){
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
-    SymMatrixVectorProduct(A, x, y, 2.0d, 0.0d);
+    SymMatrixVectorProduct(A, x, y, 2.0, 0.0);
 
     vres = Vector<double>({48.0, 52.0, 52.0});
 
@@ -380,7 +380,7 @@ int test_ssymv_lowtri_cpp(){
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
-    SymMatrixVectorProduct(A, x, y, 2.0d, 0.0d);
+    SymMatrixVectorProduct(A, x, y, 2.0, 0.0);
 
     vres = Vector<float>({48.0, 52.0, 52.0});
 
@@ -456,7 +456,7 @@ int test_dgemv_zero_v_c(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
 
     y = Vector<double>(M, 1.0);
     
@@ -464,13 +464,13 @@ int test_dgemv_zero_v_c(){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
-    MatrixVectorProduct(M, N, A.data(), x.data(), y.data(), "N", 1.0d, 1.0d);
+    MatrixVectorProduct(M, N, A.data(), x.data(), y.data(), "N", 1.0, 1.0);
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     A = Matrix<double>(Shape(N,M), 1.0);
 
@@ -478,7 +478,7 @@ int test_dgemv_zero_v_c(){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     return stat_;
 }
@@ -494,7 +494,7 @@ int test_sgemv_zero_v_c(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
 
     y = Vector<float>(M, 1.0);
     
@@ -502,13 +502,13 @@ int test_sgemv_zero_v_c(){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
-    MatrixVectorProduct(M, N, A.data(), x.data(), y.data(), "N", 1.0d, 1.0d);
+    MatrixVectorProduct(M, N, A.data(), x.data(), y.data(), "N", 1.0, 1.0);
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     A = Matrix<float>(Shape(N,M), 1.0);
 
@@ -516,7 +516,7 @@ int test_sgemv_zero_v_c(){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector. Transpose")) stat_ += 1;
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector. Transpose")) stat_ += 1;
 
     return stat_;
 }
@@ -543,7 +543,7 @@ int test_dgemv_v_c(){
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
-    MatrixVectorProduct(3, 3, A.data(), x.data(), y.data(), "N", 2.0d, 0.0d);
+    MatrixVectorProduct(3, 3, A.data(), x.data(), y.data(), "N", 2.0, 0.0);
 
     vres = Vector<double>({2.0, 16.0, 52.0});
 
@@ -574,7 +574,7 @@ int test_sgemv_v_c(){
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
-    MatrixVectorProduct(3, 3, A.data(), x.data(), y.data(), "N", 2.0d, 0.0d);
+    MatrixVectorProduct(3, 3, A.data(), x.data(), y.data(), "N", 2.0, 0.0);
 
     vres = Vector<float>({2.0, 16.0, 52.0});
 
@@ -594,20 +594,20 @@ int test_dsymv_zero_v_c(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
 
     y = Vector<double>(M, 1.0);
     
     SymMatrixVectorProduct(M, 1.0, A.data(), x.data(), 1, 1.0, y.data(), 1);
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
-    SymMatrixVectorProduct(M, A.data(), x.data(), y.data(), 1.0d, 1.0d);
+    SymMatrixVectorProduct(M, A.data(), x.data(), y.data(), 1.0, 1.0);
     
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     return stat_;
 }
@@ -623,20 +623,20 @@ int test_ssymv_zero_v_c(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
+    if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
 
     y = Vector<float>(M, 1.0);
     
     SymMatrixVectorProduct(M, 1.0, A.data(), x.data(), 1, 1.0, y.data(), 1);
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
-    SymMatrixVectorProduct(M, A.data(), x.data(), y.data(), 1.0d, 1.0d);  
+    SymMatrixVectorProduct(M, A.data(), x.data(), y.data(), 1.0, 1.0);  
     
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0d, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    if (!check(sum_, M*1.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     return stat_;
 }
@@ -663,7 +663,7 @@ int test_dsymv_v_c(){
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
-    SymMatrixVectorProduct(3, A.data(), x.data(), y.data(), 2.0d, 0.0d);
+    SymMatrixVectorProduct(3, A.data(), x.data(), y.data(), 2.0, 0.0);
 
     vres = Vector<double>({48.0, 52.0, 52.0});
 
@@ -694,7 +694,7 @@ int test_ssymv_v_c(){
 
     if (!check(y.data(), vres.data(), thr, 3, "Error when using Matrix Multiplication with a non-zero vector.")) stat_ += 1;
 
-    SymMatrixVectorProduct(3, A.data(), x.data(), y.data(), 2.0d, 0.0d);
+    SymMatrixVectorProduct(3, A.data(), x.data(), y.data(), 2.0, 0.0);
 
     vres = Vector<float>({48.0, 52.0, 52.0});
 

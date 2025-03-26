@@ -1,5 +1,7 @@
 #include "impl/blas/cpu/additional-level1.hpp"
+#ifdef W_OPENMP
 #include <omp.h>
+#endif
 #include "../../../utils/utils.hpp"
 namespace lahva
 {
