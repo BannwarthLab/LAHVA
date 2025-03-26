@@ -16,7 +16,10 @@ namespace lahva
             };
             
             LPCK_INT n = a.shape().first;
-            assert(ipiv.size() == n);
+            if (ipiv.size() != n)
+            {
+                ipiv = Vector<LPCK_INT>(n);
+            }
 #ifdef _APPLE
             dgetrf_(&n, &n, a.data(), &n, ipiv.data(), &info);
 #elif defined(W_MKL)
@@ -39,7 +42,10 @@ namespace lahva
             };
             
             LPCK_INT n = a.shape().first;
-            assert(ipiv.size() == n);
+            if (ipiv.size() != n)
+            {
+                ipiv = Vector<LPCK_INT>(n);
+            }
 #ifdef _APPLE
             sgetrf_(&n, &n, a.data(), &n, ipiv.data(), &info);
 #elif defined(W_MKL)
@@ -50,6 +56,96 @@ namespace lahva
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRF");
+            }
+        };
+
+        void CholeskyFactorization(Matrix_<double>& a)
+        {
+            LPCK_INT info = 0;
+            if (a.shape().first != a.shape().second)
+            {
+                throw std::runtime_error("A should be symmetric");
+            };
+            
+            LPCK_INT n = a.shape().first;
+#ifdef _APPLE
+            dpotrf_(&l_uplo, &n, a.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_dpotrf(l_major, l_uplo, n, a.data(), n);
+#else
+            LAPACK_dpotrf(l_uplo, &n, a.data(), &n, &info);
+#endif
+            if (info != 0)
+            {
+                throw std::runtime_error("Failure in DPOTRF");
+            }
+        };
+
+        void CholeskyFactorization(Matrix_<float>& a)
+        {
+            LPCK_INT info = 0;
+            if (a.shape().first != a.shape().second)
+            {
+                throw std::runtime_error("A should be symmetric");
+            };
+            
+            LPCK_INT n = a.shape().first;
+#ifdef _APPLE
+            spotrf_(&l_uplo, &n, a.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_spotrf(l_major, l_uplo, n, a.data(), n);
+#else
+            LAPACK_spotrf(l_uplo, &n, a.data(), &n, &info);
+#endif
+            if (info != 0)
+            {
+                throw std::runtime_error("Failure in DPOTRF");
+            }
+        };
+
+        template <>
+        void SolvePosSysLinEquations<double>(Matrix_<double> &a, Matrix_<double> &b)
+        {
+            LPCK_INT info = 0;
+            LPCK_INT n = a.shape().first;
+            LPCK_INT nrhs = b.shape().second;
+            CholeskyFactorization(a);
+            
+#ifdef _APPLE
+            dpotrs_(&l_uplo, &n, &nrhs, a.data(), &n, b.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_dpotrs(l_major, l_uplo, n, nrhs, a.data(), n, b.data(), n);
+#else
+            LAPACK_dpotrs(l_uplo, &n, &nrhs, a.data(), &n, b.data(), &n, &info);
+#endif
+            if (info != 0)
+            {
+                throw std::runtime_error("Failure in DPOTRS");
+            }
+        };
+
+        template <>
+        void SolvePosSysLinEquations<float>(Matrix_<float> &a, Matrix_<float> &b)
+        {
+            LPCK_INT info = 0;
+            LPCK_INT n = a.shape().first;
+            LPCK_INT nrhs = b.shape().second;
+            CholeskyFactorization(a);
+            if (b.shape().first != n)
+            {
+                throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
+            }
+
+#ifdef _APPLE
+            spotrs_(&l_uplo, &n, &nrhs, a.data(), &n, b.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_spotrs(l_major, l_uplo, n, nrhs, a.data(), n, b.data(), n);
+#else
+            LAPACK_spotrs(l_uplo, &n, &nrhs, a.data(), &n, b.data(), &n, &info);
+#endif
+            if (info != 0)
+            {
+                throw std::runtime_error("Failure in SGETRS");
             }
         };
 

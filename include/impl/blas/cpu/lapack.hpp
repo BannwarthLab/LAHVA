@@ -10,6 +10,8 @@ namespace lahva{
         template<typename T>
         void SolveGenSysLinEquations(Matrix_<T>& a, Matrix_<T>& b, const char* Ta = "N");
         template<typename T>
+        void SolvePosSysLinEquations(Matrix_<T>& a, Matrix_<T>& b);
+        template<typename T>
         void SolveGenSysLinEquations(const char* Ta, LowTriMatrix_<T>& a, Matrix_<T>& b);
         template<typename T>
         void SolveGenSysLinEquations(LowTriMatrix_<T>& a, Matrix_<T>& b, const char* Ta = "N");
@@ -40,6 +42,12 @@ namespace lahva{
         void SymEigenvalueDecomposition(const CPURuntime& cudart_, Args&&... args)
         {
             (SymEigenvalueDecomposition(args...));
+        }
+
+        template<typename... Args>
+        void SolvePosSysLinEquations(const CPURuntime& cudart_, Args&&... args)
+        {
+            (SolvePosSysLinEquations(args...));
         }
         
     } // namespace cpu
