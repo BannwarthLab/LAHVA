@@ -17,7 +17,13 @@ namespace lahva
             
             LPCK_INT n = a.shape().first;
             assert(ipiv.size() == n);
+#ifdef _APPLE
             dgetrf_(&n, &n, a.data(), &n, ipiv.data(), &info);
+#elif defined(W_MKL)
+            info = LAPACKE_dgetrf(l_major, n, n, a.data(), n, ipiv.data());
+#else
+            LAPACK_dgetrf(&n, &n, a.data(), &n, ipiv.data(), &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRF");
@@ -34,7 +40,13 @@ namespace lahva
             
             LPCK_INT n = a.shape().first;
             assert(ipiv.size() == n);
+#ifdef _APPLE
             sgetrf_(&n, &n, a.data(), &n, ipiv.data(), &info);
+#elif defined(W_MKL)
+            info = LAPACKE_sgetrf(l_major, n, n, a.data(), n, ipiv.data());
+#else
+            LAPACK_sgetrf(&n, &n, a.data(), &n, ipiv.data(), &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRF");
@@ -50,7 +62,13 @@ namespace lahva
             Vector<LPCK_INT> ipiv(n);
             LUFactorization(a, ipiv);
             
+#ifdef _APPLE
             dgetrs_(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_dgetrs(l_major, *Ta, n, nrhs, a.data(), n, ipiv.data(), b.data(), n);
+#else
+            LAPACK_dgetrs(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRS");
@@ -70,7 +88,13 @@ namespace lahva
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
 
+#ifdef _APPLE
             sgetrs_(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_sgetrs(l_major, *Ta, n, nrhs, a.data(), n, ipiv.data(), b.data(), n);
+#else
+            LAPACK_sgetrs(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SGETRS");
@@ -89,7 +113,13 @@ namespace lahva
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
+#ifdef _APPLE
             dgetrs_(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_dgetrs(l_major, *Ta, n, nrhs, a.data(), n, ipiv.data(), b.data(), n);
+#else
+            LAPACK_dgetrs(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DGETRS");
@@ -108,7 +138,13 @@ namespace lahva
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
+#ifdef _APPLE
             sgetrs_(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_sgetrs(l_major, *Ta, n, nrhs, a.data(), n, ipiv.data(), b.data(), n);
+#else
+            LAPACK_sgetrs(Ta, &n, &nrhs, a.data(), &n, ipiv.data(), b.data(), &n, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SGETRS");
@@ -129,7 +165,13 @@ namespace lahva
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
+#ifdef _APPLE
             dtptrs_(&l_uplo, Ta, &l_nondiag, &n, &nrhs, a.data(), b.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_dtptrs(l_major, l_uplo, *Ta, l_nondiag, n, nrhs, a.data(), b.data(), n);
+#else
+            LAPACK_dtptrs(&l_uplo, Ta, &l_nondiag, &n, &nrhs, a.data(), b.data(), &n, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DTPTRS");
@@ -146,7 +188,13 @@ namespace lahva
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
+#ifdef _APPLE
             stptrs_(&l_uplo, Ta, &l_nondiag, &n, &nrhs, a.data(), b.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_stptrs(l_major, l_uplo, *Ta, l_nondiag, n, nrhs, a.data(), b.data(), n);
+#else
+            LAPACK_stptrs(&l_uplo, Ta, &l_nondiag, &n, &nrhs, a.data(), b.data(), &n, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in STPTRS");
@@ -163,7 +211,13 @@ namespace lahva
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
+#ifdef _APPLE
             dtptrs_(&l_uplo, Ta, &l_nondiag, &n, &nrhs, a.data(), b.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_dtptrs(l_major, l_uplo, *Ta, l_nondiag, n, nrhs, a.data(), b.data(), n);
+#else
+            LAPACK_dtptrs(&l_uplo, Ta, &l_nondiag, &n, &nrhs, a.data(), b.data(), &n, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DTPTRS");
@@ -180,7 +234,13 @@ namespace lahva
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
+#ifdef _APPLE
             stptrs_(&l_uplo, Ta, &l_nondiag, &n, &nrhs, a.data(), b.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_stptrs(l_major, l_uplo, *Ta, l_nondiag, n, nrhs, a.data(), b.data(), n);
+#else
+            LAPACK_stptrs(&l_uplo, Ta, &l_nondiag, &n, &nrhs, a.data(), b.data(), &n, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in STPTRS");
@@ -198,12 +258,24 @@ namespace lahva
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
             Vector<LPCK_INT> ipiv(n);
+#ifdef _APPLE
             dsptrf_(&l_uplo, &n, a.data(), ipiv.data(), &info);
+#elif defined(W_MKL)
+            info = LAPACKE_dsptrf(l_major, l_uplo, n, a.data(), ipiv.data());
+#else
+            LAPACK_dsptrf(&l_uplo, &n, a.data(), ipiv.data(), &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DSPTRF");
             }
+#ifdef _APPLE
             dsptrs_(&l_uplo, &n, &nrhs, a.data(), ipiv.data(), b.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_dsptrs(l_major, l_uplo, n, nrhs, a.data(), ipiv.data(), b.data(), n);
+#else
+            LAPACK_dsptrs(&l_uplo, &n, &nrhs, a.data(), ipiv.data(), b.data(), &n, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DSPTRS");
@@ -221,12 +293,24 @@ namespace lahva
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
             Vector<LPCK_INT> ipiv(n);
+#ifdef _APPLE
             ssptrf_(&l_uplo, &n, a.data(), ipiv.data(), &info);
+#elif defined(W_MKL)
+            info = LAPACKE_ssptrf(l_major, l_uplo, n, a.data(), ipiv.data());
+#else
+            LAPACK_ssptrf(&l_uplo, &n, a.data(), ipiv.data(), &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SSPTRF");
             }
+#ifdef _APPLE
             ssptrs_(&l_uplo, &n, &nrhs, a.data(), ipiv.data(), b.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_ssptrs(l_major, l_uplo, n, nrhs, a.data(), ipiv.data(), b.data(), n);
+#else
+            LAPACK_ssptrs(&l_uplo, &n, &nrhs, a.data(), ipiv.data(), b.data(), &n, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in SSPTRS");
@@ -238,8 +322,13 @@ namespace lahva
         {
             LPCK_INT info = 0;
             LPCK_INT n = a.shape().first;
-            
+#ifdef _APPLE
             dtrtri_(&l_uplo, &l_nondiag, &n, a.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_dtrtri(l_major, l_uplo, l_nondiag, n, a.data(), n);
+#else
+            LAPACK_dtrtri(&l_uplo, &l_nondiag, &n, a.data(), &n, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DTRTRI");
@@ -251,8 +340,14 @@ namespace lahva
         {
             LPCK_INT info = 0;
             LPCK_INT n = a.shape().first;
-            
+
+#ifdef _APPLE
             strtri_(&l_uplo, &l_nondiag, &n, a.data(), &n, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_strtri(l_major, l_uplo, l_nondiag, n, a.data(), n);
+#else
+            LAPACK_strtri(&l_uplo, &l_nondiag, &n, a.data(), &n, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DTRTRI");
@@ -261,10 +356,10 @@ namespace lahva
 
         template <>
         void SymEigenvalueDecomposition<double>(Matrix_<double> &a, Vector_<double>& eigenvalues, char l_jobz)
-        {
-            
-            LPCK_INT info = 0;
+        {    
+            LPCK_INT info = 0;      
             LPCK_INT n = a.shape().first;
+#ifndef W_MKL   
             if (a.shape().first != a.shape().second)
             {
                 throw std::runtime_error("A should be symmetric");
@@ -284,10 +379,16 @@ namespace lahva
             
             Vector<double> work(size_work);
             Vector<LPCK_INT> iwork(size_iwork);
-            Vector<double> w(n);
-            
+#endif
+#ifdef _APPLE
             dsyevd_(&l_jobz, &l_uplo, &n, a.data(), &n, eigenvalues.data(), work.data(), &size_work, iwork.data(),
             &size_iwork, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_dsyevd(l_major, l_jobz, l_uplo, n, a.data(), n, eigenvalues.data());
+#else
+            LAPACK_dsyevd(&l_jobz, &l_uplo, &n, a.data(), &n, eigenvalues.data(), work.data(), &size_work, iwork.data(),
+            &size_iwork, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DSYEV");
@@ -300,6 +401,7 @@ namespace lahva
             
             LPCK_INT info = 0;
             LPCK_INT n = a.shape().first;
+#ifndef W_MKL
             if (a.shape().first != a.shape().second)
             {
                 throw std::runtime_error("A should be symmetric");
@@ -319,10 +421,16 @@ namespace lahva
             
             Vector<float> work(size_work);
             Vector<LPCK_INT> iwork(size_iwork);
-            Vector<float> w(n);
-            
+#endif
+#ifdef _APPLE
             ssyevd_(&l_jobz, &l_uplo, &n, a.data(), &n, eigenvalues.data(), work.data(), &size_work, iwork.data(),
             &size_iwork, &info);
+#elif defined(W_MKL)
+            info = LAPACKE_ssyevd(l_major, l_jobz, l_uplo, n, a.data(), n, eigenvalues.data());
+#else
+            LAPACK_ssyevd(&l_jobz, &l_uplo, &n, a.data(), &n, eigenvalues.data(), work.data(), &size_work, iwork.data(),
+            &size_iwork, &info);
+#endif
             if (info != 0)
             {
                 throw std::runtime_error("Failure in DSYEV");
