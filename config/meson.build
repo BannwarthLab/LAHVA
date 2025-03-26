@@ -62,7 +62,7 @@ if lapack_vendor == 'auto'
  
   if build_machine.system() == 'darwin'
     lapack_vendor = 'apple'
-    add_project_arguments(['-D_APPLE'],language: 'cpp') 
+    
   endif
 endif
 
@@ -109,7 +109,14 @@ elif lapack_vendor == 'custom'
     lib_deps += cc.find_library(lib)
   endforeach
 elif lapack_vendor == 'apple'
-  add_project_link_arguments(['-framework','Accelerate'], language: 'cpp')
+  openblas_dep = dependency('openblas', required: false)
+  if not openblas_dep.found()
+    add_project_link_arguments(['-framework','Accelerate'], language: 'cpp')
+    add_project_arguments(['-D_APPLE'],language: 'cpp') 
+  else
+    lib_deps += openblas_dep
+  endif
+  
 
 else
   lapack_dep = dependency('lapack', required: false)
