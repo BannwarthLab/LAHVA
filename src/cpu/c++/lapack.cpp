@@ -73,7 +73,7 @@ namespace lahva
 #elif defined(W_MKL)
             info = LAPACKE_dpotrf(l_major, l_uplo, n, a.data(), n);
 #else
-            LAPACK_dpotrf(l_uplo, &n, a.data(), &n, &info);
+            LAPACK_dpotrf(&l_uplo, &n, a.data(), &n, &info);
 #endif
             if (info != 0)
             {
@@ -95,7 +95,7 @@ namespace lahva
 #elif defined(W_MKL)
             info = LAPACKE_spotrf(l_major, l_uplo, n, a.data(), n);
 #else
-            LAPACK_spotrf(l_uplo, &n, a.data(), &n, &info);
+            LAPACK_spotrf(&l_uplo, &n, a.data(), &n, &info);
 #endif
             if (info != 0)
             {
@@ -116,7 +116,7 @@ namespace lahva
 #elif defined(W_MKL)
             info = LAPACKE_dpotrs(l_major, l_uplo, n, nrhs, a.data(), n, b.data(), n);
 #else
-            LAPACK_dpotrs(l_uplo, &n, &nrhs, a.data(), &n, b.data(), &n, &info);
+            LAPACK_dpotrs(&l_uplo, &n, &nrhs, a.data(), &n, b.data(), &n, &info);
 #endif
             if (info != 0)
             {
@@ -141,7 +141,7 @@ namespace lahva
 #elif defined(W_MKL)
             info = LAPACKE_spotrs(l_major, l_uplo, n, nrhs, a.data(), n, b.data(), n);
 #else
-            LAPACK_spotrs(l_uplo, &n, &nrhs, a.data(), &n, b.data(), &n, &info);
+            LAPACK_spotrs(&l_uplo, &n, &nrhs, a.data(), &n, b.data(), &n, &info);
 #endif
             if (info != 0)
             {
