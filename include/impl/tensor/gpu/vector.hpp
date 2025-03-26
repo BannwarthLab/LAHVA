@@ -138,7 +138,7 @@ Vector<T, Allocator, GPUAllocator>::Vector(std::initializer_list<T> init, const 
     template <typename T, class Allocator, class GPUAllocator>
     void Vector<T, Allocator, GPUAllocator>::print() const
     {
-        for (uint i = 0; i < this->size(); i++)
+        for (size_t i = 0; i < this->size(); i++)
         {
             std::cout << this->data()[i] << ", ";
             std::cout << std::endl;

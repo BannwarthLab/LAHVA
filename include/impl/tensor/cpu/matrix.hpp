@@ -21,11 +21,11 @@ namespace lahva
             //! @param[in] i row index
             //! @param[in] j column index
             //! @return reference to Matrix element i,j
-            virtual T &operator()(uint i, uint j) = 0;
+            virtual T &operator()(size_t i, size_t j) = 0;
             //! @param[in] i row index
             //! @param[in] j column index
             //! @return reference to Matrix element i,j
-            virtual const T &operator()(uint i, uint j) const = 0;
+            virtual const T &operator()(size_t i, size_t j) const = 0;
 
     };
 
@@ -42,13 +42,13 @@ namespace lahva
         using alloc_ptr = CPUAllocator<T>;
     protected:
         // shape in each dimension, i.e. data_ has length n_rows_*n_cols
-        uint n_rows_ = 0;
-        uint n_cols_ = 0;
+        size_t n_rows_ = 0;
+        size_t n_cols_ = 0;
     
         // indicates whether the Matrix object owns the data and consequently is
         // responsible for freeing it
 
-        inline size_t data_id_(uint i, uint j) const
+        inline size_t data_id_(size_t i, size_t j) const
         {
             // deactivated if NDEBUG is defined
             assert(i < n_rows_ && j < n_cols_);
@@ -58,7 +58,7 @@ namespace lahva
         }
 
         // length of the array data_
-        static size_t data_size_(uint n_rows, uint n_cols)
+        static size_t data_size_(size_t n_rows, size_t n_cols)
         {
             return n_rows * n_cols;
         }
@@ -72,14 +72,14 @@ namespace lahva
         Matrix() {};
         //! construct a square Matrix with dimensions n x n
         //! It is not guaranteed that the values will be initialized
-        Matrix(uint n, const alloc_ptr &alloc = Allocator());
+        Matrix(size_t n, const alloc_ptr &alloc = Allocator());
         template<typename U>
-        Matrix(uint n, const std::shared_ptr<CPUAllocator<U>> &alloc)
+        Matrix(size_t n, const std::shared_ptr<CPUAllocator<U>> &alloc)
         : Matrix<T, Allocator>{n, Allocator(*alloc)} {};
         //! construct a square n x n Matrix initialized with value val
-        Matrix(uint n, T val, const alloc_ptr &alloc = Allocator());
+        Matrix(size_t n, T val, const alloc_ptr &alloc = Allocator());
         template<typename U>
-        Matrix(uint n, T val, const std::shared_ptr<CPUAllocator<U>> &alloc)
+        Matrix(size_t n, T val, const std::shared_ptr<CPUAllocator<U>> &alloc)
         : Matrix<T, Allocator>{n, val, Allocator(*alloc)} {};
         //! construct a Matrix with dimensions shape.first x shape.second
         //! It is not guaranteed that the values will be initialized!
@@ -115,11 +115,11 @@ namespace lahva
         //! @param[in] i row index
         //! @param[in] j column index
         //! @return reference to Matrix element i,j
-        T &operator()(uint i, uint j);
+        T &operator()(size_t i, size_t j);
         //! @param[in] i row index
         //! @param[in] j column index
         //! @return reference to Matrix element i,j
-        const T &operator()(uint i, uint j) const;
+        const T &operator()(size_t i, size_t j) const;
 
         //! @brief in-place, scalar addition
         Matrix &operator+=(T val);
@@ -143,11 +143,11 @@ namespace lahva
     void Matrix<T, Allocator>::check_size_(size_t n_rows,
                                 size_t n_cols)
     {
-        if (n_cols > UINT_MAX)
+        if (n_cols > SIZE_MAX)
         {
             throw std::out_of_range("Number of columns exceeds maximum Matrix size.");
         }
-        else if (n_rows > UINT_MAX)
+        else if (n_rows > SIZE_MAX)
         {
             throw std::out_of_range("Number of rows exceeds maximum Matrix size.");
         }
@@ -192,12 +192,12 @@ namespace lahva
     
 
      template <typename T, class Allocator>
-    Matrix<T, Allocator>::Matrix(uint n, const alloc_ptr &alloc) : 
+    Matrix<T, Allocator>::Matrix(size_t n, const alloc_ptr &alloc) : 
     Matrix<T, Allocator>::Matrix(Shape(n, n), alloc) 
     {}
 
      template <typename T, class Allocator>
-    Matrix<T, Allocator>::Matrix(uint n, T val, const alloc_ptr &alloc) : 
+    Matrix<T, Allocator>::Matrix(size_t n, T val, const alloc_ptr &alloc) : 
     Matrix<T, Allocator>::Matrix(Shape(n, n), val, alloc) {}
 
      template <typename T, class Allocator>
@@ -265,13 +265,13 @@ namespace lahva
     }
 
      template <typename T, class Allocator>
-    T &Matrix<T, Allocator>::operator()(uint i, uint j)
+    T &Matrix<T, Allocator>::operator()(size_t i, size_t j)
     {
         return this->data_[data_id_(i, j)];
     }
 
      template <typename T, class Allocator>
-    const T &Matrix<T, Allocator>::operator()(uint i, uint j) const
+    const T &Matrix<T, Allocator>::operator()(size_t i, size_t j) const
     {
         return this->data_[data_id_(i, j)];
     }
@@ -291,9 +291,9 @@ namespace lahva
      template <typename T, class Allocator>
     void Matrix<T, Allocator>::print() const
     {
-        for (uint i = 0; i < n_rows_; i++)
+        for (size_t i = 0; i < n_rows_; i++)
         {
-            for (uint j = 0; j < n_cols_; j++)
+            for (size_t j = 0; j < n_cols_; j++)
             {
                 std::cout << this->data_[data_id_(i, j)] << ", ";
             }
@@ -310,9 +310,9 @@ namespace lahva
 
         Matrix<T, Allocator> copy = *this;
         #pragma omp parallel for ordered schedule(static)
-        for (uint i = 0; i < n_cols_; i++)
+        for (size_t i = 0; i < n_cols_; i++)
         {
-            for (uint j = 0; j < n_cols_; j++)
+            for (size_t j = 0; j < n_cols_; j++)
             {   
                 #pragma omp ordered
                 this->data_[data_id_(i, j)] = 0.5 * (copy(i, j) + copy(j, i));

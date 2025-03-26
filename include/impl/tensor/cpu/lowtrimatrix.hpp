@@ -18,11 +18,11 @@ namespace lahva
             //! @param[in] i row index
             //! @param[in] j column index
             //! @return reference to Matrix element i,j
-            virtual T &operator()(uint i, uint j) = 0;
+            virtual T &operator()(size_t i, size_t j) = 0;
             //! @param[in] i row index
             //! @param[in] j column index
             //! @return reference to Matrix element i,j
-            virtual const T &operator()(uint i, uint j) const = 0;
+            virtual const T &operator()(size_t i, size_t j) const = 0;
     };
 
     template <class T, class Allocator = StdAllocator<T>>
@@ -31,9 +31,9 @@ namespace lahva
         using alloc_ptr = CPUAllocator<T>;   
     protected:
         // shape in each dimension, i.e. data_ has length n_rows_^2
-        uint n_;
+        size_t n_;
 
-        inline size_t data_id_(uint i, uint j) const
+        inline size_t data_id_(size_t i, size_t j) const
         {
             // deactivated if NDEBUG is defined
             assert(i <= n_ && j <= n_);
@@ -45,7 +45,7 @@ namespace lahva
         }
 
         // length of the array data_
-        static size_t data_size_(uint n)
+        static size_t data_size_(size_t n)
         {
             return (n * n + n) / 2;
         }
@@ -58,19 +58,19 @@ namespace lahva
     public:
         //! construct an n x n matrix
         //! It is not guaranteed that the values will be initialized
-        LowTriMatrix(uint n,const alloc_ptr &cpualloc = Allocator());
+        LowTriMatrix(size_t n,const alloc_ptr &cpualloc = Allocator());
         template <typename U>
-        LowTriMatrix(uint n, const std::shared_ptr<CPUAllocator<U>> &alloc)
+        LowTriMatrix(size_t n, const std::shared_ptr<CPUAllocator<U>> &alloc)
         : LowTriMatrix<T,Allocator>(n, Allocator(*alloc))
         { };
         //! construct an n x n matrix initialized with value val
-        LowTriMatrix(uint n, T val,const alloc_ptr &cpualloc = Allocator());
+        LowTriMatrix(size_t n, T val,const alloc_ptr &cpualloc = Allocator());
         template <typename U>
-        LowTriMatrix(uint n, T val, const std::shared_ptr<CPUAllocator<U>> &alloc)
+        LowTriMatrix(size_t n, T val, const std::shared_ptr<CPUAllocator<U>> &alloc)
         : LowTriMatrix<T,Allocator>(n, val, Allocator(*alloc))
         { };
         //! give dimension n and data as a Vector conatining the values of the lower traingular Matrix
-        LowTriMatrix(uint n, const Vector_<T> &data, const alloc_ptr &cpualloc = Allocator());
+        LowTriMatrix(size_t n, const Vector_<T> &data, const alloc_ptr &cpualloc = Allocator());
         //! create a matrix with shape (shape must be square)
         //! It is not guaranteed that the values will be initialized
         LowTriMatrix(const Shape &shape, const alloc_ptr &cpualloc = Allocator());
@@ -80,7 +80,7 @@ namespace lahva
         //! construct a matrix by giving ownership of the raw data
         //! note: the data needs to be in the format defined by data_id_()
         //! @param n number of columns/rows of the matrix
-        LowTriMatrix(uint n, T *data, bool take_ownership = true,const alloc_ptr &cpualloc = Allocator());
+        LowTriMatrix(size_t n, T *data, bool take_ownership = true,const alloc_ptr &cpualloc = Allocator());
         LowTriMatrix(const LowTriMatrix &);
         LowTriMatrix(LowTriMatrix &&);
         LowTriMatrix &operator=(const LowTriMatrix &);
@@ -94,14 +94,14 @@ namespace lahva
         //! @param[in] i row index
         //! @param[in] j column index
         //! @return reference to matrix element i,j
-        T &operator()(uint i, uint j);
+        T &operator()(size_t i, size_t j);
         //! Provides element acces.
         //! If NDEBUG is **not** defined, range checks are performed and it will be
         //! checked that the first index is greater than or equal to the second.
         //! @param[in] i row index
         //! @param[in] j column index
         //! @return reference to matrix element i,j
-        const T &operator()(uint i, uint j) const;
+        const T &operator()(size_t i, size_t j) const;
 
         //! @return number of rows/columns of the matrix
         Shape shape() const { return Shape(n_, n_); }
@@ -116,21 +116,21 @@ namespace lahva
     template <typename T, class Allocator>
     void LowTriMatrix<T, Allocator>::check_size_(long unsigned int n)
     {
-        if (n > UINT_MAX || n > std::sqrt(SIZE_MAX))
+        if (n > SIZE_MAX || n > std::sqrt(SIZE_MAX))
         {
             throw std::out_of_range("Vector exceeds maximum LowTriMatrix size.");
         }
     }
 
     template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(uint size, const alloc_ptr& alloc ) : 
+    LowTriMatrix<T, Allocator>::LowTriMatrix(size_t size, const alloc_ptr& alloc ) : 
     n_{size}, CPUTensor<T, Allocator>{data_size_(size), alloc}                                        
     {
         check_size_(size);
     }
 
     template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(uint size, T val, const alloc_ptr& alloc ) : 
+    LowTriMatrix<T, Allocator>::LowTriMatrix(size_t size, T val, const alloc_ptr& alloc ) : 
     LowTriMatrix(size, alloc)
     {
         check_size_(size);
@@ -160,12 +160,12 @@ namespace lahva
 
 
     template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(uint n, const Vector_<T> &data, const alloc_ptr& alloc ) : 
+    LowTriMatrix<T, Allocator>::LowTriMatrix(size_t n, const Vector_<T> &data, const alloc_ptr& alloc ) : 
     LowTriMatrix{n, alloc}
     {
         check_size_(data.size());
         #pragma omp for
-        for (uint i = 0; i < data_size_(n_); i++)
+        for (size_t i = 0; i < data_size_(n_); i++)
         {
             this->data_[i] = data[i];
         }
@@ -173,7 +173,7 @@ namespace lahva
     
     
     template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(uint n, T *data, bool take_ownership,const alloc_ptr &cpualloc)
+    LowTriMatrix<T, Allocator>::LowTriMatrix(size_t n, T *data, bool take_ownership,const alloc_ptr &cpualloc)
     : n_{n}, CPUTensor<T, Allocator>{cpualloc}
     {
         this->data_ = data;
@@ -229,11 +229,11 @@ namespace lahva
     }
 
     template <typename T, class Allocator>
-    T &LowTriMatrix<T, Allocator>::operator()(uint i, uint j)
+    T &LowTriMatrix<T, Allocator>::operator()(size_t i, size_t j)
     {
         if (i < j)
         {
-            uint tmp = i;
+            size_t tmp = i;
             i = j;
             j = tmp;
         }
@@ -241,11 +241,11 @@ namespace lahva
     }
 
     template <typename T, class Allocator>
-    const T &LowTriMatrix<T, Allocator>::operator()(uint i, uint j) const
+    const T &LowTriMatrix<T, Allocator>::operator()(size_t i, size_t j) const
     {
         if (i < j)
         {
-            uint tmp = i;
+            size_t tmp = i;
             i = j;
             j = tmp;
         }
@@ -255,9 +255,9 @@ namespace lahva
     template <typename T, class Allocator>
     void LowTriMatrix<T, Allocator>::print() const
     {
-        for (uint i = 0; i < n_; i++)
+        for (size_t i = 0; i < n_; i++)
         {
-            for (uint j = 0; j <= i; j++)
+            for (size_t j = 0; j <= i; j++)
             {
                 std::cout << this->data_[data_id_(i, j)] << ", ";
             }

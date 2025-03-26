@@ -114,7 +114,7 @@ namespace lahva
         template <typename T, class Allocator>
         void Vector<T, Allocator>::print() const
         {
-            for (uint i = 0; i < this->size(); i++)
+            for (size_t i = 0; i < this->size(); i++)
             {
                 std::cout << this->data()[i] << ", ";
                 std::cout << std::endl;

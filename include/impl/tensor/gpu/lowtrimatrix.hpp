@@ -18,11 +18,11 @@ namespace lahva
             //! @param[in] i row index
             //! @param[in] j column index
             //! @return reference to Matrix element i,j
-            virtual T &operator()(uint i, uint j) = 0;
+            virtual T &operator()(size_t i, size_t j) = 0;
             //! @param[in] i row index
             //! @param[in] j column index
             //! @return reference to Matrix element i,j
-            virtual const T &operator()(uint i, uint j) const = 0;
+            virtual const T &operator()(size_t i, size_t j) const = 0;
     };
 
     template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAllocator<T>>
@@ -32,9 +32,9 @@ namespace lahva
         using gpualloc_ptr = GPUAllocator_<T>;   
     protected:
         // shape in each dimension, i.e. data_ has length n_rows_^2
-        uint n_;
+        size_t n_;
 
-        inline size_t data_id_(uint i, uint j) const
+        inline size_t data_id_(size_t i, size_t j) const
         {
             // deactivated if NDEBUG is defined
             assert(i <= n_ && j <= n_);
@@ -46,7 +46,7 @@ namespace lahva
         }
 
         // length of the array data_
-        static size_t data_size_(uint n)
+        static size_t data_size_(size_t n)
         {
             return (n * n + n) / 2;
         }
@@ -59,11 +59,11 @@ namespace lahva
     public:
         //! construct an n x n matrix
         //! It is not guaranteed that the values will be initialized
-        LowTriMatrix(uint n,const alloc_ptr &cpualloc = Allocator(), const gpualloc_ptr &alloc = GPUAllocator());
+        LowTriMatrix(size_t n,const alloc_ptr &cpualloc = Allocator(), const gpualloc_ptr &alloc = GPUAllocator());
         //! construct an n x n matrix initialized with value val
-        LowTriMatrix(uint n, T val,const alloc_ptr &cpualloc = Allocator(), const gpualloc_ptr &alloc = GPUAllocator());
+        LowTriMatrix(size_t n, T val,const alloc_ptr &cpualloc = Allocator(), const gpualloc_ptr &alloc = GPUAllocator());
         //! give dimension n and data as a Vector conatining the values of the lower traingular Matrix
-        LowTriMatrix(uint n, const Vector<T, Allocator, GPUAllocator> &data, const alloc_ptr &cpualloc = Allocator(), const gpualloc_ptr &alloc = GPUAllocator());
+        LowTriMatrix(size_t n, const Vector<T, Allocator, GPUAllocator> &data, const alloc_ptr &cpualloc = Allocator(), const gpualloc_ptr &alloc = GPUAllocator());
         //! create a matrix with shape (shape must be square)
         //! It is not guaranteed that the values will be initialized
         LowTriMatrix(const Shape &shape, const alloc_ptr &cpualloc = Allocator(), const gpualloc_ptr &alloc = GPUAllocator());
@@ -73,7 +73,7 @@ namespace lahva
         //! construct a matrix by giving ownership of the raw data
         //! note: the data needs to be in the format defined by data_id_()
         //! @param n number of columns/rows of the matrix
-        LowTriMatrix(uint n, T *data, bool take_ownership = true,const alloc_ptr &cpualloc = Allocator(), const gpualloc_ptr &alloc = GPUAllocator());
+        LowTriMatrix(size_t n, T *data, bool take_ownership = true,const alloc_ptr &cpualloc = Allocator(), const gpualloc_ptr &alloc = GPUAllocator());
         LowTriMatrix(const LowTriMatrix &);
         LowTriMatrix(LowTriMatrix &&);
         LowTriMatrix &operator=(const LowTriMatrix &);
@@ -87,14 +87,14 @@ namespace lahva
         //! @param[in] i row index
         //! @param[in] j column index
         //! @return reference to matrix element i,j
-        T &operator()(uint i, uint j);
+        T &operator()(size_t i, size_t j);
         //! Provides element acces.
         //! If NDEBUG is **not** defined, range checks are performed and it will be
         //! checked that the first index is greater than or equal to the second.
         //! @param[in] i row index
         //! @param[in] j column index
         //! @return reference to matrix element i,j
-        const T &operator()(uint i, uint j) const;
+        const T &operator()(size_t i, size_t j) const;
 
         //! @return number of rows/columns of the matrix
         Shape shape() const { return Shape(n_, n_); }
@@ -109,21 +109,21 @@ namespace lahva
     template <typename T, class Allocator, class GPUAllocator>
     void LowTriMatrix<T, Allocator, GPUAllocator>::check_size_(long unsigned int n)
     {
-        if (n > UINT_MAX || n > std::sqrt(SIZE_MAX))
+        if (n > SIZE_MAX || n > std::sqrt(SIZE_MAX))
         {
             throw std::out_of_range("Vector exceeds maximum LowTriMatrix size.");
         }
     }
 
     template <typename T, class Allocator, class GPUAllocator>
-    LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(uint size, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
+    LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(size_t size, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
     n_{size}, GPUTensor<T, Allocator, GPUAllocator>{data_size_(size), alloc, gpualloc}                                        
     {
         check_size_(size);
     }
 
     template <typename T, class Allocator, class GPUAllocator>
-    LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(uint size, T val, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
+    LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(size_t size, T val, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
     LowTriMatrix(size, alloc, gpualloc)
     {
         check_size_(size);
@@ -153,19 +153,19 @@ namespace lahva
 
 
     template <typename T, class Allocator, class GPUAllocator>
-    LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(uint n, const Vector<T, Allocator, GPUAllocator> &data, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
+    LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(size_t n, const Vector<T, Allocator, GPUAllocator> &data, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
     LowTriMatrix{n, alloc, gpualloc}
     {
         check_size_(data.size());
         #pragma omp for
-        for (uint i = 0; i < data_size_(n_); i++)
+        for (size_t i = 0; i < data_size_(n_); i++)
         {
             this->data_[i] = data[i];
         }
     }
 
     template <typename T, class Allocator, class GPUAllocator>
-    LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(uint n, T *data, bool take_ownership, const alloc_ptr &cpualloc, const gpualloc_ptr &gpualloc)
+    LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(size_t n, T *data, bool take_ownership, const alloc_ptr &cpualloc, const gpualloc_ptr &gpualloc)
     : n_{n}, GPUTensor<T, Allocator, GPUAllocator>{cpualloc, gpualloc}  
     {
         this->data_ = data;
@@ -222,11 +222,11 @@ namespace lahva
     }
 
     template <typename T, class Allocator, class GPUAllocator>
-    T &LowTriMatrix<T, Allocator, GPUAllocator>::operator()(uint i, uint j)
+    T &LowTriMatrix<T, Allocator, GPUAllocator>::operator()(size_t i, size_t j)
     {
         if (i < j)
         {
-            uint tmp = i;
+            size_t tmp = i;
             i = j;
             j = tmp;
         }
@@ -234,11 +234,11 @@ namespace lahva
     }
 
     template <typename T, class Allocator, class GPUAllocator>
-    const T &LowTriMatrix<T, Allocator, GPUAllocator>::operator()(uint i, uint j) const
+    const T &LowTriMatrix<T, Allocator, GPUAllocator>::operator()(size_t i, size_t j) const
     {
         if (i < j)
         {
-            uint tmp = i;
+            size_t tmp = i;
             i = j;
             j = tmp;
         }
@@ -248,9 +248,9 @@ namespace lahva
     template <typename T, class Allocator, class GPUAllocator>
     void LowTriMatrix<T, Allocator, GPUAllocator>::print() const
     {
-        for (uint i = 0; i < n_; i++)
+        for (size_t i = 0; i < n_; i++)
         {
-            for (uint j = 0; j <= i; j++)
+            for (size_t j = 0; j <= i; j++)
             {
                 std::cout << this->data_[data_id_(i, j)] << ", ";
             }
