@@ -101,6 +101,7 @@ else()
 
   if(LAPACK_HEADER_FILE)
     message(STATUS "Found header file: ${LAPACK_HEADER_FILE}")
+    get_filename_component(LAPACK_HEADER_FILE ${LAPACK_HEADER_FILE} DIRECTORY)
     target_include_directories("${PROJECT_NAME}-lib" PUBLIC "${LAPACK_HEADER_FILE}")
   else()
     message(STATUS "Header file not found")
