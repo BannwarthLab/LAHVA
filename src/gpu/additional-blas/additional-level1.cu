@@ -1,9 +1,11 @@
+#include "linalg.hpp"
+#include "runtime.hpp"
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "../../gpu-utils/utils.hpp"
 #include "reductions/reduction.cuh"
 #include "reductions/common.cuh"
 #include "additional-level1.cuh"
-#include "additional-level1.hpp"
+#include "./additional-level1.hpp"
 namespace lahva
 {
     namespace gpu

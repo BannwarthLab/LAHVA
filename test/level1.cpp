@@ -2,7 +2,7 @@
 
 using namespace lahva::cpu;
 const double thr2 = 5.0e-15;
-const float thr = 5.0e-7;
+const double thr = 5.0e-7;
 
 int test_v_addition_c(){
 
@@ -325,11 +325,11 @@ int test_inner_vf_prod_c(){
 
     auto prod = InnerVectorProduct(5, p, s);
 
-    if (!check(prod, 2.0*5, thr, "Error when computing inner product of two Vectors.")) stat_ += 1;
+    if (!check<float>(prod, 2.0*5, thr, "Error when computing inner product of two Vectors.")) stat_ += 1;
 
     auto prod_ = InnerVectorProduct(5, p, 1, s, 1); 
 
-    if (!check(prod_, prod, thr, "Error when computing inner product of two Vectors.")) stat_ += 1;
+    if (!check<float>(prod_, prod, thr, "Error when computing inner product of two Vectors.")) stat_ += 1;
 
     return stat_;
 };

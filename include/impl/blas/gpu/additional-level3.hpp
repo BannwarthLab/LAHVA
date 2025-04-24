@@ -34,7 +34,6 @@ namespace lahva
         void MatrixMatrixProductFP32Approx(const CudaRuntime& cudart, const Matrix<double, Allocator, GPUAllocator>& A, const Matrix<double, Allocator, GPUAllocator>& B, Matrix<double, Allocator, GPUAllocator>& C,
         const double alpha = 1.0 , const double beta = 0.0, const char* Ta = "N", const char* Tb = "N")
         {
-            std::cout.precision(12);
             using MyMatrix = Matrix<float> ;
             MyMatrix A1(A.shape(), A.get_allocator(), A.get_gpuallocator());
             MyMatrix A2(A.shape(), A.get_allocator(), A.get_gpuallocator());

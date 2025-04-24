@@ -1,16 +1,22 @@
 #ifndef LAHVA_CONST_H
 #define LAHVA_CONST_H
 #include <stdint.h>
+#include <complex>
+#ifdef _WIN32
+    #define lapack_complex_double std::complex<double>
+    #define lapack_complex_float std::complex<float>
+    typedef unsigned int uint;
+#endif
 #ifdef W_MKL
 #include <mkl.h>
 typedef MKL_INT BLAS_INT;
 typedef lapack_int LPCK_INT;
-#elif defined(_APPLE)
+#elif _APPLE
 #define ACCELERATE_NEW_LAPACK
-typedef int64_t BLAS_INT;
 #include <Accelerate/Accelerate.h>
-typedef __LAPACK_int LPCK_INT;
-typedef CBLAS_ORDER CBLAS_LAYOUT;
+typedef CBAS_ORDER CBLAS_LAYOUT;
+typedef int32_t BLAS_INT;
+typedef int32_t LPCK_INT; 
 #else
 #include <cblas.h>
     #ifdef OPENBLAS_GENERIC
@@ -18,19 +24,21 @@ typedef CBLAS_ORDER CBLAS_LAYOUT;
     #else
     typedef int32_t BLAS_INT;
     #endif
+    #endif
+#ifndef complex_double
+#define complex_double std::complex<double>
 #endif
-#ifdef W_OPENMP
+#ifndef complex_float
+#define complex_float std::complex<float>
+#endif
 #include <omp.h>
-#endif
 #include <climits>
 #include <utility>
 #include <cmath>
 #ifdef _CUDA
 #include "cublas_v2.h"
 #endif
-#ifndef uint
-typedef unsigned int uint;
-#endif
+
 namespace lahva
 {
     static const CBLAS_LAYOUT major = CblasColMajor;

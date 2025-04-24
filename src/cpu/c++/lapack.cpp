@@ -1,3 +1,4 @@
+#include "linalg.hpp"
 #include "impl/blas/cpu/lapack.hpp"
 #include <stdexcept>
 #include "lapack_wrap.hpp"

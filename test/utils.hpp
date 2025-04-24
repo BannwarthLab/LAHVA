@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <complex>
+#include <iostream>
 
 template <typename T>
 bool compareNumbers(T a, T b, int n)
@@ -14,10 +16,36 @@ bool compareNumbers(T a, T b, int n)
     std::numeric_limits<T>::denorm_min()
 );
 }
+template<typename T, typename U>
+bool check(T actual, U expected, const char* msg)
+{
+    if (expected == actual) {
+        return true;
+    }
+    fprintf(stderr, "[Fatal] %s: expected %d, got %d\n", msg, expected, actual);
+    return false;
+}
 
-bool check(int actual, int expected, const char *msg);
+template<typename T, typename U>
+bool check(T actual, U expected, double tol, const char* msg)
+{
+    if (abs(expected - actual) < tol) {
+        return true;
+    }
+    fprintf(stderr, "[Fatal] %s: expected %3.7f, got %3.7f\n", msg, expected, actual);
+    return false;
+}
+template<typename T>
+bool check(std::complex<T> actual, std::complex<T> expected, std::complex<T> tol, const char* msg)
+{
+    if (abs(expected.real() - actual.real()) < tol.real() && abs(expected.imag() - actual.imag()) < tol.imag()) {
+        return true;
+    }
+    std::cerr << "[Fatal] " << msg << ": expected " << expected <<" , got " << actual << std::endl;;
+    return false;
+}
 
-bool check(double actual, double expected, double tol, const char *msg);
+
 
 bool check(double *actual, double *expected, double tol, int ndim, const char *msg);
 

@@ -36,11 +36,11 @@ namespace lahva
 
         CBLAS_TRANSPOSE get_trans(const char *T)
         {
-            if (std::strcmp(T, "T") == 0 or std::strcmp(T, "t") == 0)
+            if ((std::strcmp(T, "T") == 0) || (std::strcmp(T, "t") == 0))
             {
                 return CblasTrans;
             }
-            else if (std::strcmp(T, "C") == 0 or std::strcmp(T, "c") == 0)
+            else if ((std::strcmp(T, "C") == 0) || (std::strcmp(T, "c") == 0))
             {
                 return CblasConjTrans;
             }

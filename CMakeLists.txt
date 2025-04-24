@@ -18,7 +18,6 @@ include(GNUInstallDirs)
 option(GPU "Enable GPU support" OFF)
 option(LAPACK_VENDOR "Specify LAPACK vendor" "auto")
 option(CUSTOM_LIBRARIES "Custom libraries for LAPACK" "")
-option(INSTALL_OPENBLAS "Install OpenBLAS" OFF)
 #option(CUDA_ARCHITECTURES "NVIDIA Compute Capability (list of strings)" "89;86;80")
 
 option(WITH_TESTS "Copmile Testsuite" OFF)
@@ -57,8 +56,8 @@ if(GPU)
 
   if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     find_program(CC_BIN ${CMAKE_CXX_COMPILER})
+    find_package(OpenMP)
     target_compile_options(${PROJECT_NAME}-lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
-    -qopenmp
     --allow-unsupported-compiler 
     -ccbin 
     ${CC_BIN}
@@ -104,9 +103,6 @@ else()
     $<INSTALL_INTERFACE:include>
   )
 endif()
-if(NOT EXISTS "${PROJECT_BINARY_DIR}/include")
-  file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/include")
-endif()
 
 
 # Export targets for other projects
@@ -135,11 +131,6 @@ install(
   DIRECTORY
   "${CMAKE_CURRENT_SOURCE_DIR}/include/"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-)
-install(
-  DIRECTORY
-  "${CMAKE_CURRENT_BINARY_DIR}/include/"
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${module-dir}"
 )
 export(TARGETS
   "${PROJECT_NAME}"

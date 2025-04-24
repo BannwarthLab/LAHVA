@@ -1,7 +1,8 @@
 #include "const.h"
 #include "linalg.hpp"
 
-namespace lahva{
+namespace lahva
+{
 
     namespace cpu
     {
@@ -22,24 +23,25 @@ namespace lahva{
         void InvertTriMatrix(Matrix_<T>&a);
 
         template <typename T>
-        void SymEigenvalueDecomposition(Matrix_<T> &a, Vector_<T>& eigenvalues, char l_jobz = 'N');
+        void InvertTriMatrix(Matrix_<T> &a);
 
-        template<typename... Args>
-        void SolveGenSysLinEquations(const CPURuntime& cudart_, Args&&... args)
+        template <typename T>
+        void SymEigenvalueDecomposition(Matrix_<T> &a, Vector_<T> &eigenvalues, char l_jobz = 'N');
+
+        template <typename... Args>
+        void SolveGenSysLinEquations(const CPURuntime &cudart_, Args &&...args)
         {
             (SolveGenSysLinEquations(args...));
         }
 
-
-        template<typename... Args>
-        void SolveSymSysLinEquations(const CPURuntime& cudart_, Args&&... args)
+        template <typename... Args>
+        void SolveSymSysLinEquations(const CPURuntime &cudart_, Args &&...args)
         {
             (SolveSymSysLinEquations(args...));
         }
 
-
-        template<typename... Args>
-        void SymEigenvalueDecomposition(const CPURuntime& cudart_, Args&&... args)
+        template <typename... Args>
+        void SymEigenvalueDecomposition(const CPURuntime &cudart_, Args &&...args)
         {
             (SymEigenvalueDecomposition(args...));
         }
@@ -51,5 +53,5 @@ namespace lahva{
         }
         
     } // namespace cpu
-    
+
 }

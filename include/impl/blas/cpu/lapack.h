@@ -8,5 +8,5 @@ namespace lahva{
         void SolveGenSysLinEquations(const char* T, const int n, float* a, const int nrhs, float* b);
         void SolveGenSysLinEquations(const int n, float* a, const int nrhs, float* b, const char* T = "N");
     } // namespace cpu
-    
+
 }

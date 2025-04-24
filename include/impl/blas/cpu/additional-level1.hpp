@@ -15,7 +15,7 @@ namespace lahva
         /// @param use_diag Use the diagonal of the matrix
         /// @return The trace of the matrix
         template <typename T>
-        double ComputeTrace(const CPURuntime &cpurt, const Matrix_<T> &, bool use_diag = false);
+        double ComputeTrace(const CPURuntime &cpurt, const Matrix_<T> &matrix, bool use_diag = false);
 
         /// @brief Compute the trace of a matrix
         /// @param cpurt CPU Runtime instance

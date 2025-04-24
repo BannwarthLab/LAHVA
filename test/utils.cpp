@@ -1,26 +1,8 @@
 #include "utils.hpp"
 #include <math.h>
 #include <stdio.h>
+#include <complex>
 
-bool
-check(int actual, int expected, const char* msg)
-{
-    if (expected == actual) {
-        return true;
-    }
-    fprintf(stderr, "[Fatal] %s: expected %d, got %d\n", msg, expected, actual);
-    return false;
-}
-
-bool
-check(double actual, double expected, double tol, const char* msg)
-{
-    if (fabs(expected - actual) < tol) {
-        return true;
-    }
-    fprintf(stderr, "[Fatal] %s: expected %3.7f, got %3.7f\n", msg, expected, actual);
-    return false;
-}
 
 bool
 check(double* actual, double* expected, double tol, int ndim, const char* msg)

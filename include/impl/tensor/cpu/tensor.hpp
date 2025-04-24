@@ -32,21 +32,42 @@ namespace lahva
         T sum() const
         {
             T res = (T)0;
-#pragma omp parallel for reduction(+ : res)
-            for (size_t i = 0; i < this->size(); i++)
+            #pragma omp parallel shared(res)
             {
-                res += this->data()[i];
+                T my_part = (T)0.0;
+        
+                #pragma omp for
+                for (long i = 0; i < this->size(); i++)
+                {
+                    my_part += this->data()[i];
+                }
+        
+                #pragma omp critical
+                {
+                    res += my_part;
+                }
             }
+            
             return res;
         }
 
         T sum()
         {
             T res = (T)0;
-#pragma omp parallel for reduction(+ : res)
-            for (size_t i = 0; i < this->size(); i++)
+            #pragma omp parallel shared(res)
             {
-                res += this->data()[i];
+                T my_part = (T)0.0;
+        
+                #pragma omp for
+                for (long i = 0; i < this->size(); i++)
+                {
+                    my_part += this->data()[i];
+                }
+        
+                #pragma omp critical
+                {
+                    res += my_part;
+                }
             }
             return res;
         }

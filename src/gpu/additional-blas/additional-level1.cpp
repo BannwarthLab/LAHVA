@@ -1,3 +1,5 @@
+#include "linalg.hpp"
+#include "runtime.hpp"
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/level1.hpp"
 #include "custom-kernel/hadamard.h"
