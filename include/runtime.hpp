@@ -1,13 +1,14 @@
 #ifndef LAHVA_GPU_RUNTIME_HPP
 #define LAHVA_GPU_RUNTIME_HPP
+#include "const.h"
 
 #include <cuda_runtime.h>
 #include <cusolverDn.h>
-#include "const.h"
 #include <memory>
 #include <iostream>
 //#include <cublas_v2.h>
 #include <cmath>
+#include <limits>
 #define THREADS_PER_BLOCK 512
 //Macro to get the line and file throwing cuda runtime errors
 #define get_cuda_error(arg) get_cuda_ERROR(arg, __FILE__, __LINE__);
@@ -43,8 +44,7 @@ namespace lahva{
     class CudaRuntime : public BLASRuntime {
     protected:
         /// @brief cudaDevice ID defaults to 1
-        int cudaDevice = 0;
-        
+        int cudaDevice = 0; 
         /// @brief flag to do memCopyAsync
         bool async_ = true;
         /// @brief store version number of cuda library
@@ -56,6 +56,7 @@ namespace lahva{
         size_t availMem_ = 0; 
         /// @brief blocksize used for launching kernels
         mutable int blockSize_ = THREADS_PER_BLOCK;
+        mutable size_t max_block_ = std::numeric_limits<unsigned int>::max(); 
         ///
         std::shared_ptr<cuSolverRuntime> cusolv_;
         bool delete_handle = false;
@@ -128,7 +129,7 @@ namespace lahva{
         /// @param base Tensor length as 1D
         /// @param exp dimension of Tensor
         /// @return grid Size for Kernel excution
-        inline int gridSize(size_t base, size_t exp) const {return (int)ceil(((float)std::pow(base, exp))/blockSize_);};
+        inline size_t gridSize(size_t base, size_t exp) const {return (size_t)std::min(ceil(((float)std::pow(base, exp))/blockSize_),(float)this->max_block_);};
         
         /// @brief get device id of GPU with maximum working memory
         /// @return device ID of GPU with max memory

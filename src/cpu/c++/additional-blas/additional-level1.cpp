@@ -16,8 +16,12 @@ namespace lahva
         double ComputeTrace<double>(const CPURuntime& cudart, const Matrix_<double>& matrix, bool use_diag)
         {
             double trace = 0;
+#ifndef _WIN32            
             #pragma omp parallel for simd reduction(+:trace)
-            for(size_t i = 0 ; i < matrix.shape().first ; i++)
+#else
+            #pragma omp parallel for shared(matrix) reduction(+:trace)
+#endif
+            for(int i = 0 ; i < matrix.shape().first ; i++)
                 trace+=(double)matrix(i,i);
             return trace;
         };
@@ -26,8 +30,12 @@ namespace lahva
         double ComputeTrace<float>(const CPURuntime& cudart, const Matrix_<float>& matrix, bool use_diag)
         {
             double trace = 0;
+#ifndef _WIN32            
             #pragma omp parallel for simd reduction(+:trace)
-            for(size_t i = 0 ; i < matrix.shape().first ; i++)
+#else
+            #pragma omp parallel for shared(matrix) reduction(+:trace)
+#endif       
+            for(int i = 0 ; i < matrix.shape().first ; i++)
                 trace+=(double)matrix(i,i);
             return trace;
         };
@@ -35,8 +43,12 @@ namespace lahva
         double ComputeTrace(const CPURuntime& cudart, const Vector_<double>& diag)
         {
             double trace = 0;
-            #pragma omp parallel for  simd reduction(+:trace)
-            for(size_t i = 0 ; i < diag.size() ; i++)
+#ifndef _WIN32            
+            #pragma omp parallel for simd reduction(+:trace)
+#else
+            #pragma omp parallel for shared(diag) reduction(+:trace)
+#endif
+            for(int i = 0 ; i < diag.size() ; i++)
                 trace+=(double)diag[i];
             return trace;
         };
@@ -80,7 +92,11 @@ namespace lahva
         {
             T norm = 0;
             check_equal_size(mat1, mat2);
-            #pragma omp parallel for simd shared(mat1,mat2) reduction(+:norm)  
+#ifndef _WIN32
+            #pragma omp parallel for simd shared(mat1,mat2) reduction(+:norm)
+#else
+            #pragma omp parallel for shared(mat1,mat2) reduction(+:norm)
+#endif
             for (int i = 0 ; i < (mat1.size()) ; i++)
             {
                 norm += mat1.data()[i]*mat2.data()[i];

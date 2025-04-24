@@ -1,6 +1,6 @@
+#include "lapack_wrap.hpp"
 #include "impl/blas/cpu/lapack.h"
 #include <stdexcept>
-#include "lapack_wrap.hpp"
 namespace lahva
 {
 

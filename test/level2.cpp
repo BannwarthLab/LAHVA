@@ -7,6 +7,10 @@ using namespace lahva::cpu;
 
 const double thr2 = 5.0e-15;
 const float thr = 5.0e-7;
+template<typename T>
+T get_complex_thr(){
+    return T(5.0e-7, 5.0e-7);
+}
 float vf[9] = {1.0, 4.0, 5.0, 0.0, 2.0, 6.0, 0.0, 0.0, 3.0};
 double vd[9] = {1.0, 4.0, 5.0, 0.0, 2.0, 6.0, 0.0, 0.0, 3.0};
 float *pf = vf;
@@ -23,7 +27,7 @@ int test_dgemv_zero_v_cpp(){
     Matrix<double> A(s, 1.0);
     Vector<double> x(N, 0.0);
     Vector<double> y(M, 1.0);
-
+    x.print();
     MatrixVectorProduct("N", 1.0, A, x, 1, 0.0, y, 1);
 
     auto sum_ = sum(M, y.data());
@@ -51,6 +55,43 @@ int test_dgemv_zero_v_cpp(){
     sum_ = sum(M, y.data());
 
     if (!check(sum_, 0.0, thr, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+
+    return stat_;
+}
+template<typename T>
+int test_complex_gemv_zero_v_cpp(){
+    int stat_ = 0;
+    Shape s(M,N);
+    Matrix<T> A(s, 1.0);
+    Vector<T> x(N, 0.0);
+    Vector<T> y(M, 1.0);
+    MatrixVectorProduct("N", 1.0, A, x, 1, 0.0, y, 1);
+    auto sum_ = y.sum();
+    T thrc = get_complex_thr<T>();
+    if (!check(sum_, T(0.0, 0.0), thrc, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1; 
+
+    y = Vector<T>(M, T{0.0,1.0});
+    std::cout << y.sum() << std::endl;
+    
+    MatrixVectorProduct("N", 1.0, A, x, 1, T{0.0, -1.0}, y, 1);
+
+    sum_ = y.sum();
+    
+    if (!check(sum_, T(M*1.0, 0.0), thrc, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+    y = Vector<T>(M, T{0.0,1.0});
+    MatrixVectorProduct(A, x, y, "N", 1.0, T{0.0, -1.0});
+
+    sum_ = y.sum();
+    std::cout << y.sum() << std::endl;
+    if (!check(sum_, T(M*1.0,0.0), thrc, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
+
+    A = Matrix<T>(Shape(N,M), T(0.0, 1.0));
+    x = Vector<T>(N, 1.0);
+    MatrixVectorProduct(A, x, y, "C", T(0.0,1.0)); //Check complex conjugate
+
+    sum_ = y.sum();
+
+    if (!check(sum_, T(N*M*1.0, 0.0), thrc, "Error when using Matrix Multiplication with a zero vector.")) stat_ += 1;
 
     return stat_;
 }
@@ -706,6 +747,8 @@ int test_ssymv_v_c(){
 int main(){
     int stat = 0;
     stat += test_dgemv_zero_v_cpp();
+    stat += test_complex_gemv_zero_v_cpp<complex_double>();
+    stat += test_complex_gemv_zero_v_cpp<complex_float>();
     stat += test_sgemv_zero_v_cpp();
     stat += test_dsymv_zero_v_cpp();
     stat += test_ssymv_zero_v_cpp();
@@ -727,5 +770,6 @@ int main(){
     stat += test_dgemv_v_c();
     stat += test_ssymv_v_c();
     stat += test_dsymv_v_c();
+
     return stat;
 };

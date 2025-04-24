@@ -1,3 +1,5 @@
+#include "linalg.hpp"
+#include "runtime.hpp"
 #include "../gpu-utils/utils.hpp"
 
 namespace lahva

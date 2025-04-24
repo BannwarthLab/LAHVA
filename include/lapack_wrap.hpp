@@ -1,6 +1,12 @@
 #ifndef LAHVA_LAPACK_WRAP_HPP
 #define LAHVA_LAPACK_WRAP_HPP
-#if not defined(W_MKL) and not defined(_APPLE)
+#include <complex>
+#ifdef _WIN32
+    #define lapack_complex_double std::complex<double>
+    #define lapack_complex_float std::complex<float>
+    typedef unsigned int uint;
+#endif
+#if !defined(W_MKL) && !defined(_APPLE)
 #ifdef NETLIB_HEADER
 #include <netlib/lapack.h>
 #else

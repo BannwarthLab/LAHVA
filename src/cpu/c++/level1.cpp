@@ -1,3 +1,4 @@
+#include "linalg.hpp"
 #include "../../utils/utils.hpp"
 #include "impl/blas/cpu/level1.hpp"
 #include "impl/blas/cpu/level1.h"
@@ -121,9 +122,12 @@ namespace lahva{
     
     void CopyVectors(const Tensor<float>& x, Tensor<double>& y) 
     {
-        
-        #pragma omp parallel for
-        for (size_t i = 0; i < x.size() ; i++ )
+#ifndef _WIN32        
+        #pragma omp parallel for simd 
+#else
+        #pragma omp parallel for shared(x, y)
+#endif
+        for (int i = 0; i < x.size() ; i++ )
         {
             y.data()[i] = static_cast<double>(x.data()[i]);
         }
@@ -131,9 +135,12 @@ namespace lahva{
 
     void CopyVectors(const Tensor<double>& x, Tensor<float>& y) 
     {
-        
-        #pragma omp parallel for
-        for (size_t i = 0; i < x.size() ; i++ )
+#ifndef _WIN32   
+        #pragma omp parallel for simd
+#else
+        #pragma omp parallel for shared(x,y)
+#endif
+        for (int i = 0; i < x.size() ; i++ )
         {
             y.data()[i] = static_cast<float>(x.data()[i]);
         }

@@ -1,3 +1,4 @@
+#include "linalg.hpp"
 #include "impl/blas/cpu/additional-level2.hpp"
 #include "../../../utils/utils.hpp"
 #include "impl/blas/cpu/level1.hpp"
