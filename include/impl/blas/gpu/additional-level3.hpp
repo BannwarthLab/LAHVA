@@ -22,7 +22,7 @@ namespace lahva
             
             MatrixMatrixProduct(cudart, m1, m2, mout);
             //SymmetrizeMatrix(cudart, mout);
-            Hadamard(cudart, d1, d2, dout);
+            HadamardProduct(cudart, d1, d2, dout);
             SymmetrizedON2ScalingProductGPU(cudart, d1, m1, d2, m2, mout);
             SymmetrizeMatrix(cudart, mout);
             

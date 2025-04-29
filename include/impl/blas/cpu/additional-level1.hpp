@@ -174,6 +174,21 @@ namespace lahva
         {
             (ApplyKernel(args...));
         }
+        template<typename T>
+        void HadamardProduct(const Tensor<T> &X, Tensor<T> &Y);
+
+        template<typename T>
+        void HadamardProduct(const Tensor<T> &X, const Tensor<T> &Y, Tensor<T> &Z);
+
+        template<typename T>
+        void HadamardProduct(const size_t ndim, const T* X, const T* Y, T* Z, bool increment = false);
+
+        template <typename... Args>
+        void HadamardProduct(const CPURuntime &rt_, Args &&...args)
+        {
+            (HadamardProduct(args...));
+        } 
+        
 
     } // namespace gpu
 

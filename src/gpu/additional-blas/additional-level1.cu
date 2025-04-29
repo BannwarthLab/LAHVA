@@ -6,10 +6,47 @@
 #include "reductions/common.cuh"
 #include "additional-level1.cuh"
 #include "./additional-level1.hpp"
+#include "add-vectors.hpp"
 namespace lahva
 {
     namespace gpu
     {
+        __global__ void AddVector_(unsigned long long ndim, double alpha, float *a, double *b)
+        {
+            int index = blockIdx.x * blockDim.x + threadIdx.x;
+            if (index < ndim)
+            {
+                b[index] += static_cast<float>(a[index]*alpha);
+            }
+            
+        };
+
+        __global__ void AddVector_(unsigned long long ndim, double alpha, double *a, float *b)
+        {
+            int index = blockIdx.x * blockDim.x + threadIdx.x;
+            if (index < ndim)
+            {
+                b[index] += static_cast<double>(a[index]*alpha);
+            }
+            
+        };
+
+        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double alpha, const GPUTensor_<float>& a, GPUTensor_<double>& b)
+        {
+            check_device_alloc(cudart, a);
+            check_device_alloc(cudart, b);
+            unsigned long long blockSize = cudart.blockSize();
+            AddVector_<<<cudart.gridSize(ndim, 1), blockSize, 0, cudart.getStream()>>>(ndim, alpha, a.gpu_data(), b.gpu_data());
+        }
+
+        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double alpha, const GPUTensor_<double>& a, GPUTensor_<float>& b)
+        {
+            check_device_alloc(cudart, a);
+            check_device_alloc(cudart, b);
+            unsigned long long blockSize = cudart.blockSize();
+            AddVector_<<<cudart.gridSize(ndim, 1), blockSize, 0, cudart.getStream()>>>(ndim, alpha, a.gpu_data(), b.gpu_data());
+        }
+
         template<typename T, class op>
         void ApplyKernel(const CudaRuntime& cudart, GPUTensor_<T>& in, op operation)
         {

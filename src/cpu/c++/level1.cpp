@@ -100,6 +100,24 @@ namespace lahva{
         AddVectors(x.size(), a, x.data(), ix, y.data(), iy);
     }
 
+    void AddVectors(const double a, const Tensor<double>& x, Tensor<float>& y) {
+        check_equal_size(x,y);
+        #pragma omp parallel for shared(x,y)
+        for (int i = 0; i < x.size() ; i++ )
+        {
+            y.data()[i] = static_cast<float>(a * x.data()[i] + y.data()[i]);
+        }
+    }
+
+    void AddVectors(const double a, const Tensor<float>& x, Tensor<double>& y) {
+        check_equal_size(x,y);
+        #pragma omp parallel for shared(x,y)
+        for (int i = 0; i < x.size() ; i++ )
+        {
+            y.data()[i] = static_cast<double>(a * x.data()[i] + y.data()[i]);
+        }
+    }
+
     //Copy routines////////////////////////////////////////////////////////////////////
 
     /*! Simple interface to DCOPY \f$\vec{y}=\vec{x}\f$ assuming unit stride

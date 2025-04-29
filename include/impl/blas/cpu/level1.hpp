@@ -19,6 +19,8 @@ namespace lahva{
     void AddVectors(const float a, const Tensor<float>& x, Tensor<float>& y);
     void AddVectors(const double a, const Tensor<double>& x, size_t ix, Tensor<double>& y, size_t iy);
     void AddVectors(const float a, const Tensor<float>& x, size_t ix, Tensor<float>& y, size_t iy);
+    void AddVectors(const double a, const Tensor<double>& x, Tensor<float>& y);
+    void AddVectors(const double a, const Tensor<float>& x, Tensor<double>& y);
 
     void CopyVectors(const Tensor<double>& X, Tensor<double>& Y);
     void CopyVectors(const Tensor<float>& X, Tensor<float>& Y);
