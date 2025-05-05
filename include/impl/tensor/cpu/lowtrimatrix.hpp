@@ -1,7 +1,7 @@
 #pragma once
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
-
+#include <omp.h>
 
 namespace lahva
 {

@@ -3,6 +3,7 @@
 #include "impl/tensor/gpu/gputensor.hpp"
 #include "impl/tensor/cpu/vector.hpp"
 #include <initializer_list>
+#include <omp.h>
 namespace lahva
 {
     namespace gpu

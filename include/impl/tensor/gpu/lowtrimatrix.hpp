@@ -2,6 +2,7 @@
 #include "runtime.hpp"
 #include "impl/tensor/gpu/gputensor.hpp"
 #include "impl/tensor/cpu/lowtrimatrix.hpp"
+#include <omp.h>
 
 namespace lahva
 {

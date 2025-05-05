@@ -7,6 +7,7 @@
 #include "impl/tensor/gpu/vector.hpp"
 #include "impl/blas/cpu/level1.h"
 #include <initializer_list>
+#include <omp.h>
 namespace lahva
 {
     namespace gpu
@@ -247,7 +248,7 @@ namespace lahva
     // move operations
     template <typename T, class Allocator, class GPUAllocator>
     Matrix<T, Allocator, GPUAllocator>::Matrix(Matrix<T, Allocator, GPUAllocator> &&other) : 
-    n_rows_{other.n_rows_}, n_cols_{other.n_cols},
+    n_rows_{other.n_rows_}, n_cols_{other.n_cols_},
     GPUTensor<T, Allocator, GPUAllocator>{other}
     {
    

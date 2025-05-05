@@ -5,6 +5,7 @@
 #include "impl/tensor/cpu/vector.hpp"
 #include "impl/blas/cpu/level1.h"
 #include <initializer_list>
+#include <omp.h>
 namespace lahva
 {
     namespace cpu
@@ -239,7 +240,7 @@ namespace lahva
     // move operations
     template <typename T, class Allocator>
     Matrix<T, Allocator>::Matrix(Matrix<T, Allocator> &&other) : 
-    n_rows_{other.n_rows_}, n_cols_{other.n_cols},
+    n_rows_{other.n_rows_}, n_cols_{other.n_cols_},
     CPUTensor<T, Allocator>{other}
     {
    

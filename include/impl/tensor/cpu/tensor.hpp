@@ -5,7 +5,7 @@
 #include <iterator>
 #include <iostream>
 #include "impl/tensor/allocators.hpp"
-
+#include <omp.h>
 namespace lahva
 {
 

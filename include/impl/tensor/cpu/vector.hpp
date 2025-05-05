@@ -2,6 +2,7 @@
 #include <memory>
 #include "impl/tensor/cpu/tensor.hpp"
 #include <initializer_list>
+#include <omp.h>
 namespace lahva
 {
     namespace cpu
