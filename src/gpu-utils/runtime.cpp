@@ -45,17 +45,10 @@ namespace lahva
 
         freemem = 0;
         totmem = 0;
-	cudaError_t stat;
-	//cudaError_t stat = cudaGetDeviceCount(&ndev);
-        ndev = 1;
-	//get_cuda_error(stat);
+	    get_cuda_error(cudaGetDeviceCount(&ndev));
         for (int i = 0; i < ndev; ++i) {
-            //stat = cudaSetDevice(i);
-            stat = cudaMemGetInfo(&freemem, &totmem);
-            if (stat != 0) {
-            get_cuda_error(stat);
-            cudaDevice = -1;
-            }
+            get_cuda_error(cudaSetDevice(i));
+            get_cuda_error(cudaMemGetInfo(&freemem, &totmem));
             if (freemem > availmem) {
                 availmem = freemem;
                 cudaDevice = i;

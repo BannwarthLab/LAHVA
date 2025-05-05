@@ -58,11 +58,15 @@ namespace lahva
     template <typename T>
     class GPUAllocator_ : public CPUAllocator<T>
     {
+        protected:
+            mutable int device_ = -1;
     public:
         virtual void operator()(T *ptr) = 0;
         virtual void H2DCopy(void *d_ptr,const void *h_ptr, const size_t buffersize) const = 0;
         virtual void D2HCopy(void *d_ptr, void *h_ptr, const size_t buffersize) const = 0;
         virtual void setStream(std::shared_ptr<cudaStream_t>& stream) const {};
+        virtual void setDevice(int device) const {this->device_ = device;};
+    
     };
 
     template <typename T>
@@ -117,12 +121,14 @@ namespace lahva
         void
         deallocate(value_type *ptr, std::size_t n) noexcept // Use pointer if pointer is not a value_type*
         {
+            get_cuda_error(cudaSetDevice(this->device_));
             get_cuda_error(cudaFree(ptr));
         }
 
         void
         deallocate(value_type *ptr) noexcept // Use pointer if pointer is not a value_type*
         {
+            get_cuda_error(cudaSetDevice(this->device_));
             get_cuda_error(cudaFree(ptr));
         }
 
@@ -136,11 +142,13 @@ namespace lahva
 
         void H2DCopy(void *d_ptr,const void *h_ptr, const size_t buffersize) const
         {
+            get_cuda_error(cudaSetDevice(this->device_));
             get_cuda_error(cudaMemcpy(d_ptr, h_ptr, buffersize, cudaMemcpyHostToDevice));
         };
 
         void D2HCopy(void *d_ptr, void *h_ptr, const size_t buffersize) const
         {
+            get_cuda_error(cudaSetDevice(this->device_));
             get_cuda_error(cudaMemcpy(h_ptr, d_ptr, buffersize, cudaMemcpyDeviceToHost));
         };
     };
@@ -166,10 +174,12 @@ namespace lahva
             value_type *ptr;
             if (stream_)
             {
+                get_cuda_error(cudaSetDevice(this->device_));
                 get_cuda_error(cudaMallocAsync((void **)&ptr, n * sizeof(value_type), *stream_));
             }
             else
             {
+                get_cuda_error(cudaSetDevice(this->device_));
                 get_cuda_error(cudaMalloc((void **)&ptr, n * sizeof(value_type)));
             }
             
@@ -180,10 +190,12 @@ namespace lahva
         {
             if (stream_)
             {
+                get_cuda_error(cudaSetDevice(this->device_));
                 get_cuda_error(cudaFreeAsync(ptr, *stream_));
             }
             else
             {
+                get_cuda_error(cudaSetDevice(this->device_));
                 get_cuda_error(cudaFree(ptr));
             }
             
@@ -194,10 +206,12 @@ namespace lahva
         {
             if (stream_)
             {
+                get_cuda_error(cudaSetDevice(this->device_));
                 get_cuda_error(cudaFreeAsync(ptr, *stream_));
             }
             else
             {
+                get_cuda_error(cudaSetDevice(this->device_));
                 get_cuda_error(cudaFree(ptr));
             }
         }
@@ -214,10 +228,12 @@ namespace lahva
         {
             if (stream_ )
             {
+                get_cuda_error(cudaSetDevice(this->device_));
                 get_cuda_error(cudaMemcpyAsync(d_ptr, h_ptr, buffersize, cudaMemcpyHostToDevice, *stream_));
             }
             else
             {
+                get_cuda_error(cudaSetDevice(this->device_));
                 get_cuda_error(cudaMemcpy(d_ptr, h_ptr, buffersize, cudaMemcpyHostToDevice));    
             }
             
@@ -227,10 +243,12 @@ namespace lahva
         {
             if (stream_)
             {
+                get_cuda_error(cudaSetDevice(this->device_));
                 get_cuda_error(cudaMemcpyAsync(h_ptr, d_ptr, buffersize, cudaMemcpyDeviceToHost, *stream_));
             }
             else
             {
+                get_cuda_error(cudaSetDevice(this->device_));
                 get_cuda_error(cudaMemcpy(h_ptr, d_ptr, buffersize, cudaMemcpyDeviceToHost));
             }
         };
