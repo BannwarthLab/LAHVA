@@ -8,6 +8,9 @@
 #include "impl/blas/cpu/level1.h"
 #include <initializer_list>
 #include <omp.h>
+#include <iostream>
+#include <string>
+#include <fstream>
 namespace lahva
 {
     namespace gpu
@@ -85,7 +88,7 @@ namespace lahva
         //! It is not guaranteed that the values will be initialized!
         Matrix(const Shape &shape, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator());
 
-        Matrix(const Shape &shape, std::initializer_list<T> init, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator());
+        Matrix(const Shape &shape, std::initializer_list<T> init, bool row_major = false, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator());
 
         template <typename U>
         Matrix(const Shape &shape, const CudaRuntime &cudart, const U &alloc)
@@ -128,6 +131,30 @@ namespace lahva
         //! prints the Matrix as string
         void print() const;
 
+        void print(const char* file) const
+        {
+            std::ofstream os(file);
+            os.precision(10);
+            if (os.is_open())
+            {
+                for (size_t i = 0; i < n_rows_; i++)
+            {
+                for (size_t j = 0; j < n_cols_; j++)
+                {
+                    os << this->data_[data_id_(i, j)] << ", ";
+                }
+                os << std::endl;
+            }
+            }
+            else
+            {
+                std::cerr << "Unable to open file";
+                return;
+            }
+            os.close();
+            
+        }
+
         Vector<T, Allocator, GPUAllocator> get_diagonal() const;
 
         void set_diagonal(const Vector<T, Allocator, GPUAllocator> &diag);
@@ -164,11 +191,25 @@ namespace lahva
     }
 
     template <typename T, class Allocator, class GPUAllocator>
-    Matrix<T, Allocator, GPUAllocator>::Matrix(const Shape &shape, std::initializer_list<T> init,const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
+    Matrix<T, Allocator, GPUAllocator>::Matrix(const Shape &shape, std::initializer_list<T> init, bool row_major, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
     Matrix(shape, alloc, gpualloc)
     {
         assert(init.size() == this->count_);
-        std::copy(init.begin(), init.end(), this->data_);
+        if (row_major)
+        {
+            #pragma omp parallel for ordered schedule(static)
+            for (size_t i = 0; i < this->n_rows_; i++)
+            {
+                for (size_t j = 0; j < this->n_cols_; j++)
+                {
+                    this->data_[data_id_(i, j)] = init.begin()[j + i * n_rows_];
+                }
+            }
+        }
+        else
+        {
+            std::copy(init.begin(), init.end(), this->data_);
+        }
     };
 
     template <typename T, class Allocator, class GPUAllocator>
