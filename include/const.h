@@ -14,7 +14,7 @@ typedef lapack_int LPCK_INT;
 #elif _APPLE
 #define ACCELERATE_NEW_LAPACK
 #include <Accelerate/Accelerate.h>
-typedef CBAS_ORDER CBLAS_LAYOUT;
+typedef CBLAS_ORDER CBLAS_LAYOUT;
 typedef int32_t BLAS_INT;
 typedef int32_t LPCK_INT; 
 #else
@@ -31,6 +31,7 @@ typedef int32_t LPCK_INT;
 #ifndef complex_float
 #define complex_float std::complex<float>
 #endif
+
 #include <omp.h>
 #include <climits>
 #include <utility>
@@ -48,7 +49,7 @@ namespace lahva
     static char l_nondiag = 'N';
     static const char major_char = 'C';
 
-    using Shape = std::pair<uint, uint>; 
+    using Shape = std::pair<unsigned int, unsigned int>; 
 
     class BLASLeft
     {
