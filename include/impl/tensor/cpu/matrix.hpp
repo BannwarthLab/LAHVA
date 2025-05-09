@@ -46,8 +46,8 @@ namespace lahva
         using alloc_ptr = CPUAllocator<T>;
     protected:
         // shape in each dimension, i.e. data_ has length n_rows_*n_cols
-        size_t n_rows_ = 0;
-        size_t n_cols_ = 0;
+        size_t n_rows_;
+        size_t n_cols_;
     
         // indicates whether the Matrix object owns the data and consequently is
         // responsible for freeing it
@@ -187,15 +187,14 @@ namespace lahva
 
      template <typename T, class Allocator>
     Matrix<T, Allocator>::Matrix(const Shape &shape, const alloc_ptr &alloc) : 
-    n_rows_{shape.first}, n_cols_{shape.second}, 
-    CPUTensor<T, Allocator>{shape.first*shape.second, alloc}
+    CPUTensor<T, Allocator>{shape.first*shape.second, alloc}, n_rows_{shape.first}, n_cols_{shape.second}
     {
         check_size_(shape.first, shape.second);
     }
 
     template <typename T, class Allocator>
     Matrix<T, Allocator>::Matrix(const Shape &shape, T *data, bool take_ownership, const alloc_ptr &alloc) : 
-    n_rows_{shape.first}, n_cols_{shape.second}, CPUTensor<T, Allocator>{alloc}
+    CPUTensor<T, Allocator>{alloc}, n_rows_{shape.first}, n_cols_{shape.second}
     {
         this->data_ = data;
         this->count_ = n_rows_*n_cols_;
@@ -261,8 +260,8 @@ namespace lahva
     // copy operations
      template <typename T, class Allocator>
     Matrix<T, Allocator>::Matrix(const Matrix<T, Allocator> &other) : 
-    n_rows_{other.n_rows_}, n_cols_{other.n_cols_},
-    CPUTensor<T, Allocator>{other}    
+    CPUTensor<T, Allocator>{other}, 
+    n_rows_{other.n_rows_}, n_cols_{other.n_cols_}
     {
         
     }
@@ -283,9 +282,9 @@ namespace lahva
 
     // move operations
     template <typename T, class Allocator>
-    Matrix<T, Allocator>::Matrix(Matrix<T, Allocator> &&other) : 
-    n_rows_{other.n_rows_}, n_cols_{other.n_cols_},
-    CPUTensor<T, Allocator>{other}
+    Matrix<T, Allocator>::Matrix(Matrix<T, Allocator> &&other) :
+    CPUTensor<T, Allocator>{other},
+    n_rows_{other.n_rows_}, n_cols_{other.n_cols_}
     {
    
         other.n_rows_ = 0;

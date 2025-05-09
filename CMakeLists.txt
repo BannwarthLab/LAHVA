@@ -56,14 +56,17 @@ if(GPU)
 
   if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     find_program(CC_BIN ${CMAKE_CXX_COMPILER})
-    find_package(OpenMP)
+    
     target_compile_options(${PROJECT_NAME}-lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
     --allow-unsupported-compiler 
     -ccbin 
     ${CC_BIN}
     >)
   endif()
-
+  find_package(OpenMP)
+  if(OpenMP_FOUND)
+    target_link_libraries("${PROJECT_NAME}-lib" PUBLIC "OpenMP::OpenMP_CUDA")
+  endif()
   target_link_libraries("${PROJECT_NAME}-lib" PUBLIC "CUDA::cudart" "CUDA::cublas" "CUDA::cusolver" "CUDA::cusparse")
   list(APPEND PRE_FLAGS "_CUDA")
 endif()
