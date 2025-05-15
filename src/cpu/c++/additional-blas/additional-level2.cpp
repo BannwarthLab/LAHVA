@@ -2,12 +2,13 @@
 #include "impl/blas/cpu/additional-level2.hpp"
 #include "../../../utils/utils.hpp"
 #include "impl/blas/cpu/level1.hpp"
+#include <cblas.h>
 namespace lahva
 {
     namespace cpu
     {
         template <>
-        void AddMatrices<double>(const char *Ta, const char *Tb, const double alpha, const Matrix_<double> &a,const double beta,
+        void AddMatrices<double>(const char *Ta, const char *Tb, const double alpha, const Matrix_<double> &a, const double beta,
                                  const Matrix_<double> &b, Matrix_<double> &c)
         {
             CBLAS_TRANSPOSE transa = get_trans(Ta);
@@ -21,7 +22,8 @@ namespace lahva
 #if defined(_MKL_H_)
             mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
 
-#elif defined(OPENBLAS_GENERIC)
+#elif defined(OPENBLAS_VERSION)
+            std::cout << "OPENBLAS_VERSION" << std::endl;
             // copy B into C, potetially transpose
             cblas_domatcopy(major, transb, b.shape().first, b.shape().second, beta, b.data(), ldb, c.data(), ldc);
             // copy A inplace, if transpose
@@ -37,6 +39,53 @@ namespace lahva
             }
 #elif defined(__ACCELERATE__)
             appleblas_dgeadd(major, transa, transb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
+
+#else
+            if (transa == CblasNoTrans && transb == CblasNoTrans)
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(i, j) + beta * b(i, j);
+                    }
+                }
+            }
+            else if (transa == CblasNoTrans && transb == CblasTrans)
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(i, j) + beta * b(j, i);
+                    }
+                }
+            }
+            else if (transa == CblasTrans && transb == CblasNoTrans)
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(j, i) + beta * b(i, j);
+                    }
+                }
+            }
+            else
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(j, i) + beta * b(j, i);
+                    }
+                }
+            }
+
 #endif
         };
 
@@ -55,7 +104,7 @@ namespace lahva
 
 #if defined(_MKL_H_)
             mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#elif defined(OPENBLAS_GENERIC)
+#elif defined(OPENBLAS_VERSION)
             // copy B into C, potetially transpose
             cblas_somatcopy(major, transb, b.shape().first, b.shape().second, beta, b.data(), ldb, c.data(), ldc);
             // copy A inplace, if transpose
@@ -71,6 +120,51 @@ namespace lahva
             }
 #elif defined(__ACCELERATE__)
             appleblas_sgeadd(major, transa, transb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
+#else
+            if (transa == CblasNoTrans && transb == CblasNoTrans)
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(i, j) + beta * b(i, j);
+                    }
+                }
+            }
+            else if (transa == CblasNoTrans && transb == CblasTrans)
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(i, j) + beta * b(j, i);
+                    }
+                }
+            }
+            else if (transa == CblasTrans && transb == CblasNoTrans)
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(j, i) + beta * b(i, j);
+                    }
+                }
+            }
+            else
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(j, i) + beta * b(j, i);
+                    }
+                }
+            }
 #endif
         };
 
@@ -89,7 +183,7 @@ namespace lahva
 
 #if defined(_MKL_H_)
             mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#elif defined(OPENBLAS_GENERIC)
+#elif defined(OPENBLAS_VERSION)
             // copy B into C, potetially transpose
             cblas_domatcopy(major, transb, b.shape().first, b.shape().second, beta, b.data(), ldb, c.data(), ldc);
             // copy A inplace, if transpose
@@ -105,6 +199,52 @@ namespace lahva
             }
 #elif defined(__ACCELERATE__)
             appleblas_dgeadd(major, transa, transb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
+#else
+            if (transa == CblasNoTrans && transb == CblasNoTrans)
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(i, j) + beta * b(i, j);
+                    }
+                }
+            }
+            else if (transa == CblasNoTrans && transb == CblasTrans)
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(i, j) + beta * b(j, i);
+                    }
+                }
+            }
+            else if (transa == CblasTrans && transb == CblasNoTrans)
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(j, i) + beta * b(i, j);
+                    }
+                }
+            }
+            else
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(j, i) + beta * b(j, i);
+                    }
+                }
+            }
+
 #endif
         };
 
@@ -123,7 +263,7 @@ namespace lahva
 
 #if defined(_MKL_H_)
             mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
-#elif defined(OPENBLAS_GENERIC)
+#elif defined(OPENBLAS_VERSION)
             // copy B into C, potetially transpose
             cblas_somatcopy(major, transb, b.shape().first, b.shape().second, beta, b.data(), ldb, c.data(), ldc);
             // copy A inplace, if transpose
@@ -139,6 +279,52 @@ namespace lahva
             }
 #elif defined(__ACCELERATE__)
             appleblas_sgeadd(major, transa, transb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
+#else
+            if (transa == CblasNoTrans && transb == CblasNoTrans)
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(i, j) + beta * b(i, j);
+                    }
+                }
+            }
+            else if (transa == CblasNoTrans && transb == CblasTrans)
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(i, j) + beta * b(j, i);
+                    }
+                }
+            }
+            else if (transa == CblasTrans && transb == CblasNoTrans)
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(j, i) + beta * b(i, j);
+                    }
+                }
+            }
+            else
+            {
+#pragma omp parallel for collapse(2)
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        c(i, j) = alpha * a(j, i) + beta * b(j, i);
+                    }
+                }
+            }
+
 #endif
         };
     }

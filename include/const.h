@@ -1,6 +1,6 @@
 #ifndef LAHVA_CONST_H
 #define LAHVA_CONST_H
-#include <stdint.h>
+#include <cstdint>
 #include <complex>
 #ifdef _WIN32
     #define lapack_complex_double std::complex<double>
@@ -19,7 +19,7 @@ typedef int32_t BLAS_INT;
 typedef int32_t LPCK_INT; 
 #else
 #include <cblas.h>
-    #ifdef OPENBLAS_GENERIC
+    #ifdef OPENBLAS_VERSION
     typedef blasint BLAS_INT;
     #else
     typedef int32_t BLAS_INT;
@@ -49,7 +49,7 @@ namespace lahva
     static char l_nondiag = 'N';
     static const char major_char = 'C';
 
-    using Shape = std::pair<unsigned int, unsigned int>; 
+    using Shape = std::pair<std::uint32_t, std::uint32_t>; 
 
     class BLASLeft
     {

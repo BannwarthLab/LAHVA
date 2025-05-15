@@ -120,22 +120,27 @@ endif()
 
 #if accelerate is used the header will be found in the system include path
 if (BLA_VENDOR MATCHES OpenBLAS OR BLA_VENDOR MATCHES custom)
-get_filename_component(LAPACK_LIB "${LAPACK_LIBRARIES}" DIRECTORY)
-get_filename_component(LAPACK_LIB "${LAPACK_LIB}" DIRECTORY)
-find_file(LAPACK_HEADER_FILE "lapack.h" PATHS /usr/include /usr/local/include "${LAPACK_LIB}/include" "${LAPACK_LIB}/include/openblas")
 
-if(LAPACK_HEADER_FILE)
-  message(STATUS "Found header file: ${LAPACK_HEADER_FILE}")
-  get_filename_component(LAPACK_HEADER_FILE "${LAPACK_HEADER_FILE}" DIRECTORY)
-  target_include_directories("${PROJECT_NAME}-lib" PUBLIC "${LAPACK_HEADER_FILE}")
+  list(GET LAPACK_LIBRARIES 0 LAPACK_LIBRARIES_FIRST)
+get_filename_component(LAPACK_LIB "${LAPACK_LIBRARIES_FIRST}" DIRECTORY)
+get_filename_component(LAPACK_LIB "${LAPACK_LIB}" DIRECTORY)
+find_file(LAPACK_HEADER_F "lapack.h" PATHS "${LAPACK_LIB}/include" "${LAPACK_LIB}/include/openblas" NO_DEFAULT_PATH)
+
+if(LAPACK_HEADER_F)
+  message(STATUS "Found header file: ${LAPACK_HEADER_F}")
+  get_filename_component(LAPACK_HEADER_F "${LAPACK_HEADER_F}" DIRECTORY)
+  target_include_directories("${PROJECT_NAME}-lib" PUBLIC "${LAPACK_HEADER_F}")
 else()
   message(STATUS "Header file not found")
   list(APPEND PRE_FLAGS "NETLIB_HEADER")
 endif()
 
-get_filename_component(BLAS_LIB "${BLAS_LIBRARIES}" DIRECTORY)
+list(LENGTH BLAS_LIBRARIES BLAS_LIBRARIES_COUNT)
+list(GET BLAS_LIBRARIES 0 BLAS_LIBRARIES_FIRST)
+
+get_filename_component(BLAS_LIB "${BLAS_LIBRARIES_FIRST}" DIRECTORY)
 get_filename_component(BLAS_LIB "${BLAS_LIB}" DIRECTORY)
-find_file(CBLAS_HDR "cblas.h" /usr/include /usr/local/include "${BLAS_LIB}/include" "${BLAS_LIB}/include/openblas")
+find_file(CBLAS_HDR "cblas.h" "${BLAS_LIB}/include" "${BLAS_LIB}/include/openblas" NO_DEFAULT_PATH)
 
 if(CBLAS_HDR)
   message(STATUS "Found header file: ${CBLAS_HDR}")
