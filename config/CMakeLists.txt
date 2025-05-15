@@ -21,7 +21,7 @@ endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 # No additional arguments for GCC
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-  list(APPEND COMPILER_FLAGS -traceback -static-libgcc)
+  list(APPEND COMPILER_FLAGS -traceback)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "PGI" OR CMAKE_CXX_COMPILER_ID MATCHES "NVIDIA")
   add_compile_options(-Mbackslash -Mallocatable=03 -traceback)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
