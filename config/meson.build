@@ -59,6 +59,10 @@ if lapack_vendor == 'auto'
   if cc_id == 'intel'
     lapack_vendor = 'mkl'
   endif
+
+  if cc_id == 'intel-llvm'
+    lapack_vendor = 'mkl'
+  endif
  
   if build_machine.system() == 'darwin'
     lapack_vendor = 'apple'
