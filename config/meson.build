@@ -76,7 +76,7 @@ if lapack_vendor == 'mkl'
     add_project_arguments(['-DW_MKL'], language:  'cuda')
   endif
   mkl_dep = []
-  if cc_id == 'intel'
+  if cc_id == 'intel' or cc_id == 'intel-llvm'
     mkl_dep += cc.find_library('mkl_intel_lp64')
     mkl_dep += cc.find_library('mkl_tbb_thread')
   elif cc_id == 'gcc'
