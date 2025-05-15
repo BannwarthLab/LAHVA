@@ -124,7 +124,7 @@ namespace lahva
 
     template <typename T, class Allocator>
     LowTriMatrix<T, Allocator>::LowTriMatrix(size_t size, const alloc_ptr& alloc ) : 
-    n_{size}, CPUTensor<T, Allocator>{data_size_(size), alloc}                                        
+    CPUTensor<T, Allocator>{data_size_(size), alloc}, n_{size}                                     
     {
         check_size_(size);
     }
@@ -174,7 +174,7 @@ namespace lahva
     
     template <typename T, class Allocator>
     LowTriMatrix<T, Allocator>::LowTriMatrix(size_t n, T *data, bool take_ownership,const alloc_ptr &cpualloc)
-    : n_{n}, CPUTensor<T, Allocator>{cpualloc}
+    :  CPUTensor<T, Allocator>{cpualloc}, n_{n}
     {
         this->data_ = data;
         this->count_ = data_size_(n);

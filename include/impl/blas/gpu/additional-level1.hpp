@@ -191,7 +191,7 @@ namespace lahva
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();
             size_t blocksPerGrid = std::ceil((1. * n) / blockSize);
-            Vector<T, U, V> v(blocksPerGrid);
+            Vector<T, CudaHostAllocatorMapped<T>> v(blocksPerGrid);
             return Sum_(cudart, in, v);
         };
 

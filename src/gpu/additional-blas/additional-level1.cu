@@ -61,11 +61,11 @@ namespace lahva
         T Sum_(const CudaRuntime& cudart, const GPUTensor_<T>& in, GPUTensor_<T>& res)
         {
             check_device_alloc(cudart, in);
-            check_device_alloc(cudart, res);
+            //check_device_alloc(cudart, res);
+            T* res_data;
+            cudaHostGetDevicePointer(&res_data, res.data(), 0);
             unsigned long long blockSize = cudart.blockSize();
-            GPUReduction<T, add_rn<T>>(cudart, in.size(), in.gpu_data(), res.gpu_data(), blockSize, add_rn<T>());
-            
-            res.copy2host(cudart);
+            GPUReduction<T, add_rn<T>>(cudart, in.size(), in.gpu_data(), res_data, blockSize, add_rn<T>());
             cudart.synchronize();
             return res[0];
         }

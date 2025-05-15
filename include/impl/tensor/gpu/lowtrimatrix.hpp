@@ -118,7 +118,7 @@ namespace lahva
 
     template <typename T, class Allocator, class GPUAllocator>
     LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(size_t size, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
-    n_{size}, GPUTensor<T, Allocator, GPUAllocator>{data_size_(size), alloc, gpualloc}                                        
+    GPUTensor<T, Allocator, GPUAllocator>{data_size_(size), alloc, gpualloc}, n_{size}                                    
     {
         check_size_(size);
     }
@@ -167,7 +167,7 @@ namespace lahva
 
     template <typename T, class Allocator, class GPUAllocator>
     LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(size_t n, T *data, bool take_ownership, const alloc_ptr &cpualloc, const gpualloc_ptr &gpualloc)
-    : n_{n}, GPUTensor<T, Allocator, GPUAllocator>{cpualloc, gpualloc}  
+    :  GPUTensor<T, Allocator, GPUAllocator>{cpualloc, gpualloc}, n_{n}
     {
         this->data_ = data;
         this->count_ = data_size_(n);

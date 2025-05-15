@@ -3,7 +3,7 @@
 #include "runtime.hpp"
 #include <iostream>
 #include <string>
-
+#include <omp.h>
 
 void get_cuda_ERROR(cudaError_t stat, const char* file, int line) {
         if (stat != cudaSuccess) {
@@ -38,6 +38,9 @@ namespace lahva
 
     size_t CudaRuntime::get_GPU_wmaxMem()
     {
+        int thread = omp_get_thread_num();
+        int level = omp_get_active_level();
+        
         size_t freemem, totmem;
         int ndev;
         
@@ -46,6 +49,19 @@ namespace lahva
         freemem = 0;
         totmem = 0;
 	    get_cuda_error(cudaGetDeviceCount(&ndev));
+        
+        if( ndev > 1 and level > 0)
+        {
+            int i = thread % ndev;
+            get_cuda_error(cudaSetDevice(i));
+            get_cuda_error(cudaMemGetInfo(&freemem, &totmem));
+            if (freemem > availmem) {
+                availmem = freemem;
+                cudaDevice = i;
+            }
+        } 
+        else
+        {
         for (int i = 0; i < ndev; ++i) {
             get_cuda_error(cudaSetDevice(i));
             get_cuda_error(cudaMemGetInfo(&freemem, &totmem));
@@ -54,6 +70,7 @@ namespace lahva
                 cudaDevice = i;
             }
         }
+    }
         return availmem;
     }
 

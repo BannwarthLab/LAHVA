@@ -88,13 +88,44 @@ namespace lahva
         }
 
         void
-        deallocate(value_type *ptr, std::size_t n) noexcept // Use pointer if pointer is not a value_type*
+        deallocate(value_type *ptr, std::size_t n) noexcept override// Use pointer if pointer is not a value_type*
         {
             get_cuda_error(cudaFreeHost(ptr));
         }
 
         void
-        deallocate(value_type *ptr) noexcept // Use pointer if pointer is not a value_type*
+        deallocate(value_type *ptr) noexcept override// Use pointer if pointer is not a value_type*
+        {
+            get_cuda_error(cudaFreeHost(ptr));
+        }
+    };
+
+    template <typename T>
+    class CudaHostAllocatorMapped : public CPUAllocator<T>
+    {
+    public:
+        using value_type = T;
+        CudaHostAllocatorMapped() noexcept {} // not required, unless used
+        template <class U>
+        CudaHostAllocatorMapped(CudaHostAllocator<U> const &) : CudaHostAllocator<T>{} {}
+        template <class U>
+        CudaHostAllocatorMapped(CPUAllocator<U> const &) : CudaHostAllocator<T>{} {}
+        value_type * // Use pointer if pointer is not a value_type*
+        allocate(std::size_t n) const override  
+        {
+            value_type *ptr;
+            get_cuda_error(cudaHostAlloc(&ptr, n * sizeof(value_type), cudaHostAllocMapped));
+            return ptr;
+        }
+
+        void
+        deallocate(value_type *ptr, std::size_t n) noexcept override// Use pointer if pointer is not a value_type*
+        {
+            get_cuda_error(cudaFreeHost(ptr));
+        }
+
+        void
+        deallocate(value_type *ptr) noexcept override// Use pointer if pointer is not a value_type*
         {
             get_cuda_error(cudaFreeHost(ptr));
         }
@@ -119,14 +150,14 @@ namespace lahva
             return ptr;
         }
         void
-        deallocate(value_type *ptr, std::size_t n) noexcept // Use pointer if pointer is not a value_type*
+        deallocate(value_type *ptr, std::size_t n) noexcept override // Use pointer if pointer is not a value_type*
         {
             get_cuda_error(cudaSetDevice(this->device_));
             get_cuda_error(cudaFree(ptr));
         }
 
         void
-        deallocate(value_type *ptr) noexcept // Use pointer if pointer is not a value_type*
+        deallocate(value_type *ptr) noexcept override// Use pointer if pointer is not a value_type*
         {
             get_cuda_error(cudaSetDevice(this->device_));
             get_cuda_error(cudaFree(ptr));
@@ -140,13 +171,13 @@ namespace lahva
             }
         }
 
-        void H2DCopy(void *d_ptr,const void *h_ptr, const size_t buffersize) const
+        void H2DCopy(void *d_ptr,const void *h_ptr, const size_t buffersize) const override
         {
             get_cuda_error(cudaSetDevice(this->device_));
             get_cuda_error(cudaMemcpy(d_ptr, h_ptr, buffersize, cudaMemcpyHostToDevice));
         };
 
-        void D2HCopy(void *d_ptr, void *h_ptr, const size_t buffersize) const
+        void D2HCopy(void *d_ptr, void *h_ptr, const size_t buffersize) const override
         {
             get_cuda_error(cudaSetDevice(this->device_));
             get_cuda_error(cudaMemcpy(h_ptr, d_ptr, buffersize, cudaMemcpyDeviceToHost));
@@ -186,7 +217,7 @@ namespace lahva
             return ptr;
         }
         void
-        deallocate(value_type *ptr, std::size_t n) noexcept // Use pointer if pointer is not a value_type*
+        deallocate(value_type *ptr, std::size_t n) noexcept override // Use pointer if pointer is not a value_type*
         {
             if (stream_)
             {
@@ -202,7 +233,7 @@ namespace lahva
         }
 
         void
-        deallocate(value_type *ptr) noexcept // Use pointer if pointer is not a value_type*
+        deallocate(value_type *ptr) noexcept override // Use pointer if pointer is not a value_type*
         {
             if (stream_)
             {
@@ -224,7 +255,7 @@ namespace lahva
             }
         }
 
-        void H2DCopy(void *d_ptr, const void *h_ptr, const size_t buffersize) const
+        void H2DCopy(void *d_ptr, const void *h_ptr, const size_t buffersize) const override
         {
             if (stream_ )
             {
@@ -239,7 +270,7 @@ namespace lahva
             
         };
 
-        void D2HCopy(void *d_ptr, void *h_ptr, const size_t buffersize) const
+        void D2HCopy(void *d_ptr, void *h_ptr, const size_t buffersize) const override
         {
             if (stream_)
             {
@@ -252,7 +283,7 @@ namespace lahva
                 get_cuda_error(cudaMemcpy(h_ptr, d_ptr, buffersize, cudaMemcpyDeviceToHost));
             }
         };
-        void setStream(std::shared_ptr<cudaStream_t>& stream)  const {
+        void setStream(std::shared_ptr<cudaStream_t>& stream)  const override {
              stream_ = stream;};
     };
 #endif

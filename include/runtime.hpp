@@ -44,7 +44,7 @@ namespace lahva{
     class CudaRuntime : public BLASRuntime {
     protected:
         /// @brief cudaDevice ID defaults to 1
-        int cudaDevice = 0; 
+        int cudaDevice = -1; 
         /// @brief flag to do memCopyAsync
         bool async_ = true;
         /// @brief store version number of cuda library
