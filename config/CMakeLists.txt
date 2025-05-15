@@ -145,7 +145,12 @@ find_file(CBLAS_HDR "cblas.h" "${BLAS_LIB}/include" "${BLAS_LIB}/include/openbla
 if(CBLAS_HDR)
   message(STATUS "Found header file: ${CBLAS_HDR}")
 else()
-  message(FATAL_ERROR "Header file not found")
+  find_file(CBLAS_HDR "cblas.h" "${BLAS_LIB}/include")
+  if(CBLAS_HDR)
+    message(STATUS "Found header file: ${CBLAS_HDR}")
+  else()
+    message(FATAL_ERROR "Header file not found")
+  endif()
 endif()
 
 get_filename_component(CBLAS_HDR "${CBLAS_HDR}" DIRECTORY)
