@@ -9,7 +9,9 @@ project(
   default_options: [
     'buildtype=debugoptimized',
     'default_library=both',
-    'cpp_std=c++17'
+    'cpp_std=c++17',
+    'c_std=c11',
+    'cuda_std=c++17',
   ],
 )
 install = not (meson.is_subproject() and get_option('default_library') == 'static')

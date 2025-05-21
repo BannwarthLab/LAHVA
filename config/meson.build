@@ -27,7 +27,7 @@ endif
 cpp_dep = cc.find_library('stdc++')
 lib_deps += cpp_dep
 
-omp_dep = dependency('openmp', required: false)
+omp_dep = dependency('openmp', language: 'cpp', required: false)
 
 if omp_dep.found() 
   lib_deps += omp_dep
@@ -133,7 +133,14 @@ endif
 if gpu == true
   arches = get_option('gpu_arch')
   has_nvcc = add_languages('cuda', native: false)
-  cuda = dependency('cuda', modules: ['cudart', 'cublas', 'cusolver', 'cusparse'])
+  nvcc = meson.get_compiler('cuda')
+  cublas = nvcc.find_library('cublas')
+  cusolver = nvcc.find_library('cusolver')
+  cusparse = nvcc.find_library('cusparse')
+  lib_deps += cublas
+  lib_deps += cusolver
+  lib_deps += cusparse
+  cuda = dependency('cuda', modules: ['cudart'])
   foreach arch : arches
     if arch == 'native'
       add_project_arguments(['-arch=@0@'.format(arch)], language: 'cuda')
@@ -148,6 +155,7 @@ if gpu == true
 
   lib_deps += cuda
   add_project_arguments(['-D_CUDA'], language: ['cuda', 'cpp'])
+  
 endif
 
 
