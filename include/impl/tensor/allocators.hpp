@@ -163,7 +163,7 @@ namespace lahva
             get_cuda_error(cudaFree(ptr));
         }
 
-        void operator()(T *ptr)
+        void operator()(T *ptr) override
         {
             if (ptr != nullptr)
             {
@@ -247,7 +247,7 @@ namespace lahva
             }
         }
 
-        void operator()(T *ptr)
+        void operator()(T *ptr) override
         {
             if (ptr != nullptr)
             {

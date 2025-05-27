@@ -17,7 +17,7 @@ namespace lahva
         {
             double trace = 0;
 #ifndef _WIN32
-#pragma omp parallel for simd reduction(+ : trace)
+#pragma omp simd reduction(+ : trace)
 #else
 #pragma omp parallel for shared(matrix) reduction(+ : trace)
 #endif
@@ -31,7 +31,7 @@ namespace lahva
         {
             double trace = 0;
 #ifndef _WIN32
-#pragma omp parallel for simd reduction(+ : trace)
+#pragma omp simd reduction(+ : trace)
 #else
 #pragma omp parallel for shared(matrix) reduction(+ : trace)
 #endif
@@ -44,7 +44,7 @@ namespace lahva
         {
             double trace = 0;
 #ifndef _WIN32
-#pragma omp parallel for simd reduction(+ : trace)
+#pragma omp simd reduction(+ : trace)
 #else
 #pragma omp parallel for shared(diag) reduction(+ : trace)
 #endif
@@ -92,7 +92,7 @@ namespace lahva
             T norm = 0;
             check_equal_size(mat1, mat2);
 #ifndef _WIN32
-#pragma omp parallel for simd shared(mat1, mat2) reduction(+ : norm)
+#pragma omp simd reduction(+ : norm)
 #else
 #pragma omp parallel for shared(mat1, mat2) reduction(+ : norm)
 #endif

@@ -141,7 +141,7 @@ namespace lahva{
     void CopyVectors(const Tensor<float>& x, Tensor<double>& y) 
     {
 #ifndef _WIN32        
-        #pragma omp parallel for simd 
+        #pragma omp simd 
 #else
         #pragma omp parallel for shared(x, y)
 #endif
@@ -154,7 +154,7 @@ namespace lahva{
     void CopyVectors(const Tensor<double>& x, Tensor<float>& y) 
     {
 #ifndef _WIN32   
-        #pragma omp parallel for simd
+        #pragma omp simd
 #else
         #pragma omp parallel for shared(x,y)
 #endif

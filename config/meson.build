@@ -24,8 +24,8 @@ endif
 
 #lib_deps += omp_dep
 
-cpp_dep = cc.find_library('stdc++')
-lib_deps += cpp_dep
+#cpp_dep = cc.find_library('stdc++')
+#lib_deps += cpp_dep
 
 omp_dep = dependency('openmp', language: 'cpp', required: false)
 

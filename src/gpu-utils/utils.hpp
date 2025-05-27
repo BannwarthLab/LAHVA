@@ -72,11 +72,11 @@ namespace lahva
             Shape sa = a.shape();
             size_t nrowa = sa.first;
             size_t ncola = sa.second;
-
+#ifndef NDEBUG
             Shape sb = b.shape();
             size_t nrowb = sb.first;
             size_t ncolb = sb.second;
-
+#endif
             Shape sc = c.shape();
             size_t nrowc = sc.first;
             size_t ncolc = sc.second;
@@ -124,7 +124,7 @@ namespace lahva
         template<typename T>
     std::tuple<size_t, size_t> check_same_shape_mm(const Matrix_<T>& a, const Matrix_<T>& b, 
         const Matrix_<T>& c, cublasOperation_t transa = CUBLAS_OP_N, cublasOperation_t transb = CUBLAS_OP_N){
-        
+#ifndef NDEBUG
         Shape sa = a.shape();
         size_t nrowa = sa.first;
         size_t ncola = sa.second;
@@ -132,7 +132,7 @@ namespace lahva
         Shape sb = b.shape();
         size_t nrowb = sb.first;
         size_t ncolb = sb.second;
-
+#endif
         Shape sc = c.shape();
         size_t nrowc = sc.first;
         size_t ncolc = sc.second;
