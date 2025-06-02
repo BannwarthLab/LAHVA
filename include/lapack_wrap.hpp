@@ -1,8 +1,6 @@
 #ifndef LAHVA_LAPACK_WRAP_HPP
 #define LAHVA_LAPACK_WRAP_HPP
-#ifndef _Float32 
-#define _Float32 float
-#endif
+
 #include <complex>
 #ifdef _WIN32
     #define lapack_complex_double std::complex<double>
