@@ -1,0 +1,14 @@
+name = "lahva"
+version = "0.0.1"
+license = "MIT-license"
+maintainer = ["@psteinbach"]
+author = ["Pit Steinbach"]
+description = "Linear Algebra on Heterogenous/Vectorized Architecture"
+keywords = ["LAHVA", "gpu", "linear algebra"]
+copyright = "Copyright 2025 P. Steinbach"
+
+[build]
+link = ["mkl_intel_lp64", "mkl_sequential", "mkl_core", "lapack", "blas"]
+
+[library]
+source-dir = "src/cpu"

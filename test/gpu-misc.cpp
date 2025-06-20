@@ -53,7 +53,6 @@ int test_std_vector_push_GPU_values(CudaRuntime& cudart)
     }
     vec_tot.copy2host(cudart);
     cudart.synchronize();
-    std::cout << vec_tot.sum() << std::endl;
     if (vec_tot.sum() != (50*10)) return 1;
 
     //vecs.push_back(vec);

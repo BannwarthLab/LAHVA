@@ -1,7 +1,7 @@
 #include "linalg.hpp"
 #include "runtime.hpp"
 #include "impl/blas/gpu/level3.hpp"
-#include "../../gpu-utils/utils.hpp"
+#include "../gpu-utils/utils.hpp"
 
 namespace lahva
 {
@@ -18,7 +18,8 @@ namespace lahva
             check_device_alloc(cudart, b);
             check_device_alloc(cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             size_t lda = get_leading(m, k);
             size_t ldb = get_leading(k, n);
@@ -39,7 +40,8 @@ namespace lahva
             check_device_alloc(cudart, b);
             check_device_alloc(cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             size_t lda = get_leading(m, k);
             size_t ldb = get_leading(k, n);
@@ -60,7 +62,8 @@ namespace lahva
             check_device_alloc(cudart, b);
             check_device_alloc(cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             size_t lda = get_leading(m, k);
             size_t ldb = get_leading(k, n);
@@ -81,7 +84,8 @@ namespace lahva
             check_device_alloc(cudart, b);
             check_device_alloc(cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             size_t lda = get_leading(m, k);
             size_t ldb = get_leading(k, n);
@@ -102,7 +106,8 @@ namespace lahva
             check_device_alloc(cudart, b);
             check_device_alloc(cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             size_t lda = get_leading(m, k);
             size_t ldb = get_leading(k, n);
@@ -124,7 +129,8 @@ namespace lahva
             check_device_alloc(cudart, b);
             check_device_alloc(cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             size_t lda = get_leading(m, k);
             size_t ldb = get_leading(k, n);
@@ -146,7 +152,8 @@ namespace lahva
             check_device_alloc(cudart, b);
             check_device_alloc(cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             size_t lda = get_leading(m, k);
             size_t ldb = get_leading(k, n);
@@ -168,7 +175,8 @@ namespace lahva
             check_device_alloc(cudart, b);
             check_device_alloc(cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             size_t lda = get_leading(m, k);
             size_t ldb = get_leading(k, n);
@@ -183,7 +191,8 @@ namespace lahva
         void SymMatrixMatrixProduct(const CudaRuntime &cudart, const cublasSideMode_t side, const double alpha, const Matrix_<double> &a, const Matrix_<double> &b,
                                     const double beta, Matrix_<double> &c)
         {
-            auto [m, n, k] = check_size_mm(a, b, c);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c);
 
             size_t lda = get_leading(m, k);
             size_t ldb = get_leading(k, n);
@@ -201,7 +210,8 @@ namespace lahva
         void SymMatrixMatrixProduct(const CudaRuntime &cudart, const Matrix_<double> &a, const Matrix_<double> &b, Matrix_<double> &c,
                                     const double alpha, const double beta, const cublasSideMode_t side)
         {
-            auto [m, n, k] = check_size_mm(a, b, c);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c);
 
             size_t lda = get_leading(m, k);
             size_t ldb = get_leading(k, n);
@@ -219,7 +229,8 @@ namespace lahva
         void SymMatrixMatrixProduct(const CudaRuntime &cudart, const cublasSideMode_t side, const float alpha, const Matrix_<float> &a, const Matrix_<float> &b,
                                     const float beta, Matrix_<float> &c)
         {
-            auto [m, n, k] = check_size_mm(a, b, c);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c);
 
             size_t lda = get_leading(m, k);
             size_t ldb = get_leading(k, n);
@@ -237,7 +248,8 @@ namespace lahva
         void SymMatrixMatrixProduct(const CudaRuntime &cudart, const Matrix_<float> &a, const Matrix_<float> &b, Matrix_<float> &c,
                                     const float alpha, const float beta, const cublasSideMode_t side)
         {
-            auto [m, n, k] = check_size_mm(a, b, c);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c);
 
             size_t lda = get_leading(m, k);
             size_t ldb = get_leading(k, n);
@@ -265,7 +277,8 @@ namespace lahva
             cudaDataType_t data_type = CUDA_R_32F;
             cublasComputeType_t computeType = CUBLAS_COMPUTE_32F_FAST_TF32;
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             size_t lda = get_leading(m, k);
             size_t ldb = get_leading(k, n);
@@ -287,7 +300,8 @@ namespace lahva
             check_device_alloc(cudart, b);
             check_device_alloc(cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
             cudaDataType_t data_type = CUDA_R_32F;
             cublasComputeType_t computeType = CUBLAS_COMPUTE_32F_FAST_TF32;
             size_t lda = get_leading(m, k);
@@ -310,7 +324,8 @@ namespace lahva
             check_device_alloc(cudart, b);
             check_device_alloc(cudart, c);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             cudaDataType_t sp_type = CUDA_R_32F;
             cudaDataType_t half_type = CUDA_R_16F;

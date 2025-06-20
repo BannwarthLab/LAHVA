@@ -3,7 +3,7 @@
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/level1.hpp"
 #include "custom-kernel/hadamard.h"
-#include "../../gpu-utils/utils.hpp"
+#include "../gpu-utils/utils.hpp"
 #include "add-vectors.hpp"
 namespace lahva{
     namespace gpu

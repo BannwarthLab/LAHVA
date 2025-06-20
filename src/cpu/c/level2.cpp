@@ -1,5 +1,5 @@
 #include "impl/blas/cpu/level2.h"
-#include "../../utils/utils.hpp"
+#include "../utils/utils.hpp"
 
 namespace lahva{
     namespace cpu{

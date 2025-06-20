@@ -1,7 +1,7 @@
 #ifndef LAHVA_ADD_LEVEL1_HPP
 #define LAHVA_ADD_LEVEL1_HPP
 #include "linalg.hpp"
-#include "../../../../src/gpu-utils/utils.hpp"
+#include "../../../../src/gpu/gpu-utils/utils.hpp"
 #include "kernels.cuh"
 namespace lahva
 {

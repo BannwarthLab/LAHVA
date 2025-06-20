@@ -1,6 +1,6 @@
 #include "linalg.hpp"
 #include "impl/blas/cpu/level3.hpp"
-#include "../../utils/utils.hpp"
+#include "../utils/utils.hpp"
 namespace lahva
 {
     namespace cpu
@@ -12,7 +12,8 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             BLAS_INT lda = get_leading(m, k);
             BLAS_INT ldb = get_leading(k, n);
@@ -27,7 +28,8 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             BLAS_INT lda = get_leading(m, k);
             BLAS_INT ldb = get_leading(k, n);
@@ -42,7 +44,8 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             BLAS_INT lda = get_leading(m, k);
             BLAS_INT ldb = get_leading(k, n);
@@ -57,7 +60,8 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             BLAS_INT lda = get_leading(m, k);
             BLAS_INT ldb = get_leading(k, n);
@@ -72,7 +76,8 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             BLAS_INT lda = get_leading(m, k);
             BLAS_INT ldb = get_leading(k, n);
@@ -87,7 +92,8 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             BLAS_INT lda = get_leading(m, k);
             BLAS_INT ldb = get_leading(k, n);
@@ -102,7 +108,8 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             BLAS_INT lda = get_leading(m, k);
             BLAS_INT ldb = get_leading(k, n);
@@ -117,7 +124,8 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n, k] = check_size_mm(a, b, c, transa, transb);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
             BLAS_INT lda = get_leading(m, k);
             BLAS_INT ldb = get_leading(k, n);
@@ -129,7 +137,8 @@ namespace lahva
         void SymMatrixMatrixProduct(const CBLAS_SIDE side, const double alpha, const Matrix_<double> &a, const Matrix_<double> &b,
                                     const double beta, Matrix_<double> &c)
         {
-            auto [m, n, k] = check_size_mm(a, b, c);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c);
             BLAS_INT lda = get_leading(m, k);
             BLAS_INT ldb = get_leading(k, n);
             BLAS_INT ldc = get_leading(m, n);
@@ -139,7 +148,8 @@ namespace lahva
         void SymMatrixMatrixProduct(const Matrix_<double> &a, const Matrix_<double> &b, Matrix_<double> &c,
                                     const double alpha, const double beta, const CBLAS_SIDE side)
         {
-            auto [m, n, k] = check_size_mm(a, b, c);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c);
             BLAS_INT lda = get_leading(m, k);
             BLAS_INT ldb = get_leading(k, n);
             BLAS_INT ldc = get_leading(m, n);
@@ -149,7 +159,8 @@ namespace lahva
         void SymMatrixMatrixProduct(const CBLAS_SIDE side, const float alpha, const Matrix_<float> &a, const Matrix_<float> &b,
                                     const float beta, Matrix_<float> &c)
         {
-            auto [m, n, k] = check_size_mm(a, b, c);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c);
 
             BLAS_INT lda = get_leading(m, k);
             BLAS_INT ldb = get_leading(k, n);
@@ -161,7 +172,8 @@ namespace lahva
         void SymMatrixMatrixProduct(const Matrix_<float> &a, const Matrix_<float> &b, Matrix_<float> &c,
                                     const float alpha, const float beta, const CBLAS_SIDE side)
         {
-            auto [m, n, k] = check_size_mm(a, b, c);
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c);
 
             BLAS_INT lda = get_leading(m, k);
             BLAS_INT ldb = get_leading(k, n);

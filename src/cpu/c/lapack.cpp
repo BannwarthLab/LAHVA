@@ -35,7 +35,7 @@ namespace lahva
             delete[] ipiv;
         };
 
-        void SolveGenSysLinEquations(const LPCK_INT n, double *a, const LPCK_INT nrhs, double *b, const char *T)
+        void SolveGenSysLinEquations(const LPCK_INT n, double *a, const LPCK_INT nrhs, double *b, const char *T="N")
         {
             LPCK_INT info = 0;
             LPCK_INT *ipiv = new LPCK_INT[n];
@@ -95,7 +95,7 @@ namespace lahva
             delete[] ipiv;
         };
 
-        void SolveGenSysLinEquations(const LPCK_INT n, float *a, const LPCK_INT nrhs, float *b, const char *T)
+        void SolveGenSysLinEquations(const LPCK_INT n, float *a, const LPCK_INT nrhs, float *b, const char *T="N")
         {
             LPCK_INT info = 0;
             LPCK_INT *ipiv = new LPCK_INT[n];

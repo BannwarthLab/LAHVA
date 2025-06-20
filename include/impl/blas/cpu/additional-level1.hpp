@@ -1,6 +1,15 @@
 #ifndef LAHVA_ADD_LEVEL1_CPU_HPP
 #define LAHVA_ADD_LEVEL1_CPU_HPP
-#include "linalg.hpp"
+#include <memory>
+#include <vector>
+#include <iterator>
+#include <assert.h>
+#include <iostream>
+#include "impl/tensor/cpu/tensor.hpp"
+#include "impl/tensor/cpu/vector.hpp"
+#include "impl/tensor/cpu/matrix.hpp"
+#include "impl/tensor/cpu/lowtrimatrix.hpp"
+#include "impl/tensor/allocators.hpp"
 #include "const.h"
 #include "level1.h"
 
@@ -87,50 +96,6 @@ namespace lahva
         {
             m.set_diagonal(vec);
         };
-// We need to have the get and set Routiunes for the CPU data of a GPU Tensor as well
-#ifdef _CUDA
-
-        /// @brief Get the diagonal of a matrix
-        /// @tparam T Numerical type of the matrix
-        /// @tparam U Allocator type of the matrix
-        /// @tparam V GPU Allocator type of the matrix
-        /// @param cpurt CPU Runtime instance
-        /// @param mat Matrix to get the diagonal of
-        /// @param vec Vector to store the diagonal in
-        template <typename T, typename U, typename V>
-        void GetDiagonal(const CPURuntime &cpurt, const gpu::Matrix<T, U, V> &mat, gpu::Vector<T, U, V> &vec)
-        {
-            size_t max_dim = std::max(mat.shape().first, mat.shape().second);
-            cpu::CopyVectors(vec.size(), mat->data(), max_dim + 1, vec.data(), 1);
-        };
-
-        /// @brief Get the diagonal of a matrix
-        /// @tparam T Numerical type of the matrix
-        /// @tparam U Allocator type of the matrix
-        /// @tparam V GPU Allocator type of the matrix
-        /// @param mat Matrix to get the diagonal from
-        /// @param vec Vector to store the diagonal in
-        template <typename T, typename U, typename V>
-        void GetDiagonal(const gpu::Matrix<T, U, V> &mat, gpu::Vector<T, U, V> &vec)
-        {
-            size_t max_dim = std::max(mat.shape().first, mat.shape().second);
-            cpu::CopyVectors(vec.size(), mat.data(), max_dim + 1, vec.data(), 1);
-        };
-
-        /// @brief Set the diagonal of a matrix
-        /// @tparam T Numerical type of the matrix
-        /// @tparam U Allocator type of the matrix
-        /// @tparam V GPU Allocator type of the matrix
-        /// @param cpurt CPU Runtime instance
-        /// @param vec Vector containing the diagonal
-        /// @param m Matrix to set the diagonal of
-        template <typename T, typename U, typename V>
-        void SetDiagonal(const CPURuntime &cpurt, const gpu::Vector<T, U, V> &vec, gpu::Matrix<T, U, V> &m)
-        {
-            m.set_diagonal(vec);
-        };
-
-#endif
 
         /// define the function pointer type for the kernel, with 1 input variable
         template <typename T>
