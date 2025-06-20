@@ -35,7 +35,7 @@ public:
         void virtual push(std::string label) = 0;
         void virtual pop() = 0 ;
         float virtual get(std::string label) = 0;
-        void print_entries();
+        std::string print_entries();
     protected:
         int find(std::string label);
         void resize(int n);
