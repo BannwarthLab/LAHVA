@@ -1,6 +1,6 @@
 #include "linalg.hpp"
 #include "runtime.hpp"
-#include "../../../gpu-utils/utils.hpp"
+#include "../../gpu-utils/utils.hpp"
 #include "impl/blas/gpu/level1.hpp"
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/additional-level2.hpp"

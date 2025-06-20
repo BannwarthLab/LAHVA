@@ -1,7 +1,7 @@
 #include "linalg.hpp"
 #include "runtime.hpp"
 #include "impl/blas/gpu/level2.hpp"
-#include "../../gpu-utils/utils.hpp"
+#include "../gpu-utils/utils.hpp"
 
 namespace lahva
 {
@@ -30,7 +30,8 @@ namespace lahva
             check_device_alloc(cudart, y);
 
             cublasOperation_t trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             cublasStatus_t istat = cublasDgemv(cudart.handle, trans, nrow, ncol, &alpha, a.gpu_data(), lda, x.gpu_data(), inx, &beta, y.gpu_data(), iny);
@@ -60,7 +61,8 @@ namespace lahva
             check_device_alloc(cudart, y);
 
             cublasOperation_t trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             cublasStatus_t istat = cublasDgemv(cudart.handle, trans, nrow, ncol, &alpha, a.gpu_data(), lda, x.gpu_data(), inx, &beta, y.gpu_data(), iny);
@@ -90,7 +92,8 @@ namespace lahva
             check_device_alloc(cudart, y);
 
             cublasOperation_t trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             cublasStatus_t istat = cublasSgemv(cudart.handle, trans, nrow, ncol, &alpha, a.gpu_data(), lda, x.gpu_data(), inx, &beta, y.gpu_data(), iny);
@@ -120,7 +123,8 @@ namespace lahva
             check_device_alloc(cudart, y);
 
             cublasOperation_t trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             cublasStatus_t istat = cublasSgemv(cudart.handle, trans, nrow, ncol, &alpha, a.gpu_data(), lda, x.gpu_data(), inx, &beta, y.gpu_data(), iny);
@@ -150,7 +154,8 @@ namespace lahva
             check_device_alloc(cudart, y);
 
             cublasOperation_t trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             get_cublas_error(cublasZgemv(cudart.handle, trans, nrow, ncol, reinterpret_cast<const cuDoubleComplex*>(&alpha), 
@@ -181,7 +186,8 @@ namespace lahva
             check_device_alloc(cudart, y);
 
             cublasOperation_t trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             get_cublas_error(cublasZgemv(cudart.handle, trans, nrow, ncol, reinterpret_cast<const cuDoubleComplex*>(&alpha), 
@@ -212,7 +218,8 @@ namespace lahva
             check_device_alloc(cudart, y);
 
             cublasOperation_t trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             get_cublas_error(cublasCgemv(cudart.handle, trans, nrow, ncol, reinterpret_cast<const cuComplex*>(&alpha), 
@@ -243,7 +250,8 @@ namespace lahva
             check_device_alloc(cudart, y);
 
             cublasOperation_t trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             get_cublas_error(cublasCgemv(cudart.handle, trans, nrow, ncol, reinterpret_cast<const cuComplex*>(&alpha), 
@@ -264,7 +272,9 @@ namespace lahva
         void SymMatrixVectorProduct(const CudaRuntime &cudart, const double alpha, const Matrix_<double> &a,
                                     const Vector_<double> &x, const size_t incx, const double beta, Vector_<double> &y, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -290,7 +300,8 @@ namespace lahva
         void SymMatrixVectorProduct(const CudaRuntime &cudart, const Matrix_<double> &a, const Vector_<double> &x, Vector_<double> &y,
                                     const double alpha, const double beta, const size_t incx, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -316,7 +327,8 @@ namespace lahva
         void SymMatrixVectorProduct(const CudaRuntime &cudart, const float alpha, const Matrix_<float> &a,
                                     const Vector_<float> &x, const size_t incx, const float beta, Vector_<float> &y, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -342,7 +354,8 @@ namespace lahva
         void SymMatrixVectorProduct(const CudaRuntime &cudart, const Matrix_<float> &a, const Vector_<float> &x, Vector_<float> &y,
                                     const float alpha, const float beta, const size_t incx, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -368,7 +381,8 @@ namespace lahva
         void SymMatrixVectorProduct(const CudaRuntime &cudart, const double alpha, const LowTriMatrix_<double> &a,
                                     const Vector_<double> &x, const size_t incx, const double beta, Vector_<double> &y, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -392,7 +406,8 @@ namespace lahva
         void SymMatrixVectorProduct(const CudaRuntime &cudart, const LowTriMatrix_<double> &a, const Vector_<double> &x, Vector_<double> &y,
                                     const double alpha, const double beta, const size_t incx, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -417,7 +432,8 @@ namespace lahva
         void SymMatrixVectorProduct(const CudaRuntime &cudart, const float alpha, const LowTriMatrix_<float> &a,
                                     const Vector_<float> &x, const size_t incx, const float beta, Vector_<float> &y, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -441,7 +457,8 @@ namespace lahva
         void SymMatrixVectorProduct(const CudaRuntime &cudart, const LowTriMatrix_<float> &a, const Vector_<float> &x, Vector_<float> &y,
                                     const float alpha, const float beta, const size_t incx, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);

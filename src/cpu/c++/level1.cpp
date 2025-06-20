@@ -1,5 +1,5 @@
 #include "linalg.hpp"
-#include "../../utils/utils.hpp"
+#include "../utils/utils.hpp"
 #include "impl/blas/cpu/level1.hpp"
 #include "impl/blas/cpu/level1.h"
 

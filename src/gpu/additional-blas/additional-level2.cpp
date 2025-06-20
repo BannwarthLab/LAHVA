@@ -1,7 +1,7 @@
 #include "linalg.hpp"
 #include "runtime.hpp"
 #include "impl/blas/gpu/additional-level2.hpp"
-#include "../../gpu-utils/utils.hpp"
+#include "../gpu-utils/utils.hpp"
 namespace lahva
 {
     namespace gpu
@@ -17,7 +17,8 @@ namespace lahva
             check_device_alloc( cudart, b);
             check_device_alloc( cudart, c);
 
-            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
+            int m, n;
+            std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
             size_t lda = get_leading(m, n, transa);
             size_t ldb = get_leading(m, n, transb);
@@ -38,7 +39,8 @@ namespace lahva
             check_device_alloc( cudart, b);
             check_device_alloc( cudart, c);
 
-            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
+            int m, n;
+            std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
             size_t lda = get_leading(m, n, transa);
             size_t ldb = get_leading(m, n, transb);
@@ -59,7 +61,8 @@ namespace lahva
             check_device_alloc( cudart, b);
             check_device_alloc( cudart, c);
 
-            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
+            int m, n;
+            std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
             size_t lda = get_leading(m, n, transa);
             size_t ldb = get_leading(m, n, transb);
@@ -80,7 +83,8 @@ namespace lahva
             check_device_alloc( cudart, b);
             check_device_alloc( cudart, c);
 
-            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
+            int m, n;
+            std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
             size_t lda = get_leading(m, n, transa);
             size_t ldb = get_leading(m, n, transb);

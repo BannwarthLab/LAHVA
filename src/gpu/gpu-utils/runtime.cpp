@@ -210,5 +210,4 @@ namespace lahva
         }
         return this->cusolv_->getHandle();
     };
-} // namespace tgmctensor
-
+} // namespace lahva

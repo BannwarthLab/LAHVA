@@ -2,7 +2,7 @@
 #ifdef W_OPENMP
 #include <omp.h>
 #endif
-#include "../../../utils/utils.hpp"
+#include "../../utils/utils.hpp"
 namespace lahva
 {
     namespace cpu

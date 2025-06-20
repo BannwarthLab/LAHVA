@@ -1,7 +1,7 @@
 /* purification.cu */
 /* Routines for  purification includin  purification including purifier class */
 #include "impl/blas/gpu/additional-level1.hpp"
-#include "../../../gpu-utils/utils.hpp"
+#include "../../gpu-utils/utils.hpp"
 
 namespace lahva
 {

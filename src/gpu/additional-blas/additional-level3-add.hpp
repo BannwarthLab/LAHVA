@@ -3,7 +3,7 @@
 #include "impl/blas/gpu/level3.hpp"
 #include "impl/blas/gpu/additional-level3.hpp"
 #include "custom-kernel/mixed-precision.h"
-#include "../../gpu-utils/utils.hpp"
+#include "../gpu-utils/utils.hpp"
 #include "timer.hpp"
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/level3.hpp"

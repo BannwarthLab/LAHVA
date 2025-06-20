@@ -393,4 +393,51 @@ namespace lahva
         cpu::CopyVectors(diag.size(), diag.data(), 1, this->data(), max_dim+1);
     }
     } // namespace gpu
+    #ifdef _CUDA
+    namespace cpu {
+        // We need to have the get and set Routiunes for the CPU data of a GPU Tensor as well
+
+
+        /// @brief Get the diagonal of a matrix
+        /// @tparam T Numerical type of the matrix
+        /// @tparam U Allocator type of the matrix
+        /// @tparam V GPU Allocator type of the matrix
+        /// @param cpurt CPU Runtime instance
+        /// @param mat Matrix to get the diagonal of
+        /// @param vec Vector to store the diagonal in
+        template <typename T, typename U, typename V>
+        void GetDiagonal(const CPURuntime &cpurt, const gpu::Matrix<T, U, V> &mat, gpu::Vector<T, U, V> &vec)
+        {
+            size_t max_dim = std::max(mat.shape().first, mat.shape().second);
+            cpu::CopyVectors(vec.size(), mat->data(), max_dim + 1, vec.data(), 1);
+        };
+
+        /// @brief Get the diagonal of a matrix
+        /// @tparam T Numerical type of the matrix
+        /// @tparam U Allocator type of the matrix
+        /// @tparam V GPU Allocator type of the matrix
+        /// @param mat Matrix to get the diagonal from
+        /// @param vec Vector to store the diagonal in
+        template <typename T, typename U, typename V>
+        void GetDiagonal(const gpu::Matrix<T, U, V> &mat, gpu::Vector<T, U, V> &vec)
+        {
+            size_t max_dim = std::max(mat.shape().first, mat.shape().second);
+            cpu::CopyVectors(vec.size(), mat.data(), max_dim + 1, vec.data(), 1);
+        };
+
+        /// @brief Set the diagonal of a matrix
+        /// @tparam T Numerical type of the matrix
+        /// @tparam U Allocator type of the matrix
+        /// @tparam V GPU Allocator type of the matrix
+        /// @param cpurt CPU Runtime instance
+        /// @param vec Vector containing the diagonal
+        /// @param m Matrix to set the diagonal of
+        template <typename T, typename U, typename V>
+        void SetDiagonal(const CPURuntime &cpurt, const gpu::Vector<T, U, V> &vec, gpu::Matrix<T, U, V> &m)
+        {
+            m.set_diagonal(vec);
+        };
+
+    } // namespace cpu
+#endif
 } // namespace lahva

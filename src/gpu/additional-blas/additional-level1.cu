@@ -1,7 +1,7 @@
 #include "linalg.hpp"
 #include "runtime.hpp"
 #include "impl/blas/gpu/additional-level1.hpp"
-#include "../../gpu-utils/utils.hpp"
+#include "../gpu-utils/utils.hpp"
 #include "reductions/reduction.cuh"
 #include "reductions/common.cuh"
 #include "additional-level1.cuh"
@@ -96,6 +96,14 @@ namespace lahva
             cudart.synchronize();
             
             return res[0];
+        }
+
+        template<typename in, typename out>
+        __global__ void CopyTensors_(unsigned long size, const in* d_in, out* d_out)
+        {
+            unsigned long idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if (idx < size)
+                d_out[idx] = d_in[idx];
         }
 
         template<typename in, typename out>

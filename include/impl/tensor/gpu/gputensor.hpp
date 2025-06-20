@@ -3,7 +3,7 @@
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
 #include "runtime.hpp"
-#include "additional-level1.hpp"
+#include "../../../src/gpu/additional-blas/additional-level1.hpp"
 namespace lahva
 {
     namespace gpu

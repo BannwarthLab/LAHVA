@@ -1,6 +1,6 @@
 #include "linalg.hpp"
 #include "impl/blas/cpu/level2.hpp"
-#include "../../utils/utils.hpp"
+#include "../utils/utils.hpp"
 
 namespace lahva
 {
@@ -24,7 +24,8 @@ namespace lahva
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             BLAS_INT lda = get_leading(nrow, ncol);
 
             cblas_dgemv(major, trans, nrow, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
@@ -48,7 +49,8 @@ namespace lahva
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             BLAS_INT lda = get_leading(nrow, ncol);
             cblas_dgemv(major, trans, nrow, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
         };
@@ -71,7 +73,8 @@ namespace lahva
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             BLAS_INT lda = get_leading(nrow, ncol);
             cblas_sgemv(major, trans, nrow, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
         };
@@ -94,7 +97,8 @@ namespace lahva
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             BLAS_INT lda = get_leading(nrow, ncol);
             cblas_sgemv(major, trans, nrow, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
         };
@@ -117,7 +121,8 @@ namespace lahva
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             BLAS_INT lda = get_leading(nrow, ncol);
 
             cblas_zgemv(major, trans, nrow, ncol, &alpha, a.data(), lda, x.data(), inx, &beta, y.data(), iny);
@@ -141,7 +146,8 @@ namespace lahva
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             BLAS_INT lda = get_leading(nrow, ncol);
             cblas_zgemv(major, trans, nrow, ncol, &alpha, a.data(), lda, x.data(), inx, &beta, y.data(), iny);
         };
@@ -164,7 +170,8 @@ namespace lahva
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             BLAS_INT lda = get_leading(nrow, ncol);
             cblas_cgemv(major, trans, nrow, ncol, &alpha, a.data(), lda, x.data(), inx, &beta, y.data(), iny);
         };
@@ -187,7 +194,8 @@ namespace lahva
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
-            auto [nrow, ncol] = check_size_mv(a, x, y, trans);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
             BLAS_INT lda = get_leading(nrow, ncol);
             cblas_cgemv(major, trans, nrow, ncol, &alpha, a.data(), lda, x.data(), inx, &beta, y.data(), iny);
         };
@@ -205,7 +213,8 @@ namespace lahva
         void SymMatrixVectorProduct(const double alpha, const Matrix_<double> &a,
                                     const Vector_<double> &x, const size_t incx, const double beta, Vector_<double> &y, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
 
@@ -227,7 +236,8 @@ namespace lahva
         void SymMatrixVectorProduct(const Matrix_<double> &a, const Vector_<double> &x, Vector_<double> &y,
                                     const double alpha, const double beta, const size_t incx, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
 
@@ -249,7 +259,8 @@ namespace lahva
         void SymMatrixVectorProduct(const float alpha, const Matrix_<float> &a,
                                     const Vector_<float> &x, const size_t incx, const float beta, Vector_<float> &y, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
 
@@ -271,7 +282,8 @@ namespace lahva
         void SymMatrixVectorProduct(const Matrix_<float> &a, const Vector_<float> &x, Vector_<float> &y,
                                     const float alpha, const float beta, const size_t incx, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
 
@@ -293,7 +305,8 @@ namespace lahva
         void SymMatrixVectorProduct(const double alpha, const LowTriMatrix_<double> &a,
                                     const Vector_<double> &x, const size_t incx, const double beta, Vector_<double> &y, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
 
@@ -313,7 +326,8 @@ namespace lahva
         void SymMatrixVectorProduct(const LowTriMatrix_<double> &a, const Vector_<double> &x, Vector_<double> &y,
                                     const double alpha, const double beta, const size_t incx, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
 
@@ -333,7 +347,8 @@ namespace lahva
         void SymMatrixVectorProduct(const float alpha, const LowTriMatrix_<float> &a,
                                     const Vector_<float> &x, const size_t incx, const float beta, Vector_<float> &y, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
 
@@ -353,7 +368,8 @@ namespace lahva
         void SymMatrixVectorProduct(const LowTriMatrix_<float> &a, const Vector_<float> &x, Vector_<float> &y,
                                     const float alpha, const float beta, const size_t incx, const size_t incy)
         {
-            auto [nrow, ncol] = check_size_mv(a, x, y);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
 
@@ -373,7 +389,8 @@ namespace lahva
             BLAS_INT inx = incx;
             CBLAS_TRANSPOSE trans = get_trans(T);
 
-            auto [row, col] = check_size_mv(a, x);
+            int row, col;
+            std::tie(row, col) = check_size_mv(a, x);
 
             cblas_dtpmv(major, tri, trans, unit, col, a.data(), x.data(), inx);
         };
@@ -392,7 +409,8 @@ namespace lahva
             BLAS_INT inx = incx;
             CBLAS_TRANSPOSE trans = get_trans(T);
 
-            auto [row, col] = check_size_mv(a, x);
+            int row, col;
+            std::tie(row, col) = check_size_mv(a, x);
 
             cblas_dtpmv(major, tri, trans, unit, col, a.data(), x.data(), inx);
         };
@@ -410,7 +428,8 @@ namespace lahva
             BLAS_INT inx = incx;
             CBLAS_TRANSPOSE trans = get_trans(T);
 
-            auto [row, col] = check_size_mv(a, x);
+            int row, col;
+            std::tie(row, col) = check_size_mv(a, x);
 
             cblas_stpmv(major, tri, trans, unit, col, a.data(), x.data(), inx);
         };
@@ -428,7 +447,8 @@ namespace lahva
             BLAS_INT inx = incx;
             CBLAS_TRANSPOSE trans = get_trans(T);
 
-            auto [row, col] = check_size_mv(a, x);
+            int row, col;
+            std::tie(row, col) = check_size_mv(a, x);
 
             cblas_stpmv(major, tri, trans, unit, col, a.data(), x.data(), inx);
         };

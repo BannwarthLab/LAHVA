@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../gpu-utils/utils.hpp"
+#include "../../gpu-utils/utils.hpp"
 
 namespace lahva
 {

@@ -1,7 +1,8 @@
 #include "linalg.hpp"
 #include "impl/blas/cpu/additional-level2.hpp"
-#include "../../../utils/utils.hpp"
+#include "../../utils/utils.hpp"
 #include "impl/blas/cpu/level1.hpp"
+
 namespace lahva
 {
     namespace cpu
@@ -13,7 +14,8 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
+            int m, n;
+            std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
             BLAS_INT lda = get_leading(m, n, transa);
             BLAS_INT ldb = get_leading(m, n, transb);
@@ -95,7 +97,8 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
+            int m, n;
+            std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
             BLAS_INT lda = get_leading(m, n, transa);
             BLAS_INT ldb = get_leading(m, n, transb);
@@ -174,7 +177,8 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
+            int m, n;
+            std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
             BLAS_INT lda = get_leading(m, n, transa);
             BLAS_INT ldb = get_leading(m, n, transb);
@@ -254,7 +258,8 @@ namespace lahva
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
-            auto [m, n] = check_same_shape_mm(a, b, c, transa, transb);
+            int m, n;
+            std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
             BLAS_INT lda = get_leading(m, n, transa);
             BLAS_INT ldb = get_leading(m, n, transb);
