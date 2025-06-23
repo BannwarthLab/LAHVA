@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <chrono>
+#include <sstream>
 
 namespace lahva{
 void CPUTimer::push(std::string label) {
@@ -68,20 +69,24 @@ void CPUTimer::push(std::string label) {
         record.resize(n);
     }
 
-    void Timer::print_entries()
+    std::string Timer::print_entries()
     {
+        std::ostringstream oss;
+        oss << "Timings" << std::endl;
         float ttime = 0.0; 
         for (time_record entry : record) 
         {
             float time = this->get(entry.label);
-            std::cout << " - " << entry.label << " :\t \t" << format_time(time) << std::endl;
+            oss << " - " << entry.label << " :\t \t" << format_time(time) << std::endl;
             ttime += time;
         }
 
-        std::cout << "-----------------------------------------------------" << std::endl;
-        std::cout << "Total: \t\t" << format_time(ttime) <<std::endl;
-    }
+        oss << "-----------------------------------------------------" << std::endl;
+        oss << "Total: \t\t\t" << format_time(ttime) <<std::endl;
 
+        return oss.str();
+
+    }
 
 std::string format_time(double time) {
     int days, hours, mins;
