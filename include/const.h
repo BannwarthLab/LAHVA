@@ -24,7 +24,10 @@ typedef int32_t LPCK_INT;
     #else
     typedef int32_t BLAS_INT;
     #endif
-    #endif
+#ifndef CBLAS_LAYOUT
+    typedef CBLAS_ORDER CBLAS_LAYOUT;
+#endif
+#endif
 #ifndef complex_double
 #define complex_double std::complex<double>
 #endif

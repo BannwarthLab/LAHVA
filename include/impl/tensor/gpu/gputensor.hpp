@@ -2,6 +2,7 @@
 #include <memory>
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
+#include "impl/tensor/gpu/gputensor.hpp"
 #include "runtime.hpp"
 #include "../../../src/gpu/additional-blas/additional-level1.hpp"
 namespace lahva
@@ -37,11 +38,11 @@ namespace lahva
 
         public:
             GPUTensor(size_t count, const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator()) 
-            : CPUTensor<T, Allocator>{count, cpualloc}, gpualloc_{alloc} { };
+            : CPUTensor<T, Allocator>{count, cpualloc}, gpualloc_{alloc} {};
             GPUTensor(const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator()) 
             : CPUTensor<T, Allocator>{cpualloc}, gpualloc_{alloc} {};
             GPUTensor(const GPUAllocator &alloc) : CPUTensor<T, Allocator>{}, gpualloc_{alloc}, gpu_buffer{true} 
-            {};
+            {this->no_alloc= true;};
             virtual ~GPUTensor() {this->device_ptr_.get_deleter() = this->gpualloc_;};
             GPUTensor(const GPUTensor &other) : CPUTensor<T, Allocator>{other},
                                                 gpualloc_{other.get_gpuallocator()},

@@ -146,6 +146,7 @@ namespace lahva
         allocate(std::size_t n) const override
         {
             value_type *ptr;
+            get_cuda_error(cudaSetDevice(this->device_));
             get_cuda_error(cudaMalloc((void **)&ptr, n * sizeof(value_type)));
             return ptr;
         }

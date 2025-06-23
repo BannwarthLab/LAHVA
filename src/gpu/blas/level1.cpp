@@ -151,7 +151,7 @@ namespace lahva{
     void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<float>& x, GPUTensor_<float>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
-        check_device_alloc( cudart, y); 
+        check_device_alloc( cudart, y);
         cudart.cublasSetStream_();
         cublasStatus_t istat = cublasScopy(cudart.handle, x.size(), x.gpu_data(), 1, y.gpu_data(), 1);
         get_cublas_error(istat); 

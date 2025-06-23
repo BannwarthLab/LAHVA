@@ -147,8 +147,38 @@ namespace lahva
         case 512:
             GPUReduction_<512, T>(cudart, ndim, dA, dRes, func);
             break;
+        case 480:
+            GPUReduction_<480, T>(cudart, ndim, dA, dRes, func);
+            break;
+        case 448:
+            GPUReduction_<448, T>(cudart, ndim, dA, dRes, func);
+            break;
+        case 416:
+            GPUReduction_<416, T>(cudart, ndim, dA, dRes, func);
+            break;
+        case 384:
+            GPUReduction_<384, T>(cudart, ndim, dA, dRes, func);
+            break;
+        case 352:
+            GPUReduction_<352, T>(cudart, ndim, dA, dRes, func);
+            break;
+        case 320:
+            GPUReduction_<320, T>(cudart, ndim, dA, dRes, func);
+            break;
+        case 288:
+            GPUReduction_<288, T>(cudart, ndim, dA, dRes, func);
+            break;
         case 256:    
             GPUReduction_<256, T>(cudart, ndim, dA, dRes, func);
+            break;
+        case 224:
+            GPUReduction_<224, T>(cudart, ndim, dA, dRes, func);
+            break;
+        case 192:
+            GPUReduction_<192, T>(cudart, ndim, dA, dRes, func);
+            break;
+        case 160:
+            GPUReduction_<160, T>(cudart, ndim, dA, dRes, func);
             break;
         case 128:
             GPUReduction_<128, T>(cudart, ndim, dA, dRes, func);

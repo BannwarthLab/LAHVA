@@ -100,14 +100,38 @@ namespace lahva
         bool no_alloc = false;
 
     public:
-        CPUTensor(size_t count, const alloc_ptr &alloc = Allocator()) : count_{count}, alloc_{alloc}, data_{alloc.allocate(count)}
+        CPUTensor(size_t count, const alloc_ptr &alloc = Allocator()) : count_{count}, alloc_{alloc}
         {
-            
-         };
-        CPUTensor(const alloc_ptr &alloc = Allocator()) : alloc_{alloc} { is_owner_ = false; };
-        CPUTensor(const CPUTensor &other) : CPUTensor{other.count_, other.get_allocator()}
+            if (count_ > 0)
+            {
+                is_owner_ = true;
+                data_ = alloc_.allocate(count_);
+            }
+            else
+            {
+                is_owner_ = false;
+                data_ = nullptr;
+            }
+        };
+        CPUTensor(const alloc_ptr &alloc) : alloc_{alloc} { is_owner_ = false; };
+        CPUTensor() : no_alloc{true}, data_{nullptr}, count_{0}
         {
-            if (!this->no_alloc) std::copy(other.data_, other.data_ + count_, this->data_);
+        
+        };
+        CPUTensor(const CPUTensor &other) :  no_alloc{other.no_alloc}
+        {
+            this->count_ = other.count_;
+            this->alloc_ = other.get_allocator();
+            if (!this->no_alloc)
+            {
+                this->data_ = this->alloc_.allocate(other.size());
+                this->is_owner_ = true;
+                std::copy(other.data_, other.data_ + count_, this->data_);
+            }
+            else
+            {
+                this->data_ = nullptr;
+            }
             
         };
 

@@ -11,6 +11,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <cassert>
 namespace lahva
 {
     namespace gpu
@@ -43,7 +44,7 @@ namespace lahva
     //! The data is stored in column-major order in a 1D array.
     //!
     template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAllocator<T>>
-    class Matrix : public virtual GPUTensor<T, Allocator, GPUAllocator>, public virtual Matrix_<T>
+    class Matrix : public GPUTensor<T, Allocator, GPUAllocator>, public virtual Matrix_<T>
     {
         using alloc_ptr = Allocator;
         using gpualloc_ptr = GPUAllocator;
@@ -66,7 +67,7 @@ namespace lahva
         }
 
         // length of the array data_
-        static size_t data_size_(size_t n_rows, size_t n_cols)
+        inline size_t data_size_(size_t n_rows, size_t n_cols) 
         {
             return n_rows * n_cols;
         }
@@ -74,7 +75,7 @@ namespace lahva
         // raises an error, if the shape is not valid
         // Vector uses size_t as shape, so the check shape function has to be able
         // to deal with that
-        static void check_size_(size_t, size_t);
+        inline void check_size_(size_t, size_t) ;
 
     public:
         Matrix() : GPUTensor<T, Allocator, GPUAllocator>{} {};
@@ -92,9 +93,8 @@ namespace lahva
 
         template <typename U>
         Matrix(const Shape &shape, const CudaRuntime &cudart, const U &alloc)
-            : Matrix<T,Allocator,GPUAllocator>(shape, cudart)
-            { 
-                this->gpualloc_ = alloc;
+            : Matrix<T,Allocator,GPUAllocator>(shape, cudart, static_cast<GPUAllocator>(alloc)) 
+           {
             };
 
         Matrix(const Shape &shape, const CudaRuntime &cudart, const gpualloc_ptr &gpualloc = GPUAllocator());
@@ -141,7 +141,7 @@ namespace lahva
             {
                 for (size_t j = 0; j < n_cols_; j++)
                 {
-                    os << this->data_[data_id_(i, j)] << ", ";
+                    os << this->data_[this->data_id_(i, j)] << ", ";
                 }
                 os << std::endl;
             }
@@ -187,7 +187,7 @@ namespace lahva
     GPUTensor<T, Allocator, GPUAllocator>{shape.first*shape.second, alloc, gpualloc}, 
     n_rows_{shape.first}, n_cols_{shape.second}
     {
-        check_size_(shape.first, shape.second);
+        this->check_size_(shape.first, shape.second);
     }
 
     template <typename T, class Allocator, class GPUAllocator>
@@ -202,7 +202,7 @@ namespace lahva
             {
                 for (size_t j = 0; j < this->n_cols_; j++)
                 {
-                    this->data_[data_id_(i, j)] = init.begin()[j + i * n_rows_];
+                    this->data_[this->data_id_(i, j)] = init.begin()[j + i * n_rows_];
                 }
             }
         }
@@ -220,7 +220,6 @@ namespace lahva
         check_size_(shape.first, shape.second);
         this->count_ = n_rows_*n_cols_; 
         this->is_owner_ = false;
-        this->is_on_device_ = true;
         this->gpu_buffer = true;
     }
 
@@ -254,7 +253,7 @@ namespace lahva
     Matrix<T, Allocator, GPUAllocator>::Matrix(const Shape &shape, const T *data, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
     Matrix<T, Allocator, GPUAllocator>::Matrix(shape, alloc, gpualloc)
     {
-        std::copy(data, data + data_size_(n_rows_, n_cols_), this->data_);
+        std::copy(data, data + this->data_size_(n_rows_, n_cols_), this->data_);
     };
 
     template <typename T, class Allocator, class GPUAllocator>
@@ -269,7 +268,6 @@ namespace lahva
     GPUTensor<T, Allocator, GPUAllocator>{other}, 
     n_rows_{other.n_rows_}, n_cols_{other.n_cols_}  
     {
-        
     }
 
     template <typename T, class Allocator, class GPUAllocator>
@@ -317,13 +315,13 @@ namespace lahva
     template <typename T, class Allocator, class GPUAllocator>
     T &Matrix<T, Allocator, GPUAllocator>::operator()(size_t i, size_t j)
     {
-        return this->data_[data_id_(i, j)];
+        return this->data_[this->data_id_(i, j)];
     }
 
     template <typename T, class Allocator, class GPUAllocator>
     const T &Matrix<T, Allocator, GPUAllocator>::operator()(size_t i, size_t j) const
     {
-        return this->data_[data_id_(i, j)];
+        return this->data_[this->data_id_(i, j)];
     }
 
     template <typename T, class Allocator, class GPUAllocator>
@@ -345,7 +343,7 @@ namespace lahva
         {
             for (size_t j = 0; j < n_cols_; j++)
             {
-                std::cout << this->data_[data_id_(i, j)] << ", ";
+                std::cout << this->data_[this->data_id_(i, j)] << ", ";
             }
             std::cout << std::endl;
         }
@@ -365,7 +363,7 @@ namespace lahva
             for (size_t j = 0; j < n_cols_; j++)
             {   
                 #pragma omp ordered
-                this->data_[data_id_(i, j)] = 0.5 * (copy(i, j) + copy(j, i));
+                this->data_[this->data_id_(i, j)] = 0.5 * (copy(i, j) + copy(j, i));
             }
         }
     }

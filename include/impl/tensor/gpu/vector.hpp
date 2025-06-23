@@ -16,7 +16,7 @@ namespace lahva
     };
     
     template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAllocator<T>>
-    class Vector : public virtual GPUTensor<T, Allocator, GPUAllocator>, public virtual Vector_<T>
+    class Vector : public GPUTensor<T, Allocator, GPUAllocator>, public virtual Vector_<T>
     {
 
     public:
@@ -28,7 +28,7 @@ namespace lahva
         Vector(size_type count, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator());
         template<typename U, typename V>
         Vector(size_type count, const CPUAllocator<U> &alloc = Allocator(), const GPUAllocator_<V> &gpualloc = GPUAllocator())
-        : GPUTensor<T, Allocator, GPUAllocator>{gpualloc}  {};
+        : GPUTensor<T, Allocator, GPUAllocator>{count, static_cast<Allocator>(alloc), static_cast<GPUAllocator>(gpualloc)}  {};
 
         Vector(size_type count, const CudaRuntime &cudart, const gpualloc_ptr  &gpualloc = GPUAllocator());
         template<typename V>

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <cassert>
 namespace lahva
 {
     namespace cpu
@@ -55,14 +56,14 @@ namespace lahva
         inline size_t data_id_(size_t i, size_t j) const
         {
             // deactivated if NDEBUG is defined
-            assert(i < n_rows_ && j < n_cols_);
+            assert(i < this->n_rows_ && j < this->n_cols_);
 
             // range checks are perfomred in constructor and above (if in debug mode)
             return i + j * n_rows_;
         }
 
         // length of the array data_
-        static size_t data_size_(size_t n_rows, size_t n_cols)
+        inline size_t data_size_(size_t n_rows, size_t n_cols)
         {
             return n_rows * n_cols;
         }
@@ -70,7 +71,7 @@ namespace lahva
         // raises an error, if the shape is not valid
         // Vector uses size_t as shape, so the check shape function has to be able
         // to deal with that
-        static void check_size_(size_t, size_t);
+        inline void check_size_(size_t, size_t);
 
     public:
         Matrix() {};
@@ -144,7 +145,7 @@ namespace lahva
             {
                 for (size_t j = 0; j < n_cols_; j++)
                 {
-                    os << this->data_[data_id_(i, j)] << ", ";
+                    os << this->data_[this->data_id_(i, j)] << ", ";
                 }
                 os << std::endl;
             }
@@ -222,7 +223,7 @@ namespace lahva
             {
                 for (size_t j = 0; j < this->n_cols_; j++)
                 {
-                    this->data_[data_id_(i, j)] = init.begin()[j + i * n_rows_];
+                    this->data_[this->data_id_(i, j)] = init.begin()[j + i * n_rows_];
                 }
             }
         }
@@ -248,7 +249,7 @@ namespace lahva
     Matrix<T, Allocator>::Matrix(const Shape &shape, const T *data, const alloc_ptr &alloc) : 
     Matrix<T, Allocator>::Matrix(shape, alloc)
     {
-        std::copy(data, data + data_size_(n_rows_, n_cols_), this->data_);
+        std::copy(data, data + this->data_size_(n_rows_, n_cols_), this->data_);
     };
 
      template <typename T, class Allocator>
@@ -311,13 +312,13 @@ namespace lahva
      template <typename T, class Allocator>
     T &Matrix<T, Allocator>::operator()(size_t i, size_t j)
     {
-        return this->data_[data_id_(i, j)];
+        return this->data_[this->data_id_(i, j)];
     }
 
      template <typename T, class Allocator>
     const T &Matrix<T, Allocator>::operator()(size_t i, size_t j) const
     {
-        return this->data_[data_id_(i, j)];
+        return this->data_[this->data_id_(i, j)];
     }
 
      template <typename T, class Allocator>
@@ -339,7 +340,7 @@ namespace lahva
         {
             for (size_t j = 0; j < n_cols_; j++)
             {
-                std::cout << this->data_[data_id_(i, j)] << ", ";
+                std::cout << this->data_[this->data_id_(i, j)] << ", ";
             }
             std::cout << std::endl;
         }
@@ -359,7 +360,7 @@ namespace lahva
             for (size_t j = 0; j < n_cols_; j++)
             {   
                 #pragma omp ordered
-                this->data_[data_id_(i, j)] = 0.5 * (copy(i, j) + copy(j, i));
+                this->data_[this->data_id_(i, j)] = 0.5 * (copy(i, j) + copy(j, i));
             }
         }
     }
