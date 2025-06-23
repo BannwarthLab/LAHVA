@@ -19,15 +19,42 @@ namespace lahva
         {
             fast = true;
 
-            
             MatrixMatrixProduct(cudart, m1, m2, mout);
-            //SymmetrizeMatrix(cudart, mout);
             HadamardProduct(cudart, d1, d2, dout);
             SymmetrizedON2ScalingProductGPU(cudart, d1, m1, d2, m2, mout);
             SymmetrizeMatrix(cudart, mout);
             
         };
 
+        template<typename Allocator, typename GPUAllocator, typename All2, typename GPUAll2>
+        void MPSymMatrixMatrixMultiplication(const CudaRuntime& cudart, const Vector<double, Allocator, GPUAllocator>& d1, const MixedPrecisionMatrix<float, __half, All2, GPUAll2>& m1,
+                                             const Vector<double, Allocator, GPUAllocator>& d2, const MixedPrecisionMatrix<float, __half, All2, GPUAll2>& m2, 
+                                             Vector<double, Allocator, GPUAllocator>& dout, MixedPrecisionMatrix<float, float, All2, GPUAll2>& mout, bool fast = false)
+        {
+            fast = true;
+
+            
+            MatrixMatrixProduct(cudart, m1, m2, mout);
+            HadamardProduct(cudart, d1, d2, dout);
+            SymmetrizedON2ScalingProductGPU(cudart, d1, m1, d2, m2, mout);
+            SymmetrizeMatrix(cudart, mout);
+            
+        };
+
+        template<typename Allocator, typename GPUAllocator, typename All2, typename GPUAll2>
+        void MPSymMatrixMatrixMultiplication(const CudaRuntime& cudart, const Vector<double, Allocator, GPUAllocator>& d1, const MixedPrecisionMatrix<float, __half, All2, GPUAll2>& m1,
+                                             const Vector<double, Allocator, GPUAllocator>& d2, const MixedPrecisionMatrix<float, __half, All2, GPUAll2>& m2, 
+                                             Vector<double, Allocator, GPUAllocator>& dout, Matrix<float, All2, GPUAll2>& mout, bool fast = false)
+        {
+            fast = true;
+
+            
+            MatrixMatrixProduct(cudart, m1, m2, mout);
+            HadamardProduct(cudart, d1, d2, dout);
+            SymmetrizedON2ScalingProductGPU(cudart, d1, m1, d2, m2, mout);
+            SymmetrizeMatrix(cudart, mout);
+            
+        };
     
 
         template<typename Allocator, typename GPUAllocator>

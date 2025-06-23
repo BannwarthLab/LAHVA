@@ -48,15 +48,21 @@ namespace lahva
             return 0;
         }
         template <>
-        constexpr int32_t getEpse<float>()
-        {
-            return 24;
-        }
-        template <>
-        constexpr int32_t getEpse<double>()
-        {
-            return 53;
-        }
+constexpr int32_t getEpse <int32_t> () {
+	return 31;
+}
+template <>
+constexpr int32_t getEpse <__half> () {
+	return 24;
+}
+template <>
+constexpr int32_t getEpse <float> () {
+	return 24;
+}
+template <>
+constexpr int32_t getEpse <double> () {
+	return 53;
+}
 
         // -------------------------------------
         // getTypeMax

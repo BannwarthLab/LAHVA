@@ -3,6 +3,7 @@
 #include "linalg.hpp"
 #include "../../../../src/gpu/gpu-utils/utils.hpp"
 #include "kernels.cuh"
+#include <vector>
 namespace lahva
 {
     namespace gpu
@@ -159,7 +160,10 @@ namespace lahva
         }
 
         template <typename inprec, typename outprec>
-        void DecomposeVector2MP(const CudaRuntime &cudart, const GPUTensor_<inprec> &in, GPUTensor_<outprec> &out1, GPUTensor_<outprec> &out2);
+        void DecomposeVector2MP(const CudaRuntime &cudart, const GPUTensor_<inprec> &in, GPUTensor_<outprec> &out1, GPUTensor_<outprec> &out2, GPUTensor_<int>& coeff);
+
+        template <typename inprec, typename outprec, typename Allocator, typename GPUAllocator>
+        void SplitMatrix(const CudaRuntime &cudart, Matrix_<inprec> &in, std::vector<Matrix<outprec, Allocator, GPUAllocator>> &out1, GPUTensor_<int> &split_exponents, int max_split);
 
         template <typename T, typename U, typename V, typename Tout>
         void DecomposeMatrix(const CudaRuntime &cudart, const GPUTensor<T, U, V> &min, Vector<Tout, U, V> &mout1, Vector<Tout, U, V> &mout2)

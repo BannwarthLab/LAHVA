@@ -12,6 +12,7 @@
 #include "impl/tensor/gpu/vector.hpp"
 #include "impl/tensor/gpu/matrix.hpp"
 #include "impl/tensor/gpu/lowtrimatrix.hpp"
+#include "impl/tensor/gpu/mixed-precision-classes/mixed-precision-matrix.hpp"
 
 #endif
 #include "impl/tensor/cpu/vector.hpp"

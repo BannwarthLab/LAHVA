@@ -124,6 +124,10 @@ namespace lahva
         template void ApplyKernel<double, fabs_gpu<double>>(const CudaRuntime& cudart, GPUTensor_<double>& in, fabs_gpu<double> operation);
         template void CopyTensors<double, double>(const unsigned long size, const double* d_in, double* d_out);
         template void CopyTensors<float, float>(const unsigned long size, const float* d_in, float* d_out);
+        template void CopyTensors<double, float>(const unsigned long size, const double* d_in, float* d_out);
+        template void CopyTensors<float, double>(const unsigned long size, const float* d_in, double* d_out);
+        template void CopyTensors<int, int>(const unsigned long size, const int* d_in, int* d_out);
+        template void CopyTensors<__half, __half>(const unsigned long size, const __half* d_in, __half* d_out);
     } // namespace gpu
     
 } // namespace lahva
