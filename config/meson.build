@@ -80,7 +80,8 @@ elif lapack_vendor == 'mkl-rt'
 elif lapack_vendor == 'openblas'
   openblas_dep = dependency('openblas', required: false)
   if not openblas_dep.found()
-    openblas_dep = cc.find_library('openblas')
+    message('OpenBLAS not found, trying to find it using cc.find_library')
+    openblas_dep = cc.find_library('openblas', dirs : '/opt/OpenBLAS', has_headers: 'cblas.h', required: false)
   endif
   lib_deps += openblas_dep
   if not cc.links('external dsytrs; call dsytrs(); end', dependencies: openblas_dep)
@@ -107,17 +108,39 @@ elif lapack_vendor == 'apple'
   
 
 else
-  lapack_dep = dependency('lapack', required: false)
+  fs = import('fs')
+
+  lapack_dep = dependency('lapack', required: false, method : 'cmake')
   if not lapack_dep.found()
+    lapack_dep = dependency('lapack', required: false, method : 'pkg-config')
+  endif
+  if not lapack_dep.found()
+    lapack_dep = dependency('lapack', required: false, method : 'system')
+  endif
+  
+  if not lapack_dep.found()
+    if fs.exists('/usr/include/lapack')
+      include_directories('/usr/include/lapack')
+    endif
     lapack_dep = cc.find_library('lapack')
   endif
   lib_deps += lapack_dep
-  blas_dep = dependency('blas', required: false)
+  blas_dep = dependency('blas', required: false, method : 'cmake')
   if not blas_dep.found()
+    blas_dep = dependency('blas', required: false, method : 'pkg-config')
+  endif
+  if not blas_dep.found()
+    blas_dep = dependency('blas', required: false, method : 'system')
+  endif
+  if not blas_dep.found()
+    if fs.exists('/usr/include/cblas')
+      include_directories('/usr/include/cblas')
+    endif
     blas_dep = cc.find_library('blas')
   endif
   lib_deps += blas_dep
 endif
+
 if lapack_vendor != 'mkl'
 if cc.has_header('lapack.h')
   message('LAPACK header found')
@@ -130,6 +153,10 @@ else
 endif
 endif
 
+if cc.has_header('cblas/cblas.h')
+  message('CBLAS header found')
+  add_project_arguments(['-DCBLAS_HEADER'], language: 'cpp')
+endif
 if gpu == true
   arches = get_option('gpu_arch')
   has_nvcc = add_languages('cuda', native: false)
