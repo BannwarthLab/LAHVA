@@ -18,7 +18,11 @@ typedef CBLAS_ORDER CBLAS_LAYOUT;
 typedef int32_t BLAS_INT;
 typedef int32_t LPCK_INT; 
 #else
-#include <cblas.h>
+#ifdef CBLAS_HEADER
+    #include <cblas/cblas.h>
+#else
+    #include <cblas.h>
+#endif
     #ifdef OPENBLAS_VERSION
     typedef blasint BLAS_INT;
     #else
