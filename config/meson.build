@@ -133,8 +133,20 @@ else
     blas_dep = dependency('blas', required: false, method : 'system')
   endif
   if not blas_dep.found()
+    blas_dep = dependency('cblas', required: false)
+  endif
+  if not blas_dep.found()
+    blas_dep = dependency(['openblas','OpenBLAS'], required: false)
+  endif
+  if not blas_dep.found()
     if fs.exists('/usr/include/cblas')
       include_directories('/usr/include/cblas')
+    endif
+    if fs.exists('/usr/include/blas')
+      include_directories('/usr/include/blas')
+    endif
+    if fs.exists('/usr/include/openblas')
+      include_directories('/usr/include/openblas')
     endif
     blas_dep = cc.find_library('blas')
   endif
