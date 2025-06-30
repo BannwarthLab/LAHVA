@@ -125,6 +125,7 @@ else
     lapack_dep = cc.find_library('lapack')
   endif
   lib_deps += lapack_dep
+  
   blas_dep = dependency('blas', required: false, method : 'cmake')
   if not blas_dep.found()
     blas_dep = dependency('blas', required: false, method : 'pkg-config')
@@ -140,14 +141,14 @@ else
   endif
   if not blas_dep.found()
     if fs.exists('/usr/include/cblas')
-      include_directories('/usr/include/cblas')
+      inc_dirs += include_directories('/usr/include/cblas')
     endif
     if fs.exists('/usr/include/blas')
-      include_directories('/usr/include/blas')
+      inc_dirs += include_directories('/usr/include/blas')
     endif
     if fs.exists('/usr/include/openblas')
-      include_directories('/usr/include/openblas')
-    endif
+      inc_dirs += include_directories('/usr/include/openblas')
+    endif  
     blas_dep = cc.find_library('blas')
   endif
   lib_deps += blas_dep
