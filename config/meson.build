@@ -142,6 +142,8 @@ else
   if not blas_dep.found()
     if fs.exists('/usr/include/cblas')
       inc_dirs += include_directories('/usr/include/cblas')
+      add_project_arguments(['-DCBLAS_HEADER'], language: 'cpp')
+      message('CBLAS header found in /usr/include/cblas')
     endif
     if fs.exists('/usr/include/blas')
       inc_dirs += include_directories('/usr/include/blas')
