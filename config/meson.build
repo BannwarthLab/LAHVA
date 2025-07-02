@@ -1,3 +1,4 @@
+fs = import('fs')
 gpu = get_option('gpu')
 debug = get_option('buildtype')
 os = host_machine.system()
@@ -22,10 +23,19 @@ elif cc_id == 'pgi' or cc_id == 'nvidia_hpc'
   )
 endif
 
-#lib_deps += omp_dep
+code = '''
+  extern "C" {void dgetrf_(
+    int const* m, int const* n,
+    double* A, int const* lda, int* ipiv,
+    int* info );}
+  int main() { 
+  int n = 2;
+  int *ipiv = new int[n];
+  int info = 0;
+  double* a = new double[n*n]; 
+  dgetrf_(&n, &n, a, &n, ipiv, &info); }
+  '''
 
-#cpp_dep = cc.find_library('stdc++')
-#lib_deps += cpp_dep
 
 omp_dep = dependency('openmp', language: 'cpp', required: false)
 
@@ -80,11 +90,17 @@ elif lapack_vendor == 'mkl-rt'
 elif lapack_vendor == 'openblas'
   openblas_dep = dependency('openblas', required: false)
   if not openblas_dep.found()
-    message('OpenBLAS not found, trying to find it using cc.find_library')
-    openblas_dep = cc.find_library('openblas', dirs : '/opt/OpenBLAS', has_headers: 'cblas.h', required: false)
+    openblas_dep = cc.find_library('openblas')
   endif
   lib_deps += openblas_dep
-  if not cc.links('external dsytrs; call dsytrs(); end', dependencies: openblas_dep)
+  
+  if fs.exists('/usr/include/openblas')
+    inc_dirs += include_directories('/usr/include/openblas')
+  endif
+  if fs.exists('/usr/include/x86_64-linux-gnu/openblas')
+    inc_dirs += include_directories('/usr/include/x86_64-linux-gnu/openblas')
+  endif
+  if not cc.links(code, dependencies: openblas_dep, name: 'lapack_dsytrs', args: ['-llapack'] )
     lapack_dep = dependency('lapack', required: false)
     
     if not lapack_dep.found()
@@ -92,7 +108,6 @@ elif lapack_vendor == 'openblas'
     endif
     lib_deps += lapack_dep
   endif
-
 elif lapack_vendor == 'custom'
   foreach lib: get_option('custom_libraries')
     lib_deps += cc.find_library(lib)
@@ -108,23 +123,6 @@ elif lapack_vendor == 'apple'
   
 
 else
-  fs = import('fs')
-
-  lapack_dep = dependency('lapack', required: false, method : 'cmake')
-  if not lapack_dep.found()
-    lapack_dep = dependency('lapack', required: false, method : 'pkg-config')
-  endif
-  if not lapack_dep.found()
-    lapack_dep = dependency('lapack', required: false, method : 'system')
-  endif
-  
-  if not lapack_dep.found()
-    if fs.exists('/usr/include/lapack')
-      include_directories('/usr/include/lapack')
-    endif
-    lapack_dep = cc.find_library('lapack')
-  endif
-  lib_deps += lapack_dep
   
   blas_dep = dependency('blas', required: false, method : 'cmake')
   if not blas_dep.found()
@@ -151,9 +149,27 @@ else
     if fs.exists('/usr/include/openblas')
       inc_dirs += include_directories('/usr/include/openblas')
     endif  
-    blas_dep = cc.find_library('blas')
+    blas_dep = cc.find_library('cblas')
   endif
   lib_deps += blas_dep
+  if not cc.links(code, dependencies: blas_dep)
+
+    lapack_dep = dependency('lapack', required: false, method : 'cmake')
+    if not lapack_dep.found()
+      lapack_dep = dependency('lapack', required: false, method : 'pkg-config')
+    endif
+    if not lapack_dep.found()
+      lapack_dep = dependency('lapack', required: false, method : 'system')
+    endif
+  
+    if not lapack_dep.found()
+      if fs.exists('/usr/include/lapack')
+        include_directories('/usr/include/lapack')
+      endif
+      lapack_dep = cc.find_library('lapack')
+    endif
+    lib_deps += lapack_dep
+  endif
 endif
 
 if lapack_vendor != 'mkl'
