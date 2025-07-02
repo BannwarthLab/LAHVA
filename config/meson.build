@@ -132,28 +132,16 @@ else
     blas_dep = dependency('blas', required: false, method : 'system')
   endif
   if not blas_dep.found()
-    blas_dep = dependency('cblas', required: false)
-  endif
-  if not blas_dep.found()
-    blas_dep = dependency(['openblas','OpenBLAS'], required: false)
-  endif
-  if not blas_dep.found()
     if fs.exists('/usr/include/cblas')
-      inc_dirs += include_directories('/usr/include/cblas')
-      add_project_arguments(['-DCBLAS_HEADER'], language: 'cpp')
-      message('CBLAS header found in /usr/include/cblas')
+      include_directories('/usr/include/cblas')
     endif
-    if fs.exists('/usr/include/blas')
-      inc_dirs += include_directories('/usr/include/blas')
+    if fs.exists('/usr/include/x86_64-linux-gnu/cblas')
+      include_directories('/usr/include/x86_64-linux-gnu/cblas')
     endif
-    if fs.exists('/usr/include/openblas')
-      inc_dirs += include_directories('/usr/include/openblas')
-    endif  
-    blas_dep = cc.find_library('cblas')
+    blas_dep = cc.find_library('blas')
   endif
   lib_deps += blas_dep
   if not cc.links(code, dependencies: blas_dep)
-
     lapack_dep = dependency('lapack', required: false, method : 'cmake')
     if not lapack_dep.found()
       lapack_dep = dependency('lapack', required: false, method : 'pkg-config')
@@ -165,6 +153,9 @@ else
     if not lapack_dep.found()
       if fs.exists('/usr/include/lapack')
         include_directories('/usr/include/lapack')
+      endif
+      if fs.exists('/usr/include/x86_64-linux-gnu/lapack')
+        include_directories('/usr/include/x86_64-linux-gnu/lapack')
       endif
       lapack_dep = cc.find_library('lapack')
     endif
