@@ -2,6 +2,7 @@ fs = import('fs')
 gpu = get_option('gpu')
 debug = get_option('buildtype')
 os = host_machine.system()
+c = meson.get_compiler('c')
 cc = meson.get_compiler('cpp')
 cc_id = cc.get_id()
 
@@ -22,6 +23,9 @@ elif cc_id == 'pgi' or cc_id == 'nvidia_hpc'
     language: 'cpp',
   )
 endif
+
+stdcpp = c.find_library('stdc++')
+lib_deps += stdcpp
 
 code = '''
   extern "C" {void dgetrf_(
