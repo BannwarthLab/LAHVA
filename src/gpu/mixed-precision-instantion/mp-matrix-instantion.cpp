@@ -5,6 +5,7 @@
 #include "impl/tensor/gpu/matrix.hpp"
 #include "impl/tensor/gpu/vector.hpp"
 #include "runtime.hpp"
+#include "timer.hpp"
 namespace lahva
 {
     namespace gpu
@@ -21,7 +22,7 @@ namespace lahva
             
             
             this->createSplitMatrices(cudart, maxsplit);
-            if constexpr (!std::is_same<high, low>::value)
+            if constexpr (std::is_same<low, __half>::value)
             {
                 
                 //cudart.synchronize();
@@ -32,16 +33,19 @@ namespace lahva
         }
 
         template <typename high, typename low, typename Allocator, typename GPUAllocator>
-        void MixedPrecisionMatrix<high, low, Allocator, GPUAllocator>::merge(const CudaRuntime &cudart, high* alphas, high ini_beta = 1.0)
+        void MixedPrecisionMatrix<high, low, Allocator, GPUAllocator>::merge(const CudaRuntime &cudart, const high* alphas, high ini_beta = 1.0)
         {
-            if constexpr (std::is_same<high, low>::value)
+            CPUTimer timer;
+            timer.push("Scale");
+            ScaleVector(cudart, ini_beta, *this);
+            timer.pop();
+            timer.push("Custom Sayxpy");
+            for (size_t i = 0; i < split_matrices_.size(); ++i)
             {
-                ScaleVector(cudart, ini_beta, *this);
-                for (size_t i = 0; i < split_matrices_.size(); ++i)
-                {
-                    AddVectors(cudart, alphas[i], split_matrices_[i], *this);    
-                }
+                AddVectors(cudart, alphas[i], split_matrices_[i], *this);    
             }
+            timer.pop();
+            std::cout << timer.print_entries();
             
         }
 
@@ -49,7 +53,9 @@ namespace lahva
         template class MixedPrecisionMatrix<float, __half, CudaHostAllocator<float>, CudaDeviceAsyncAllocator<float>>;
         template class MixedPrecisionMatrix<float, float, CudaHostAllocator<float>, CudaDeviceAllocator<float>>;
         template class MixedPrecisionMatrix<float, float, CudaHostAllocator<float>, CudaDeviceAsyncAllocator<float>>;
-        //template class MixedPrecisionMatrix<double, __half, CudaHostAllocator<double>, CudaDeviceAllocator<double>>;
-        //template class MixedPrecisionMatrix<double, __half, CudaHostAllocator<double>, CudaDeviceAsyncAllocator<double>>;
+        template class MixedPrecisionMatrix<double, __half, CudaHostAllocator<double>, CudaDeviceAllocator<double>>;
+        template class MixedPrecisionMatrix<double, __half, CudaHostAllocator<double>, CudaDeviceAsyncAllocator<double>>;
+        template class MixedPrecisionMatrix<double, float, CudaHostAllocator<double>, CudaDeviceAllocator<double>>;
+        template class MixedPrecisionMatrix<double, float, CudaHostAllocator<double>, CudaDeviceAsyncAllocator<double>>;
     } // namespace gpu
 } // namespace lahva

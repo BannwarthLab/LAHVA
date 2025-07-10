@@ -41,7 +41,7 @@ namespace lahva
 
                 void split(const CudaRuntime &cudart, int max_split) const;
 
-                void merge(const CudaRuntime &cudart,high_prec* alphas, high_prec ini_beta);
+                void merge(const CudaRuntime &cudart, const high_prec* alphas, high_prec ini_beta);
 
                 inline size_t splitSize() const
                 {

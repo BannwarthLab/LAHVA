@@ -9,9 +9,9 @@ template <typename T>
 void fill_with_rd_values(Matrix<T>& m)
 {
     std::random_device rd;  // Obtain a random number from hardware
-    std::minstd_rand eng(rd());
+    std::minstd_rand eng(7);
 
-    std::normal_distribution<> distr(0.0, 1.0e+3);    
+    std::normal_distribution<> distr(0.0, 1.0e+0);    
     for (size_t i = 0; i < m.shape().first; i++)
     {
         for (size_t j = 0; j < m.shape().second; j++)
@@ -21,16 +21,16 @@ void fill_with_rd_values(Matrix<T>& m)
     }
 }
 
+template <typename T>
 void CompareGEMMS(Shape& shape)
 {
     CudaRuntime cudart(false);
     //cudart.setblockSize(1024);
     CPUTimer timer;
-    
-    Matrix<float> A(shape);
-    Matrix<float> B(shape);
-    Matrix<float> C(shape);
-    
+
+    MixedPrecisionMatrix<T, __half> A(shape);
+    MixedPrecisionMatrix<T, __half> B(shape);
+    Matrix<T> C(shape);
 
     fill_with_rd_values(A);
     fill_with_rd_values(B);
@@ -40,7 +40,7 @@ void CompareGEMMS(Shape& shape)
     C.copy2device(cudart);
     timer.pop();
     
-    timer.push("SGEMM");
+    timer.push("GEMM");
     MatrixMatrixProduct(cudart, A, B, C, 1.0, 0.0);
     cudart.synchronize();
     timer.pop();
@@ -48,55 +48,41 @@ void CompareGEMMS(Shape& shape)
     C.copy2host(cudart);
     cudart.synchronize();
     std::cout << "C(0,0)\t" << C(0,0) << std::endl;
+    std::cout << "C(1,0)\t" << C(1,0) << std::endl;
 
-    Matrix<float> C1(shape);
-    C1.copy2device(cudart);
+    MixedPrecisionMatrix<T, float> C2(shape);
+    C2.copy2device(cudart);
 
-    timer.push("TF32");
-    MatrixMatrixProductTF32(cudart, A, B, C1, 1.0, 0.0);
+    timer.push("Markidis");
+    MatrixMatrixProduct(cudart, A, B, C2, (float)1.0, (float)0.0);
     cudart.synchronize();
     timer.pop();
 
-    C1.copy2host(cudart);
+    C2.copy2host(cudart);
     cudart.synchronize();
-    std::cout << "C1(0,0)\t" << C1(0,0) << std::endl;
-    std::cout << "TF32: Forb. Norm " << FrobeniusNorm(cudart, C1, C1)  << std::endl;
-    std::cout << "TF32: Forb. Norm " << FrobeniusNorm(cudart, C1, C)  << std::endl;
-    std::cout << "TF32: Forb. CPU  " << FrobeniusNorm( C1, C) << std::endl;  
+    std::cout << "C2(0,0)\t" << C2[84118] << std::endl;
+    std::cout << "C2(1,0)\t" << C[84118] << std::endl;
+
     
-    std::cout << "TF32: Forb. Norm " << compareNumbers(FrobeniusNorm(cudart, C1, C), FrobeniusNorm( C1, C), 1) << std::endl; 
+    cudart.synchronize();
+    std::cout << "Markidis: Forb. Norm " << FrobeniusNorm(C, C2) << " " << FrobeniusNorm(cudart, C, C2) << std::endl;
+    AddVectors(cudart, -1.0, C, C2);
+    C2.copy2host(cudart);
+    cudart.cublasSetStream_();
     
-    std::cout << "TF32: Forb. Sum " << C1.sum() << " " << C1(0,0) << std::endl;
-
-    //Matrix<float> C2(shape);
-    //C2.copy2device(cudart);
-
-    //timer.push("Markidis");
-    //MatrixMatrixProductMP(cudart, A, B, C2, 1.0, 0.0);
-    //cudart.synchronize();
-    //timer.pop();
-
-    //C2.copy2host(cudart);
-    //cudart.synchronize();
-    //std::cout << "C2(0,0)\t" << C2(0,0) << std::endl;
-    //AddVectors(cudart, -1.0, C, C2);
-    //C2.copy2host(cudart);
-    //cudart.synchronize();
-    //std::cout << "Markidis: Forb. Norm " << FrobeniusNorm( C2) << " " << FrobeniusNorm(cudart, C2) << std::endl; 
-    //std::cout << "Markidis: Forb. Sum " << C2.sum()<< " " << C2(0,0) << std::endl; 
-
-    timer.print_entries();
+    std::cout << timer.print_entries() << std::endl;
 }
 
 
 int main()
 {   
-    for (int i = 1; i < 10; i++)
+    for (int i = 1; i <9; i++)
     {
         std::cout.precision(12);
-        int n = int((i*102)/8)*8;
+        int n = int((i*256));
         std::cout << "Shape: " << n << "x" << n << std::endl;
         Shape shape(n, n);
-        CompareGEMMS(shape);
+        CompareGEMMS<float>(shape);
+        //CompareGEMMS<double>(shape);
     }
 };

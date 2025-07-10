@@ -139,14 +139,23 @@ namespace lahva
 
         template <typename high, typename low, typename Allocator, typename GPUAllocator>
         void MatrixMatrixProduct(const CudaRuntime &cudart, const MixedPrecisionMatrix<high, low, Allocator, GPUAllocator> &A,
-                                 const MixedPrecisionMatrix<high, low, Allocator, GPUAllocator> &B, MixedPrecisionMatrix<high, high, Allocator, GPUAllocator> &C,
+                                 const MixedPrecisionMatrix<high, low, Allocator, GPUAllocator> &B, MixedPrecisionMatrix<high, float, Allocator, GPUAllocator> &C,
                                  const float alpha = 1.0, const float beta = 0.0, const char *Ta = "N", const char *Tb = "N")
         {
 
             // fiuture improvement k must be divisible by 8
             CPUTimer timer;
-            int maxsplit = 2;
-            bool batch = false;
+            int maxsplit = 0;
+            if constexpr (std::is_same<high, float>::value)
+            {
+                maxsplit = 2;
+            }
+            else if constexpr (std::is_same<high, double>::value)
+            {
+                maxsplit = 4;
+            }
+            
+            bool batch = true;
             bool fast = false;
 
             if (A.data() == B.data())
@@ -163,17 +172,17 @@ namespace lahva
                     for (size_t j = 0; j < A.splitSize(); ++j)
                     {
                         alpha_arr[i * A.splitSize() + j] = scalbn(alpha, A.getSplitExponent(i) + A.getSplitExponent(j));
-                        if (!batch )
-                        {
-                            if (i == 0 and j == 0)
-                            {
-                                MatrixMatrixProductFP16(cudart, A.getSplitMatrices()[i], A.getSplitMatrices()[j], C, alpha_arr[i * A.splitSize() + j], beta, Ta, Tb);
-                            }
-                            else
-                            {
-                                MatrixMatrixProductFP16(cudart, A.getSplitMatrices()[i], A.getSplitMatrices()[j], C, alpha_arr[i * A.splitSize() + j], 1.0, Ta, Tb);
-                            }
-                        }
+                        //if (!batch )
+                        //{
+                            //if (i == 0 and j == 0)
+                            //{
+                                //MatrixMatrixProductFP16(cudart, A.getSplitMatrices()[i], A.getSplitMatrices()[j], C, alpha_arr[i * A.splitSize() + j], beta, Ta, Tb);
+                            //}
+                            //else
+                            //{
+                                //MatrixMatrixProductFP16(cudart, A.getSplitMatrices()[i], A.getSplitMatrices()[j], C, alpha_arr[i * A.splitSize() + j], 1.0, Ta, Tb);
+                            //}
+                        //}
                     }
                 }
 
@@ -196,8 +205,8 @@ namespace lahva
             else
             {
                 timer.push("Decompose");
-                A.split(cudart, 2);
-                B.split(cudart, 2);
+                A.split(cudart, maxsplit);
+                B.split(cudart, maxsplit);
                 timer.pop();
                 timer.push("Product");
 
@@ -209,17 +218,36 @@ namespace lahva
                     for (size_t j = 0; j < B.splitSize(); ++j)
                     {
                         alpha_arr[i * A.splitSize() + j] = scalbn(alpha, A.getSplitExponent(i) + B.getSplitExponent(j));
+                        if (i == 1 and j == 1 and fast)
+                        continue;
+                        if (!batch)
+                        {
+                            //std::cout << "alpha[" << i << "," << j << "] = " << alpha_arr[i * A.splitSize() + j] << std::endl;
+                            //if (i == 0 and j == 0)
+                            //{
+                                //MatrixMatrixProductFP16(cudart, A.getSplitMatrices()[i], B.getSplitMatrices()[j], C, alpha_arr[i * A.splitSize() + j], beta, Ta, Tb);
+                            //}
+                            //else
+                            //{
+                                //MatrixMatrixProductFP16(cudart, A.getSplitMatrices()[i], B.getSplitMatrices()[j], C, alpha_arr[i * A.splitSize() + j], 1.0, Ta, Tb);
+                            //}
+                        }
                     }
                 }
-
-                C.createSplitMatrices(cudart, combinations);
-                MatrixMatrixProductBatchFP16(cudart, A.getSplitMatrices(), B.getSplitMatrices(), C.getSplitMatrices(), 1.0, 0.0, Ta, Tb);
-                C.merge(cudart, alpha_arr, beta);
+                if (batch)
+                {
+                    C.createSplitMatrices(cudart, combinations);
+                    MatrixMatrixProductBatchFP16(cudart, A.getSplitMatrices(), B.getSplitMatrices(), C.getSplitMatrices(), 1.0, 0.0, Ta, Tb);
+                    timer.pop();
+                    timer.push("Merge");
+                    C.merge(cudart, alpha_arr, beta);
+                    
+                }
                 delete[] alpha_arr;
                 timer.pop();
-                ;
+                
             }
-            //timer.print_entries();
+            std::cout << timer.print_entries();
         };
 
     } // namespace gpu
