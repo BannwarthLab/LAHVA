@@ -34,7 +34,7 @@ test('additional-level-2',
   ),
   )
 
-if gpu == true
+if has_gpu == true
   test('level1-gpu',
   executable(
     '@0@-level1-gpu-tester'.format(meson.project_name()),
@@ -79,12 +79,12 @@ if gpu == true
   ),
   )
 
-  #test('test-mp',
-  #executable(
-  #  '@0@-test-mp'.format(meson.project_name()),
-  #  sources: files('test-mp.cpp','utils.cpp'),
-  #  dependencies: lahva_dep,
-  #  link_language: 'cpp', 
-  #),
-  #)
+  test('test-mp',
+  executable(
+    '@0@-test-mp'.format(meson.project_name()),
+    sources: files('test-mp.cpp','utils.cpp'),
+    dependencies: lahva_dep,
+    link_language: 'cpp', 
+  ),
+  )
 endif

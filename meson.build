@@ -23,7 +23,7 @@ subdir('config')
 
 
 inc_dirs += include_directories('include') 
-if gpu == true
+if has_gpu == true
   inc_dirs += include_directories('src/gpu/additional-blas')
 endif
 

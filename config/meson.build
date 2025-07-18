@@ -6,6 +6,17 @@ c = meson.get_compiler('c')
 cc = meson.get_compiler('cpp')
 cc_id = cc.get_id()
 
+has_nvcc = add_languages('cuda', native: false, required: gpu)
+if has_nvcc == true
+  nvcc = meson.get_compiler('cuda')
+  if not cc.has_header('cublas_v2.h')
+    has_nvcc = false
+  endif
+  if not cc.has_header('cusolverDn.h')
+    has_nvcc = false
+  endif
+endif
+
 if cc_id == 'gcc'
   add_project_arguments(
     language: 'cpp',
@@ -70,7 +81,7 @@ endif
 
 if lapack_vendor == 'mkl'
   add_project_arguments(['-DW_MKL'], language: 'cpp')
-  if gpu == true
+  if has_nvcc == true
     add_project_arguments(['-DW_MKL'], language:  'cuda')
   endif
   mkl_dep = []
@@ -173,7 +184,7 @@ if cc.has_header('lapack.h')
 else
   message('LAPACK not found, using netlib headers')
   add_project_arguments(['-DNETLIB_HEADER'], language: 'cpp')
-  if gpu == true
+  if has_nvcc == true
     add_project_arguments(['-DNETLIB_HEADER'], language: 'cuda')
   endif
 endif
@@ -183,13 +194,28 @@ if cc.has_header('cblas/cblas.h')
   message('CBLAS header found')
   add_project_arguments(['-DCBLAS_HEADER'], language: 'cpp')
 endif
-if gpu == true
+
+has_gpu = false
+if has_nvcc == true
+  has_gpu = true
   arches = get_option('gpu_arch')
-  has_nvcc = add_languages('cuda', native: false)
-  nvcc = meson.get_compiler('cuda')
-  cublas = nvcc.find_library('cublas')
-  cusolver = nvcc.find_library('cusolver')
-  cusparse = nvcc.find_library('cusparse')
+  cublas = nvcc.find_library('cublas', required: gpu)
+  if not cublas.found()
+    has_gpu = false
+  else
+    cusolver = nvcc.find_library('cusolver', required: gpu)
+    if not cusolver.found()
+      has_gpu = false
+    else
+      cusparse = nvcc.find_library('cusparse', required: gpu)
+      if not cusparse.found()
+        has_gpu = false
+      endif
+    endif
+  endif
+endif
+
+if has_gpu == true
   lib_deps += cublas
   lib_deps += cusolver
   lib_deps += cusparse
@@ -214,7 +240,7 @@ endif
 
 if debug == 'release'
   add_project_arguments('-DNDEBUG', language: 'cpp')
-  if gpu == true
+  if has_nvcc == true
     add_project_arguments('-DNDEBUG', language: 'cuda')
   endif
 endif

@@ -1,6 +1,6 @@
 subdir('cpu')
 
-if gpu == true
+if has_gpu == true
     subdir('gpu')
 endif
 
