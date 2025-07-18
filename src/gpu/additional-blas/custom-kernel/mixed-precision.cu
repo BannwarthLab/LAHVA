@@ -229,7 +229,6 @@ namespace lahva
             check_device_alloc(cudart, CopyIn);
 
             int rho = ceil(getEpse<inprec>() - (getEpse<outprec>() - log2(2)) / 2);
-            // std::cout << "rho: " << rho << std::endl;
             int maxsplit = 2;
             for (int i = 0; i < maxsplit; i++)
             {
@@ -266,8 +265,6 @@ namespace lahva
 
             int rho = ceil(getEpse<inprec>() - (getEpse<outprec>() - log2(2)) / 2);
             
-            std::cout << "rho: " << rho << std::endl;
-            std::cout << "maxsplit: " << maxsplit << std::endl;
             for (int i = 0; i < maxsplit; i++)
             {
                 check_device_alloc(cudart, out[i]);
@@ -300,18 +297,46 @@ namespace lahva
                 n = in.size();
                 //cudart.setblockSize(256);
                 dim3 blockSize(cudart.blockSize(), 1);
-                std::cout << blockSize.x << " threads per block" << std::endl;
                 int computeperThread = 1;
-                dim3 gridSize((n + blockSize.x - 1) / (blockSize.x*computeperThread));
+                dim3 gridSize(cudart.gridSize(n, 1) / computeperThread, 1);
+                switch (blockSize.x)
+                {
+                case 1024:
+                    DecomposeMatrixKernel<inprec, outprec, 1024><<<gridSize, blockSize, 0, cudart.getStream()>>>
+                    (n, in.gpu_data(), out[i].gpu_data(), tau, sigma);
+                    break;
+                case 512:
+                    DecomposeMatrixKernel<inprec, outprec, 512><<<gridSize, blockSize, 0, cudart.getStream()>>>
+                    (n, in.gpu_data(), out[i].gpu_data(), tau, sigma);
+                    break;
+                case 256:
+                    DecomposeMatrixKernel<inprec, outprec, 256><<<gridSize, blockSize, 0, cudart.getStream()>>>
+                    (n, in.gpu_data(), out[i].gpu_data(), tau, sigma);
+                    break;
+                case 128:
+                    DecomposeMatrixKernel<inprec, outprec, 128><<<gridSize, blockSize, 0, cudart.getStream()>>>
+                    (n, in.gpu_data(), out[i].gpu_data(), tau, sigma);
+                    break;
+                case 64:
+                    DecomposeMatrixKernel<inprec, outprec, 64><<<gridSize, blockSize, 0, cudart.getStream()>>>
+                    (n, in.gpu_data(), out[i].gpu_data(), tau, sigma);
+                    break;
+                case 32:
+                    DecomposeMatrixKernel<inprec, outprec, 32><<<gridSize, blockSize, 0, cudart.getStream()>>>
+                    (n, in.gpu_data(), out[i].gpu_data(), tau, sigma);
+                    break;
 
+                default:
+                    break;
+                }
 
-                DecomposeMatrixKernel<inprec, outprec, 512><<<cudart.gridSize(n, 1)/computeperThread, blockSize, 0, cudart.getStream()>>>
-                //DecomposeMatrixKernel2D<inprec,outprec><<<gridSize, blockSize, 0, cudart.getStream()>>>  
-                (n, in.gpu_data(), out[i].gpu_data(), tau, sigma);
+                //DecomposeMatrixKernel<inprec, outprec, 512><<<cudart.gridSize(n, 1)/computeperThread, blockSize, 0, cudart.getStream()>>>
+                ////DecomposeMatrixKernel2D<inprec,outprec><<<gridSize, blockSize, 0, cudart.getStream()>>>  
+                //(n, in.gpu_data(), out[i].gpu_data(), tau, sigma);
                 timer.pop();
             }
             
-            std::cout << "SplitMatrix: " << timer.print_entries() << std::endl;
+           
         }
 
         template void AddVectors<float, double>(const CudaRuntime &cudart, const GPUTensor_<float> &X, GPUTensor_<double> &Y);

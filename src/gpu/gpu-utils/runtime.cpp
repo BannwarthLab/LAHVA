@@ -83,7 +83,7 @@ namespace lahva
         size_t best_block_size = 0;
         int rest = -500;
 
-        for (auto i : {1024, 512, 480, 448, 416, 384, 352, 320, 288, 256, 224, 192, 160, 128})
+        for (auto i : { 512,  256, 128})
         {
             this->blockSize_ = i;
             size_t gridS = this->gridSize(max_dim*max_dim, 1);
@@ -94,7 +94,7 @@ namespace lahva
                 if (rest == 0) continue;
             }
         }
-        this->blockSize_ = best_block_size;
+        this->blockSize_ = 512;
         
 
     };

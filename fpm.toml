@@ -8,7 +8,7 @@ keywords = ["LAHVA", "gpu", "linear algebra"]
 copyright = "Copyright 2025 P. Steinbach"
 
 [build]
-link = ["mkl_intel_lp64", "mkl_sequential", "mkl_core", "lapack", "blas"]
+link = ["lapack", "blas"]
 
 [library]
 source-dir = "src/cpu"

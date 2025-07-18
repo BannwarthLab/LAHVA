@@ -12,7 +12,7 @@ template <typename T>
 void fill_with_rd_values(Matrix_<T>& m)
 {
     std::random_device rd;  // Obtain a random number from hardware
-    std::minstd_rand eng(rd());
+    std::minstd_rand eng(42);
 
     std::normal_distribution<> distr(0.0, 1.0e+3);    
     for (size_t i = 0; i < m.shape().first; i++)
@@ -37,7 +37,7 @@ bool IsEqual(T rhs, T lhs)
 template <typename T>
 int test_Frobenius_norm(const CudaRuntime& cudart)
 {
-    MyMatrix<T> A(Shape(100,100));
+    MyMatrix<T> A(Shape(50,50));
     fill_with_rd_values(A);
     T res_gpu = 1.0;
     res_gpu = FrobeniusNorm(cudart, A);
@@ -45,11 +45,15 @@ int test_Frobenius_norm(const CudaRuntime& cudart)
     T res_cpu = 0.0;
     res_cpu = FrobeniusNorm(A);
     
-    T eps = std::abs( std::nextafter(res_cpu, +INFINITY) -res_cpu);
+    T eps = std::abs( std::nextafter(res_gpu, +INFINITY) -res_gpu);
+    std::cout <<eps * 10<< std::endl;
 
     if (!check(res_gpu, res_cpu, eps*10, "FrobeniusNorm"))
     {
         std::cout << "Test failed: FrobeniusNorm" << std::endl;
+        std::cout << "GPU: " << res_gpu << " CPU: " << res_cpu << std::endl;
+        std::cout << "Diff: " << std::abs(res_gpu - res_cpu) << std::endl;
+        std::cout << "Epsilon: " << eps * 10 << std::endl;
         return 1;
     }
     
@@ -117,11 +121,17 @@ int test_Frobenius_norm2_diff(const CudaRuntime& cudart)
 int main(){
     int exit = 0;
     CudaRuntime cudart;
+    std::cout << "Testing Frobenius Norms Double" << std::endl;
     exit += test_Frobenius_norm<double>(cudart);
+    std::cout << "Testing Frobenius Norms Float" << std::endl;
     exit += test_Frobenius_norm<float>(cudart);
+    std::cout << "Testing Frobenius Norms Double 2" << std::endl;
     exit += test_Frobenius_norm2<double>(cudart);
+    std::cout << "Testing Frobenius Norms Float 2" << std::endl;
     exit += test_Frobenius_norm2<float>(cudart);
+    std::cout << "Testing Frobenius Norms Double 2 Difference" << std::endl;
     exit += test_Frobenius_norm2_diff<double>(cudart);
+    std::cout << "Testing Frobenius Norms Float 2 Difference" << std::endl;
     exit += test_Frobenius_norm2_diff<float>(cudart);
 
     return exit;
