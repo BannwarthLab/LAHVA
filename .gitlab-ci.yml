@@ -192,18 +192,19 @@ ubuntu-20.4-gcc-9-mkl:       # This job runs in the build stage, which runs firs
     paths:
       - meson-logs/testlog.txt
 
-ubuntu-20.4-gcc-9-openblas-cmake:       # This job runs in the build stage, which runs first.
+ubuntu-gcc-openblas-cmake:       # This job runs in the build stage, which runs first.
   stage: build
+  parallel: !reference [.matrix-gcc-cpu,parallel]
   cache:
     key: "gcc-$CI_COMMIT_REF_SLUG"
     paths:
       - containers/
   dependencies:
-    - build-ubuntu20.4
+    - build-ubuntu
   variables:
     IMAGE_NAME: ""
-    CONTAINER_NAME: "containers/20.4-gcc-9.sif"
-    APPTAINER_EXEC_ARGS: "" 
+    CONTAINER_NAME: "containers/$DISTRIBUTION-gcc-$GCC.sif"
+    APPTAINER_EXEC_ARGS: "--writable -f" 
   tags:
     - cpu
   script:
