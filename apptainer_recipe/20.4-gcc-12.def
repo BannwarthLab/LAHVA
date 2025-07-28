@@ -12,6 +12,9 @@ From: ubuntu:20.04
         pip
 
     # Install LAPACK
+    add-apt-repository ppa:ubuntu-toolchain-r/test
+    apt-get update
+    apt-get install -y gcc-12
     apt-get update
     apt-get install -y libopenblas-dev liblapacke-dev --no-install-recommends
 

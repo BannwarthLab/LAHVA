@@ -30,17 +30,24 @@ cache:
   paths:
     - containers/
 
+.matrix-gcc-cpu:
+  matrix:
+    - DISTRIBUTION: [20.4, 24.4]
+      GCC: [9, 12]
+
 build-ubuntu20.4:
   stage: build-container
+  matrix: !reference [.matrix-gcc-cpu,matrix]
   cache:
-    key: "gcc-$CI_COMMIT_REF_SLUG"
+    key: "gcc-$CI_COMMIT_REF_SLUG-$GCC"
     paths:
       - containers/
   tags:
     - shell
   script:
     - mkdir -p containers
-    - if [ ! -e "containers/20.4-gcc-9.sif" ] ; then apptainer build containers/20.4-gcc-9.sif apptainer_recipe/20.4-gcc-9.def ; fi
+    - CONT=$DISTRIBUTION-gcc-$GCC
+    - if [ ! -e "containers/$CONT.sif" ] ; then apptainer build containers/$CONT.sif apptainer_recipe/$CONT.def ; fi
 
 
 build-ubuntu20.4-intel-2023.2.0:
@@ -83,15 +90,16 @@ build-ubuntu20.4-cuda-11-8-intel-2023.2.0:
 
 ubuntu-20.4-gcc-9-openblas:       # This job runs in the build stage, which runs first.
   stage: build
+  matrix: !reference [.matrix-gcc-cpu,matrix]
   cache:
-    key: "gcc-$CI_COMMIT_REF_SLUG"
+    key: "gcc-$CI_COMMIT_REF_SLUG-$GCC"
     paths:
       - containers/
   dependencies:
     - build-ubuntu20.4
   variables:
     IMAGE_NAME: ""
-    CONTAINER_NAME: "containers/20.4-gcc-9.sif"
+    CONTAINER_NAME: "containers/$DISTRIBUTION-gcc-$GCC.sif"
     APPTAINER_EXEC_ARGS: "" 
   tags:
     - cpu
