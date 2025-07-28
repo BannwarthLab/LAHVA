@@ -9,7 +9,8 @@ From: ubuntu:20.04
         build-essential \
         wget \
         curl git \
-        pip
+        pip \
+        software-properties-common
 
     # Install LAPACK
     add-apt-repository ppa:ubuntu-toolchain-r/test
