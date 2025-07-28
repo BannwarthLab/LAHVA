@@ -34,7 +34,7 @@ cache:
   parallel:
     matrix:
       - DISTRIBUTION: ["20.4", "24.4"] 
-        GCC: ["9", "12"]
+        GCC: ["9", "10", "13"]
 
 build-ubuntu20.4:
   stage: build-container
@@ -47,7 +47,7 @@ build-ubuntu20.4:
   script:
     - mkdir -p containers
     - CONT=$DISTRIBUTION-gcc-$GCC
-    - if [ ! -e "containers/$CONT.sif" ] ; then apptainer build containers/$CONT.sif apptainer_recipe/$CONT.def ; fi
+    - if [ ! -e "containers/$CONT.sif" ] ; then apptainer build containers/$CONT.sif apptainer_recipe/$DISTRIBUTION-gcc.def ; apptainer exec containers/$CONT.sif apt install gcc-$GCC ; fi
   parallel: !reference [.matrix-gcc-cpu,parallel]
 
 
@@ -106,6 +106,7 @@ ubuntu-20.4-gcc-9-openblas:       # This job runs in the build stage, which runs
     - cpu
   script:
     - !reference [.cpu_prep, script]
+    - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC 100 --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-$GCC --slave /usr/bin/gcov gcov /usr/bin/gcov-$GCC --slave /usr/bin/g++ g++ /usr/bin/g++-$GCC
     - export CC=gcc CXX=g++
     - meson setup _build --buildtype=debug -Dlapack=openblas
     - !reference [.meson_compile, script]
