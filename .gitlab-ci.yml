@@ -34,7 +34,7 @@ cache:
   parallel:
     matrix:
       - DISTRIBUTION: ["20.4", "24.4"] 
-        GCC: ["9", "10", "13"]
+        GCC: ["9", "10"]
 
 build-ubuntu:
   stage: build-container
