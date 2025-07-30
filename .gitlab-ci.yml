@@ -76,7 +76,8 @@ build-ubuntu-cuda:
     - apptainer exec --writable containers/$CONT.sif apt install gcc-$GCC g++-$GCC gfortran-$GCC -y
     - apptainer exec --writable containers/$CONT.sif update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC 100 --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-$GCC --slave /usr/bin/gcov gcov /usr/bin/gcov-$GCC --slave /usr/bin/g++ g++ /usr/bin/g++-$GCC
     - apptainer exec --writable containers/$CONT.sif python3 -m pip config set global.break-system-packages true
-    - apptainer exec --writable containers/$CONT.sif " wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb ; dpkg -i cuda-keyring_1.1-1_all.deb"
+    - apptainer exec --writable containers/$CONT.sif wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb
+    - apptainer exec --writable containers/$CONT.sif dpkg -i cuda-keyring_1.1-1_all.deb
     - apptainer exec --writable containers/$CONT.sif apt update
     - apptainer exec --writable containers/$CONT.sif apt install -y cuda-compiler-$CUDA \
       cuda-cudart-dev-$CUDA \
