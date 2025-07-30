@@ -49,6 +49,8 @@ build-ubuntu:
     - CONT=$DISTRIBUTION-gcc-$GCC
     - if [ ! -e "containers/$CONT.sif" ] ; then apptainer build -s containers/$CONT.sif apptainer_recipe/$DISTRIBUTION-gcc.def ; fi
     - apptainer exec --writable containers/$CONT.sif apt install gcc-$GCC -y
+    - apptainer exec --writable containers/$CONT.sif update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC 100 --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-$GCC --slave /usr/bin/gcov gcov /usr/bin/gcov-$GCC --slave /usr/bin/g++ g++ /usr/bin/g++-$GCC
+
   parallel: !reference [.matrix-gcc-cpu,parallel]
 
 
@@ -102,12 +104,11 @@ ubuntu-gcc-openblas:       # This job runs in the build stage, which runs first.
   variables:
     IMAGE_NAME: ""
     CONTAINER_NAME: "containers/$DISTRIBUTION-gcc-$GCC.sif"
-    APPTAINER_EXEC_ARGS: "--writable" 
+    APPTAINER_EXEC_ARGS: "" 
   tags:
     - cpu
   script:
     - !reference [.cpu_prep, script]
-    - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC 100 --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-$GCC --slave /usr/bin/gcov gcov /usr/bin/gcov-$GCC --slave /usr/bin/g++ g++ /usr/bin/g++-$GCC
     - export CC=gcc CXX=g++
     - meson setup _build --buildtype=debug -Dlapack=openblas
     - !reference [.meson_compile, script]
@@ -204,12 +205,11 @@ ubuntu-gcc-openblas-cmake:       # This job runs in the build stage, which runs 
   variables:
     IMAGE_NAME: ""
     CONTAINER_NAME: "containers/$DISTRIBUTION-gcc-$GCC.sif"
-    APPTAINER_EXEC_ARGS: "--writable" 
+    APPTAINER_EXEC_ARGS: "" 
   tags:
     - cpu
   script:
     - !reference [.cpu_prep, script]
-    - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC 100 --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-$GCC --slave /usr/bin/gcov gcov /usr/bin/gcov-$GCC --slave /usr/bin/g++ g++ /usr/bin/g++-$GCC
     - export CC=gcc CXX=g++
     - cmake -B _build .
     - !reference [.cmake_compile, script]
