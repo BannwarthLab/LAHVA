@@ -48,7 +48,7 @@ build-ubuntu:
     - mkdir -p containers
     - CONT=$DISTRIBUTION-gcc-$GCC
     - if [ ! -e "containers/$CONT.sif" ] ; then apptainer build containers/$CONT.sif apptainer_recipe/$DISTRIBUTION-gcc.def ; fi
-    - apptainer exec --writable -f containers/$CONT.sif apt install gcc-$GCC -y
+    - apptainer exec --writable containers/$CONT.sif apt install gcc-$GCC -y
   parallel: !reference [.matrix-gcc-cpu,parallel]
 
 
