@@ -2,7 +2,7 @@
   script:
     - echo "Building the code..."
     - echo $SINGULARITY_NAME
-    - pip --user install ninja meson!=1.8.0 cmake
+    - pip install --user ninja meson!=1.8.0 cmake
     - export PATH=~/.local/bin:$PATH
 
 .gpu_prep:
