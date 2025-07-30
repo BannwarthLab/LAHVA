@@ -34,7 +34,15 @@ cache:
   parallel:
     matrix:
       - DISTRIBUTION: ["20.4", "24.4"] 
-        GCC: ["9", "10"]
+        GCC: ["9", "10", "13"]
+
+.matrix-gcc-gpu:
+  parallel:
+    matrix:
+      - DISTRIBUTION: ["20.4", "24.4"] 
+        GCC: ["9", "10", "13"]
+        CUDA: ["11.8", "12.2"]
+
 
 build-ubuntu:
   stage: build-container
@@ -51,10 +59,33 @@ build-ubuntu:
     - apptainer exec --writable containers/$CONT.sif apt install gcc-$GCC g++-$GCC gfortran-$GCC -y
     - apptainer exec --writable containers/$CONT.sif update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC 100 --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-$GCC --slave /usr/bin/gcov gcov /usr/bin/gcov-$GCC --slave /usr/bin/g++ g++ /usr/bin/g++-$GCC
     - apptainer exec --writable containers/$CONT.sif python3 -m pip config set global.break-system-packages true
-
-
   parallel: !reference [.matrix-gcc-cpu,parallel]
 
+build-ubuntu-cuda:
+  stage: build-container
+  cache:
+    key: "gcc-cuda-$CI_COMMIT_REF_SLUG-$GCC-$CUDA"
+    paths:
+      - containers/
+  tags:
+    - shell
+  script:
+    - mkdir -p containers
+    - CONT=$DISTRIBUTION-gcc-$GCC
+    - if [ ! -e "containers/$CONT.sif" ] ; then apptainer build -s containers/$CONT.sif apptainer_recipe/$DISTRIBUTION-gcc.def ; fi
+    - apptainer exec --writable containers/$CONT.sif apt install gcc-$GCC g++-$GCC gfortran-$GCC -y
+    - apptainer exec --writable containers/$CONT.sif update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC 100 --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-$GCC --slave /usr/bin/gcov gcov /usr/bin/gcov-$GCC --slave /usr/bin/g++ g++ /usr/bin/g++-$GCC
+    - apptainer exec --writable containers/$CONT.sif python3 -m pip config set global.break-system-packages true
+    - apptainer exec --writable containers/$CONT.sif " wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb ; dpkg -i cuda-keyring_1.1-1_all.deb"
+    - apptainer exec --writable containers/$CONT.sif apt update
+    - apptainer exec --writable containers/$CONT.sif apt install -y cuda-compiler-$CUDA \
+      cuda-cudart-dev-$CUDA \
+      libcublas-dev-$CUDA \
+      libcurand-dev-$CUDA \
+      libcusolver-dev-$CUDA \
+      libcusparse-dev-$CUDA \
+      --no-install-recommends
+  parallel: !reference [.matrix-gcc-gpu,parallel]
 
 build-ubuntu20.4-intel-2023.2.0:
   stage: build-container
