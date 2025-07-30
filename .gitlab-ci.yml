@@ -50,6 +50,8 @@ build-ubuntu:
     - if [ ! -e "containers/$CONT.sif" ] ; then apptainer build -s containers/$CONT.sif apptainer_recipe/$DISTRIBUTION-gcc.def ; fi
     - apptainer exec --writable containers/$CONT.sif apt install gcc-$GCC g++-$GCC gfortran-$GCC -y
     - apptainer exec --writable containers/$CONT.sif update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC 100 --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-$GCC --slave /usr/bin/gcov gcov /usr/bin/gcov-$GCC --slave /usr/bin/g++ g++ /usr/bin/g++-$GCC
+    - apptainer exec --writable containers/$CONT.sif python3 -m pip config set global.break-system-packages true
+
 
   parallel: !reference [.matrix-gcc-cpu,parallel]
 
