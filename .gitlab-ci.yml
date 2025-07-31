@@ -78,14 +78,8 @@ build-ubuntu-cuda:
     - apptainer exec --writable containers/$CONT.sif python3 -m pip config set global.break-system-packages true
     - apptainer exec --writable containers/$CONT.sif wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-keyring_1.1-1_all.deb
     - apptainer exec --writable containers/$CONT.sif dpkg -i cuda-keyring_1.1-1_all.deb
-    - apptainer exec --writable containers/$CONT.sif apt update
-    - apptainer exec --writable containers/$CONT.sif apt install -y cuda-compiler-$CUDA \
-      cuda-cudart-dev-$CUDA \
-      libcublas-dev-$CUDA \
-      libcurand-dev-$CUDA \
-      libcusolver-dev-$CUDA \
-      libcusparse-dev-$CUDA \
-      --no-install-recommends
+    - apptainer exec --writable containers/$CONT.sif apt-get update
+    - apptainer exec --writable containers/$CONT.sif apt-get install -y cuda-compiler-$CUDA cuda-cudart-dev-$CUDA  libcublas-dev-$CUDA libcusolver-dev-$CUDA libcusparse-dev-$CUDA
   parallel: !reference [.matrix-gcc-gpu,parallel]
 
 build-ubuntu20.4-intel-2023.2.0:
