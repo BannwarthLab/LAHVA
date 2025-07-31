@@ -328,7 +328,7 @@ ubuntu-cuda-gcc-openblas:       # This job runs in the build stage, which runs f
     paths:
       - containers/
   dependencies:
-    - build-ubuntu-cuda-gcc
+    - build-ubuntu-cuda
   variables:
     CONTAINER_NAME: "containers/$DISTRIBUTION-gcc-$GCC.sif"
     APPTAINER_EXEC_ARGS: "--nv" 
@@ -434,7 +434,7 @@ ubuntu-cuda-gcc-openblas-cmake:       # This job runs in the build stage, which 
     paths:
       - containers/
   dependencies:
-    - build-ubuntu-cuda-gcc
+    - build-ubuntu-cuda
   variables:
     CONTAINER_NAME: "containers/$DISTRIBUTION-gcc-$GCC.sif"
     APPTAINER_EXEC_ARGS: "--nv" 
