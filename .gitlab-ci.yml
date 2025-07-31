@@ -321,16 +321,16 @@ ubuntu-20.4-gcc-9-mkl-cmake:       # This job runs in the build stage, which run
     paths:
       - meson-logs/testlog.txt    
 
-ubuntu-20.4-cu-11.8-gcc-9-openblas:       # This job runs in the build stage, which runs first.
+ubuntu-cuda-gcc-openblas:       # This job runs in the build stage, which runs first.
   stage: build
   cache:
-    key: "gcc-cuda-$CI_COMMIT_REF_SLUG"
+    key: "gcc-cuda-$CI_COMMIT_REF_SLUG-$GCC-$CUDA"
     paths:
       - containers/
   dependencies:
-    - build-ubuntu20.4-cuda-11-8-gcc-9
+    - build-ubuntu-cuda-gcc
   variables:
-    CONTAINER_NAME: "containers/20.4-cuda-11-8-gcc-9.sif"
+    CONTAINER_NAME: "containers/$DISTRIBUTION-gcc-$GCC.sif"
     APPTAINER_EXEC_ARGS: "--nv" 
   tags:
     - cpu
@@ -342,6 +342,7 @@ ubuntu-20.4-cu-11.8-gcc-9-openblas:       # This job runs in the build stage, wh
     - meson setup _build --buildtype=debug -Dlapack=auto
     - !reference [.meson_compile, script]
     - meson test
+  parallel: !reference [.matrix-gcc-gpu,parallel]
   artifacts:
     when: on_failure
     paths:
@@ -426,16 +427,16 @@ ubuntu-20.4-cu-11.8-gcc-9-mkl:       # This job runs in the build stage, which r
     paths:
       - _build/meson-logs/*txt
 
-ubuntu-20.4-cu-11.8-gcc-9-openblas-cmake:       # This job runs in the build stage, which runs first.
+ubuntu-cuda-gcc-openblas-cmake:       # This job runs in the build stage, which runs first.
   stage: build
   cache:
-    key: "gcc-cuda-$CI_COMMIT_REF_SLUG"
+    key: "gcc-cuda-$CI_COMMIT_REF_SLUG-$GCC-$CUDA"
     paths:
       - containers/
   dependencies:
-    - build-ubuntu20.4-cuda-11-8-gcc-9
+    - build-ubuntu-cuda-gcc
   variables:
-    CONTAINER_NAME: "containers/20.4-cuda-11-8-gcc-9.sif"
+    CONTAINER_NAME: "containers/$DISTRIBUTION-gcc-$GCC.sif"
     APPTAINER_EXEC_ARGS: "--nv" 
   tags:
     - cpu
@@ -447,6 +448,7 @@ ubuntu-20.4-cu-11.8-gcc-9-openblas-cmake:       # This job runs in the build sta
     - cmake -B _build -DLAPACK_VENDOR=auto -DGPU=ON .
     - !reference [.cmake_compile, script]
     - ctest
+  parallel: !reference [.matrix-gcc-gpu,parallel]
   artifacts:
     when: on_failure
     paths:
