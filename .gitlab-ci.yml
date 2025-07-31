@@ -337,7 +337,7 @@ ubuntu-cuda-gcc-openblas:       # This job runs in the build stage, which runs f
     - gpu 
   script:
     - !reference [.cpu_prep, script]
-    - !reference [.gpu_prep, script]
+    - !reference [.gpu_prep_matrix, script]
     - export CC=gcc CXX=g++
     - meson setup _build --buildtype=debug -Dlapack=auto
     - !reference [.meson_compile, script]
@@ -443,7 +443,7 @@ ubuntu-cuda-gcc-openblas-cmake:       # This job runs in the build stage, which 
     - gpu 
   script:
     - !reference [.cpu_prep, script]
-    - !reference [.gpu_prep, script]
+    - !reference [.gpu_prep_matrix, script]
     - export CC=gcc CXX=g++
     - cmake -B _build -DLAPACK_VENDOR=auto -DGPU=ON .
     - !reference [.cmake_compile, script]

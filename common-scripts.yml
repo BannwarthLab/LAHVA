@@ -14,6 +14,14 @@
     - export CPATH=/usr/local/cuda-11.8/include:${CPATH}
     - which nvcc
 
+.gpu_prep_matrix:
+  script:
+    - export PATH=/usr/local/cuda-$CUDA/bin:${PATH}
+    - export LD_LIBRARY_PATH=/usr/local/cuda-$CUDA/lib64:${LD_LIBRARY_PATH}
+    - export LIBRARY_PATH=/usr/local/cuda-$CUDA/lib64:${LIBRARY_PATH}
+    - export CUDA_ROOT=/usr/local/cuda-$CUDA
+    - export CPATH=/usr/local/cuda-$CUDA/include:${CPATH}
+    - which nvcc
 .meson_compile:
   script:
     - cd _build
