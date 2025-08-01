@@ -62,8 +62,15 @@ if(GPU)
     -ccbin 
     ${CC_BIN}
     >)
+  else()
+    target_compile_options(${PROJECT_NAME}-lib PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+    --allow-unsupported-compiler
+    >)
   endif()
   find_package(OpenMP)
+  if(CUDAToolkit_VERSION VERSION_GREATER "11.0")
+      target_link_libraries("${PROJECT_NAME}-lib" PUBLIC "CUDA::nvJitLink")
+  endif()
   target_link_libraries("${PROJECT_NAME}-lib" PUBLIC "CUDA::cudart" "CUDA::cublas" "CUDA::cusolver" "CUDA::cusparse")
   list(APPEND PRE_FLAGS "_CUDA")
 endif()

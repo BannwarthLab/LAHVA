@@ -210,6 +210,13 @@ if has_nvcc == true
       cusparse = nvcc.find_library('cusparse', required: gpu)
       if not cusparse.found()
         has_gpu = false
+      elif nvcc.version().version_compare('>11.0')
+        nvjitlink = nvcc.find_library('nvJitLink', required: gpu)
+        if not nvjitlink.found()
+          has_gpu = false
+        endif
+      else
+        message('CUDA libraries found')
       endif
     endif
   endif
@@ -219,6 +226,9 @@ if has_gpu == true
   lib_deps += cublas
   lib_deps += cusolver
   lib_deps += cusparse
+  if nvcc.version().version_compare('>11.0')
+    lib_deps += nvjitlink
+  endif
   cuda = dependency('cuda', modules: ['cudart'])
   foreach arch : arches
     if arch == 'native'
@@ -230,6 +240,8 @@ if has_gpu == true
   if cc_id != 'gcc'
     cc_bin = find_program(cc.cmd_array()[0])
     add_project_arguments(['--allow-unsupported-compiler', '-ccbin', cc_bin.full_path()], language: 'cuda')
+  else # for GCC > 11 this also needed
+    add_project_arguments(['--allow-unsupported-compiler'], language: 'cuda')
   endif
 
   lib_deps += cuda
