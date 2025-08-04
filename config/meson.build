@@ -210,8 +210,8 @@ if has_nvcc == true
       cusparse = nvcc.find_library('cusparse', required: gpu)
       if not cusparse.found()
         has_gpu = false
-      elif nvcc.version().version_compare('>11.0')
-        nvjitlink = nvcc.find_library('nvJitLink', required: gpu)
+      elif nvcc.version().version_compare('>12.0')
+        nvjitlink = cc.find_library('nvJitLink', required: gpu)
         if not nvjitlink.found()
           has_gpu = false
         endif
