@@ -14,9 +14,11 @@ namespace lahva
         __global__ void AddVector_(unsigned long long ndim, const double alpha, const float *a, double *b)
         {
             int index = blockIdx.x * blockDim.x + threadIdx.x;
-            if (index < ndim)
+            const size_t stride = blockDim.x * gridDim.x;
+            #pragma unroll
+            for (size_t i = index; i < ndim; i += stride)
             {
-                b[index] += static_cast<double>(a[index]*alpha);
+                b[i] += static_cast<float>(a[i]*alpha);
             }
             
         };
@@ -24,19 +26,24 @@ namespace lahva
         __global__ void AddVector_(unsigned long long ndim, const double alpha, const double *a, float *b)
         {
             int index = blockIdx.x * blockDim.x + threadIdx.x;
-            if (index < ndim)
+            const size_t stride = blockDim.x * gridDim.x;
+            #pragma unroll
+            for (size_t i = index; i < ndim; i += stride)
             {
-                b[index] += static_cast<float>(a[index]*alpha);
+                b[i] += static_cast<float>(a[i]*alpha);
             }
+            
             
         };
 
          __global__ void AddVector_(unsigned long long ndim, const double alpha, const __half *a, double *b)
         {
             int index = blockIdx.x * blockDim.x + threadIdx.x;
-            if (index < ndim)
+            const size_t stride = blockDim.x * gridDim.x;
+            #pragma unroll
+            for (size_t i = index; i < ndim; i += stride)
             {
-                b[index] += static_cast<double>(a[index])*alpha;
+                b[i] += static_cast<double>(a[i])*alpha;
             }
             
         };
@@ -46,7 +53,7 @@ namespace lahva
             check_device_alloc(cudart, a);
             check_device_alloc(cudart, b);
             unsigned long long blockSize = cudart.blockSize();
-            AddVector_<<<cudart.gridSize(ndim, 1), blockSize, 0, cudart.getStream()>>>(ndim, alpha, a.gpu_data(), b.gpu_data());
+            AddVector_<<<cudart.gridSize(ndim, 1)/4, blockSize, 0, cudart.getStream()>>>(ndim, alpha, a.gpu_data(), b.gpu_data());
         }
 
         void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double alpha, const GPUTensor_<double>& a, GPUTensor_<float>& b)
@@ -79,11 +86,12 @@ namespace lahva
         T Sum_(const CudaRuntime& cudart, const GPUTensor_<T>& in, GPUTensor_<T>& res)
         {
             check_device_alloc(cudart, in);
-            //check_device_alloc(cudart, res);
-            T* res_data;
-            cudaHostGetDevicePointer(&res_data, res.data(), 0);
+            check_device_alloc(cudart, res);
+            //T* res_data;
+            //cudaHostGetDevicePointer(&res_data, res.data(), 0);
             unsigned long long blockSize = cudart.blockSize();
-            GPUReduction<T, add_rn<T>>(cudart, in.size(), in.gpu_data(), res_data, blockSize, add_rn<T>());
+            GPUReduction<T, add_rn<T>>(cudart, in.size(), in.gpu_data(), res.gpu_data(), blockSize, add_rn<T>());
+            res.copy2host(cudart);
             cudart.synchronize();
             return res[0];
         }

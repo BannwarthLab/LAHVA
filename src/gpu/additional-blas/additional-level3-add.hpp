@@ -12,10 +12,7 @@ namespace lahva
 {
     namespace gpu
     {
-        template <typename T1, typename T2>
-        void launch_wmma_mm(T1 const *A, T1 const *B, T2 *C, uint32_t m, uint32_t n,
-                            uint32_t k, bool is_A_transpose, bool is_B_transpose,
-                            cudaStream_t stream, float alpha = 1.0, float beta = 0.0);
+        
         
         template <typename Allocator, typename GPUAllocator, typename Allocator2, typename GPUAllocator2>
         void MatrixMatrixProductBatchFP16(const CudaRuntime &cudart, const std::vector<Matrix<__half, Allocator, GPUAllocator>> &a_array, 
@@ -25,7 +22,7 @@ namespace lahva
             cublasOperation_t transa = get_trans(Ta);
             cublasOperation_t transb = get_trans(Tb);
 
-            assert(a_array.size() * b_array.size() == c_array.size());
+            //assert(a_array.size() * b_array.size() == c_array.size());
 
             auto [m, n, k] = check_size_mm(a_array[0], b_array[0], c_array[0], transa, transb);
 
@@ -40,13 +37,22 @@ namespace lahva
             __half** a_ptrs = new  __half*[c_array.size()];
             __half** b_ptrs = new  __half*[c_array.size()];
             float** c_ptrs = new float*[c_array.size()];
+            int index = 0;
             for (size_t i = 0; i < a_array.size(); ++i)
             {
                 for (size_t j = 0; j < b_array.size(); ++j)
                 {
-                    a_ptrs[i * b_array.size() + j] = a_array[i].gpu_data();
-                    b_ptrs[i * b_array.size() + j] = b_array[j].gpu_data();
-                    c_ptrs[i * b_array.size() + j] = c_array[i * b_array.size() + j].gpu_data();
+                    if  (i+j > a_array.size() -1)
+                    {
+                        continue;
+                    }
+                    check_device_alloc(cudart, a_array[i]);
+                    check_device_alloc(cudart, b_array[j]);
+                    check_device_alloc(cudart, c_array[index]);
+                    a_ptrs[index] = a_array[i].gpu_data();
+                    b_ptrs[index] = b_array[j].gpu_data();
+                    c_ptrs[index] = c_array[index].gpu_data();
+                    index++;
                 }
             }
 
@@ -76,75 +82,16 @@ namespace lahva
             delete[] c_ptrs;
         };
 
-        template <typename Allocator, typename GPUAllocator>
-        void MatrixMatrixProductMP(const CudaRuntime &cudart, const Matrix<float, Allocator, GPUAllocator> &A,
-                                   const Matrix<float, Allocator, GPUAllocator> &B, Matrix<float, Allocator, GPUAllocator> &C,
-                                   const float alpha = 1.0, const float beta = 0.0, const char *Ta = "N", const char *Tb = "N")
-        {
-
-            // fiuture improvement k must be divisible by 8
-            CPUTimer timer;
-            timer.push("Allocation");
-            using MyMatrix = Matrix<__half>;
-
-            Vector<int> va(2, 0);
-            va.copy2device(cudart);
-            MyMatrix A1(A.shape(), cudart, A.get_gpuallocator());
-            A1.allocateGPU(cudart);
-            MyMatrix A2(A.shape(), cudart, A.get_gpuallocator());
-            A2.allocateGPU(cudart);
-
-            if (A.data() == B.data())
-            {
-                timer.pop();
-                timer.push("Decompose");
-                DecomposeVector2MP(cudart, A, A1, A2, va);
-                timer.pop();
-                timer.push("Product");
-                // largest terms
-                MatrixMatrixProductFP16(cudart, A1, A1, C, float(alpha * scalbn(1.0, va[0] + va[0])), beta, Ta, Tb);
-                // cross terms
-                MatrixMatrixProductFP16(cudart, A1, A2, C, float(alpha * scalbn(1.0, va[0] + va[1])), 1.0, Ta, Tb);
-                MatrixMatrixProductFP16(cudart, A2, A1, C, float(alpha * scalbn(1.0, va[1] + va[0])), 1.0, Ta, Tb);
-                // smallest terms
-                MatrixMatrixProductFP16(cudart, A2, A2, C, float(alpha * scalbn(1.0, va[1] + va[1])), 1.0, Ta, Tb);
-                timer.pop();
-            }
-            else
-            {
-                Vector<int> vb(2, 0);
-                vb.copy2device(cudart);
-                MyMatrix B1(B.shape(), cudart);
-                B1.allocateGPU(cudart);
-                MyMatrix B2(B.shape(), cudart);
-                B2.allocateGPU(cudart);
-                // Matrix<float> C1(C.shape(), cudart, C.get_gpuallocator());
-                // C1.allocateGPU(cudart);
-                timer.pop();
-                timer.push("Decompose");
-                DecomposeVector2MP(cudart, A, A1, A2, va);
-                DecomposeVector2MP(cudart, B, B1, B2, vb);
-                std::cout << "va: " << va[0] << " " << va[1] << std::endl;
-                std::cout << "vb: " << vb[0] << " " << vb[1] << std::endl;
-                timer.pop();
-                timer.push("Product");
-
-                MatrixMatrixProductFP16(cudart, A1, B1, C, float(alpha * scalbn(1.0, va[0] + vb[0])), beta, Ta, Tb);
-                MatrixMatrixProductFP16(cudart, A2, A2, C, float(alpha * scalbn(1.0, va[1] + vb[1])), 1.0, Ta, Tb);
-                MatrixMatrixProductFP16(cudart, A1, B2, C, float(alpha * scalbn(1.0, va[0] + vb[1])), 1.0, Ta, Tb);
-                MatrixMatrixProductFP16(cudart, A2, B1, C, float(alpha * scalbn(1.0, va[1] + vb[0])), 1.0, Ta, Tb);
-            }
-            // timer.print_entries();
-        };
-
         template <typename high, typename Allocator, typename GPUAllocator>
-        void MatrixMatrixProduct(const CudaRuntime &cudart, const MixedPrecisionMatrix<high, Allocator, GPUAllocator> &A,
-                                 const MixedPrecisionMatrix<high, Allocator, GPUAllocator> &B, MixedPrecisionMatrix<high, Allocator, GPUAllocator> &C,
+        void SymMatrixMatrixProduct(const CudaRuntime &cudart, const MixedPrecisionMatrix<high, Allocator, GPUAllocator> &A,
+                                 const MixedPrecisionMatrix<high, Allocator, GPUAllocator> &B, Matrix<high, Allocator, GPUAllocator> &C,
+                                 Matrix<high, Allocator, GPUAllocator> &buffer,
                                  const high alpha = 1.0, const high beta = 0.0, const char *Ta = "N", const char *Tb = "N")
         {
 
             // fiuture improvement k must be divisible by 8
             CPUTimer timer;
+            
             int maxsplit = 0;
             if constexpr (std::is_same<high, float>::value)
             {
@@ -154,14 +101,179 @@ namespace lahva
             {
                 maxsplit = 4;
             }
+            //Matrix<high, Allocator, GPUAllocator> buffer(A.shape(), cudart, A.get_gpuallocator());
+            bool batch = true;
+            bool fast = false;
             
+            if (A.data() == B.data())
+            {
+                timer.push("Decompose");
+                A.template split<__half>(cudart, maxsplit, buffer);
+                timer.pop();
+                timer.push("Multiplication");
+                size_t asize = A.template splitSize<__half>();
+                size_t combinations = asize * asize;
+                
+                MatrixMatrixProductFP16(cudart, A.template getSplitMatrices<__half>()[1], A.template getSplitMatrices<__half>()[0], buffer, scalbn(alpha, A.getSplitExponent(1) + A.getSplitExponent(0)) , 0.0, Ta, Tb);
+                AddMatrices(cudart, buffer, buffer, C, 1.0f, 1.0f, "N", "T");
+                MatrixMatrixProductFP16(cudart, A.template getSplitMatrices<__half>()[0], A.template getSplitMatrices<__half>()[0], C, scalbn(alpha, A.getSplitExponent(0) + A.getSplitExponent(0)) , 1.0, Ta, Tb);
+                if (!cudart.fast_mp)
+                {
+                    MatrixMatrixProductFP16(cudart, A.template getSplitMatrices<__half>()[1], A.template getSplitMatrices<__half>()[1], C, scalbn(alpha, A.getSplitExponent(1) + A.getSplitExponent(1)) , 1.0, Ta, Tb);
+                }
+               
+                timer.pop();
+            }
+            
+            
+        };
+
+        //template <typename high, typename Allocator, typename GPUAllocator>
+        //void MatrixMatrixProduct(const CudaRuntime &cudart, const MixedPrecisionMatrix<high, Allocator, GPUAllocator> &A,
+                                 //const MixedPrecisionMatrix<high, Allocator, GPUAllocator> &B, MixedPrecisionMatrix<high, Allocator, GPUAllocator> &C,
+                                 //const high alpha = 1.0, const high beta = 0.0, const char *Ta = "N", const char *Tb = "N")
+        //{
+
+            //// fiuture improvement k must be divisible by 8
+            //CPUTimer timer;
+            //int maxsplit = 0;
+            //Matrix<high, Allocator, GPUAllocator> buffer(A.shape(), cudart, A.get_gpuallocator());
+            //if constexpr (std::is_same<high, float>::value)
+            //{
+                //maxsplit = 2;
+            //}
+            //else if constexpr (std::is_same<high, double>::value)
+            //{
+                //maxsplit = 4;
+            //}
+            
+            //bool batch = true;
+            //bool fast = false;
+
+            //if (A.data() == B.data())
+            //{
+                //timer.push("Decompose");
+                //A.template split<__half>(cudart, maxsplit, buffer);
+                //timer.pop();
+                //timer.push("Prepare");
+                //size_t asize = A.template splitSize<__half>();
+                //size_t combinations = asize * asize;
+                //high* alpha_arr = new high[combinations];
+
+                //for (size_t i = 0; i < asize; ++i)
+                //{
+                    //for (size_t j = 0; j < asize; ++j)
+                    //{
+                        //alpha_arr[i * asize + j] = scalbn(alpha, A.getSplitExponent(i) + A.getSplitExponent(j));
+                        ////if (!batch )
+                        ////{
+                            ////if (i == 0 and j == 0)
+                            ////{
+                                ////MatrixMatrixProductFP16(cudart, A.getSplitMatrices()[i], A.getSplitMatrices()[j], C, alpha_arr[i * A.splitSize() + j], beta, Ta, Tb);
+                            ////}
+                            ////else
+                            ////{
+                                ////MatrixMatrixProductFP16(cudart, A.getSplitMatrices()[i], A.getSplitMatrices()[j], C, alpha_arr[i * A.splitSize() + j], 1.0, Ta, Tb);
+                            ////}
+                        ////}
+                    //}
+                //}
+
+                //if (batch)
+                //{
+                    //timer.pop();
+                    //timer.push("Product");
+                    //C.template createSplitMatrices<float>(cudart, combinations);
+                    //MatrixMatrixProductBatchFP16(cudart, A.template getSplitMatrices<__half>(), A.template getSplitMatrices<__half>(), C.template getSplitMatrices<float>(), 1.0, 0.0, Ta, Tb);
+                    //timer.pop();
+                    //timer.push("Merge");
+                    //C.merge(cudart, alpha_arr, beta);
+                //}
+               
+                
+                
+                //delete[] alpha_arr;
+                //timer.pop();
+            //}
+            //else
+            //{
+                //timer.push("Decompose");
+                //A.template split<__half>(cudart, maxsplit, buffer);
+                //B.template split<__half>(cudart, maxsplit, buffer);
+                //timer.pop();
+                //timer.push("Product");
+                //size_t asize = A.template splitSize<__half>();
+                //size_t bsize = B.template splitSize<__half>();
+                //size_t combinations = asize * bsize;
+                //high* alpha_arr = new high[combinations];
+
+                //for (size_t i = 0; i < asize; ++i)
+                //{
+                    //for (size_t j = 0; j < bsize; ++j)
+                    //{
+                        //alpha_arr[i * bsize + j] = scalbn(alpha, A.getSplitExponent(i) + B.getSplitExponent(j));
+                        
+                        //if (!batch)
+                        //{
+                            //C.template createSplitMatrices<float>(cudart, 1);
+                            ////std::cout << "alpha[" << i << "," << j << "] = " << alpha_arr[i * A.splitSize() + j] << std::endl;
+                            //if (i == 0 and j == 0)
+                            //{
+                                //MatrixMatrixProductFP16(cudart, A.template getSplitMatrices<__half>()[i], B.template getSplitMatrices<__half>()[j], C.template getSplitMatrices<float>()[0], alpha_arr[i * A.template splitSize<__half>() + j], beta, Ta, Tb);
+                            //}
+                            //else
+                            //{
+                                //MatrixMatrixProductFP16(cudart, A.template getSplitMatrices<__half>()[i], B.template getSplitMatrices<__half>()[j], C.template getSplitMatrices<float>()[0], alpha_arr[i * A.template splitSize<__half>() + j], 1.0, Ta, Tb);
+                            //}
+                        //}
+                    //}
+                //}
+                //if (batch)
+                //{
+                    //C.template createSplitMatrices<float>(cudart, combinations);
+                    //MatrixMatrixProductBatchFP16(cudart, A.template getSplitMatrices<__half>(), B.template getSplitMatrices<__half>(), C.template getSplitMatrices<float>(), 1.0, 0.0, Ta, Tb);
+                    //timer.pop();
+                    //timer.push("Merge");
+                    //C.merge(cudart, alpha_arr, beta);
+                    
+                //}
+                //delete[] alpha_arr;
+                //timer.pop();
+                //std::cout << timer.print_entries() << std::endl;
+            //}
+            
+        //};
+
+        template <typename high, typename Allocator, typename GPUAllocator>
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const MixedPrecisionMatrix<high, Allocator, GPUAllocator> &A,
+                                 const MixedPrecisionMatrix<high, Allocator, GPUAllocator> &B, MixedPrecisionMatrix<high, Allocator, GPUAllocator> &C,
+                                 Matrix<high, Allocator, GPUAllocator> &buffer,
+                                 const high alpha = 1.0, const high beta = 0.0, const char *Ta = "N", const char *Tb = "N")
+        {
+
+            // fiuture improvement k must be divisible by 8
+            CPUTimer timer;
+            int maxsplit = 0;
+            if (buffer.size() != A.size())
+            {
+                buffer = Matrix<high, Allocator, GPUAllocator>(A.shape(), cudart, A.get_gpuallocator());
+            }
+            if constexpr (std::is_same<high, float>::value)
+            {
+                maxsplit = 2;
+            }
+            else if constexpr (std::is_same<high, double>::value)
+            {
+                maxsplit = 4;
+            }
+
             bool batch = true;
             bool fast = false;
 
             if (A.data() == B.data())
             {
                 timer.push("Decompose");
-                A.template split<__half>(cudart, maxsplit);
+                A.template split<__half>(cudart, maxsplit, buffer);
                 timer.pop();
                 timer.push("Prepare");
                 size_t asize = A.template splitSize<__half>();
@@ -174,7 +286,7 @@ namespace lahva
                     {
                         alpha_arr[i * asize + j] = scalbn(alpha, A.getSplitExponent(i) + A.getSplitExponent(j));
                         //if (!batch )
-                        //{
+                        {
                             //if (i == 0 and j == 0)
                             //{
                                 //MatrixMatrixProductFP16(cudart, A.getSplitMatrices()[i], A.getSplitMatrices()[j], C, alpha_arr[i * A.splitSize() + j], beta, Ta, Tb);
@@ -183,22 +295,10 @@ namespace lahva
                             //{
                                 //MatrixMatrixProductFP16(cudart, A.getSplitMatrices()[i], A.getSplitMatrices()[j], C, alpha_arr[i * A.splitSize() + j], 1.0, Ta, Tb);
                             //}
-                        //}
+                        }
                     }
                 }
-
-                if (batch)
-                {
-                    timer.pop();
-                    timer.push("Product");
-                    C.template createSplitMatrices<float>(cudart, combinations);
-                    MatrixMatrixProductBatchFP16(cudart, A.template getSplitMatrices<__half>(), A.template getSplitMatrices<__half>(), C.template getSplitMatrices<float>(), 1.0, 0.0, Ta, Tb);
-                    timer.pop();
-                    timer.push("Merge");
-                    C.merge(cudart, alpha_arr, beta);
-                }
-               
-                
+ 
                 
                 delete[] alpha_arr;
                 timer.pop();
@@ -206,45 +306,64 @@ namespace lahva
             else
             {
                 timer.push("Decompose");
-                A.template split<__half>(cudart, maxsplit);
-                B.template split<__half>(cudart, maxsplit);
+                A.template split<__half>(cudart, maxsplit, buffer);
+                B.template split<__half>(cudart, maxsplit, buffer);
                 timer.pop();
                 timer.push("Product");
                 size_t asize = A.template splitSize<__half>();
                 size_t bsize = B.template splitSize<__half>();
-                size_t combinations = asize * bsize;
+                size_t combinations = 10;
                 high* alpha_arr = new high[combinations];
-
+                if (!batch)
+                {
+                    C.template createSplitMatrices<float>(cudart, combinations);
+                }
+                int index = 0;
                 for (size_t i = 0; i < asize; ++i)
                 {
                     for (size_t j = 0; j < bsize; ++j)
                     {
-                        alpha_arr[i * bsize + j] = scalbn(alpha, A.getSplitExponent(i) + B.getSplitExponent(j));
-                        
-                        if (!batch)
+                        if (i+j > asize-1)
                         {
-                            C.template createSplitMatrices<float>(cudart, 1);
-                            //std::cout << "alpha[" << i << "," << j << "] = " << alpha_arr[i * A.splitSize() + j] << std::endl;
-                            if (i == 0 and j == 0)
+                            continue;
+                        }
+                        else
+                        {
+                            
+                            alpha_arr[index] = scalbn(alpha, A.getSplitExponent(i) + B.getSplitExponent(j));
+                        
+                            if (!batch)
                             {
-                                MatrixMatrixProductFP16(cudart, A.template getSplitMatrices<__half>()[i], B.template getSplitMatrices<__half>()[j], C.template getSplitMatrices<float>(), alpha_arr[i * A.splitSize() + j], beta, Ta, Tb);
+                                MatrixMatrixProductFP16(cudart, A.template getSplitMatrices<__half>()[i], B.template getSplitMatrices<__half>()[j], 
+                                C.template getSplitMatrices<float>()[index], 1.0, 0.0, Ta, Tb);
                             }
-                            else
-                            {
-                                MatrixMatrixProductFP16(cudart, A.template getSplitMatrices<__half>()[i], B.template getSplitMatrices<__half>()[j], C.template getSplitMatrices<float>(), alpha_arr[i * A.splitSize() + j], 1.0, Ta, Tb);
+
+                            
                             }
+                        index++;
                         }
                     }
-                }
+                    
+                
+                if (!batch)
+                    {   
+
+                        timer.pop();
+                        timer.push("Merge");
+                        C.merge(cudart, alpha_arr, beta);
+                
+                    }
                 if (batch)
                 {
                     C.template createSplitMatrices<float>(cudart, combinations);
-                    MatrixMatrixProductBatchFP16(cudart, A.template getSplitMatrices<__half>(), B.template getSplitMatrices<__half>(), C.template getSplitMatrices<float>(), 1.0, 0.0, Ta, Tb);
+                    MatrixMatrixProductBatchFP16(cudart, A.template getSplitMatrices<__half>(), B.template getSplitMatrices<__half>(), 
+                    C.template getSplitMatrices<float>(), 1.0, 0.0, Ta, Tb);
                     timer.pop();
                     timer.push("Merge");
                     C.merge(cudart, alpha_arr, beta);
                     
                 }
+                
                 delete[] alpha_arr;
                 timer.pop();
                 

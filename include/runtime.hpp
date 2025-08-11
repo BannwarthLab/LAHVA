@@ -63,10 +63,10 @@ namespace lahva{
         bool delete_stream = false;
         bool critical_memory = false;
         float critical_memory_threshold = 0.6;
-        
+         // flag to use mixed precision 
         mutable std::shared_ptr<cudaStream_t> stream_ = std::make_shared<cudaStream_t>(cudaStreamPerThread);
     public:
-
+        bool fast_mp = true;
         /// @brief create Stream
         void createStream();
         /// @brief cublas Handle

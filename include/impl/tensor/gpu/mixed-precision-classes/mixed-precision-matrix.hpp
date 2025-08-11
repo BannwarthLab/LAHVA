@@ -23,7 +23,6 @@ namespace lahva
 
         public:
             mutable int max_split_ = 0; // maximum number of splits for the mixed precision matrix
-            mutable Matrix<high_prec, Allocator, GPUAllocator> work_buffer_;
             mutable std::vector<Matrix<__half>> split_matrices_fp16_; // stores the low precision matrices
             mutable std::vector<Matrix<float>> split_matrices_fp32_;
             mutable bool splitted_ = false;       // indicates whether the matrix has been split
@@ -33,9 +32,13 @@ namespace lahva
             using Matrix<high_prec, Allocator, GPUAllocator>::shape;
 
             MixedPrecisionMatrix(const Shape &shape, const Allocator &alloc = Allocator(), const GPUAllocator &gpualloc = GPUAllocator());
+            MixedPrecisionMatrix(const Shape &shape, const CudaRuntime &cudart, const GPUAllocator &gpualloc = GPUAllocator())
+                : Matrix<high_prec, Allocator, GPUAllocator>(shape, cudart, gpualloc)
+            {
+            };
             MixedPrecisionMatrix(const Matrix<high_prec, Allocator, GPUAllocator> &other) : 
             Matrix<high_prec, Allocator, GPUAllocator>(other),
-            work_buffer_(other.shape()), splitted_(false)
+            splitted_(false)
             {
             }
             MixedPrecisionMatrix(const Shape &shape, std::initializer_list<high_prec> init, bool row_major = false, const Allocator &alloc = Allocator(), const GPUAllocator &gpualloc = GPUAllocator())
@@ -44,10 +47,10 @@ namespace lahva
             }
             
             template <typename split_type>
-            void split(const CudaRuntime &cudart, int max_split) const;
+            void split(const CudaRuntime &cudart, int max_split, Matrix<high_prec, Allocator, GPUAllocator> &buffer) const;
 
             void merge(const CudaRuntime &cudart, const high_prec *alphas, high_prec ini_beta);
-
+            void merge(const CudaRuntime &cudart);
             template <typename split_type>
             inline size_t splitSize() const
             {
@@ -149,6 +152,27 @@ namespace lahva
                         split_exponents_ = Vector<int>((size_t)max_split_, this->get_allocator(), this->get_gpuallocator());
                     }
                     splitted_ = true;
+                }
+
+            }
+
+            template <typename split_type>
+            void deallocateSplitMatrices(const CudaRuntime &cudart) const
+            {
+                if constexpr (std::is_same<split_type, __half>::value)
+                {
+                    for (size_t i = 0; i < split_matrices_fp16_.size(); ++i)
+                    {
+                        split_matrices_fp16_[i].deallocateGPU(cudart);
+                    }
+
+                }
+                else if constexpr (std::is_same<split_type, float>::value)
+                {
+                    for (size_t i = 0; i < split_matrices_fp32_.size(); ++i)
+                    {
+                        split_matrices_fp32_[i].deallocateGPU(cudart);
+                    }
                 }
 
             }

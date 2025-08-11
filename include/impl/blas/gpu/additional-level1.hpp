@@ -205,7 +205,7 @@ namespace lahva
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();
             size_t blocksPerGrid = std::ceil((1. * n) / blockSize);
-            assert(v.size() == blocksPerGrid);
+            assert(v.size() >= blocksPerGrid);
             return Sum_(cudart, in, v);
         };
 

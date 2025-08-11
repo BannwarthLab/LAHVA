@@ -28,8 +28,8 @@ void CompareGEMMS(Shape& shape)
     //cudart.setblockSize(1024);
     CPUTimer timer;
 
-    MixedPrecisionMatrix<T, __half> A(shape);
-    MixedPrecisionMatrix<T, __half> B(shape);
+    MixedPrecisionMatrix<T> A(shape);
+    MixedPrecisionMatrix<T> B(shape);
     Matrix<T> C(shape);
 
     fill_with_rd_values(A);
@@ -50,18 +50,19 @@ void CompareGEMMS(Shape& shape)
     std::cout << "C(0,0)\t" << C(0,0) << std::endl;
     std::cout << "C(1,0)\t" << C(1,0) << std::endl;
 
-    MixedPrecisionMatrix<T, float> C2(shape);
+    MixedPrecisionMatrix<T> C2(shape);
     C2.copy2device(cudart);
 
     timer.push("Markidis");
-    MatrixMatrixProduct(cudart, A, B, C2, (float)1.0, (float)0.0);
+    Matrix<T> buffer(shape, cudart, C2.get_gpuallocator());
+    MatrixMatrixProduct(cudart, A, B, C2, buffer, (T)1.0, (T)0.0);
     cudart.synchronize();
     timer.pop();
 
     C2.copy2host(cudart);
     cudart.synchronize();
-    std::cout << "C2(0,0)\t" << C2[84118] << std::endl;
-    std::cout << "C2(1,0)\t" << C[84118] << std::endl;
+    //std::cout << "C2(0,0)\t" << C2[84118] << std::endl;
+    //std::cout << "C2(1,0)\t" << C[84118] << std::endl;
 
     
     cudart.synchronize();
@@ -82,7 +83,7 @@ int main()
         int n = int((i*256));
         std::cout << "Shape: " << n << "x" << n << std::endl;
         Shape shape(n, n);
-        CompareGEMMS<float>(shape);
-        //CompareGEMMS<double>(shape);
+        //CompareGEMMS<float>(shape);
+        CompareGEMMS<double>(shape);
     }
 };

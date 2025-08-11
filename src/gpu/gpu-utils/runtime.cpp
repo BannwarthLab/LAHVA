@@ -76,6 +76,9 @@ namespace lahva
     CudaRuntime::CudaRuntime(size_t max_dim, size_t n_mat, bool async) : 
     CudaRuntime( n_mat * 8*max_dim*max_dim, async)
     {
+        if (cudaDevice ==-1) {
+            return;
+        }
         cudaDeviceProp deviceProp;
         cudaGetDeviceProperties(&deviceProp, this->cudaDevice); // 0-th device
         size_t n_sm = deviceProp.multiProcessorCount;
@@ -127,7 +130,6 @@ namespace lahva
         size_t totmem, freemem;
         get_cuda_error(cudaMemGetInfo(&freemem, &totmem));
         availMem_ = freemem;
-        
         if (requestedMem > availMem_) 
         {
             cudaDevice = -1;
