@@ -124,16 +124,24 @@ int main()
 {
     int stat = 0;
     CudaRuntime cudart = CudaRuntime();
+    std::cout << "std_vector_async" << std::endl;
     stat += test_std_vector_async(cudart);
+    std::cout << "GPUTimer_stdConst" << std::endl;
     stat += test_GPUTimer_stdConst(cudart);
+    std::cout << "GPUTimer" << std::endl;
     stat += test_GPUTimer(cudart);
+    std::cout << "cuda create stream" << std::endl;
     cudart.createStream();
+    std::cout << "std_vector_async" << std::endl;
     stat += test_std_vector_async(cudart);
+    std::cout << "GPUTimer" << std::endl;
     stat += test_GPUTimer(cudart);
+    std::cout << "GPUTimer_stream" << std::endl;
     stat += test_GPUTimer_stream(cudart);
+    std::cout << "GPUTimer_stream_no_pop" << std::endl;
     stat += test_GPUTimer_stream_no_pop(cudart);
+    std::cout << "std_vector_push_GPU_values" << std::endl;
     stat += test_std_vector_push_GPU_values(cudart);
-
-
+    
     return stat;
 };
