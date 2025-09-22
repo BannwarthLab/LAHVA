@@ -255,6 +255,7 @@ namespace lahva
             return MinElement_(cudart, in, v);
         };
 
+        void MergeOzaki(const CudaRuntime &cudart, unsigned long long ndim, unsigned int nsplit, const double *alphas, const float **as, double *b);
     } // namespace gpu
 
 }

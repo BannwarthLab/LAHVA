@@ -31,7 +31,18 @@ namespace lahva
                                              Vector<double, Allocator, GPUAllocator>& dout, Matrix<float, All2, GPUAll2>& mout, Matrix<float, All2, GPUAll2>& buffer)
         {
             
-            SymMatrixMatrixProduct(cudart, m1, m2, mout, buffer);
+            if (cudart.fast_mp)
+            {
+                //std::cout << "Using mixed precision matrix multiplication" << std::endl;
+                m1.resetSplit();
+                m2.resetSplit();
+                SymMatrixMatrixProduct(cudart, m1, m2, mout, buffer);
+            }
+            else
+            {
+                //std::cout << "Using full precision matrix multiplication" << std::endl;
+                MatrixMatrixProduct(cudart, m1, m2, mout);
+            }
             HadamardProduct(cudart, d1, d2, dout);
             SymmetrizedON2ScalingProductGPU(cudart, d1, m1, d2, m2, mout);
             SymmetrizeMatrix(cudart, mout);

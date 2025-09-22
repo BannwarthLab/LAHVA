@@ -179,14 +179,14 @@ constexpr int32_t getEpse <double> () {
         template <>
         __device__ inline double getFMA(double val1, double val2, double val3)
         {
-            return __fma_rz(val1, val2, val3);
+            return __fma_rn(val1, val2, val3);
         }
         
 
         template <>
         __device__ inline float getFMA(float val1, float val2, float val3)
         {
-            return __fmaf_ieee_rz(val1, val2, val3);
+            return __fmaf_rn(val1, val2, val3);
         }
     }
 }

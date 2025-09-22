@@ -9,14 +9,17 @@ template <typename T>
 void fill_with_rd_values(Matrix<T>& m)
 {
     std::random_device rd;  // Obtain a random number from hardware
-    std::minstd_rand eng(7);
+    std::minstd_rand eng(rd()); // Seed the generator
 
-    std::normal_distribution<> distr(0.0, 1.0e+0);    
+    std::normal_distribution<> distr(0.0, 0.1);    
     for (size_t i = 0; i < m.shape().first; i++)
     {
         for (size_t j = 0; j < m.shape().second; j++)
         {
-            m(i, j) = distr(eng);
+            if (i == j)
+                m(i, j) = 1.0 + abs(distr(eng));
+            else
+                m(i, j) = abs(distr(eng));
         }
     }
 }
@@ -77,7 +80,7 @@ void CompareGEMMS(Shape& shape)
 
 int main()
 {   
-    for (int i = 1; i <9; i++)
+    for (int i = 1; i <16; i++)
     {
         std::cout.precision(12);
         int n = int((i*256));

@@ -7,6 +7,7 @@
 #include "additional-level1.cuh"
 #include "./additional-level1.hpp"
 #include "add-vectors.hpp"
+#include "custom-kernel/common.h"
 namespace lahva
 {
     namespace gpu
@@ -18,7 +19,30 @@ namespace lahva
             #pragma unroll
             for (size_t i = index; i < ndim; i += stride)
             {
-                b[i] += static_cast<float>(a[i]*alpha);
+                b[i] = getFMA<double>(a[i], alpha, b[i]);
+                
+            }
+            
+        };
+
+        __global__ void BetterSum(unsigned long long ndim, unsigned int nsplit, const double* alphas, const float **as, double *b)
+        {
+            int index = blockIdx.x * blockDim.x + threadIdx.x;
+            const size_t stride = blockDim.x * gridDim.x;
+            #pragma unroll
+            for (size_t i = index; i < ndim; i += stride)
+            {    
+                //printf("i: %llu\n", index);
+                double sum = 0.0, c = 0.0;
+                for (unsigned int j = 0; j < nsplit; j++)
+                {
+                    double temp = (as[j][i]) * alphas[j];
+                    temp -= c;
+                    double t = sum + temp;
+                    c = (t - sum) - temp;
+                    sum = t;
+                }
+                b[i] += sum;
             }
             
         };
@@ -47,6 +71,15 @@ namespace lahva
             }
             
         };
+
+
+        void MergeOzaki(const CudaRuntime& cudart, unsigned long long ndim, unsigned int nsplit, const double* alphas, const float** as, double* b)
+        {
+            std::cout << "Using improved Ozaki merge\n";
+            std::cout << nsplit << " splits\n";
+            unsigned long long blockSize = cudart.blockSize();
+            BetterSum<<<cudart.gridSize(ndim, 1), blockSize, 0, cudart.getStream()>>>(ndim, nsplit, alphas, as, b);
+        }
 
         void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double alpha, const GPUTensor_<float>& a, GPUTensor_<double>& b)
         {

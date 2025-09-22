@@ -119,7 +119,7 @@ namespace lahva
             if (row < nrows && col < ncols)
             {
                 const inprec inp = MatIn[idx];
-                const inprec split = (inp + sigma) - sigma;
+                const inprec split = ((inp + sigma) - sigma);
                 outprec scaled;
                 if constexpr (std::is_same<inprec, float>::value)
                     scaled = scalbnf(split, tauneg);
@@ -251,9 +251,21 @@ namespace lahva
         {
             CPUTimer timer;
             unsigned long long n = in.size();
+            size_t numel = std::sqrt(n);
 
             check_device_alloc(cudart, in);
-            int rho = ceil(getEpse<inprec>() - (getEpse<outprec>() - log2(2)) / 2);
+            int rho;
+            if constexpr (std::is_same<inprec, float>::value)
+            {
+                rho = ceil(getEpse<inprec>() - (getEpse<outprec>() - log2(2)) / 2);
+            }
+            else
+            {
+                if (numel > 3500)
+                    rho = ceil(getEpse<inprec>() - (getEpse<outprec>() - log2(2)) / 2);
+                else
+                    rho = ceil(getEpse<inprec>() - (getEpse<outprec>() - log2(8)) / 2);
+            }
             for (int i = 0; i < maxsplit; i++)
             {
                 check_device_alloc(cudart, out[i]);
@@ -280,7 +292,7 @@ namespace lahva
                 inprec mu = abs(max);
                 timer.pop();
                 int tau = ceil(log2(mu));
-                inprec sigma = scalbn(1.0, rho + tau);
+                inprec sigma = scalbn(1.0, rho + tau)*0.75;
                 coeff[i] = tau;
                 timer.push("Decompose");
                 n = in.size();

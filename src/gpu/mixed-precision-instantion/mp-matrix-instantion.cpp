@@ -20,17 +20,26 @@ namespace lahva
         template <typename split_type>
         void MixedPrecisionMatrix<high, Allocator, GPUAllocator>::split(const CudaRuntime& cudart, int maxsplit, Matrix<high, Allocator, GPUAllocator>& buffer) const 
         {
+            if (not splitted_fp16_)
+            {
             if (buffer.size() != this->size())
             {
                 buffer = Matrix<high, Allocator, GPUAllocator>(this->shape(), cudart, this->get_gpuallocator());
             }
             
             this->template createSplitMatrices<split_type>(cudart, maxsplit);
-            
+
             if constexpr (std::is_same<split_type, __half>::value)
             {
+                
                 CopyVectors(cudart, *this, buffer);
                 SplitMatrix<high, __half>(cudart, buffer, split_matrices_fp16_, split_exponents_, max_split_);
+                
+            }
+            }
+            else if (not splitted_fp32_)
+            {
+                this->template createSplitMatrices<split_type>(cudart, maxsplit);
             }
         }
 
@@ -39,10 +48,12 @@ namespace lahva
         {
             ScaleVector(cudart, ini_beta, *this);
             
+            
             for (size_t i = 0; i < max_split_ ; ++i)
-            {
+            {    
                 AddVectors(cudart, alphas[i], this->getSplitMatrix<float>(i), *this);    
             }
+            
             
         }
 
