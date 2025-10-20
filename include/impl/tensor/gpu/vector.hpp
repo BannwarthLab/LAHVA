@@ -15,7 +15,7 @@ namespace lahva
 
     };
     
-    template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAllocator<T>>
+    template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAsyncAllocator<T>>
     class Vector : public GPUTensor<T, Allocator, GPUAllocator>, public virtual Vector_<T>
     {
 

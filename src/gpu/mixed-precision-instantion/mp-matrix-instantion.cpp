@@ -22,10 +22,7 @@ namespace lahva
         {
             if (not splitted_fp16_)
             {
-            if (buffer.size() != this->size())
-            {
-                buffer = Matrix<high, Allocator, GPUAllocator>(this->shape(), cudart, this->get_gpuallocator());
-            }
+            
             
             this->template createSplitMatrices<split_type>(cudart, maxsplit);
 
