@@ -56,7 +56,20 @@ namespace lahva
     static char l_nondiag = 'N';
     static const char major_char = 'C';
 
-    using Shape = std::pair<std::uint32_t, std::uint32_t>; 
+struct ShapeStruct {
+    std::uint32_t first{}, second{}, third{}, fourth{};
+
+    constexpr ShapeStruct() = default;
+
+    constexpr ShapeStruct(std::uint32_t first, std::uint32_t second)
+        : first(first), second(second), third(0), fourth(0) {}
+
+    constexpr ShapeStruct(std::uint32_t first, std::uint32_t second,
+                          std::uint32_t third, std::uint32_t fourth)
+        : first(first), second(second), third(third), fourth(fourth) {}
+};
+
+using Shape = ShapeStruct;
 
     class BLASLeft
     {
