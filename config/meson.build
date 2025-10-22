@@ -17,6 +17,31 @@ if has_nvcc == true
   endif
 endif
 
+# Silence warnings when built as a subproject
+if meson.is_subproject()
+  message('LAHVAs known warnings are disabled because LAHVA is built as a subproject')
+  if cc_id == 'gcc' or cc_id == 'clang'
+    add_project_arguments([
+      '-Wno-unused-variable',
+      '-Wno-unused-parameter',
+      '-Wno-unused-but-set-variable',
+      '-Wno-sign-compare',
+      '-Wno-reorder',
+      '-Wno-narrowing',
+    ], language: 'cpp')
+  elif cc_id == 'intel'
+    add_project_arguments([
+      '-diag-disable=2282',
+      '-diag-disable=10441',
+    ], language: 'cpp')
+    if has_nvcc == true
+    add_project_arguments([
+      '-Xcompiler=-diag-disable=2282',
+    ], language: 'cuda')
+    endif
+  endif
+endif
+
 if cc_id == 'gcc'
   add_project_arguments(
     language: 'cpp',
@@ -234,7 +259,6 @@ if has_gpu == true
 
   lib_deps += cuda
   add_project_arguments(['-D_CUDA'], language: ['cuda', 'cpp'])
-  
 endif
 
 
@@ -244,3 +268,4 @@ if debug == 'release'
     add_project_arguments('-DNDEBUG', language: 'cuda')
   endif
 endif
+
