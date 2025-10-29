@@ -20,7 +20,7 @@ namespace lahva
         public:
             using size_type = std::size_t;
             using alloc_ptr = CPUAllocator<T>;
-            Vector() {this->no_alloc = true;};
+            Vector() { this->no_alloc = true; };
             Vector(size_type count, const alloc_ptr &alloc = Allocator());
             Vector(const Vector &x);
             Vector(size_type count, const T &value, const alloc_ptr &alloc = Allocator());
@@ -61,8 +61,7 @@ namespace lahva
         };
 
         template <typename T, class Allocator>
-        Vector<T, Allocator>::Vector(size_type count, T *ptr, bool take_ownership, const alloc_ptr &alloc) : 
-        CPUTensor<T, Allocator>{}
+        Vector<T, Allocator>::Vector(size_type count, T *ptr, bool take_ownership, const alloc_ptr &alloc) : CPUTensor<T, Allocator>{}
         {
             this->data_ = ptr;
             this->is_owner_ = take_ownership;
@@ -76,16 +75,15 @@ namespace lahva
         };
 
         template <typename T, class Allocator>
-        Vector<T, Allocator>::Vector(const Vector &x) : CPUTensor<T, Allocator>{x} {
-
-                                                        };
+        Vector<T, Allocator>::Vector(const Vector &x) : CPUTensor<T, Allocator>{x} 
+        {
+        };
         template <class T, class Allocator>
-    Vector<T, Allocator>::Vector(std::initializer_list<T> init, const alloc_ptr &alloc)
-    : Vector_<T>(), CPUTensor<T, Allocator>(init.size(), alloc)
-    {
-        this->no_alloc = true;
-        std::copy(init.begin(), init.end(), this->data_);
-    }
+        Vector<T, Allocator>::Vector(std::initializer_list<T> init, const alloc_ptr &alloc)
+            : CPUTensor<T, Allocator>(init.size(), alloc), Vector_<T>()
+        {
+            std::copy(init.begin(), init.end(), this->data_);
+        }
 
         template <typename T, class Allocator>
         Vector<T, Allocator> &Vector<T, Allocator>::operator=(const Vector &other)

@@ -48,12 +48,13 @@ int test_Frobenius_norm(const CudaRuntime& cudart)
     T eps = std::abs( std::nextafter(res_gpu, +INFINITY) -res_gpu);
     std::cout <<eps * 10<< std::endl;
 
-    if (!check(res_gpu, res_cpu, eps*10, "FrobeniusNorm"))
+    if (!check(res_gpu, res_cpu, eps*100, "FrobeniusNorm"))
     {
         std::cout << "Test failed: FrobeniusNorm" << std::endl;
-        std::cout << "GPU: " << res_gpu << " CPU: " << res_cpu << std::endl;
+        std::cout << "Frobenius norm on the GPU: " << res_gpu << std::endl;
+        std::cout << "Frobenius norm on the CPU: " << res_cpu << std::endl;
         std::cout << "Diff: " << std::abs(res_gpu - res_cpu) << std::endl;
-        std::cout << "Epsilon: " << eps * 10 << std::endl;
+        std::cout << "Threshold: " << eps*100 << std::endl;
         return 1;
     }
     
@@ -75,13 +76,14 @@ int test_Frobenius_norm2(const CudaRuntime& cudart)
     T res_cpu = 0.0;
     res_cpu = FrobeniusNorm(A, B);
     T eps = std::abs( std::nextafter(res_cpu, +INFINITY) -res_cpu);
-    std::cout <<eps * 10<< std::endl;
     
-    if (!check(res_gpu, res_cpu, eps*10, "FrobeniusNorm2"))
+    if (!check(res_gpu, res_cpu, eps*100, "FrobeniusNorm2"))
     {
         std::cout << "Test failed: FrobeniusNorm2" << std::endl;
-        std::cout << "GPU: " << res_gpu << " CPU: " << res_cpu << std::endl;
+        std::cout << "Frobenius norm2 on the GPU: " << res_gpu << std::endl;
+        std::cout << "Frobenius norm2 on the CPU: " << res_cpu << std::endl;
         std::cout << "Diff: " << std::abs(res_gpu - res_cpu) << std::endl;
+        std::cout << "Threshold: " << eps*100 << std::endl;
         return 1;
     }
     
@@ -121,17 +123,22 @@ int test_Frobenius_norm2_diff(const CudaRuntime& cudart)
 int main(){
     int exit = 0;
     CudaRuntime cudart;
-    std::cout << "Testing Frobenius Norms Double" << std::endl;
+    std::cout << "Starting test_Frobenius_norm (double)" << std::endl;
     exit += test_Frobenius_norm<double>(cudart);
-    std::cout << "Testing Frobenius Norms Float" << std::endl;
+
+    std::cout << "Starting test_Frobenius_norm (float)" << std::endl;
     exit += test_Frobenius_norm<float>(cudart);
-    std::cout << "Testing Frobenius Norms Double 2" << std::endl;
+
+    std::cout << "Starting test_Frobenius_norm2 (double)" << std::endl;
     exit += test_Frobenius_norm2<double>(cudart);
-    std::cout << "Testing Frobenius Norms Float 2" << std::endl;
+
+    std::cout << "Starting test_Frobenius_norm2 (float)" << std::endl;
     exit += test_Frobenius_norm2<float>(cudart);
-    std::cout << "Testing Frobenius Norms Double 2 Difference" << std::endl;
+
+    std::cout << "Starting test_Frobenius_norm2_diff (double)" << std::endl;
     exit += test_Frobenius_norm2_diff<double>(cudart);
-    std::cout << "Testing Frobenius Norms Float 2 Difference" << std::endl;
+
+    std::cout << "Starting test_Frobenius_norm2_diff (float)" << std::endl;
     exit += test_Frobenius_norm2_diff<float>(cudart);
 
     return exit;

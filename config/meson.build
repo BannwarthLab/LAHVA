@@ -1,8 +1,46 @@
+fs = import('fs')
 gpu = get_option('gpu')
 debug = get_option('buildtype')
 os = host_machine.system()
+c = meson.get_compiler('c')
 cc = meson.get_compiler('cpp')
 cc_id = cc.get_id()
+
+has_nvcc = add_languages('cuda', native: false, required: gpu)
+if has_nvcc == true
+  nvcc = meson.get_compiler('cuda')
+  if not cc.has_header('cublas_v2.h')
+    has_nvcc = false
+  endif
+  if not cc.has_header('cusolverDn.h')
+    has_nvcc = false
+  endif
+endif
+
+# Silence warnings when built as a subproject
+if meson.is_subproject()
+  message('LAHVAs known warnings are disabled because LAHVA is built as a subproject')
+  if cc_id == 'gcc' or cc_id == 'clang'
+    add_project_arguments([
+      '-Wno-unused-variable',
+      '-Wno-unused-parameter',
+      '-Wno-unused-but-set-variable',
+      '-Wno-sign-compare',
+      '-Wno-reorder',
+      '-Wno-narrowing',
+    ], language: 'cpp')
+  elif cc_id == 'intel'
+    add_project_arguments([
+      '-diag-disable=2282',
+      '-diag-disable=10441',
+    ], language: 'cpp')
+    if has_nvcc == true
+    add_project_arguments([
+      '-Xcompiler=-diag-disable=2282',
+    ], language: 'cuda')
+    endif
+  endif
+endif
 
 if cc_id == 'gcc'
   add_project_arguments(
@@ -22,10 +60,22 @@ elif cc_id == 'pgi' or cc_id == 'nvidia_hpc'
   )
 endif
 
-#lib_deps += omp_dep
+stdcpp = c.find_library('stdc++')
+lib_deps += stdcpp
 
-#cpp_dep = cc.find_library('stdc++')
-#lib_deps += cpp_dep
+code = '''
+  extern "C" {void dgetrf_(
+    int const* m, int const* n,
+    double* A, int const* lda, int* ipiv,
+    int* info );}
+  int main() { 
+  int n = 2;
+  int *ipiv = new int[n];
+  int info = 0;
+  double* a = new double[n*n]; 
+  dgetrf_(&n, &n, a, &n, ipiv, &info); }
+  '''
+
 
 omp_dep = dependency('openmp', language: 'cpp', required: false)
 
@@ -56,7 +106,7 @@ endif
 
 if lapack_vendor == 'mkl'
   add_project_arguments(['-DW_MKL'], language: 'cpp')
-  if gpu == true
+  if has_nvcc == true
     add_project_arguments(['-DW_MKL'], language:  'cuda')
   endif
   mkl_dep = []
@@ -84,7 +134,14 @@ elif lapack_vendor == 'openblas'
     openblas_dep = cc.find_library('openblas', dirs : '/opt/OpenBLAS', has_headers: 'cblas.h', required: false)
   endif
   lib_deps += openblas_dep
-  if not cc.links('external dsytrs; call dsytrs(); end', dependencies: openblas_dep)
+  
+  if fs.exists('/usr/include/openblas')
+    inc_dirs += include_directories('/usr/include/openblas')
+  endif
+  if fs.exists('/usr/include/x86_64-linux-gnu/openblas')
+    inc_dirs += include_directories('/usr/include/x86_64-linux-gnu/openblas')
+  endif
+  if not cc.links(code, dependencies: openblas_dep, name: 'lapack_dsytrs', args: ['-llapack'] )
     lapack_dep = dependency('lapack', required: false)
     
     if not lapack_dep.found()
@@ -92,7 +149,6 @@ elif lapack_vendor == 'openblas'
     endif
     lib_deps += lapack_dep
   endif
-
 elif lapack_vendor == 'custom'
   foreach lib: get_option('custom_libraries')
     lib_deps += cc.find_library(lib)
@@ -108,23 +164,7 @@ elif lapack_vendor == 'apple'
   
 
 else
-  fs = import('fs')
-
-  lapack_dep = dependency('lapack', required: false, method : 'cmake')
-  if not lapack_dep.found()
-    lapack_dep = dependency('lapack', required: false, method : 'pkg-config')
-  endif
-  if not lapack_dep.found()
-    lapack_dep = dependency('lapack', required: false, method : 'system')
-  endif
   
-  if not lapack_dep.found()
-    if fs.exists('/usr/include/lapack')
-      include_directories('/usr/include/lapack')
-    endif
-    lapack_dep = cc.find_library('lapack')
-  endif
-  lib_deps += lapack_dep
   blas_dep = dependency('blas', required: false, method : 'cmake')
   if not blas_dep.found()
     blas_dep = dependency('blas', required: false, method : 'pkg-config')
@@ -136,9 +176,32 @@ else
     if fs.exists('/usr/include/cblas')
       include_directories('/usr/include/cblas')
     endif
+    if fs.exists('/usr/include/x86_64-linux-gnu/cblas')
+      include_directories('/usr/include/x86_64-linux-gnu/cblas')
+    endif
     blas_dep = cc.find_library('blas')
   endif
   lib_deps += blas_dep
+  if not cc.links(code, dependencies: blas_dep)
+    lapack_dep = dependency('lapack', required: false, method : 'cmake')
+    if not lapack_dep.found()
+      lapack_dep = dependency('lapack', required: false, method : 'pkg-config')
+    endif
+    if not lapack_dep.found()
+      lapack_dep = dependency('lapack', required: false, method : 'system')
+    endif
+  
+    if not lapack_dep.found()
+      if fs.exists('/usr/include/lapack')
+        include_directories('/usr/include/lapack')
+      endif
+      if fs.exists('/usr/include/x86_64-linux-gnu/lapack')
+        include_directories('/usr/include/x86_64-linux-gnu/lapack')
+      endif
+      lapack_dep = cc.find_library('lapack')
+    endif
+    lib_deps += lapack_dep
+  endif
 endif
 
 if lapack_vendor != 'mkl'
@@ -147,7 +210,7 @@ if cc.has_header('lapack.h')
 else
   message('LAPACK not found, using netlib headers')
   add_project_arguments(['-DNETLIB_HEADER'], language: 'cpp')
-  if gpu == true
+  if has_nvcc == true
     add_project_arguments(['-DNETLIB_HEADER'], language: 'cuda')
   endif
 endif
@@ -157,13 +220,28 @@ if cc.has_header('cblas/cblas.h')
   message('CBLAS header found')
   add_project_arguments(['-DCBLAS_HEADER'], language: 'cpp')
 endif
-if gpu == true
+
+has_gpu = false
+if has_nvcc == true
+  has_gpu = true
   arches = get_option('gpu_arch')
-  has_nvcc = add_languages('cuda', native: false)
-  nvcc = meson.get_compiler('cuda')
-  cublas = nvcc.find_library('cublas')
-  cusolver = nvcc.find_library('cusolver')
-  cusparse = nvcc.find_library('cusparse')
+  cublas = nvcc.find_library('cublas', required: gpu)
+  if not cublas.found()
+    has_gpu = false
+  else
+    cusolver = nvcc.find_library('cusolver', required: gpu)
+    if not cusolver.found()
+      has_gpu = false
+    else
+      cusparse = nvcc.find_library('cusparse', required: gpu)
+      if not cusparse.found()
+        has_gpu = false
+      endif
+    endif
+  endif
+endif
+
+if has_gpu == true
   lib_deps += cublas
   lib_deps += cusolver
   lib_deps += cusparse
@@ -182,13 +260,13 @@ if gpu == true
 
   lib_deps += cuda
   add_project_arguments(['-D_CUDA'], language: ['cuda', 'cpp'])
-  
 endif
 
 
 if debug == 'release'
   add_project_arguments('-DNDEBUG', language: 'cpp')
-  if gpu == true
+  if has_nvcc == true
     add_project_arguments('-DNDEBUG', language: 'cuda')
   endif
 endif
+

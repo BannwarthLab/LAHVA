@@ -34,7 +34,7 @@ test('additional-level-2',
   ),
   )
 
-if gpu == true
+if has_gpu == true
   test('level1-gpu',
   executable(
     '@0@-level1-gpu-tester'.format(meson.project_name()),

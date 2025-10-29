@@ -98,7 +98,7 @@ ubuntu-20.4-gcc-9-openblas:       # This job runs in the build stage, which runs
   script:
     - !reference [.cpu_prep, script]
     - export CC=gcc CXX=g++
-    - meson setup _build --buildtype=debug -Dlapack=openblas -Dgpu=false
+    - meson setup _build --buildtype=debug -Dlapack=openblas
     - !reference [.meson_compile, script]
     - meson test
   artifacts:
@@ -127,7 +127,7 @@ ubuntu-20.4-intel-2023.2.0-mkl:       # This job runs in the build stage, which 
   script:
     - !reference [.cpu_prep, script]
     - export CC=icc CXX=icpc
-    - meson setup _build --buildtype=debug -Dlapack=mkl -Dgpu=false
+    - meson setup _build --buildtype=debug -Dlapack=mkl 
     - !reference [.meson_compile, script]
     - meson test 
   
@@ -152,7 +152,7 @@ ubuntu-20.4-intel-2023.2.0-openblas:       # This job runs in the build stage, w
   script:
     - !reference [.cpu_prep, script]
     - export CC=icc CXX=icpc
-    - meson setup _build --buildtype=debug -Dlapack=openblas -Dgpu=false
+    - meson setup _build --buildtype=debug -Dlapack=openblas 
     - !reference [.meson_compile, script]
     - meson test 
   
@@ -173,7 +173,7 @@ ubuntu-20.4-gcc-9-mkl:       # This job runs in the build stage, which runs firs
   script:
     - !reference [.cpu_prep, script]
     - export CC=gcc CXX=g++
-    - meson setup _build --buildtype=debug -Dlapack=mkl -Dgpu=false
+    - meson setup _build --buildtype=debug -Dlapack=mkl 
     - !reference [.meson_compile, script]
     - meson test
   artifacts:

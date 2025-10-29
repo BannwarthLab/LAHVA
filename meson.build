@@ -3,8 +3,8 @@ project(
   'c',
   'cpp',
   
-  version: '0.0.0',
-  license: 'LGPL-3.0-or-later',
+  version: '0.1.0',
+  license: 'MIT',
   meson_version: '>=0.57.2',
   default_options: [
     'buildtype=debugoptimized',
@@ -20,11 +20,9 @@ inc_dirs = []
 lib_deps = []
 subdir('config')
 
-
-
-inc_dirs += include_directories('include') 
-if gpu == true
-  inc_dirs += include_directories('src/gpu/additional-blas')
+inc_dirs += include_directories('include', is_system: meson.is_subproject()) 
+if has_gpu == true
+  inc_dirs += include_directories('src/gpu/additional-blas', is_system: meson.is_subproject())
 endif
 
 
