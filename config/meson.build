@@ -141,7 +141,7 @@ elif lapack_vendor == 'openblas'
   if fs.exists('/usr/include/x86_64-linux-gnu/openblas')
     inc_dirs += include_directories('/usr/include/x86_64-linux-gnu/openblas')
   endif
-  if not cc.links(code, dependencies: openblas_dep, name: 'lapack_dsytrs', args: ['-llapack'] )
+  if not cc.links(code, dependencies: openblas_dep, name: 'lapack_dsytrs', args: ['-lopenblas'] )
     lapack_dep = dependency('lapack', required: false)
     
     if not lapack_dep.found()

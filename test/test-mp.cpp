@@ -25,7 +25,7 @@ void fill_with_rd_values(Matrix<T>& m)
 }
 
 template <typename T>
-void CompareGEMMS(Shape& shape)
+double CompareGEMMS(Shape& shape)
 {
     CudaRuntime cudart(false);
     //cudart.setblockSize(1024);
@@ -70,9 +70,7 @@ void CompareGEMMS(Shape& shape)
     
     cudart.synchronize();
     std::cout << "Markidis: Forb. Norm " << FrobeniusNorm(C, C2) << " " << FrobeniusNorm(cudart, C, C2) << std::endl;
-    AddVectors(cudart, -1.0, C, C2);
-    C2.copy2host(cudart);
-    cudart.cublasSetStream_();
+    return FrobeniusNorm(cudart, C, C2);
     
     std::cout << timer.print_entries() << std::endl;
 }
@@ -80,13 +78,19 @@ void CompareGEMMS(Shape& shape)
 
 int main()
 {   
-    for (int i = 1; i <16; i++)
+    for (int i = 10; i <16; i++)
     {
         std::cout.precision(12);
         int n = int((i*256));
         std::cout << "Shape: " << n << "x" << n << std::endl;
         Shape shape(n, n);
         //CompareGEMMS<float>(shape);
-        CompareGEMMS<double>(shape);
+        double err = CompareGEMMS<double>(shape);
+        if (err > 1e-5)
+        {
+            std::cout << "Test failed with error: " << err << std::endl;
+            return 1;
+        }
     }
+    return 0;
 };

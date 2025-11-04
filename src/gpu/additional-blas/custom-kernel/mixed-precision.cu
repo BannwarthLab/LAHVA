@@ -262,9 +262,9 @@ namespace lahva
             else
             {
                 if (numel > 3500)
-                    rho = ceil(getEpse<inprec>() - (getEpse<outprec>() - log2(2)) / 2);
+                    rho = ceil(getEpse<inprec>() - (getEpse<outprec>() - log2(32)) / 2);
                 else
-                    rho = ceil(getEpse<inprec>() - (getEpse<outprec>() - log2(8)) / 2);
+                    rho = ceil(getEpse<inprec>() - (getEpse<outprec>() - log2(32)) / 2);
             }
             for (int i = 0; i < maxsplit; i++)
             {

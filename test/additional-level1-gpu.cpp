@@ -12,7 +12,7 @@ template <typename T>
 void fill_with_rd_values(Matrix_<T>& m)
 {
     std::random_device rd;  // Obtain a random number from hardware
-    std::minstd_rand eng(42);
+    std::minstd_rand eng(rd());
 
     std::normal_distribution<> distr(0.0, 1.0e+3);    
     for (size_t i = 0; i < m.shape().first; i++)
