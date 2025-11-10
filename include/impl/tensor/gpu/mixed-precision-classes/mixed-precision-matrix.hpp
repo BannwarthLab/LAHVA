@@ -117,7 +117,7 @@ namespace lahva
             };
             
             template <typename split_type>
-            void split(const CudaRuntime &cudart, int max_split, Matrix<high_prec, Allocator, GPUAllocator> &buffer) const;
+            void split(const CudaRuntime &cudart, int max_split, Matrix_<high_prec> &buffer) const;
 
             void merge(const CudaRuntime &cudart, const high_prec *alphas, high_prec ini_beta);
             void merge(const CudaRuntime &cudart);

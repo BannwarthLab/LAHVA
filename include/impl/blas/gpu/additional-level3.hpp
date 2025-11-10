@@ -26,9 +26,9 @@ namespace lahva
         };
 
         template<typename Allocator, typename GPUAllocator, typename All2, typename GPUAll2>
-        void MPSymMatrixMatrixMultiplication(const CudaRuntime& cudart, const Vector<double, Allocator, GPUAllocator>& d1, const MixedPrecisionMatrix<float, All2, GPUAll2>& m1,
+        void MPSymMatrixMatrixMultiplication(const CudaRuntime& cudart, const MPRuntime& mp_rt, const Vector<double, Allocator, GPUAllocator>& d1, const MixedPrecisionMatrix<float, All2, GPUAll2>& m1,
                                              const Vector<double, Allocator, GPUAllocator>& d2, const MixedPrecisionMatrix<float, All2, GPUAll2>& m2, 
-                                             Vector<double, Allocator, GPUAllocator>& dout, Matrix<float, All2, GPUAll2>& mout, Matrix<float, All2, GPUAll2>& buffer)
+                                             Vector<double, Allocator, GPUAllocator>& dout, Matrix<float, All2, GPUAll2>& mout)
         {
             
             if (cudart.fast_mp)
@@ -36,7 +36,7 @@ namespace lahva
                 //std::cout << "Using mixed precision matrix multiplication" << std::endl;
                 m1.resetSplit();
                 m2.resetSplit();
-                SymMatrixMatrixProduct(cudart, m1, m2, mout, buffer);
+                SymMatrixMatrixProduct(cudart, mp_rt, m1, m2, mout);
             }
             else
             {

@@ -18,12 +18,11 @@ namespace lahva
         
         template <typename high, typename Allocator, typename GPUAllocator>
         template <typename split_type>
-        void MixedPrecisionMatrix<high, Allocator, GPUAllocator>::split(const CudaRuntime& cudart, int maxsplit, Matrix<high, Allocator, GPUAllocator>& buffer) const 
+        void MixedPrecisionMatrix<high, Allocator, GPUAllocator>::split(const CudaRuntime& cudart, int maxsplit, Matrix_<high>& buffer) const 
         {
             if (not splitted_fp16_)
             {
-            
-            
+                        
             this->template createSplitMatrices<split_type>(cudart, maxsplit);
 
             if constexpr (std::is_same<split_type, __half>::value)
