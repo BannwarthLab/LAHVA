@@ -73,24 +73,24 @@ namespace lahva
         template class MixedPrecisionMatrix<double, StdAllocator<double>, CudaDeviceAllocator<double>>;
         template class MixedPrecisionMatrix<double, StdAllocator<double>, CudaDeviceAsyncAllocator<double>>;        
 
-        template void MixedPrecisionMatrix<float, CudaHostAllocator<float>, CudaDeviceAllocator<float>>::split<__half>(const CudaRuntime&, int, Matrix<float, CudaHostAllocator<float>, CudaDeviceAllocator<float>>&) const;
-        template void MixedPrecisionMatrix<float, CudaHostAllocator<float>, CudaDeviceAsyncAllocator<float>>::split<__half>(const CudaRuntime&, int, Matrix<float, CudaHostAllocator<float>, CudaDeviceAsyncAllocator<float>>&) const;
-        template void MixedPrecisionMatrix<double, CudaHostAllocator<double>, CudaDeviceAllocator<double>>::split<__half>(const CudaRuntime&, int, Matrix<double, CudaHostAllocator<double>, CudaDeviceAllocator<double>>&) const;
-        template void MixedPrecisionMatrix<double, CudaHostAllocator<double>, CudaDeviceAsyncAllocator<double>>::split<__half>(const CudaRuntime&, int, Matrix<double, CudaHostAllocator<double>, CudaDeviceAsyncAllocator<double>>&) const;
+        template void MixedPrecisionMatrix<float, CudaHostAllocator<float>, CudaDeviceAllocator<float>>::split<__half>(const CudaRuntime&, int, Matrix_<float>&) const;
+        template void MixedPrecisionMatrix<float, CudaHostAllocator<float>, CudaDeviceAsyncAllocator<float>>::split<__half>(const CudaRuntime&, int, Matrix_<float>&) const;
+        template void MixedPrecisionMatrix<double, CudaHostAllocator<double>, CudaDeviceAllocator<double>>::split<__half>(const CudaRuntime&, int, Matrix_<double>&) const;
+        template void MixedPrecisionMatrix<double, CudaHostAllocator<double>, CudaDeviceAsyncAllocator<double>>::split<__half>(const CudaRuntime&, int, Matrix_<double>&) const;
 
-        template void MixedPrecisionMatrix<float, StdAllocator<float>, CudaDeviceAllocator<float>>::split<__half>(const CudaRuntime&, int, Matrix<float, StdAllocator<float>, CudaDeviceAllocator<float>>&) const;
-        template void MixedPrecisionMatrix<float, StdAllocator<float>, CudaDeviceAsyncAllocator<float>>::split<__half>(const CudaRuntime&, int, Matrix<float, StdAllocator<float>, CudaDeviceAsyncAllocator<float>>&) const;
-        template void MixedPrecisionMatrix<double, StdAllocator<double>, CudaDeviceAllocator<double>>::split<__half>(const CudaRuntime&, int, Matrix<double, StdAllocator<double>, CudaDeviceAllocator<double>>&) const;
-        template void MixedPrecisionMatrix<double, StdAllocator<double>, CudaDeviceAsyncAllocator<double>>::split<__half>(const CudaRuntime&, int, Matrix<double, StdAllocator<double>, CudaDeviceAsyncAllocator<double>>&) const;
+        template void MixedPrecisionMatrix<float, StdAllocator<float>, CudaDeviceAllocator<float>>::split<__half>(const CudaRuntime&, int, Matrix_<float>&) const;
+        template void MixedPrecisionMatrix<float, StdAllocator<float>, CudaDeviceAsyncAllocator<float>>::split<__half>(const CudaRuntime&, int, Matrix_<float>&) const;
+        template void MixedPrecisionMatrix<double, StdAllocator<double>, CudaDeviceAllocator<double>>::split<__half>(const CudaRuntime&, int, Matrix_<double>&) const;
+        template void MixedPrecisionMatrix<double, StdAllocator<double>, CudaDeviceAsyncAllocator<double>>::split<__half>(const CudaRuntime&, int, Matrix_<double>&) const;
 
-        template void MixedPrecisionMatrix<float, CudaHostAllocator<float>, CudaDeviceAllocator<float>>::split<float>(const CudaRuntime&, int, Matrix<float, CudaHostAllocator<float>, CudaDeviceAllocator<float>>&) const;
-        template void MixedPrecisionMatrix<float, CudaHostAllocator<float>, CudaDeviceAsyncAllocator<float>>::split<float>(const CudaRuntime&, int, Matrix<float, CudaHostAllocator<float>, CudaDeviceAsyncAllocator<float>>&) const;
-        template void MixedPrecisionMatrix<double, CudaHostAllocator<double>, CudaDeviceAllocator<double>>::split<float>(const CudaRuntime&, int, Matrix<double, CudaHostAllocator<double>, CudaDeviceAllocator<double>>&) const;
-        template void MixedPrecisionMatrix<double, CudaHostAllocator<double>, CudaDeviceAsyncAllocator<double>>::split<float>(const CudaRuntime&, int, Matrix<double, CudaHostAllocator<double>, CudaDeviceAsyncAllocator<double>>&) const;
+        template void MixedPrecisionMatrix<float, CudaHostAllocator<float>, CudaDeviceAllocator<float>>::split<float>(const CudaRuntime&, int, Matrix_<float>&) const;
+        template void MixedPrecisionMatrix<float, CudaHostAllocator<float>, CudaDeviceAsyncAllocator<float>>::split<float>(const CudaRuntime&, int, Matrix_<float>&) const;
+        template void MixedPrecisionMatrix<double, CudaHostAllocator<double>, CudaDeviceAllocator<double>>::split<float>(const CudaRuntime&, int, Matrix_<double>&) const;
+        template void MixedPrecisionMatrix<double, CudaHostAllocator<double>, CudaDeviceAsyncAllocator<double>>::split<float>(const CudaRuntime&, int, Matrix_<double>&) const;
 
-        template void MixedPrecisionMatrix<float, StdAllocator<float>, CudaDeviceAllocator<float>>::split<float>(const CudaRuntime&, int, Matrix<float, StdAllocator<float>, CudaDeviceAllocator<float>>&) const;
-        template void MixedPrecisionMatrix<float, StdAllocator<float>, CudaDeviceAsyncAllocator<float>>::split<float>(const CudaRuntime&, int, Matrix<float, StdAllocator<float>, CudaDeviceAsyncAllocator<float>>&) const;
-        template void MixedPrecisionMatrix<double, StdAllocator<double>, CudaDeviceAllocator<double>>::split<float>(const CudaRuntime&, int, Matrix<double, StdAllocator<double>, CudaDeviceAllocator<double>>&) const;
-        template void MixedPrecisionMatrix<double, StdAllocator<double>, CudaDeviceAsyncAllocator<double>>::split<float>(const CudaRuntime&, int, Matrix<double, StdAllocator<double>, CudaDeviceAsyncAllocator<double>>&) const;
+        template void MixedPrecisionMatrix<float, StdAllocator<float>, CudaDeviceAllocator<float>>::split<float>(const CudaRuntime&, int, Matrix_<float>&) const;
+        template void MixedPrecisionMatrix<float, StdAllocator<float>, CudaDeviceAsyncAllocator<float>>::split<float>(const CudaRuntime&, int, Matrix_<float>&) const;
+        template void MixedPrecisionMatrix<double, StdAllocator<double>, CudaDeviceAllocator<double>>::split<float>(const CudaRuntime&, int, Matrix_<double>&) const;
+        template void MixedPrecisionMatrix<double, StdAllocator<double>, CudaDeviceAsyncAllocator<double>>::split<float>(const CudaRuntime&, int, Matrix_<double>&) const;
     } // namespace gpu
 } // namespace lahva

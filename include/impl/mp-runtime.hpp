@@ -22,13 +22,14 @@ namespace lahva
             /// @brief batch mode flag, uses batched kernels for mp computations
             bool batch_mode = false;
         protected:
-            Matrix<double, CudaHostAllocator<double>, CudaDeviceAsyncAllocator<double>> mp_buffer_fp64_;
-            Matrix<float, CudaHostAllocator<float>, CudaDeviceAsyncAllocator<float>> mp_buffer_fp32_;
+            mutable Matrix<double, CudaHostAllocator<double>, CudaDeviceAsyncAllocator<double>> mp_buffer_fp64_;
+            mutable Matrix<float, CudaHostAllocator<float>, CudaDeviceAsyncAllocator<float>> mp_buffer_fp32_;
         public:
             MPRuntime(){};
             ~MPRuntime(){};
+            
             template <typename high>
-            Matrix<high>& getMPBuffer(const CudaRuntime& cudart, const Shape& shape)
+            Matrix<high>& getMPBuffer(const CudaRuntime& cudart, const Shape& shape) const
             {
                 if constexpr (std::is_same<high, double>::value)
                 {
@@ -60,6 +61,6 @@ namespace lahva
                     return nsplits_FP64;
                 }
             }
-        }
+        };
     } // namespace gpu
 }

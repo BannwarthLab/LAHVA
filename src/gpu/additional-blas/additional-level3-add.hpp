@@ -141,7 +141,7 @@ namespace lahva
 
             bool fast = mp_rt.fast_mode;
             bool batch = mp_rt.batch_mode;
-            size_t maxsplit = mp_rt.getMaxSplits<high>();
+            size_t maxsplit = mp_rt.template getMaxSplits<high>();
             if (A.data() == B.data())
             {
                 

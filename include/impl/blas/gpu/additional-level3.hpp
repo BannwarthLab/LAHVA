@@ -31,7 +31,7 @@ namespace lahva
                                              Vector<double, Allocator, GPUAllocator>& dout, Matrix<float, All2, GPUAll2>& mout)
         {
             
-            if (cudart.fast_mp)
+            if (mp_rt.fast_mode)
             {
                 //std::cout << "Using mixed precision matrix multiplication" << std::endl;
                 m1.resetSplit();

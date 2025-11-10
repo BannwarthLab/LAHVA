@@ -22,11 +22,11 @@ namespace lahva
             using Matrix<high_prec, Allocator, GPUAllocator>::check_size_;
 
         public:
-            mutable int max_split_ = 0; // maximum number of splits for the mixed precision matrix
+            mutable size_t max_split_ = 0; // maximum number of splits for the mixed precision matrix
             mutable std::vector<Matrix<__half>> split_matrices_fp16_; // stores the low precision matrices
             mutable std::vector<Matrix<float>> split_matrices_fp32_;
+            mutable bool splitted_fp16_ = false; // indicates whether the matrix has been split
             mutable bool splitted_fp32_ = false;       // indicates whether the matrix has been split
-            mutable bool splitted_fp16_ = false;       // indicates whether the matrix has been split
             mutable Vector<int> split_exponents_; // stores the indices for splitting the matrix
             size_t mod_value_ = 8;               // value to which the rows and columns are rounded
         public:

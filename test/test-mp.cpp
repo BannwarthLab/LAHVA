@@ -2,7 +2,7 @@
 #include <random>
 #include "utils.hpp"
 
-
+#include <omp.h>
 
 using namespace lahva::gpu;
 template <typename T>
@@ -11,15 +11,16 @@ void fill_with_rd_values(Matrix<T>& m)
     std::random_device rd;  // Obtain a random number from hardware
     std::minstd_rand eng(rd()); // Seed the generator
 
-    std::normal_distribution<> distr(0.0, 0.1);    
+    std::normal_distribution<> distr(0.0, 0.1);
+    #pragma omp parallel for shared(m)    
     for (size_t i = 0; i < m.shape().first; i++)
     {
         for (size_t j = 0; j < m.shape().second; j++)
         {
             if (i == j)
-                m(i, j) = 1.0 + abs(distr(eng));
+                m(i, j) = 1.0 + std::abs(distr(eng));
             else
-                m(i, j) = abs(distr(eng));
+                m(i, j) = std::abs(distr(eng));
         }
     }
 }
@@ -28,15 +29,21 @@ template <typename T>
 double CompareGEMMS(Shape& shape)
 {
     CudaRuntime cudart(false);
+    MPRuntime mp_rt;
+    mp_rt.fast_mode = true;
+    mp_rt.batch_mode = true;
     //cudart.setblockSize(1024);
     CPUTimer timer;
-
+    timer.push("Total");
+    timer.push("Setup");
     MixedPrecisionMatrix<T> A(shape);
     MixedPrecisionMatrix<T> B(shape);
     Matrix<T> C(shape);
-
+    timer.pop();
+    timer.push("FillData");
     fill_with_rd_values(A);
     fill_with_rd_values(B);
+    timer.pop();
     timer.push("Copy2Device");
     A.copy2device(cudart);
     B.copy2device(cudart);
@@ -57,22 +64,16 @@ double CompareGEMMS(Shape& shape)
     C2.copy2device(cudart);
 
     timer.push("Markidis");
-    Matrix<T> buffer(shape, cudart, C2.get_gpuallocator());
-    MatrixMatrixProduct(cudart, A, B, C2, buffer, (T)1.0, (T)0.0);
+    MatrixMatrixProduct(cudart, mp_rt, A, B, C2, (T)1.0, (T)0.0);
     cudart.synchronize();
     timer.pop();
-
-    C2.copy2host(cudart);
+   
     cudart.synchronize();
-    //std::cout << "C2(0,0)\t" << C2[84118] << std::endl;
-    //std::cout << "C2(1,0)\t" << C[84118] << std::endl;
-
-    
-    cudart.synchronize();
-    std::cout << "Markidis: Forb. Norm " << FrobeniusNorm(C, C2) << " " << FrobeniusNorm(cudart, C, C2) << std::endl;
-    return FrobeniusNorm(cudart, C, C2);
-    
+    std::cout << "Markidis: Forb. Norm " << FrobeniusNorm(cudart, C, C2) << std::endl;
+    timer.pop();
     std::cout << timer.print_entries() << std::endl;
+    return FrobeniusNorm(cudart, C, C2);
+
 }
 
 
