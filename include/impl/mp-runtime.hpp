@@ -17,7 +17,7 @@ namespace lahva
             size_t nsplits_FP64 = 4;
             /// @brief number of splits for FP32
             size_t nsplits_FP32 = 2;
-            /// @brief fast mode flag, uses onlz the upper traingle of the combination of splits
+            /// @brief fast mode flag, uses only the upper triangle of the combination of splits
             bool fast_mode = true;
             /// @brief batch mode flag, uses batched kernels for mp computations
             bool batch_mode = false;

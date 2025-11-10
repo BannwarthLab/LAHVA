@@ -32,7 +32,6 @@ namespace lahva
             #pragma unroll
             for (size_t i = index; i < ndim; i += stride)
             {    
-                //printf("i: %llu\n", index);
                 double sum = 0.0, c = 0.0;
                 for (unsigned int j = 0; j < nsplit; j++)
                 {
@@ -75,8 +74,6 @@ namespace lahva
 
         void MergeOzaki(const CudaRuntime& cudart, unsigned long long ndim, unsigned int nsplit, const double* alphas, const float** as, double* b)
         {
-            std::cout << "Using improved Ozaki merge\n";
-            std::cout << nsplit << " splits\n";
             unsigned long long blockSize = cudart.blockSize();
             BetterSum<<<cudart.gridSize(ndim, 1), blockSize, 0, cudart.getStream()>>>(ndim, nsplit, alphas, as, b);
         }
