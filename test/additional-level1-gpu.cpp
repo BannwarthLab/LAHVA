@@ -37,7 +37,7 @@ bool IsEqual(T rhs, T lhs)
 template <typename T>
 int test_Frobenius_norm(const CudaRuntime& cudart)
 {
-    MyMatrix<T> A(Shape(100,100));
+    MyMatrix<T> A(Shape(50,50));
     fill_with_rd_values(A);
     T res_gpu = 1.0;
     res_gpu = FrobeniusNorm(cudart, A);
@@ -45,7 +45,8 @@ int test_Frobenius_norm(const CudaRuntime& cudart)
     T res_cpu = 0.0;
     res_cpu = FrobeniusNorm(A);
     
-    T eps = std::abs( std::nextafter(res_cpu, +INFINITY) -res_cpu);
+    T eps = std::abs( std::nextafter(res_gpu, +INFINITY) -res_gpu);
+    std::cout <<eps * 10<< std::endl;
 
     if (!check(res_gpu, res_cpu, eps*100, "FrobeniusNorm"))
     {

@@ -43,7 +43,7 @@ namespace lahva
     //! If NDEBUG is **not** defined, range checks are performed.  d
     //! The data is stored in column-major order in a 1D array.
     //!
-    template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAllocator<T>>
+    template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAsyncAllocator<T>>
     class Matrix : public GPUTensor<T, Allocator, GPUAllocator>, public virtual Matrix_<T>
     {
         using alloc_ptr = Allocator;

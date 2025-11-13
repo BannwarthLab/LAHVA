@@ -130,7 +130,8 @@ elif lapack_vendor == 'mkl-rt'
 elif lapack_vendor == 'openblas'
   openblas_dep = dependency('openblas', required: false)
   if not openblas_dep.found()
-    openblas_dep = cc.find_library('openblas')
+    message('OpenBLAS not found, trying to find it using cc.find_library')
+    openblas_dep = cc.find_library('openblas', dirs : '/opt/OpenBLAS', has_headers: 'cblas.h', required: false)
   endif
   lib_deps += openblas_dep
   
@@ -140,7 +141,7 @@ elif lapack_vendor == 'openblas'
   if fs.exists('/usr/include/x86_64-linux-gnu/openblas')
     inc_dirs += include_directories('/usr/include/x86_64-linux-gnu/openblas')
   endif
-  if not cc.links(code, dependencies: openblas_dep, name: 'lapack_dsytrs', args: ['-llapack'] )
+  if not cc.links(code, dependencies: openblas_dep, name: 'lapack_dsytrs', args: ['-lopenblas'] )
     lapack_dep = dependency('lapack', required: false)
     
     if not lapack_dep.found()

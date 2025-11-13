@@ -11,8 +11,8 @@
 template <typename T>
 bool compareNumbers(T a, T b, int n)
 {
-    return abs(a - b) < std::pow(10.0, n) * std::max(
-    std::numeric_limits<T>::epsilon() * std::max(abs(a), abs(b)),
+    return std::abs(a - b) < std::pow(10.0, n) * std::max(
+    std::numeric_limits<T>::epsilon() * std::max(std::abs(a), std::abs(b)),
     std::numeric_limits<T>::denorm_min()
 );
 }
@@ -29,7 +29,7 @@ bool check(T actual, U expected, const char* msg)
 template<typename T, typename U>
 bool check(T actual, U expected, double tol, const char* msg)
 {
-    if (abs(expected - actual) < tol) {
+    if (std::abs(expected - actual) < tol) {
         return true;
     }
     fprintf(stderr, "[Fatal] %s: expected %3.7f, got %3.7f\n", msg, expected, actual);
@@ -38,7 +38,7 @@ bool check(T actual, U expected, double tol, const char* msg)
 template<typename T>
 bool check(std::complex<T> actual, std::complex<T> expected, std::complex<T> tol, const char* msg)
 {
-    if (abs(expected.real() - actual.real()) < tol.real() && abs(expected.imag() - actual.imag()) < tol.imag()) {
+    if (std::abs(expected.real() - actual.real()) < tol.real() && std::abs(expected.imag() - actual.imag()) < tol.imag()) {
         return true;
     }
     std::cerr << "[Fatal] " << msg << ": expected " << expected <<" , got " << actual << std::endl;;

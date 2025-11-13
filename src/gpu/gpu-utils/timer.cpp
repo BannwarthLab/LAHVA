@@ -9,7 +9,6 @@ namespace lahva
     void GPUTimer::push(std::string label)
     {
         int it;
-        cudaError_t istat;
         it = find(label);
 
         if (it == -1)
@@ -36,7 +35,6 @@ namespace lahva
     void GPUTimer::push(std::string label, const cudaStream_t& stream)
     {
         int it;
-        cudaError_t istat;
         it = find(label);
 
         if (it == -1)

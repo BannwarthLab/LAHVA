@@ -6,6 +6,19 @@ namespace lahva
     namespace gpu
     {
         
+        template <typename T>
+        class amax_
+        { 
+        public:
+            __device__ T operator()(T x, T y)
+            {
+                return fabs(x) > fabs(y) ? x : y;
+            }
+            __device__ T ini_value()
+            {
+                return 0.0;
+            }
+        };
         
         template <typename T>
         class max_

@@ -1,6 +1,7 @@
 #pragma once
 #include "../../gpu-utils/utils.hpp"
 #include "common.h"
+#include "../reductions/reduction.cuh"
 namespace lahva
 {
     namespace gpu
@@ -21,7 +22,7 @@ namespace lahva
             T tmp = 0.0;
             if (id < size)
             {
-                tmp = getFMA<T>(mat[id], mat[id], 0.0);
+                tmp = getFMA<T>(mat[id], mat[id], (T)0.0);
                 //tmp += mat[id] * mat[id];
             }
             tmp_[tid] = 0;
@@ -30,11 +31,12 @@ namespace lahva
 
             // for reductions, threadsPerBlock must be a power of 2
             // because of the following code
+            #pragma unroll
             for (int stride = blockDim.x / 2; stride > 0; stride /= 2)
             {
                 if (tid < stride)
                 {
-                    tmp_[tid] += tmp_[tid + stride];
+                    tmp_[tid] = getAdd<T>(tmp_[tid + stride], tmp_[tid]);
                 }
                 __syncthreads();
             }
@@ -43,7 +45,7 @@ namespace lahva
             if (tid == 0)
                 sum[blockIdx.x] = tmp_[0];
 
-            //reduceCUDA<blockSize, T, add_rn<T>>(sum, sum, blockSize, add_rn<T>());
+            //reduceCUDA<blockSize, T, add_rn<T>>(sum, sum, blockSize, add_rn<T>);
         }
 
         template <size_t blockSize, typename T>
@@ -62,6 +64,7 @@ namespace lahva
         __syncthreads(); // Ensure all threads have written to shared memory
 
         // Perform reduction in shared memory
+        #pragma unroll
         for (int stride = blockDim.x / 2; stride > 0; stride /= 2) {
             if (threadIdx.x < stride) {
                 sharedData[threadIdx.x] = getAdd<T>(sharedData[threadIdx.x + stride], sharedData[threadIdx.x]);

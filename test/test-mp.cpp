@@ -2,45 +2,55 @@
 #include <random>
 #include "utils.hpp"
 
-
+#include <omp.h>
 
 using namespace lahva::gpu;
 template <typename T>
 void fill_with_rd_values(Matrix<T>& m)
 {
     std::random_device rd;  // Obtain a random number from hardware
-    std::minstd_rand eng(rd());
+    std::minstd_rand eng(rd()); // Seed the generator
 
-    std::normal_distribution<> distr(0.0, 1.0e+3);    
+    std::normal_distribution<> distr(0.0, 0.1);
+    #pragma omp parallel for shared(m)    
     for (size_t i = 0; i < m.shape().first; i++)
     {
         for (size_t j = 0; j < m.shape().second; j++)
         {
-            m(i, j) = distr(eng);
+            if (i == j)
+                m(i, j) = 1.0 + std::abs(distr(eng));
+            else
+                m(i, j) = std::abs(distr(eng));
         }
     }
 }
 
-void CompareGEMMS(Shape& shape)
+template <typename T>
+double CompareGEMMS(Shape& shape)
 {
     CudaRuntime cudart(false);
+    MPRuntime mp_rt;
+    mp_rt.fast_mode = true;
+    mp_rt.batch_mode = true;
     //cudart.setblockSize(1024);
     CPUTimer timer;
-    
-    Matrix<float> A(shape);
-    Matrix<float> B(shape);
-    Matrix<float> C(shape);
-    
-
+    timer.push("Total");
+    timer.push("Setup");
+    MixedPrecisionMatrix<T> A(shape);
+    MixedPrecisionMatrix<T> B(shape);
+    Matrix<T> C(shape);
+    timer.pop();
+    timer.push("FillData");
     fill_with_rd_values(A);
     fill_with_rd_values(B);
+    timer.pop();
     timer.push("Copy2Device");
     A.copy2device(cudart);
     B.copy2device(cudart);
     C.copy2device(cudart);
     timer.pop();
     
-    timer.push("SGEMM");
+    timer.push("GEMM");
     MatrixMatrixProduct(cudart, A, B, C, 1.0, 0.0);
     cudart.synchronize();
     timer.pop();
@@ -48,55 +58,40 @@ void CompareGEMMS(Shape& shape)
     C.copy2host(cudart);
     cudart.synchronize();
     std::cout << "C(0,0)\t" << C(0,0) << std::endl;
+    std::cout << "C(1,0)\t" << C(1,0) << std::endl;
 
-    Matrix<float> C1(shape);
-    C1.copy2device(cudart);
+    MixedPrecisionMatrix<T> C2(shape);
+    C2.copy2device(cudart);
 
-    timer.push("TF32");
-    MatrixMatrixProductTF32(cudart, A, B, C1, 1.0, 0.0);
+    timer.push("Markidis");
+    MatrixMatrixProduct(cudart, mp_rt, A, B, C2, (T)1.0, (T)0.0);
     cudart.synchronize();
     timer.pop();
-
-    C1.copy2host(cudart);
+   
     cudart.synchronize();
-    std::cout << "C1(0,0)\t" << C1(0,0) << std::endl;
-    std::cout << "TF32: Forb. Norm " << FrobeniusNorm(cudart, C1, C1)  << std::endl;
-    std::cout << "TF32: Forb. Norm " << FrobeniusNorm(cudart, C1, C)  << std::endl;
-    std::cout << "TF32: Forb. CPU  " << FrobeniusNorm( C1, C) << std::endl;  
-    
-    std::cout << "TF32: Forb. Norm " << compareNumbers(FrobeniusNorm(cudart, C1, C), FrobeniusNorm( C1, C), 1) << std::endl; 
-    
-    std::cout << "TF32: Forb. Sum " << C1.sum() << " " << C1(0,0) << std::endl;
+    std::cout << "Markidis: Forb. Norm " << FrobeniusNorm(cudart, C, C2) << std::endl;
+    timer.pop();
+    std::cout << timer.print_entries() << std::endl;
+    return FrobeniusNorm(cudart, C, C2);
 
-    //Matrix<float> C2(shape);
-    //C2.copy2device(cudart);
-
-    //timer.push("Markidis");
-    //MatrixMatrixProductMP(cudart, A, B, C2, 1.0, 0.0);
-    //cudart.synchronize();
-    //timer.pop();
-
-    //C2.copy2host(cudart);
-    //cudart.synchronize();
-    //std::cout << "C2(0,0)\t" << C2(0,0) << std::endl;
-    //AddVectors(cudart, -1.0, C, C2);
-    //C2.copy2host(cudart);
-    //cudart.synchronize();
-    //std::cout << "Markidis: Forb. Norm " << FrobeniusNorm( C2) << " " << FrobeniusNorm(cudart, C2) << std::endl; 
-    //std::cout << "Markidis: Forb. Sum " << C2.sum()<< " " << C2(0,0) << std::endl; 
-
-    timer.print_entries();
 }
 
 
 int main()
 {   
-    for (int i = 1; i < 10; i++)
+    for (int i = 10; i <16; i++)
     {
         std::cout.precision(12);
-        int n = int((i*102)/8)*8;
+        int n = int((i*256));
         std::cout << "Shape: " << n << "x" << n << std::endl;
         Shape shape(n, n);
-        CompareGEMMS(shape);
+        //CompareGEMMS<float>(shape);
+        double err = CompareGEMMS<double>(shape);
+        if (err > 1e-5)
+        {
+            std::cout << "Test failed with error: " << err << std::endl;
+            return 1;
+        }
     }
+    return 0;
 };

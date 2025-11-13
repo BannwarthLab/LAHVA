@@ -114,7 +114,7 @@ namespace lahva
             }
         };
         CPUTensor(const alloc_ptr &alloc) : alloc_{alloc} { is_owner_ = false; };
-        CPUTensor() : no_alloc{true}, data_{nullptr}, count_{0}
+        CPUTensor() : count_{0}, data_{nullptr}, no_alloc{true}
         {
         
         };

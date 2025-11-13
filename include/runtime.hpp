@@ -6,7 +6,7 @@
 #include <cusolverDn.h>
 #include <memory>
 #include <iostream>
-//#include <cublas_v2.h>
+
 #include <cmath>
 #include <limits>
 #define THREADS_PER_BLOCK 512
@@ -37,7 +37,7 @@
 namespace lahva{
     
     
-
+    // Forward declaration
     class cuSolverRuntime;
 
     /// @brief cudaRuntime object, stream and Device and cublas Handle
