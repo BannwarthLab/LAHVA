@@ -128,7 +128,8 @@ namespace lahva
             }
             else
             {
-                MatrixMatrixProduct(cudart, mp_rt, A, B, C, alpha, beta, Ta, Tb);
+                // since C is non MP we just send it to the GEMM
+                MatrixMatrixProduct(cudart, A, B, C, alpha, beta, Ta, Tb);
             }
         };
 
