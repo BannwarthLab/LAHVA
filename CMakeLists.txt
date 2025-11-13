@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.18)
 project(
   "lahva"
   LANGUAGES "C" "CXX"
-  VERSION "0.1.0"
+  VERSION "0.2.0"
   DESCRIPTION "Linear Algebra on Heterogenous/Vectorized Architecture"
 )
 

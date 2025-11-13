@@ -18,6 +18,8 @@ namespace lahva{
     void AddVectors(const CudaRuntime& cudart, float a, const GPUTensor_<float>& x, size_t ix, GPUTensor_<float>& y, size_t iy);
     void AddVectors(const CudaRuntime& cudart, double a, const GPUTensor_<double>& x, GPUTensor_<float>& y);
     void AddVectors(const CudaRuntime& cudart, double a, const GPUTensor_<float>& x, GPUTensor_<double>& y);
+    void AddVectors(const CudaRuntime& cudart, float a, const GPUTensor_<__half>& x, GPUTensor_<float>& y);
+    void AddVectors(const CudaRuntime& cudart, double a, const GPUTensor_<__half>& x, GPUTensor_<double>& y);
 
     void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<double>& X, GPUTensor_<double>& Y);
     void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<float>& X, GPUTensor_<float>& Y);
@@ -40,6 +42,7 @@ namespace lahva{
     void AddVectors(const CudaRuntime& cudart, const GPUTensor_<inprec>& in, GPUTensor_<outprec>& out);
 
     }
+
 } 
 
 #endif

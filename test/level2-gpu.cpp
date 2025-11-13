@@ -355,7 +355,6 @@ int test_sgemv_v_cpp(CudaRuntime& cudart){
 
 int test_dspmv_v_cpp(CudaRuntime& cudart){
     int stat_ = 0;
-    Shape s(3,3);
     double* vdtri_ = new double[6] {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
     MLow<double> A(3, vdtri_);
     Vector<double> x({1.0, 2.0, 3.0});
@@ -389,7 +388,6 @@ int test_dspmv_v_cpp(CudaRuntime& cudart){
 
 int test_sspmv_v_cpp(CudaRuntime& cudart){
     int stat_ = 0;
-    Shape s(3,3);
     float* vdtri_ = new float[6] {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
     MLow<float> A(3, vdtri_);
     Vector<float> x({1.0, 2.0, 3.0});

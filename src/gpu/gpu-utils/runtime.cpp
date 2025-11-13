@@ -76,6 +76,9 @@ namespace lahva
     CudaRuntime::CudaRuntime(size_t max_dim, size_t n_mat, bool async) : 
     CudaRuntime( n_mat * 8*max_dim*max_dim, async)
     {
+        if (cudaDevice ==-1) {
+            return;
+        }
         cudaDeviceProp deviceProp;
         cudaGetDeviceProperties(&deviceProp, this->cudaDevice); // 0-th device
         size_t n_sm = deviceProp.multiProcessorCount;
@@ -83,7 +86,7 @@ namespace lahva
         size_t best_block_size = 0;
         int rest = -500;
 
-        for (auto i : {1024, 512, 480, 448, 416, 384, 352, 320, 288, 256, 224, 192, 160, 128})
+        for (auto i : { 512,  256, 128})
         {
             this->blockSize_ = i;
             size_t gridS = this->gridSize(max_dim*max_dim, 1);
@@ -94,7 +97,7 @@ namespace lahva
                 if (rest == 0) continue;
             }
         }
-        this->blockSize_ = best_block_size;
+        this->blockSize_ = 512;
         
 
     };
@@ -127,7 +130,6 @@ namespace lahva
         size_t totmem, freemem;
         get_cuda_error(cudaMemGetInfo(&freemem, &totmem));
         availMem_ = freemem;
-        
         if (requestedMem > availMem_) 
         {
             cudaDevice = -1;

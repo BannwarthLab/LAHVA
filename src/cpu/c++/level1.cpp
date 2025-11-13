@@ -140,11 +140,7 @@ namespace lahva{
     
     void CopyVectors(const Tensor<float>& x, Tensor<double>& y) 
     {
-#ifndef _WIN32        
-        #pragma omp simd 
-#else
         #pragma omp parallel for shared(x, y)
-#endif
         for (int i = 0; i < x.size() ; i++ )
         {
             y.data()[i] = static_cast<double>(x.data()[i]);
@@ -153,11 +149,7 @@ namespace lahva{
 
     void CopyVectors(const Tensor<double>& x, Tensor<float>& y) 
     {
-#ifndef _WIN32   
-        #pragma omp simd
-#else
         #pragma omp parallel for shared(x,y)
-#endif
         for (int i = 0; i < x.size() ; i++ )
         {
             y.data()[i] = static_cast<float>(x.data()[i]);
