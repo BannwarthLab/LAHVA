@@ -34,7 +34,7 @@ subdir('src')
 lahva_lib = library(
   meson.project_name(),
   sources: srcs,
-  #version: meson.project_version(),
+  version: meson.project_version(),
   dependencies: lib_deps,
   include_directories: inc_dirs,
   install: install,
@@ -48,5 +48,5 @@ lahva_dep = declare_dependency(
 )
 
 install = not (meson.is_subproject() and get_option('default_library') == 'static')
-#subdir('app-test')
+
 subdir('test')
