@@ -83,7 +83,7 @@ namespace lahva
             check_device_alloc(cudart, a);
             check_device_alloc(cudart, b);
             unsigned long long blockSize = cudart.blockSize();
-            AddVector_<<<cudart.gridSize(ndim, 1)/4, blockSize, 0, cudart.getStream()>>>(ndim, alpha, a.gpu_data(), b.gpu_data());
+            AddVector_<<<std::ceil(static_cast<double>(cudart.gridSize(ndim, 1))/4), blockSize, 0, cudart.getStream()>>>(ndim, alpha, a.gpu_data(), b.gpu_data());
         }
 
         void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double alpha, const GPUTensor_<double>& a, GPUTensor_<float>& b)
