@@ -48,6 +48,6 @@ option(
 option(
   'gpu_static',
   type: 'boolean',
-  value: true,
+  value: false,
   description: 'Link NVIDIA CUDA libraries statically (cudart_static, cublas_static, cusolver_static, cusparse_static) when available',
 )
