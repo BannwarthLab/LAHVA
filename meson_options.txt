@@ -44,3 +44,10 @@ option(
   yield: true,
   description: 'GPU architecture version string',
 )
+
+option(
+  'gpu_static',
+  type: 'boolean',
+  value: false,
+  description: 'Link NVIDIA CUDA libraries statically (cudart_static, cublas_static, cusolver_static, cusparse_static) when available',
+)

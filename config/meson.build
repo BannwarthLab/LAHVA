@@ -1,5 +1,6 @@
 fs = import('fs')
 gpu = get_option('gpu')
+gpu_static = get_option('gpu_static')
 debug = get_option('buildtype')
 os = host_machine.system()
 c = meson.get_compiler('c')
@@ -131,7 +132,7 @@ elif lapack_vendor == 'openblas'
   openblas_dep = dependency('openblas', required: false)
   if not openblas_dep.found()
     message('OpenBLAS not found, trying to find it using cc.find_library')
-    openblas_dep = cc.find_library('openblas', dirs : '/opt/OpenBLAS', has_headers: 'cblas.h', required: false)
+    openblas_dep = cc.find_library('openblas', required: false)
   endif
   lib_deps += openblas_dep
   
@@ -241,11 +242,33 @@ if has_nvcc == true
   endif
 endif
 
-if has_gpu == true
+if has_gpu == true and gpu_static == false
   lib_deps += cublas
   lib_deps += cusolver
   lib_deps += cusparse
   cuda = dependency('cuda', modules: ['cudart'])
+  lib_deps += cuda
+elif has_gpu == true and gpu_static == true
+  # If user requested static linking of NVIDIA libraries, try to find and prefer the static variants.
+    cudart_static = nvcc.find_library('cudart_static', required: false)
+    cublas_static = nvcc.find_library('cublas_static', required: false)
+    cublasLt_static = nvcc.find_library('cublasLt_static', required: false)
+    cusolver_static = nvcc.find_library('cusolver_static', required: false)
+    cusparse_static = nvcc.find_library('cusparse_static', required: false)
+    culibos = nvcc.find_library('culibos', required: false)
+    if cudart_static.found() and cublas_static.found() and cublasLt_static.found() and cusolver_static.found() and cusparse_static.found() and culibos.found()
+      lib_deps += cudart_static
+      lib_deps += cublas_static
+      lib_deps += cublasLt_static
+      lib_deps += cusolver_static
+      lib_deps += cusparse_static
+      lib_deps += culibos
+      message('LAHVA: using static NVIDIA CUDA libraries')
+    else
+      message('LAHVA: gpu_static requested but static NVIDIA libraries not found; falling back to dynamic libraries')
+    endif
+endif
+if has_gpu == true
   foreach arch : arches
     if arch == 'native'
       add_project_arguments(['-arch=@0@'.format(arch)], language: 'cuda')
@@ -257,8 +280,6 @@ if has_gpu == true
     cc_bin = find_program(cc.cmd_array()[0])
     add_project_arguments(['--allow-unsupported-compiler', '-ccbin', cc_bin.full_path()], language: 'cuda')
   endif
-
-  lib_deps += cuda
   add_project_arguments(['-D_CUDA'], language: ['cuda', 'cpp'])
 endif
 
