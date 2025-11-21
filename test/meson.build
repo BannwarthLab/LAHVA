@@ -84,7 +84,8 @@ if has_gpu == true
     '@0@-test-mp'.format(meson.project_name()),
     sources: files('test-mp.cpp','utils.cpp'),
     dependencies: lahva_dep,
-    link_language: 'cpp', 
+    link_language: 'cpp',
   ),
+    timeout: 60 # s 
   )
 endif
