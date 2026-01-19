@@ -12,8 +12,6 @@ namespace lahva
         void HadamardProduct(const CudaRuntime &cudart, const GPUTensor_<T> &vecin, GPUTensor_<T> &vecinout);
         template <typename T>
         void HadamardProduct(const CudaRuntime &cudart, const GPUTensor_<T> &vecin, const GPUTensor_<T> &vecin2, GPUTensor_<T> &vecout);
-        template <typename T>
-        void HadamardProduct(const CudaRuntime &cudart, const Matrix_<T> &vecin, const GPUTensor_<T> &vecin2, Matrix_<T> &vecout);
 
         template <typename T>
         void TraceKernelDiag(const CudaRuntime &cudart, unsigned long long ndim, const T *diag, T *vec);
