@@ -7,6 +7,56 @@ namespace lahva
 {
     namespace gpu
     {
+        /// @brief Simple interface to DGER \f$\mathbf{A}=alpha*\vec{x}*\vec{y}**T + A\f$
+        /// @param x Vector x
+        /// @param incx stride of Vector x
+        /// @param y vector y
+        /// @param incy stride of Vector y
+        /// @param alpha value by which \f$\vec{x}*\vec{y}**T\f$ is scaled
+        /// @param A matrix A of size ndimX by ndimY
+        void OuterVectorProduct(const CudaRuntime &cudart, const Vector<double>& x, const Vector<double>& y, Matrix<double>& A, size_t incx, size_t incy, const double alpha) {
+            if (A.shape().first != x.size() || A.shape().second != y.size()) {
+                throw std::invalid_argument("OuterVectorProduct: Output matrix A has incorrect shape.");
+            }
+
+            size_t inx = incx;
+            size_t iny = incy;
+
+            check_device_alloc(cudart, A);
+            check_device_alloc(cudart, x);
+            check_device_alloc(cudart, y);
+
+            size_t lda = get_leading(x.size(), y.size());
+            cudart.cublasSetStream_();
+            cublasStatus_t istat = cublasDger(cudart.handle, x.size(), y.size(), &alpha, x.gpu_data(), inx, y.gpu_data(), iny, A.gpu_data(), lda);
+            get_cublas_error(istat);
+        }
+
+        /// @brief Simple interface to SGER \f$\mathbf{A}=alpha*\vec{x}*\vec{y}**T + A\f$
+        /// @param x Vector x
+        /// @param incx stride of Vector x
+        /// @param y vector y
+        /// @param incy stride of Vector y
+        /// @param alpha value by which \f$\vec{x}*\vec{y}**T\f$ is scaled
+        /// @param A matrix A of size ndimX by ndimY
+        void OuterVectorProduct(const CudaRuntime &cudart, const Vector<float>& x, const Vector<float>& y, Matrix<float>& A, size_t incx, size_t incy, const float alpha) {
+            if (A.shape().first != x.size() || A.shape().second != y.size()) {
+                throw std::invalid_argument("OuterVectorProduct: Output matrix A has incorrect shape.");
+            }
+
+            size_t inx = incx;
+            size_t iny = incy;
+
+            check_device_alloc(cudart, A);
+            check_device_alloc(cudart, x);
+            check_device_alloc(cudart, y);
+
+            size_t lda = get_leading(x.size(), y.size());
+            cudart.cublasSetStream_();
+            cublasStatus_t istat = cublasSger(cudart.handle, x.size(), y.size(), &alpha, x.gpu_data(), inx, y.gpu_data(), iny, A.gpu_data(), lda);
+            get_cublas_error(istat);
+        }
+       
         /*! @brief Simple interface to DGEMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
         or \f$\vec{y}=alpha*\mathbf{A}^\intercal*\vec{x}+beta*\vec{y}\f$ or
         \f$\vec{y}=alpha*conj(\mathbf{A}^\intercal)*\vec{x}+beta*\vec{y}\f$ for specified stride
