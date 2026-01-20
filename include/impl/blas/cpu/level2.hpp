@@ -4,7 +4,10 @@
 #include "linalg.hpp"
 
 namespace lahva{
-    namespace cpu{ 
+    namespace cpu{
+    void OuterVectorProduct(const Vector<double>& x, const Vector<double>& y, Matrix<double>& A, size_t incx = 1, size_t incy = 1, const double alpha = 1.0);
+    void OuterVectorProduct(const Vector<float>& x, const Vector<float>& y, Matrix<float>& A, size_t incx = 1, size_t incy = 1, const float alpha = 1.0);
+
     void MatrixVectorProduct(const char* T, const double alpha, const Matrix_<double>& a, const Vector_<double>& x, 
                              const size_t incx, const double beta, Vector_<double>& y, const size_t incy);
     void MatrixVectorProduct(const Matrix_<double>& a, const Vector_<double>& x, Vector_<double>& y,
@@ -46,6 +49,12 @@ namespace lahva{
     void LowTriMatrixVectorProduct(const char* T, const CBLAS_DIAG unit, const LowTriMatrix_<float>& a, Vector_<float>& x, const size_t incx);
     void LowTriMatrixVectorProduct(const LowTriMatrix_<float>& a, Vector_<float>& x, const char* T = "N", const CBLAS_DIAG unit = CblasNonUnit, const size_t incx = 1);
     
+    template<typename... Args>
+    void OuterVectorProduct(const CPURuntime& rt_, Args&&... args) {
+        (OuterVectorProduct(args...));                    
+    }
+
+
     template<typename... Args>
     void LowTriMatrixVectorProduct(const CPURuntime& rt_, Args&&... args) {
         (LowTriMatrixVectorProduct(args...));                    
