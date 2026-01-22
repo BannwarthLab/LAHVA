@@ -79,6 +79,15 @@ if has_gpu == true
   ),
   )
 
+  test('mat-attributes',
+  executable(
+    '@0@-mat-attributes'.format(meson.project_name()),
+    sources: files('mat-attributes.cpp','utils.cpp'),
+    dependencies: lahva_dep,
+    link_language: 'cpp', 
+  ),
+  )
+
   test('test-mp',
   executable(
     '@0@-test-mp'.format(meson.project_name()),
