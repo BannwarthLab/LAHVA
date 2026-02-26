@@ -80,7 +80,17 @@ code = '''
 
 omp_dep = dependency('openmp', language: 'cpp', required: false)
 
-if omp_dep.found() 
+if cc_id == 'intel' or cc_id == 'intel-llvm'
+  # Use Intel's OpenMP for Intel compilers
+  message('Using Intel OpenMP')
+  intel_omp = cc.find_library('iomp5', required: false)
+  if intel_omp.found()
+    lib_deps += intel_omp
+  elif omp_dep.found()
+    lib_deps += omp_dep
+  endif
+elif omp_dep.found()
+  # Use system OpenMP (GCC's libgomp, Clang's libomp, etc.)
   lib_deps += omp_dep
 elif build_machine.system() == 'darwin' and cc_id == 'clang'
   add_project_arguments(['-Xpreprocessor','-fopenmp'],language: 'cpp')
