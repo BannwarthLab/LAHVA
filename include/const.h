@@ -15,8 +15,8 @@ typedef lapack_int LPCK_INT;
 #define ACCELERATE_NEW_LAPACK
 #include <Accelerate/Accelerate.h>
 typedef CBLAS_ORDER CBLAS_LAYOUT;
-typedef int32_t BLAS_INT;
-typedef int32_t LPCK_INT; 
+typedef __LAPACK_int BLAS_INT;
+typedef __LAPACK_int LPCK_INT;
 #else
 #ifdef CBLAS_HEADER
     #include <cblas/cblas.h>
@@ -48,10 +48,14 @@ typedef int32_t LPCK_INT;
 #endif
 
 namespace lahva
-{
+{   
+    // define data layout for BLAS calls
     static const CBLAS_LAYOUT major = CblasColMajor;
+    // define triangular matrix part for BLAS calls
     static const CBLAS_UPLO tri = CblasLower;
+    // define data layout for LAPACK calls
     static const int l_major = CblasColMajor;
+    // define triangular matrix part for LAPACK calls
     static char l_uplo = 'L';
     static char l_nondiag = 'N';
     static const char major_char = 'C';
@@ -94,6 +98,7 @@ namespace lahva
 #endif
     };
 
+    // Abstract base class for BLAS runtimes
     class BLASRuntime
     {
     public:
@@ -104,7 +109,7 @@ namespace lahva
         BLASRuntime(){};
         virtual ~BLASRuntime(){};
     };
-
+    // CPU Runtime which is essentially a placeholder for nowcode
     class CPURuntime : public BLASRuntime
     {
     };

@@ -447,7 +447,7 @@ namespace lahva
 #endif
             if (info != 0)
             {
-                throw std::runtime_error("Failure in DTRTRI");
+                throw std::runtime_error("Failure in STRTRI");
             }
         };
 

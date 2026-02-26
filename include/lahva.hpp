@@ -1,4 +1,8 @@
 #ifndef LAHVA_BLAS_HPP
+
+// header collecting all C++-style BLAS and LAPACK function declarations
+// for both CPU and GPU runtimes
+
 #define LAHVA_BLAS_HPP
 
 #include "impl/blas/cpu/level1.hpp"

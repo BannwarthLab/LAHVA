@@ -3,288 +3,236 @@
 #include "impl/blas/cpu/level1.hpp"
 #include "impl/blas/cpu/level1.h"
 
-namespace lahva{
-    namespace cpu{
-    /*! @brief Take inner product of two Vectors of doubles
-        \param[in] nelemXY number of elements in Vectors X and Y
-        \param[in] X Vector
-        \param[in] Y Vector
-    */ 
-    double InnerVectorProduct(const Tensor<double>& X, const Tensor<double>& Y)
-    {   check_equal_size(X,Y);
-        return InnerVectorProduct(X.size(), X.data(), Y.data());}
-
-    /*! @brief Take inner product of two Vectors of float
-        \param[in] X Vector
-        \param[in] Y Vector
-    */ 
-    float InnerVectorProduct( const Tensor<float>& X, const Tensor<float>& Y)
-    { 
-        check_equal_size(X,Y);
-    return  InnerVectorProduct(X.size(), X.data(), Y.data());
-    }
-
-    // strided Vector product
-    double InnerVectorProduct(const Tensor<double>& X, const size_t strideX, const Tensor<double>& Y, const size_t strideY)
+namespace lahva
+{
+    namespace cpu
     {
-        check_equal_size(X,Y);
-    return InnerVectorProduct(X.size(), X.data(), strideX, Y.data(), strideY);
-    }
+        ///Dot product routines////////////////////////////////////////////////////////////////////
 
-    float InnerVectorProduct(const Tensor<float>& X, const size_t strideX, const Tensor<float>& Y, const size_t strideY)
-    {
-        check_equal_size(X,Y);
-    return InnerVectorProduct(X.size(), X.data(), strideX, Y.data(), strideY);
-    }
-
-    double InnerVectorProduct(const CPURuntime& rt_, const Tensor<double>& X, const Tensor<double>& Y)
-    {
-        return InnerVectorProduct(X, Y);
-    };
-    float InnerVectorProduct(const CPURuntime& rt_, const Tensor<float>& X, const Tensor<float>& Y)
-    {
-        return InnerVectorProduct(X, Y);
-    };
-    double InnerVectorProduct(const CPURuntime& rt_, const Tensor<double>& X, const size_t strideX, const Tensor<double>& Y, const size_t strideY)
-    {
-        return InnerVectorProduct(X, strideX, Y, strideY);
-    };
-    float InnerVectorProduct(const CPURuntime& rt_, const Tensor<float>& X, const size_t strideX, const Tensor<float>& Y, const size_t strideY)
-    {
-        return InnerVectorProduct(X, strideX, Y, strideY);
-    };
-
-
-    /*! Simple interface to DAXPY \f$\vec{y}=\alpha\vec{x}+\vec{y}\f$ assuming unit stride
-        \param[in] x \f$\vec{x}\f$
-        \param[in,out] y \f$\vec{y}\f$
-        \param[in] a \f$\alpha\f$
-    */
-    void AddVectors(const double a, const Tensor<double>& x, Tensor<double>& y) {
-        check_equal_size(x,y);
-        AddVectors(x.size(), a, x.data(), y.data());
-    }
-
-    /*! Simple interface to SAXPY \f$\vec{y}=\alpha\vec{x}+\vec{y}\f$ assuming unit stride
-        \param[in] x \f$\vec{x}\f$
-        \param[in,out] y \f$\vec{y}\f$
-        \param[in] a \f$\alpha\f$
-    */
-    void AddVectors(const float a, const Tensor<float>& x, Tensor<float>& y) {
-        check_equal_size(x,y);
-        AddVectors(x.size(), a, x.data(), y.data());
-    }
-
-
-    /*! Simple interface to DAXPY \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
-        \param[in] x \f$\vec{x}\f$
-        \param[in,out] y \f$\vec{y}\f$
-        \param[in] a \f$\alpha\f$
-        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
-        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
-    */
-    void AddVectors(const double a, const Tensor<double>& x, size_t ix, Tensor<double>& y, size_t iy) {
-        check_equal_size(x,y);
-        AddVectors(x.size(), a, x.data(), ix, y.data(), iy);
-    }
-
-    /*! Simple interface to sAXPY \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
-        \param[in] x \f$\vec{x}\f$
-        \param[in,out] y \f$\vec{y}\f$
-        \param[in] a \f$\alpha\f$
-        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
-        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
-    */
-    void AddVectors(const float a, const Tensor<float>& x, size_t ix, Tensor<float>& y, size_t iy) {
-        check_equal_size(x,y);
-        AddVectors(x.size(), a, x.data(), ix, y.data(), iy);
-    }
-
-    void AddVectors(const double a, const Tensor<double>& x, Tensor<float>& y) {
-        check_equal_size(x,y);
-        #pragma omp parallel for shared(x,y)
-        for (int i = 0; i < x.size() ; i++ )
+        /*! @brief Take inner product of two Vectors of T
+            \param[in] nelemXY number of elements in Vectors X and Y
+            \param[in] X Vector
+            \param[in] Y Vector
+        */
+        template<typename T>
+        T InnerVectorProduct(const Tensor<T> &X, const Tensor<T> &Y)
         {
-            y.data()[i] = static_cast<float>(a * x.data()[i] + y.data()[i]);
-        }
-    }
+            check_equal_size(X, Y);
+            return InnerVectorProduct(X.size(), X.data(), Y.data());
+        };
 
-    void AddVectors(const double a, const Tensor<float>& x, Tensor<double>& y) {
-        check_equal_size(x,y);
-        #pragma omp parallel for shared(x,y)
-        for (int i = 0; i < x.size() ; i++ )
+        /// @brief Take inner product of two Vectors of T with strides
+        /// @tparam T Numerical type of the tensors
+        /// @param X Tensor X
+        /// @param strideX Stride between elements in tensor X
+        /// @param Y Tensor Y
+        /// @param strideY Stride between elements in tensor Y
+        /// @return The inner product of tensors X and Y
+        template<typename T>
+        T InnerVectorProduct(const Tensor<T> &X, const size_t strideX, const Tensor<T> &Y, const size_t strideY)
         {
-            y.data()[i] = static_cast<double>(a * x.data()[i] + y.data()[i]);
-        }
-    }
+            check_equal_size(X, Y);
+            return InnerVectorProduct(X.size(), X.data(), strideX, Y.data(), strideY);
+        };
 
-    //Copy routines////////////////////////////////////////////////////////////////////
+        /// Add routines////////////////////////////////////////////////////////////////////
 
-    /*! Simple interface to DCOPY \f$\vec{y}=\vec{x}\f$ assuming unit stride
-        \param[in] x \f$\vec{x}\f$
-        \param[in,out] y \f$\vec{y}\f$
-    */
-    void CopyVectors(const Tensor<double>& x, Tensor<double>& y) {
-        check_equal_size(x,y);
-        CopyVectors(x.size(), x.data(), y.data());
-    }
-
-    /*! Simple interface to SCOPY \f$\vec{y}=\vec{x}\f$ assuming unit stride
-        \param[in] x \f$\vec{x}\f$
-        \param[in,out] y \f$\vec{y}\f$
-    */
-    void CopyVectors(const Tensor<float>& x, Tensor<float>& y) {
-        check_equal_size(x,y);
-        CopyVectors(x.size(), x.data(), y.data());
-    }
-    
-    void CopyVectors(const Tensor<float>& x, Tensor<double>& y) 
-    {
-        #pragma omp parallel for shared(x, y)
-        for (int i = 0; i < x.size() ; i++ )
+        /// @brief Computes the addition of a scaled tensor treated as vector to another tensor treated as vector with strides
+        /// @tparam T Numerical type of the tensors
+        /// @param a scalar multiplier for tensor x
+        /// @param x Tensor x
+        /// @param ix Stride between elements in tensor x
+        /// @param y Tensor y
+        /// @param iy Stride between elements in tensor y
+        template<typename T>
+        void AddVectors(const T a, const Tensor<T> &x, const size_t ix, Tensor<T> &y, const size_t iy)
         {
-            y.data()[i] = static_cast<double>(x.data()[i]);
-        }
-    }
+            check_equal_size(x, y);
+            AddVectors(x.size(), a, x.data(), ix, y.data(), iy);
+        };
 
-    void CopyVectors(const Tensor<double>& x, Tensor<float>& y) 
-    {
-        #pragma omp parallel for shared(x,y)
-        for (int i = 0; i < x.size() ; i++ )
+        /// @brief Computes the addition of a scaled tensor treated as vector to another tensor treated as vector with strides, Mixed precision version
+        /// @tparam T Numerical type of the tensor x
+        /// @tparam U Numerical type of the tensor y
+        /// @param a scalar multiplier for tensor x
+        /// @param x Tensor x
+        /// @param ix Stride between elements in tensor x
+        /// @param y Tensor y
+        /// @param iy Stride between elements in tensor y
+        template<typename T, typename U>
+        void AddVectors(const double a, const Tensor<T> &x, Tensor<U> &y)
         {
-            y.data()[i] = static_cast<float>(x.data()[i]);
+            check_equal_size(x, y);
+            if constexpr (std::is_same_v<T, U>)
+            {
+                AddVectors(x.size(), (T)a, x.data(), y.data());
+                return;
+            }
+            else
+            {
+            #pragma omp parallel for shared(x, y)
+            for (int i = 0; i < x.size(); i++)
+            {
+                y.data()[i] = static_cast<U>(a * x.data()[i] + y.data()[i]);
+            }
+            }
         }
-    }
-
-    /*! Simple interface to DCOPY \f$\vec{y}=\vec{x}\f$ for specified stride
-        \param[in] x \f$\vec{x}\f$
-        \param[in,out] y \f$\vec{y}\f$
-        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
-        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
-    */
-    void CopyVectors(const Tensor<double>& x, size_t ix, Tensor<double>& y, size_t iy) {
-        check_equal_size(x,y);
-        CopyVectors(x.size(), x.data(), ix, y.data(), iy);
-    }
-
-    /*! Simple interface to SCOPY \f$\vec{y}=\vec{x}\f$ for specified stride
-        \param[in] x \f$\vec{x}\f$
-        \param[in,out] y \f$\vec{y}\f$
-        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
-        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
-    */
-    void CopyVectors(const Tensor<float>& x, size_t ix, Tensor<float>& y, size_t iy) {
-        CopyVectors(x.size(), x.data(), ix, y.data(), iy);
-    }
-
-    //Swap routines////////////////////////////////////////////////////////////////////
-
-    /*! Simple interface to DSWAP \f$\vec{y}<=>\vec{x}\f$ assuming unit stride
-        \param[in] x \f$\vec{x}\f$
-        \param[in,out] y \f$\vec{y}\f$
-    */
-    void SwapVectors(Tensor<double>& x, Tensor<double>& y) {
-        check_equal_size(x,y);
-        SwapVectors(x.size(), x.data(), y.data());
-    }
-
-    /*! Simple interface to SSWAP \f$\vec{y}<=>\vec{x}\f$ assuming unit stride
-        \param[in] x \f$\vec{x}\f$
-        \param[in,out] y \f$\vec{y}\f$
-    */
-    void SwapVectors(Tensor<float>& x, Tensor<float>& y) {
-        check_equal_size(x,y);
-        SwapVectors(x.size(), x.data(), y.data());
-    }
 
 
-    /*! Simple interface to DSWAP \f$\vec{y}<=>\vec{x}\f$ for specified stride
-        \param[in] x \f$\vec{x}\f$
-        \param[in,out] y \f$\vec{y}\f$
-        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
-        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
-    */
-    void SwapVectors(Tensor<double>& x, size_t ix, Tensor<double>& y, size_t iy) {
-        check_equal_size(x,y);
-        SwapVectors(x.size(), x.data(), ix, y.data(), iy);
-    }
+        // Copy routines////////////////////////////////////////////////////////////////////
+        /// @brief Copies elements from one tensor to another, wrapper to BLAS function <T>copy
+        /// @tparam T Numerical type of the tensors
+        /// @param x Source tensor
+        /// @param y Destination tensor
+        template<typename T>
+        void CopyVectors(const Tensor<T> &x, Tensor<T> &y)
+        {
+            check_equal_size(x, y);
+            CopyVectors(x.size(), x.data(), y.data());
+        }
 
-    /*! Simple interface to SSWAP \f$\vec{y}<=>\vec{x}\f$ for specified stride
-        \param[in] x \f$\vec{x}\f$
-        \param[in,out] y \f$\vec{y}\f$
-        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
-        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
-    */
-    void SwapVectors(Tensor<float>& x, size_t ix, Tensor<float>& y, size_t iy) {
-        check_equal_size(x,y);
-        SwapVectors(x.size(), x.data(), ix, y.data(), iy);
-    } 
+        /// @brief Copies elements from one tensor to another, Mixed precision version
+        /// @brief if U == T, wrapper to the single-precision or double-precision version
+        /// @tparam T Numerical type of the source tensor
+        /// @tparam U Numerical type of the destination tensor
+        /// @param x Source tensor
+        /// @param y Destination tensor
+        template<typename T, typename U>
+        void CopyVectors(const Tensor<T> &x, Tensor<U> &y)
+        {
+            if constexpr (std::is_same_v<T, U>)
+            {
+                CopyVectors(x.size(), x.data(), y.data());
+                return;
+            }
+            else
+            {
+                check_equal_size(x, y);
+            #pragma omp parallel for shared(x, y)
+            for (int i = 0; i < x.size(); i++)
+            {
+                y.data()[i] = static_cast<U>(x.data()[i]);
+            }
+        }
+        }
 
-    //Scale routines////////////////////////////////////////////////////////////////////
+        /// @brief Copies elements from one tensor to another with strides, wrapper to BLAS function <T>copy
+        /// @tparam T Numerical type of the tensors
+        /// @param x Source tensor x
+        /// @param strideX Stride between elements in tensor x
+        /// @param y Destination tensor y
+        /// @param strideY Stride between elements in tensor y
+        template<typename T>
+        void CopyVectors(const Tensor<T> &x, size_t ix, Tensor<T> &y, size_t iy)
+        {
+            check_equal_size(x, y);
+            CopyVectors(x.size(), x.data(), ix, y.data(), iy);
+        }
 
-    /*! Simple interface to DSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
-        \param[in, out] x \f$\vec{x}\f$
-        \param[in,out] a \f$\alpha\f$
-    */
-    void ScaleVector(const double a, Tensor<double>& x) {
-        ScaleVector(x.size(), a, x.data());
-    }
-     /*! Simple interface to SSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
-        \param[in, out] x \f$\vec{x}\f$
-        \param[in,out] a \f$\alpha\f$
-    */
-    void ScaleVector(const float a, Tensor<float>& x){
-        ScaleVector(x.size(), a, x.data());
-    }
+        // Swap routines////////////////////////////////////////////////////////////////////
+       /// @brief Swap elements of two tensors treated as vectors, wrapper to BLAS function <T>swap, unit stride version
+       /// @tparam T Numerical type of the tensors
+       /// @param x tensor x
+       /// @param y tensor y
+       template<typename T>
+        void SwapVectors(Tensor<T> &x, Tensor<T> &y)
+        {
+            check_equal_size(x, y);
+            SwapVectors(x.size(), x.data(), y.data());
+        }
 
-    void ScaleVector(const double a, Tensor<double>& x, size_t ix){
-        ScaleVector(x.size(), a, x.data(), ix);
-    }
-     /*! Simple interface to SSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
-        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
-        \param[in, out] x \f$\vec{x}\f$
-        \param[in,out] a \f$\alpha\f$
-        stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
-    */
-    void ScaleVector(const float a, Tensor<float>& x, size_t ix){
-        ScaleVector(x.size(), a, x.data());
-    }
 
-    //Extrema in Vector routines////////////////////////////////////////////////////////
-    /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
-        \param[in] n size of the vector \f$x\f$
-        \param[in] x pointer to the input vector \f$\vec{x}\f$
-        \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
-    */
-    int IndexMaxFromVector(const Tensor<double>& x) {
-        return IndexMaxFromVector(x.size(), x.data());
-    }
-    /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
-        \param[in] n size of the vector \f$x\f$
-        \param[in] x pointer to the input vector \f$\vec{x}\f$
-        \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
-    */
-    int IndexMaxFromVector(const Tensor<float>& x) {
-        return IndexMaxFromVector(x.size(), x.data());
-    }
+       /// @brief Swap elements of two tensors treated as vectors, wrapper to BLAS function <T>swap, specified stride version
+       /// @tparam T Numerical type of the tensors
+       /// @param x tensor x
+       /// @param ix stride of tensor x
+       /// @param y tensor y
+       /// @param iy stride of tensor y
+        template<typename T>
+        void SwapVectors(Tensor<T> &x, size_t ix, Tensor<T> &y, size_t iy)
+        {
+            check_equal_size(x, y);
+            SwapVectors(x.size(), x.data(), ix, y.data(), iy);
+        }
 
-    /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
-        \param[in] n size of the vector \f$x\f$
-        \param[in] x pointer to the input vector \f$\vec{x}\f$
-        \param[in] ix stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
-        \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
-    */
-    int IndexMaxFromVector(const Tensor<double>& x, const size_t ix) {
-        return IndexMaxFromVector(x.size(), x.data(), ix);
-    }
-    /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
-        \param[in] n size of the vector \f$x\f$
-        \param[in] x pointer to the input vector \f$\vec{x}\f$
-        \param[in] ix stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
-        \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
-    */
-    int IndexMaxFromVector(const Tensor<float>& x, const size_t ix) {
-        return IndexMaxFromVector(x.size(), x.data(), ix);
-    }
+        // Scale routines////////////////////////////////////////////////////////////////////
+        /// @brief Scales a tensor treated as vector by a scalar multiplier, wrapper to BLAS function <T>scal
+        /// @tparam T Numerical type of the tensor
+        /// @param a scalar multiplier for tensor x
+        /// @param x Tensor x
+        template<typename T>
+        void ScaleVector(const T a, Tensor<T> &x)
+        {
+            ScaleVector(x.size(), a, x.data());
+        }
+
+        /// @brief Scales a tensor treated as vector by a scalar multiplier, wrapper to BLAS function <T>scal, specified stride version
+        /// @tparam T Numerical type of the tensor
+        /// @param a scalar multiplier for tensor x
+        /// @param x Tensor x
+        /// @param ix stride of tensor x
+        template<typename T>
+        void ScaleVector(const T a, Tensor<T> &x, size_t ix)
+        {
+            ScaleVector(x.size(), a, x.data(), ix);
+        };
+
+        // Extrema in Vector routines////////////////////////////////////////////////////////
+        /// @brief Get index of the element with the maximum absolute value in a tensor treated as vector, wrapper to BLAS function <T>iamax
+        /// @tparam T Numerical type of the tensor
+        /// @param x Tensor x
+        /// @return Index of the element with the maximum absolute value
+        template<typename T>
+        int IndexMaxFromVector(const Tensor<T> &x)
+        {
+            return IndexMaxFromVector(x.size(), x.data());
+        }
+
+
+        /// @brief Get index of the element with the maximum absolute value in a tensor treated as vector, wrapper to BLAS function <T>iamax, specified stride version
+        /// @tparam T Numerical type of the tensor
+        /// @param x Tensor x
+        /// @param ix stride of tensor x
+        /// @return Index of the element with the maximum absolute value
+        template<typename T>
+        int IndexMaxFromVector(const Tensor<T> &x, const size_t ix)
+        {
+            return IndexMaxFromVector(x.size(), x.data(), ix);
+        }
+
+        //// Explicit template instantiations
+        template double InnerVectorProduct<double>(const Tensor<double> &X, const Tensor<double> &Y);
+        template float InnerVectorProduct<float>(const Tensor<float> &X, const Tensor<float> &Y);
+        template double InnerVectorProduct<double>(const Tensor<double> &X, const size_t strideX, const Tensor<double> &Y, const size_t strideY);
+        template float InnerVectorProduct<float>(const Tensor<float> &X, const size_t strideX, const Tensor<float> &Y, const size_t strideY);
+        ////
+        template void AddVectors<double>(const double a, const Tensor<double> &x, const size_t ix, Tensor<double> &y, const size_t iy);
+        template void AddVectors<float>(const float a, const Tensor<float> &x, const size_t ix, Tensor<float> &y, const size_t iy);
+        template void AddVectors<double, double>(const double a, const Tensor<double> &x, Tensor<double> &y);
+        template void AddVectors<float, float>(const double a, const Tensor<float> &x, Tensor<float> &y);
+        template void AddVectors<double, float>(const double a, const Tensor<double> &x, Tensor<float> &y);
+        template void AddVectors<float, double>(const double a, const Tensor<float> &x, Tensor<double> &y);
+        ////
+        template void CopyVectors<double, double>(const Tensor<double> &x, Tensor<double> &y);
+        template void CopyVectors<float, float>(const Tensor<float> &x, Tensor<float> &y);
+        template void CopyVectors<double, float>(const Tensor<double> &x, Tensor<float> &y);
+        template void CopyVectors<float, double>(const Tensor<float> &x, Tensor<double> &y);
+        template void CopyVectors<double>(const Tensor<double> &x, size_t ix, Tensor<double> &y, size_t iy);
+        template void CopyVectors<float>(const Tensor<float> &x, size_t ix, Tensor<float> &y, size_t iy);
+        ////
+        template void SwapVectors<double>(Tensor<double> &x, Tensor<double> &y);
+        template void SwapVectors<float>(Tensor<float> &x, Tensor<float> &y);
+        template void SwapVectors<double>(Tensor<double> &x, size_t ix, Tensor<double> &y, size_t iy);
+        template void SwapVectors<float>(Tensor<float> &x, size_t ix, Tensor<float> &y, size_t iy);
+        ////
+        template void ScaleVector<double>(const double a, Tensor<double> &x);
+        template void ScaleVector<float>(const float a, Tensor<float> &x);
+        template void ScaleVector<double>(const double a, Tensor<double> &x, size_t ix);
+        template void ScaleVector<float>(const float a, Tensor<float> &x, size_t ix);
+        ////
+        template int IndexMaxFromVector<double>(const Tensor<double> &x);
+        template int IndexMaxFromVector<float>(const Tensor<float> &x);
+        template int IndexMaxFromVector<double>(const Tensor<double> &x, const size_t ix);
+        template int IndexMaxFromVector<float>(const Tensor<float> &x, const size_t ix);
     }
 }

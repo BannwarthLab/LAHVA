@@ -21,10 +21,8 @@
 #endif
 #ifdef _APPLE
 #define ACCELERATE_NEW_LAPACK
-typedef int64_t BLAS_INT;
 #include <Accelerate/Accelerate.h>
 
-typedef __LAPACK_int LPCK_INT;
 
 typedef CBLAS_ORDER CBLAS_LAYOUT;
 #endif

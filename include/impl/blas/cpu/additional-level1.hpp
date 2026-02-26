@@ -67,7 +67,6 @@ namespace lahva
         template <typename T>
         T FrobeniusNorm(const CPURuntime &cpurt, const Tensor<T> &mat);
 
-       
         template <typename T>
         T FrobeniusInnerProduct(const Matrix_<T> &mat1, const Matrix_<T> &mat2);
         template <typename T>
@@ -108,7 +107,7 @@ namespace lahva
         template <typename T>
         void ApplyKernel(func_t1D<T> funcPtr, Tensor<T> &mat)
         {
-            #pragma omp parallel for collapse(1)
+#pragma omp parallel for collapse(1)
             for (size_t i = 0; i < mat.size(); i++)
             {
                 mat.data()[i] = funcPtr(mat.data()[i]);
@@ -118,7 +117,7 @@ namespace lahva
         /// define the function pointer type for the kernel, with 0 input variables
         template <typename T>
         using func_t0D = T (*)();
-        
+
         /// @brief Apply a kernel to a matrix
         /// @tparam T Numerical type of the matrix
         /// @param funcPtr Function pointer to the kernel
@@ -126,34 +125,56 @@ namespace lahva
         template <typename T>
         void ApplyKernel(func_t0D<T> funcPtr, Tensor<T> &mat)
         {
-            #pragma omp parallel for collapse(1)
+#pragma omp parallel for collapse(1)
             for (size_t i = 0; i < mat.size(); i++)
             {
                 mat.data()[i] = funcPtr();
             }
         };
 
-        // Applay Kernel function with CPU runtime, which is not used
+        /// @brief Wrapper function to apply a kernel to a matrix, with CPURuntime as first argument
+        /// @tparam ...Args the additional input arguments forwarded to ApplyKernel
+        /// @param rt_ the CPURuntime instance, which is ignored
+        /// @param ...args the additional input arguments forwarded to ApplyKernel
         template <typename... Args>
         void ApplyKernel(const CPURuntime &rt_, Args &&...args)
         {
             (ApplyKernel(args...));
         }
-        template<typename T>
+
+        /// @brief Compute the Hadamard product of two tensors Y = X .* Y
+        /// @tparam T Numerical type of the tensors
+        /// @param X Input tensor
+        /// @param Y Tensor to be element-wise multiplied and updated
+        template <typename T>
         void HadamardProduct(const Tensor<T> &X, Tensor<T> &Y);
 
-        template<typename T>
+        /// @brief Compute the Hadamard product of two tensors Z = X .* Y
+        /// @tparam T Numerical type of the tensors
+        /// @param X First input tensor
+        /// @param Y Second input tensor
+        /// @param Z Output tensor to store the result into
+        template <typename T>
         void HadamardProduct(const Tensor<T> &X, const Tensor<T> &Y, Tensor<T> &Z);
 
-        template<typename T>
-        void HadamardProduct(const size_t ndim, const T* X, const T* Y, T* Z, bool increment = false);
+        /// @brief Compute the Hadamard product of two arrays Z = X .* Y (pointer version)
+        /// @tparam T Numerical type of the arrays
+        /// @param ndim Number of elements in the arrays
+        /// @param X First input array
+        /// @param Y Second input array
+        /// @param Z Output array to store the result into
+        template <typename T>
+        void HadamardProduct(const size_t ndim, const T *X, const T *Y, T *Z, bool increment = false);
 
+        /// @brief Wrapper function to compute the Hadamard product with CPURuntime as first argument
+        /// @tparam ...Args the additional input arguments forwarded to HadamardProduct
+        /// @param rt_ the CPURuntime instance, which is ignored
+        /// @param ...args the additional input arguments forwarded to HadamardProduct
         template <typename... Args>
         void HadamardProduct(const CPURuntime &rt_, Args &&...args)
         {
             (HadamardProduct(args...));
-        } 
-        
+        }
 
     } // namespace gpu
 

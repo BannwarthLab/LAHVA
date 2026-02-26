@@ -1,4 +1,5 @@
 #ifndef LAHVA_BLAS_H
+// header collecting all C-style BLAS and LAPACK function declarations
 #define LAHVA_BLAS_H
 #include "impl/blas/cpu/level1.h"
 #include "impl/blas/cpu/level2.h"

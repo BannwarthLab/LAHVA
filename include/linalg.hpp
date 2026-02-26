@@ -1,6 +1,7 @@
 #ifndef LAHVA_LINALG_H
 #define LAHVA_LINALG_H
-
+// header collecting all linear algebra related class declarations
+// especially tensor classes like vectors and matrices
 #include <memory>
 #include <vector>
 #include <iterator>
