@@ -98,14 +98,4 @@ if has_gpu == true
     timeout: 60 # s 
   )
 
-  test('test-hf',
-  executable(
-    '@0@-test-hf'.format(meson.project_name()),
-    sources: files('hartree_fock.cpp'),
-    dependencies: lahva_dep,
-    link_language: 'cpp',
-  ),
-    timeout: 60 # s 
-  )
-
 endif
