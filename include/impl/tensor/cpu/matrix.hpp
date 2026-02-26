@@ -165,6 +165,24 @@ namespace lahva
 
         void symmetrize();
 
+        template <typename... Args>
+        void symmetrize(const CPURuntime &rt_, Args &&...args)
+        {
+            (symmetrize(args...));
+        } 
+
+        template <typename... Args>
+        void get_diagonal(const CPURuntime &rt_, Args &&...args)
+        {
+            (get_diagonal(args...));
+        } 
+
+        template <typename... Args>
+        void set_diagonal(const CPURuntime &rt_, Args &&...args)
+        {
+            (set_diagonal(args...));
+        } 
+
         bool ownsData() { return this->is_owner_; };
     };
 
@@ -387,5 +405,5 @@ namespace lahva
         size_t max_dim = std::max(n_cols_, n_rows_);
         cpu::CopyVectors(diag.size(), diag.data(), 1, this->data(), max_dim+1);
     }
-    } // namespace gpu
+    } // namespace cpu
 } // namespace lahva

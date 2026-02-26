@@ -3,6 +3,7 @@
 #include "linalg.hpp"
 #include "../../../../src/gpu/gpu-utils/utils.hpp"
 #include "kernels.cuh"
+#include <vector>
 namespace lahva
 {
     namespace gpu
@@ -11,8 +12,6 @@ namespace lahva
         void HadamardProduct(const CudaRuntime &cudart, const GPUTensor_<T> &vecin, GPUTensor_<T> &vecinout);
         template <typename T>
         void HadamardProduct(const CudaRuntime &cudart, const GPUTensor_<T> &vecin, const GPUTensor_<T> &vecin2, GPUTensor_<T> &vecout);
-        template <typename T>
-        void HadamardProduct(const CudaRuntime &cudart, const Matrix_<T> &vecin, const GPUTensor_<T> &vecin2, Matrix_<T> &vecout);
 
         template <typename T>
         void TraceKernelDiag(const CudaRuntime &cudart, unsigned long long ndim, const T *diag, T *vec);
@@ -159,7 +158,10 @@ namespace lahva
         }
 
         template <typename inprec, typename outprec>
-        void DecomposeVector2MP(const CudaRuntime &cudart, const GPUTensor_<inprec> &in, GPUTensor_<outprec> &out1, GPUTensor_<outprec> &out2);
+        void DecomposeVector2MP(const CudaRuntime &cudart, const GPUTensor_<inprec> &in, GPUTensor_<outprec> &out1, GPUTensor_<outprec> &out2, GPUTensor_<int>& coeff);
+
+        template <typename inprec, typename outprec, typename Allocator, typename GPUAllocator>
+        void SplitMatrix(const CudaRuntime &cudart, Matrix_<inprec> &in, std::vector<Matrix<outprec, Allocator, GPUAllocator>> &out1, GPUTensor_<int> &split_exponents, int max_split);
 
         template <typename T, typename U, typename V, typename Tout>
         void DecomposeMatrix(const CudaRuntime &cudart, const GPUTensor<T, U, V> &min, Vector<Tout, U, V> &mout1, Vector<Tout, U, V> &mout2)
@@ -201,7 +203,7 @@ namespace lahva
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();
             size_t blocksPerGrid = std::ceil((1. * n) / blockSize);
-            assert(v.size() == blocksPerGrid);
+            assert(v.size() >= blocksPerGrid);
             return Sum_(cudart, in, v);
         };
 
@@ -251,6 +253,7 @@ namespace lahva
             return MinElement_(cudart, in, v);
         };
 
+        void MergeOzaki(const CudaRuntime &cudart, unsigned long long ndim, unsigned int nsplit, const double *alphas, const float **as, double *b);
     } // namespace gpu
 
 }

@@ -179,6 +179,22 @@ namespace lahva
             
         }
 
+        Vector<T, Allocator> get_diagonal() const;
+
+        void set_diagonal(const Vector<T, Allocator> &diag);
+
+        template <typename... Args>
+        void get_diagonal(const CPURuntime &rt_, Args &&...args)
+        {
+            (get_diagonal(args...));
+        } 
+
+        template <typename... Args>
+        void set_diagonal(const CPURuntime &rt_, Args &&...args)
+        {
+            (set_diagonal(args...));
+        } 
+
         bool ownsData() { return this->is_owner_; };
     };
 
@@ -392,6 +408,29 @@ namespace lahva
         }
 
         temp.print();
+    }
+
+    template <typename T, class Allocator>
+    Vector<T, Allocator> Tensor4D<T, Allocator>::get_diagonal() const
+    {
+        size_t min_dim = std::min(std::min(n_1_, n_2_), std::min(n_3_, n_4_));
+        Vector<T, Allocator> diag(min_dim);
+        size_t stride = n_1_ + n_1_ * n_2_ + n_1_ * n_2_ * n_3_;
+        cpu::CopyVectors(diag.size(), this->data(), stride+1, diag.data(), 1);
+
+        return diag;
+    }
+
+     template <typename T, class Allocator>
+    void Tensor4D<T, Allocator>::set_diagonal(const Vector<T, Allocator> &diag)
+    {
+      size_t min_dim = std::min(std::min(n_1_, n_2_), std::min(n_3_, n_4_));
+      if (diag.size() != min_dim)
+      {
+         throw std::runtime_error("The vector given to set the diagonal doesn't correspond to the minimal dimension.");
+      }
+      size_t stride = n_1_ + n_1_ * n_2_ + n_1_ * n_2_ * n_3_;
+      cpu::CopyVectors(diag.size(), diag.data(), 1, this->data(), stride+1);
     }
 
     } // namespace cpu

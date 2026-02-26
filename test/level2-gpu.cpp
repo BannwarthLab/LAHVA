@@ -355,7 +355,6 @@ int test_sgemv_v_cpp(CudaRuntime& cudart){
 
 int test_dspmv_v_cpp(CudaRuntime& cudart){
     int stat_ = 0;
-    Shape s(3,3);
     double* vdtri_ = new double[6] {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
     MLow<double> A(3, vdtri_);
     Vector<double> x({1.0, 2.0, 3.0});
@@ -389,7 +388,6 @@ int test_dspmv_v_cpp(CudaRuntime& cudart){
 
 int test_sspmv_v_cpp(CudaRuntime& cudart){
     int stat_ = 0;
-    Shape s(3,3);
     float* vdtri_ = new float[6] {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
     MLow<float> A(3, vdtri_);
     Vector<float> x({1.0, 2.0, 3.0});
@@ -422,6 +420,50 @@ int test_sspmv_v_cpp(CudaRuntime& cudart){
 
 }
 
+template <typename T>
+int test_outer_product(CudaRuntime& cudart){
+    int stat_ = 0;
+    Vector<T> x({1.0, 2.0, 3.0});
+    Vector<T> y({2.0, 3.0});
+    Matrix<T> A(Shape(3, 2), 0.0);
+
+    OuterVectorProduct(cudart, x, y, A);
+    A.copy2host(cudart);
+    cudart.synchronize();
+
+    Vector<T> vres({2.0, 4.0, 6.0, 3.0, 6.0, 9.0});
+
+    if (!check(A.data(), vres.data(), thr, 6, "Error when computing outer product (double).")) stat_ += 1;
+
+    // Test with alpha = 2.0
+    A = Matrix<T>(Shape(3, 2), 0.0);
+    OuterVectorProduct(cudart, x, y, A, 1, 1, 2.0);
+    A.copy2host(cudart);
+    cudart.synchronize();
+
+    vres = Vector<T>({4.0, 8.0, 12.0, 6.0, 12.0, 18.0});
+
+    if (!check(A.data(), vres.data(), thr, 6, "Error when computing outer product (double) with alpha=2.0.")) stat_ += 1;
+
+    try {
+        Matrix<T> A(Shape(4,2),0.0);
+        OuterVectorProduct(cudart, x, y, A);
+        stat_ += 1; // Should not reach here
+        std::cerr << "Error: No exception thrown for dimension mismatch in outer product test." << std::endl;
+    }
+    catch (std::invalid_argument& e) {
+        // Expected exception caught
+    }
+    catch (const std::exception& e) {
+        stat_ += 1; // Unexpected exception type
+        std::cerr << "Error: Unexpected exception type caught in outer product dimension mismatch test: " << e.what() << std::endl;
+    }
+
+
+
+    return stat_;
+}
+
 int main(){
     int stat = 0;
     CudaRuntime cudart;
@@ -442,11 +484,13 @@ int main(){
     stat += test_ssymv_v_cpp(cudart);
     printf("8th Test");
     stat += test_dsymv_v_cpp(cudart);
-    
     stat += test_sspmv_v_cpp(cudart);
-    //printf("8th Test");
     stat += test_dspmv_v_cpp(cudart);
+    printf("9th Test");
     stat += test_complex_gemv_zero_v_cpp<complex_double>(cudart);
     stat += test_complex_gemv_zero_v_cpp<complex_float>(cudart);
+    printf("10th Test");
+    stat += test_outer_product<double>(cudart);
+    stat += test_outer_product<float>(cudart);
     return stat;
 };

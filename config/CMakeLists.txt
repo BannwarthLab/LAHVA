@@ -100,7 +100,7 @@ else()
     list(APPEND lib_deps ${LAPACK_LIB})
   endif()
 
-  if("${BLAS_LIBRARIES}" MATCHES "intel")
+  if("${BLAS_LIBRARIES}" MATCHES "mkl")
     list(APPEND PRE_FLAGS "W_MKL")
     set(BLA_VENDOR Intel10_64lp)
   endif()

@@ -6,6 +6,11 @@
 
 namespace lahva{
     namespace gpu{ 
+
+    void OuterVectorProduct(const CudaRuntime& cudart, const Vector<double>& x, const Vector<double>& y, Matrix<double>& A, size_t incx = 1, size_t incy = 1, const double alpha = 1.0);
+    void OuterVectorProduct(const CudaRuntime& cudart, const Vector<float>& x, const Vector<float>& y, Matrix<float>& A, size_t incx = 1, size_t incy = 1, const float alpha = 1.0);
+
+
     void MatrixVectorProduct(const CudaRuntime& cudart, const char* T, const double alpha, const Matrix_<double>& a, const Vector_<double>& x, 
                              const size_t incx, const double beta, Vector_<double>& y, const size_t incy);
     void MatrixVectorProduct(const CudaRuntime& cudart, const Matrix_<double>& a, const Vector_<double>& x, Vector_<double>& y,

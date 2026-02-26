@@ -48,15 +48,21 @@ namespace lahva
             return 0;
         }
         template <>
-        constexpr int32_t getEpse<float>()
-        {
-            return 24;
-        }
-        template <>
-        constexpr int32_t getEpse<double>()
-        {
-            return 53;
-        }
+constexpr int32_t getEpse <int32_t> () {
+	return 31;
+}
+template <>
+constexpr int32_t getEpse <__half> () {
+	return 24;
+}
+template <>
+constexpr int32_t getEpse <float> () {
+	return 24;
+}
+template <>
+constexpr int32_t getEpse <double> () {
+	return 53;
+}
 
         // -------------------------------------
         // getTypeMax
@@ -129,37 +135,37 @@ namespace lahva
         template <typename T>
         __device__ inline T getSub(T val1, T val2)
         {
-            return 0;
+            return val1 + val2;
         }
 
         template <>
         __device__ inline double getSub(double val1, double val2)
         {
-            return __dsub_rz(val1, val2);
+            return __dsub_rn(val1, val2);
         }
 
         template <>
         __device__ inline float getSub(float val1, float val2)
         {
-            return __fsub_rz(val1, val2);
+            return __fsub_rn(val1, val2);
         }
 
          template <typename T>
         __device__ inline T getAdd(T val1, T val2)
         {
-            return 0;
+            return val1 + val2;
         }
 
         template <>
         __device__ inline double getAdd(double val1, double val2)
         {
-            return __dadd_rz(val1, val2);
+            return __dadd_rn(val1, val2);
         }
 
         template <>
         __device__ inline float getAdd(float val1, float val2)
         {
-            return __fadd_rz(val1, val2);
+            return __fadd_rn(val1, val2);
         }
 
 
@@ -173,14 +179,14 @@ namespace lahva
         template <>
         __device__ inline double getFMA(double val1, double val2, double val3)
         {
-            return __fma_rz(val1, val2, val3);
+            return __fma_rn(val1, val2, val3);
         }
         
 
         template <>
         __device__ inline float getFMA(float val1, float val2, float val3)
         {
-            return __fmaf_ieee_rz(val1, val2, val3);
+            return __fmaf_rn(val1, val2, val3);
         }
     }
 }

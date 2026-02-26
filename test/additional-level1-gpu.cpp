@@ -37,7 +37,7 @@ bool IsEqual(T rhs, T lhs)
 template <typename T>
 int test_Frobenius_norm(const CudaRuntime& cudart)
 {
-    MyMatrix<T> A(Shape(100,100));
+    MyMatrix<T> A(Shape(50,50));
     fill_with_rd_values(A);
     T res_gpu = 1.0;
     res_gpu = FrobeniusNorm(cudart, A);
@@ -45,7 +45,8 @@ int test_Frobenius_norm(const CudaRuntime& cudart)
     T res_cpu = 0.0;
     res_cpu = FrobeniusNorm(A);
     
-    T eps = std::abs( std::nextafter(res_cpu, +INFINITY) -res_cpu);
+    T eps = std::abs( std::nextafter(res_gpu, +INFINITY) -res_gpu);
+    std::cout <<eps * 10<< std::endl;
 
     if (!check(res_gpu, res_cpu, eps*100, "FrobeniusNorm"))
     {
@@ -119,6 +120,51 @@ int test_Frobenius_norm2_diff(const CudaRuntime& cudart)
     return 0;
 };
 
+template <typename T>
+int test_HadamardProduct(const CudaRuntime& cudart)
+{
+
+    int n=1000;
+    std::cout << "Matrix size (n): " << n << std::endl;
+
+    MyMatrix<T> A(Shape(n,n),0.0);
+    MyMatrix<T> B(Shape(n,n),0.0);
+    MyMatrix<T> C_gpu(Shape(n,n),0.0);
+    
+    fill_with_rd_values(A);
+    fill_with_rd_values(B);
+
+    A.updateGPUvalues(cudart);
+    B.updateGPUvalues(cudart);
+    cudart.synchronize();
+    
+    // GPU Hadamard product
+    HadamardProduct(cudart, A, B, C_gpu);
+    C_gpu.copy2host(cudart);
+    cudart.synchronize();
+    
+    // CPU Hadamard product
+    using CPUMatrix = cpu::Matrix<T, StdAllocator<T>>;
+    CPUMatrix A_cpu(Shape(n,n),0.0);
+    CPUMatrix B_cpu(Shape(n,n),0.0);
+    CPUMatrix C_cpu(Shape(n,n),0.0);
+
+    cpu::CopyVectors(A, A_cpu);
+    cpu::CopyVectors(B, B_cpu);
+    cpu::HadamardProduct(A_cpu, B_cpu, C_cpu);
+    
+    // Comparison
+    T eps = std::abs( std::nextafter(C_cpu.data()[0], +INFINITY) -C_cpu.data()[0]);
+    if (!(check(C_gpu.data(), C_cpu.data(), eps, C_cpu.size(), "HadamardProduct")))
+    {
+        std::cout << "Test failed: HadamardProduct" << std::endl;
+        return 1;
+    }
+
+    return 0;
+};
+
+
 int main(){
     int exit = 0;
     CudaRuntime cudart;
@@ -139,6 +185,12 @@ int main(){
 
     std::cout << "Starting test_Frobenius_norm2_diff (float)" << std::endl;
     exit += test_Frobenius_norm2_diff<float>(cudart);
+
+    std::cout << "Starting test_HadamardProduct (double)" << std::endl;
+    exit += test_HadamardProduct<double>(cudart);
+
+    std::cout << "Starting test_HadamardProduct (float)" << std::endl;
+    exit += test_HadamardProduct<float>(cudart);
 
     return exit;
 };

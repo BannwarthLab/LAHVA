@@ -41,4 +41,12 @@ if(GPU)
   target_link_libraries(${PROJECT_NAME}-gpu-misc PRIVATE ${PROJECT_NAME})
   add_test(NAME gpu-misc COMMAND ${PROJECT_NAME}-gpu-misc)
 
+  add_executable(${PROJECT_NAME}-mat-attributes-tester mat-attributes.cpp utils.cpp)
+  target_link_libraries(${PROJECT_NAME}-mat-attributes-tester PRIVATE ${PROJECT_NAME})
+  add_test(NAME mat-attributes COMMAND ${PROJECT_NAME}-mat-attributes-tester)
+  
+  add_executable(${PROJECT_NAME}-test-mp test-mp.cpp)
+  target_link_libraries(${PROJECT_NAME}-test-mp PRIVATE ${PROJECT_NAME})
+  add_test(NAME test-mp COMMAND ${PROJECT_NAME}-test-mp)
+
 endif()

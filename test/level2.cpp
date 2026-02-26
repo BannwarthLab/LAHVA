@@ -744,6 +744,46 @@ int test_ssymv_v_c(){
     return stat_;
 }
 
+template <typename T>
+int test_ger(){
+    int stat_ = 0;
+    Vector<T> x({1.0, 2.0, 3.0});
+    Vector<T> y({2.0, 3.0});
+    Matrix<T> A(Shape(3, 2), 0.0);
+
+    OuterVectorProduct(x, y, A);
+
+    Vector<T> vres({2.0, 4.0, 6.0, 3.0, 6.0, 9.0});
+
+    if (!check(A.data(), vres.data(), thr, 6, "Error when computing outer product (double).")) stat_ += 1;
+
+    // Test with alpha = 2.0
+    A = Matrix<T>(Shape(3, 2), 0.0);
+    OuterVectorProduct(x, y, A, 1, 1, 2.0);
+
+    vres = Vector<T>({4.0, 8.0, 12.0, 6.0, 12.0, 18.0});
+
+    if (!check(A.data(), vres.data(), thr, 6, "Error when computing outer product (double) with alpha=2.0.")) stat_ += 1;
+
+
+    try {
+        Matrix<T> A(Shape(4,2),0.0);
+        OuterVectorProduct(x, y, A);
+        stat_ += 1; // Should not reach here
+        std::cerr << "Error: No exception thrown for dimension mismatch in outer product test." << std::endl;
+    }
+    catch (std::invalid_argument& e) {
+        // Expected exception caught
+    }
+    catch (const std::exception& e) {
+        stat_ += 1; // Unexpected exception type
+        std::cerr << "Error: Unexpected exception type caught in outer product dimension mismatch test: " << e.what() << std::endl;
+    }
+
+    return stat_;
+}
+
+
 int main(){
     int stat = 0;
     stat += test_dgemv_zero_v_cpp();
@@ -770,6 +810,8 @@ int main(){
     stat += test_dgemv_v_c();
     stat += test_ssymv_v_c();
     stat += test_dsymv_v_c();
+    stat += test_ger<double>();
+    stat += test_ger<float>();
 
     return stat;
 };

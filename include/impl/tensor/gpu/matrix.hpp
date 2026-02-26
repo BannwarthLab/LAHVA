@@ -36,6 +36,16 @@ namespace lahva
 
     };
 
+        // Forward declarations for GPU kernel wrapper functions
+        template <typename T>
+        void SymmetrizeMatrix(const CudaRuntime &cudart, Matrix_<T> &m);
+
+        template <typename T>
+        void GetDiagonal(const CudaRuntime& cudart, const Matrix_<T>& m, GPUTensor_<T>& diag);
+
+        template <typename T>
+        void SetDiagonal(const CudaRuntime& cudart, const GPUTensor_<T>& diag, Matrix_<T>& m);
+
 
     //! @brief slim wrapper around a float or double array to allow easy acces with
     //!        two indeces using the () operator.
@@ -43,7 +53,7 @@ namespace lahva
     //! If NDEBUG is **not** defined, range checks are performed.  d
     //! The data is stored in column-major order in a 1D array.
     //!
-    template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAllocator<T>>
+    template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAsyncAllocator<T>>
     class Matrix : public GPUTensor<T, Allocator, GPUAllocator>, public virtual Matrix_<T>
     {
         using alloc_ptr = Allocator;
@@ -160,6 +170,12 @@ namespace lahva
         void set_diagonal(const Vector<T, Allocator, GPUAllocator> &diag);
 
         void symmetrize();
+
+        Vector<T, Allocator, GPUAllocator> get_diagonal(const CudaRuntime& cudart) const;
+
+        void set_diagonal(const CudaRuntime& cudart, const Vector<T, Allocator, GPUAllocator> &diag);
+
+        void symmetrize(const CudaRuntime& cudart);
 
         bool ownsData() { return this->is_owner_; };
     };
@@ -368,6 +384,15 @@ namespace lahva
         }
     }
 
+    //! @param cudart CudaRuntime for GPU execution
+    //! @return (A+A^T)/2 on GPU
+    template <typename T, class Allocator, class GPUAllocator>
+    void Matrix<T, Allocator, GPUAllocator>::symmetrize(const CudaRuntime& cudart)
+    {
+        assert(n_cols_ == n_rows_);
+        gpu::SymmetrizeMatrix<T>(cudart, *this);
+    }
+
     template <typename T, class Allocator, class GPUAllocator>
     Vector<T, Allocator, GPUAllocator> Matrix<T, Allocator, GPUAllocator>::get_diagonal() const
     {
@@ -376,6 +401,15 @@ namespace lahva
         Vector<T, Allocator, GPUAllocator> diag(min_dim);
         cpu::CopyVectors(diag.size(), this->data(), max_dim+1 ,diag.data(), 1);
 
+        return diag;
+    }
+
+    template <typename T, class Allocator, class GPUAllocator>
+    Vector<T, Allocator, GPUAllocator> Matrix<T, Allocator, GPUAllocator>::get_diagonal(const CudaRuntime& cudart) const
+    {
+        size_t min_dim = std::min(n_cols_, n_rows_);
+        Vector<T, Allocator, GPUAllocator> diag(min_dim);
+        gpu::GetDiagonal<T>(cudart, *this, diag);
         return diag;
     }
 
@@ -389,6 +423,17 @@ namespace lahva
         }
         size_t max_dim = std::max(n_cols_, n_rows_);
         cpu::CopyVectors(diag.size(), diag.data(), 1, this->data(), max_dim+1);
+    }
+
+    template <typename T, class Allocator, class GPUAllocator>
+    void Matrix<T, Allocator, GPUAllocator>::set_diagonal(const CudaRuntime& cudart, const Vector<T, Allocator, GPUAllocator> &diag)
+    {
+        size_t min_dim = std::min(n_cols_, n_rows_);
+        if (diag.size() != min_dim)
+        {
+            throw std::runtime_error("The vector given to set diagonal doesn't correspond to the minimal dimension.");
+        }
+        gpu::SetDiagonal<T>(cudart, diag, *this);
     }
     } // namespace gpu
     #ifdef _CUDA

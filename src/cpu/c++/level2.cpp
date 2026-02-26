@@ -1,11 +1,44 @@
 #include "linalg.hpp"
 #include "impl/blas/cpu/level2.hpp"
 #include "../utils/utils.hpp"
+#include "impl/blas/cpu/level2.h"
 
 namespace lahva
 {
     namespace cpu
     {
+        /// @brief Simple interface to DGER \f$\mathbf{A}=alpha*\vec{x}*\vec{y}**T + A\f$
+        /// @param x Vector x
+        /// @param incx stride of Vector x
+        /// @param y vector y
+        /// @param incy stride of Vector y
+        /// @param alpha value by which \f$\vec{x}*\vec{y}**T\f$ is scaled
+        /// @param A matrix A of size ndimX by ndimY
+        void OuterVectorProduct(const Vector<double>& x, const Vector<double>& y, Matrix<double>& A, size_t incx, size_t incy, const double alpha) {
+            
+            if (A.shape().first != x.size() || A.shape().second != y.size()) {
+                throw std::invalid_argument("OuterVectorProduct: Output matrix A has incorrect shape.");
+            }
+
+            OuterVectorProduct(x.size(), x.data(), incx, y.size(), y.data(), incy, alpha, A.data());
+        }
+
+        /// @brief Simple interface to SGER \f$\mathbf{A}=alpha*\vec{x}*\vec{y}**T + A\f$
+        /// @param x Vector x
+        /// @param incx stride of Vector x
+        /// @param y vector y
+        /// @param incy stride of Vector y
+        /// @param alpha value by which \f$\vec{x}*\vec{y}**T\f$ is scaled
+        /// @param A matrix A of size ndimX by ndimY
+        void OuterVectorProduct(const Vector<float>& x, const Vector<float>& y, Matrix<float>& A, size_t incx, size_t incy, const float alpha) {
+            if (A.shape().first != x.size() || A.shape().second != y.size()) {
+                throw std::invalid_argument("OuterVectorProduct: Output matrix A has incorrect shape.");
+            }
+
+            OuterVectorProduct(x.size(), x.data(), incx, y.size(), y.data(), incy, alpha, A.data());
+        }
+       
+       
         /*! @brief Simple interface to DGEMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
         or \f$\vec{y}=alpha*\mathbf{A}^\intercal*\vec{x}+beta*\vec{y}\f$ or
         \f$\vec{y}=alpha*conj(\mathbf{A}^\intercal)*\vec{x}+beta*\vec{y}\f$  for specified stride

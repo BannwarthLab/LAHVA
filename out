@@ -1,0 +1,90 @@
+ninja: Entering directory `/home/mheezen/lahva_eri/_build'
+[1/16] Linking static target liblahva.a
+[2/16] Linking target liblahva.so.0.2.0
+[3/16] Generating symbol file liblahva.so.0.2.0.p/liblahva.so.0.2.0.symbols
+[4/16] Linking target test/lahva-level3-tester
+[5/16] Linking target test/lahva-level1-tester
+[6/16] Linking target test/lahva-misc-gpu
+[7/16] Linking target test/lahva-level1-gpu-tester
+[8/16] Linking target test/lahva-test-mp
+[9/16] Linking target test/lahva-level2-tester
+[10/16] Linking target test/lahva-add-level2-tester-gpu
+[11/16] Linking target test/lahva-add-level2-tester
+[12/16] Linking target test/lahva-mat-attributes
+[13/16] Linking target test/lahva-level2-gpu-tester
+[14/16] Linking target test/lahva-add-level1-tester-gpu
+[15/16] Compiling C++ object test/lahva-test-hf.p/hartree_fock.cpp.o
+FAILED: test/lahva-test-hf.p/hartree_fock.cpp.o 
+g++ -Itest/lahva-test-hf.p -Itest -I../test -I../include -Isrc/gpu/additional-blas -I../src/gpu/additional-blas -I/usr/include/x86_64-linux-gnu -I/mnt/group-lib/nvidia-hpc-sdk/Linux_x86_64/24.7/cuda/11.8/include -fdiagnostics-color=always -D_GLIBCXX_ASSERTIONS=1 -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c++17 -O2 -g -DNETLIB_HEADER -D_CUDA -fopenmp -MD -MQ test/lahva-test-hf.p/hartree_fock.cpp.o -MF test/lahva-test-hf.p/hartree_fock.cpp.o.d -o test/lahva-test-hf.p/hartree_fock.cpp.o -c ../test/hartree_fock.cpp
+../test/hartree_fock.cpp: In function ‘double kinetic_energy_integral(const BasisFunction&, const BasisFunction&)’:
+../test/hartree_fock.cpp:50:12: warning: unused variable ‘alpha_sum’ [-Wunused-variable]
+   50 |     double alpha_sum = bfi.exponent + bfj.exponent;
+      |            ^~~~~~~~~
+../test/hartree_fock.cpp: In function ‘int main()’:
+../test/hartree_fock.cpp:367:55: error: ‘orbital_energies’ was not declared in this scope
+  367 |         std::cout << "  Orbital " << i + 1 << ": " << orbital_energies[i] << std::endl;
+      |                                                       ^~~~~~~~~~~~~~~~
+In file included from ../include/impl/tensor/gpu/tensor4d.hpp:7,
+                 from ../include/linalg.hpp:15,
+                 from ../include/impl/blas/cpu/level1.hpp:4,
+                 from ../include/lahva.hpp:4,
+                 from ../test/hartree_fock.cpp:1:
+../include/impl/tensor/cpu/tensor4d.hpp: In instantiation of ‘lahva::Shape lahva::cpu::Tensor4D<T, Allocator>::shape() const [with T = double; Allocator = lahva::StdAllocator<double>; lahva::Shape = lahva::ShapeStruct]’:
+../include/impl/tensor/cpu/tensor4d.hpp:143:15:   required from here
+../include/impl/tensor/cpu/tensor4d.hpp:143:44: warning: narrowing conversion of ‘(size_t)((const lahva::cpu::Tensor4D<double>*)this)->lahva::cpu::Tensor4D<double>::n_1_’ from ‘size_t’ {aka ‘long unsigned int’} to ‘uint32_t’ {aka ‘unsigned int’} [-Wnarrowing]
+  143 |         Shape shape() const { return Shape{n_1_, n_2_, n_3_, n_4_}; }
+      |                                            ^~~~
+../include/impl/tensor/cpu/tensor4d.hpp:143:50: warning: narrowing conversion of ‘(size_t)((const lahva::cpu::Tensor4D<double>*)this)->lahva::cpu::Tensor4D<double>::n_2_’ from ‘size_t’ {aka ‘long unsigned int’} to ‘uint32_t’ {aka ‘unsigned int’} [-Wnarrowing]
+  143 |         Shape shape() const { return Shape{n_1_, n_2_, n_3_, n_4_}; }
+      |                                                  ^~~~
+../include/impl/tensor/cpu/tensor4d.hpp:143:56: warning: narrowing conversion of ‘(size_t)((const lahva::cpu::Tensor4D<double>*)this)->lahva::cpu::Tensor4D<double>::n_3_’ from ‘size_t’ {aka ‘long unsigned int’} to ‘uint32_t’ {aka ‘unsigned int’} [-Wnarrowing]
+  143 |         Shape shape() const { return Shape{n_1_, n_2_, n_3_, n_4_}; }
+      |                                                        ^~~~
+../include/impl/tensor/cpu/tensor4d.hpp:143:62: warning: narrowing conversion of ‘(size_t)((const lahva::cpu::Tensor4D<double>*)this)->lahva::cpu::Tensor4D<double>::n_4_’ from ‘size_t’ {aka ‘long unsigned int’} to ‘uint32_t’ {aka ‘unsigned int’} [-Wnarrowing]
+  143 |         Shape shape() const { return Shape{n_1_, n_2_, n_3_, n_4_}; }
+      |                                                              ^~~~
+In file included from ../include/impl/tensor/gpu/matrix.hpp:6,
+                 from ../include/linalg.hpp:13,
+                 from ../include/impl/blas/cpu/level1.hpp:4,
+                 from ../include/lahva.hpp:4,
+                 from ../test/hartree_fock.cpp:1:
+../include/impl/tensor/cpu/matrix.hpp: In instantiation of ‘lahva::Shape lahva::cpu::Matrix<T, Allocator>::shape() const [with T = double; Allocator = lahva::StdAllocator<double>; lahva::Shape = lahva::ShapeStruct]’:
+../include/impl/tensor/cpu/matrix.hpp:133:15:   required from here
+../include/impl/tensor/cpu/matrix.hpp:133:44: warning: narrowing conversion of ‘(size_t)((const lahva::cpu::Matrix<double>*)this)->lahva::cpu::Matrix<double>::n_rows_’ from ‘size_t’ {aka ‘long unsigned int’} to ‘uint32_t’ {aka ‘unsigned int’} [-Wnarrowing]
+  133 |         Shape shape() const { return Shape{n_rows_, n_cols_}; }
+      |                                            ^~~~~~~
+../include/impl/tensor/cpu/matrix.hpp:133:53: warning: narrowing conversion of ‘(size_t)((const lahva::cpu::Matrix<double>*)this)->lahva::cpu::Matrix<double>::n_cols_’ from ‘size_t’ {aka ‘long unsigned int’} to ‘uint32_t’ {aka ‘unsigned int’} [-Wnarrowing]
+  133 |         Shape shape() const { return Shape{n_rows_, n_cols_}; }
+      |                                                     ^~~~~~~
+In file included from ../include/linalg.hpp:13,
+                 from ../include/impl/blas/cpu/level1.hpp:4,
+                 from ../include/lahva.hpp:4,
+                 from ../test/hartree_fock.cpp:1:
+../include/impl/tensor/gpu/matrix.hpp: In instantiation of ‘lahva::Shape lahva::gpu::Matrix<T, Allocator, GPUAllocator>::shape() const [with T = double; Allocator = lahva::CudaHostAllocator<double>; GPUAllocator = lahva::CudaDeviceAsyncAllocator<double>; lahva::Shape = lahva::ShapeStruct]’:
+../include/impl/tensor/gpu/matrix.hpp:139:15:   required from here
+../include/impl/tensor/gpu/matrix.hpp:139:44: warning: narrowing conversion of ‘(size_t)((const lahva::gpu::Matrix<double, lahva::CudaHostAllocator<double>, lahva::CudaDeviceAsyncAllocator<double> >*)this)->lahva::gpu::Matrix<double, lahva::CudaHostAllocator<double>, lahva::CudaDeviceAsyncAllocator<double> >::n_rows_’ from ‘size_t’ {aka ‘long unsigned int’} to ‘uint32_t’ {aka ‘unsigned int’} [-Wnarrowing]
+  139 |         Shape shape() const { return Shape{n_rows_, n_cols_}; }
+      |                                            ^~~~~~~
+../include/impl/tensor/gpu/matrix.hpp:139:53: warning: narrowing conversion of ‘(size_t)((const lahva::gpu::Matrix<double, lahva::CudaHostAllocator<double>, lahva::CudaDeviceAsyncAllocator<double> >*)this)->lahva::gpu::Matrix<double, lahva::CudaHostAllocator<double>, lahva::CudaDeviceAsyncAllocator<double> >::n_cols_’ from ‘size_t’ {aka ‘long unsigned int’} to ‘uint32_t’ {aka ‘unsigned int’} [-Wnarrowing]
+  139 |         Shape shape() const { return Shape{n_rows_, n_cols_}; }
+      |                                                     ^~~~~~~
+../include/impl/tensor/gpu/matrix.hpp: In instantiation of ‘lahva::Shape lahva::gpu::Matrix<T, Allocator, GPUAllocator>::shape() const [with T = float; Allocator = lahva::CudaHostAllocator<float>; GPUAllocator = lahva::CudaDeviceAsyncAllocator<float>; lahva::Shape = lahva::ShapeStruct]’:
+../include/impl/tensor/gpu/matrix.hpp:139:15:   required from here
+../include/impl/tensor/gpu/matrix.hpp:139:44: warning: narrowing conversion of ‘(size_t)((const lahva::gpu::Matrix<float>*)this)->lahva::gpu::Matrix<float>::n_rows_’ from ‘size_t’ {aka ‘long unsigned int’} to ‘uint32_t’ {aka ‘unsigned int’} [-Wnarrowing]
+  139 |         Shape shape() const { return Shape{n_rows_, n_cols_}; }
+      |                                            ^~~~~~~
+../include/impl/tensor/gpu/matrix.hpp:139:53: warning: narrowing conversion of ‘(size_t)((const lahva::gpu::Matrix<float>*)this)->lahva::gpu::Matrix<float>::n_cols_’ from ‘size_t’ {aka ‘long unsigned int’} to ‘uint32_t’ {aka ‘unsigned int’} [-Wnarrowing]
+  139 |         Shape shape() const { return Shape{n_rows_, n_cols_}; }
+      |                                                     ^~~~~~~
+In file included from ../include/impl/blas/cpu/level1.hpp:3,
+                 from ../include/lahva.hpp:4,
+                 from ../test/hartree_fock.cpp:1:
+../include/const.h: At global scope:
+../include/const.h:56:17: warning: ‘lahva::l_nondiag’ defined but not used [-Wunused-variable]
+   56 |     static char l_nondiag = 'N';
+      |                 ^~~~~~~~~
+../include/const.h:55:17: warning: ‘lahva::l_uplo’ defined but not used [-Wunused-variable]
+   55 |     static char l_uplo = 'L';
+      |                 ^~~~~~
+ninja: build stopped: subcommand failed.
+Could not rebuild /home/mheezen/lahva_eri/_build

@@ -15,7 +15,7 @@ namespace lahva
 
     };
     
-    template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAllocator<T>>
+    template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAsyncAllocator<T>>
     class Vector : public GPUTensor<T, Allocator, GPUAllocator>, public virtual Vector_<T>
     {
 
@@ -55,7 +55,8 @@ namespace lahva
     // Vector class
     ///////////////////////////////////////////////////////////////////////////
     template <typename T, class Allocator, class GPUAllocator>
-    Vector<T, Allocator, GPUAllocator>::Vector(size_type count, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc ) : 
+    Vector<T, Allocator, GPUAllocator>::Vector(size_type count, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc ) :
+    Vector_<T>(),
     GPUTensor<T, Allocator, GPUAllocator>{count, alloc, gpualloc} {};
     
     template <typename T, class Allocator, class GPUAllocator>
@@ -93,7 +94,7 @@ namespace lahva
 
     template <class T, class Allocator, class GPUAllocator>
 Vector<T, Allocator, GPUAllocator>::Vector(std::initializer_list<T> init, const alloc_ptr &alloc, const gpualloc_ptr &gpualloc)
-    : GPUTensor<T, Allocator, GPUAllocator>(init.size(), alloc, gpualloc), Vector_<T>()
+    : Vector_<T>(), GPUTensor<T, Allocator, GPUAllocator>(init.size(), alloc, gpualloc)
 {
     std::copy(init.begin(), init.end(), this->data_);
 }

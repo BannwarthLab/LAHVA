@@ -17,7 +17,7 @@ namespace lahva
             };
             
             LPCK_INT n = a.shape().first;
-            if (ipiv.size() != n)
+            if ((LPCK_INT)ipiv.size() != n)
             {
                 ipiv = Vector<LPCK_INT>(n);
             }

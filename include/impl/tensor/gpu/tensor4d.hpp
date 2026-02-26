@@ -41,6 +41,13 @@ namespace lahva
 
     };
 
+    // Forward declarations for GPU kernel wrapper functions
+    template <typename T>
+    void GetDiagonal(const CudaRuntime& cudart, const Tensor4D_<T>& m, GPUTensor_<T>& diag);
+
+    template <typename T>
+    void SetDiagonal(const CudaRuntime& cudart, const GPUTensor_<T>& diag, Tensor4D_<T>& m);
+
 
     //! @brief slim wrapper around a float or double array to allow easy acces with
     //!        four indices using the () operator.
@@ -174,6 +181,14 @@ namespace lahva
             os.close();
             
         }
+        
+        Vector<T, Allocator, GPUAllocator> get_diagonal() const;
+
+        void set_diagonal(const Vector<T, Allocator, GPUAllocator> &diag);
+
+        Vector<T, Allocator, GPUAllocator> get_diagonal(const CudaRuntime& cudart) const;
+
+        void set_diagonal(const CudaRuntime& cudart, const Vector<T, Allocator, GPUAllocator> &diag);
 
         bool ownsData() { return this->is_owner_; };
     };
@@ -396,6 +411,49 @@ namespace lahva
         }
 
         temp.print();
+    }
+
+    template <typename T, class Allocator, class GPUAllocator>
+    Vector<T, Allocator, GPUAllocator> Tensor4D<T, Allocator, GPUAllocator>::get_diagonal() const
+    {
+        size_t min_dim = std::min(std::min(n_1_, n_2_), std::min(n_3_, n_4_));
+        Vector<T, Allocator, GPUAllocator> diag(min_dim);
+        size_t stride = n_1_ + n_1_ * n_2_ + n_1_ * n_2_ * n_3_;
+        cpu::CopyVectors(diag.size(), this->data(), stride+1 ,diag.data(), 1);
+
+        return diag;
+    }
+
+    template <typename T, class Allocator, class GPUAllocator>
+    Vector<T, Allocator, GPUAllocator> Tensor4D<T, Allocator, GPUAllocator>::get_diagonal(const CudaRuntime& cudart) const
+    {
+        size_t min_dim = std::min(std::min(n_1_, n_2_), std::min(n_3_, n_4_));
+        Vector<T, Allocator, GPUAllocator> diag(min_dim);
+        gpu::GetDiagonal<T>(cudart, *this, diag);
+        return diag;
+    }
+
+    template <typename T, class Allocator, class GPUAllocator>
+    void Tensor4D<T, Allocator, GPUAllocator>::set_diagonal(const Vector<T, Allocator, GPUAllocator> &diag)
+    {
+        size_t min_dim = std::min(std::min(n_1_, n_2_), std::min(n_3_, n_4_));
+        if (diag.size() != min_dim)
+        {
+            throw std::runtime_error("The vector given to set diagonal doesn't correspond to the minimal dimension.");
+        }
+        size_t stride = n_1_ + n_1_ * n_2_ + n_1_ * n_2_ * n_3_;
+        cpu::CopyVectors(diag.size(), diag.data(), 1, this->data(), stride+1);
+    }
+
+    template <typename T, class Allocator, class GPUAllocator>
+    void Tensor4D<T, Allocator, GPUAllocator>::set_diagonal(const CudaRuntime& cudart, const Vector<T, Allocator, GPUAllocator> &diag)
+    {
+        size_t min_dim = std::min(std::min(n_1_, n_2_), std::min(n_3_, n_4_));
+        if (diag.size() != min_dim)
+        {
+            throw std::runtime_error("The vector given to set diagonal doesn't correspond to the minimal dimension.");
+        }
+        gpu::SetDiagonal<T>(cudart, diag, *this);
     }
 
     
