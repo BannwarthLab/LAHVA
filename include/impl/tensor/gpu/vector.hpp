@@ -8,6 +8,9 @@ namespace lahva
 {
     namespace gpu
     {
+        // Forward declaration
+        template <class T, class Allocator, class GPUAllocator>
+        class Matrix;
         
     template<typename T>
     class Vector_ : public virtual GPUTensor_<T>, public virtual cpu::Vector_<T>
@@ -40,6 +43,7 @@ namespace lahva
         Vector(size_type count, T *ptr, bool take_onwership = true, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr  &gpualloc = GPUAllocator());
         Vector(size_type count, const T *ptr, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr  &gpualloc = GPUAllocator());
         Vector(std::initializer_list<T> init, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator());
+        Vector(const Matrix<T, Allocator, GPUAllocator>& mat);
         ~Vector();
         Vector &operator=(const Vector &other);
         Vector &operator=(Vector &&other);
@@ -110,6 +114,17 @@ Vector<T, Allocator, GPUAllocator>::Vector(std::initializer_list<T> init, const 
     GPUTensor<T, Allocator, GPUAllocator>{static_cast<GPUTensor<T, Allocator, GPUAllocator>&&>(x)}
     {
     };
+
+    template <typename T, class Allocator, class GPUAllocator>
+    Vector<T, Allocator, GPUAllocator>::Vector(const Matrix<T, Allocator, GPUAllocator>& mat) 
+        : Vector(mat.size(), mat.data(), false)
+    {
+        this->data_ = mat.data();
+        this->count_ = mat.size();
+        this->is_owner_ = false;
+        this->gpu_data_ = mat.gpu_data();
+        this->is_on_device_ = (this->gpu_data_ != nullptr);
+    }
 
     template <typename T, class Allocator, class GPUAllocator>
     Vector<T, Allocator, GPUAllocator> &Vector<T,Allocator, GPUAllocator>::operator=(const Vector &other)

@@ -7,6 +7,9 @@ namespace lahva
 {
     namespace cpu
     {
+        // Forward declaration
+        template <class T, class Allocator>
+        class Matrix;
 
         template <typename T>
         class Vector_ : public virtual Tensor<T>
@@ -28,6 +31,7 @@ namespace lahva
             Vector(size_type count, T *ptr, bool take_onwership = true, const alloc_ptr &alloc = Allocator());
             Vector(size_type count, const T *ptr, const alloc_ptr &alloc = Allocator());
             Vector(std::initializer_list<T> init, const alloc_ptr &alloc = Allocator());
+            Vector(const Matrix<T, Allocator>& mat);
             ~Vector();
             Vector &operator=(const Vector &other);
             Vector &operator=(Vector &&other);
@@ -83,6 +87,12 @@ namespace lahva
             : Vector_<T>(), CPUTensor<T, Allocator>(init.size(), alloc)
         {
             std::copy(init.begin(), init.end(), this->data_);
+        }
+
+        template <class T, class Allocator>
+        Vector<T, Allocator>::Vector(const Matrix<T, Allocator>& mat) 
+            : Vector(mat.size(), mat.data(), false)
+        {
         }
 
         template <typename T, class Allocator>

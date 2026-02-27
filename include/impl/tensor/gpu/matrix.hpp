@@ -16,6 +16,10 @@ namespace lahva
 {
     namespace gpu
     {
+
+        // Forward declaration
+        template <class T, class Allocator, class GPUAllocator>
+        class Tensor4D;
         
     
     
@@ -119,6 +123,7 @@ namespace lahva
 
         Matrix(const Matrix &);
         Matrix(Matrix &&);
+        Matrix(const Tensor4D<T, Allocator, GPUAllocator>& tens4d);
         Matrix &operator=(const Matrix &);
         Matrix &operator=(Matrix &&);
         virtual ~Matrix();
@@ -284,6 +289,19 @@ namespace lahva
     GPUTensor<T, Allocator, GPUAllocator>{other}, 
     n_rows_{other.n_rows_}, n_cols_{other.n_cols_}  
     {
+    }
+
+    template <class T, class Allocator, class GPUAllocator>
+    Matrix<T, Allocator, GPUAllocator>::Matrix(const Tensor4D<T, Allocator, GPUAllocator>& tens4d) 
+        : GPUTensor<T, Allocator, GPUAllocator>{tens4d.get_gpu_alloc()},
+          n_rows_{tens4d.shape().first * tens4d.shape().second},
+          n_cols_{tens4d.shape().third * tens4d.shape().fourth}
+    {
+        this->data_ = tens4d.data();
+        this->count_ = n_rows_ * n_cols_;
+        this->is_owner_ = false;
+        this->gpu_data_ = tens4d.gpu_data();
+        this->is_on_device_ = (this->gpu_data_ != nullptr);
     }
 
     template <typename T, class Allocator, class GPUAllocator>

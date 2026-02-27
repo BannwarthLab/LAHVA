@@ -14,6 +14,9 @@ namespace lahva
 {
     namespace cpu
     {
+        // Forward declaration
+        template <class T, class Allocator>
+        class Tensor4D;
         
     
     
@@ -113,6 +116,7 @@ namespace lahva
 
         Matrix(const Matrix &);
         Matrix(Matrix &&);
+        Matrix(const Tensor4D<T, Allocator>& tens4d);
         Matrix &operator=(const Matrix &);
         Matrix &operator=(Matrix &&);
         virtual ~Matrix();
@@ -269,6 +273,17 @@ namespace lahva
     {
         std::copy(data, data + this->data_size_(n_rows_, n_cols_), this->data_);
     };
+
+    template <class T, class Allocator>
+    Matrix<T, Allocator>::Matrix(const Tensor4D<T, Allocator>& tens4d) 
+        : CPUTensor<T, Allocator>{Allocator()},
+          n_rows_{tens4d.shape().first * tens4d.shape().second},
+          n_cols_{tens4d.shape().third * tens4d.shape().fourth}
+    {
+        this->data_ = tens4d.data();
+        this->count_ = n_rows_ * n_cols_;
+        this->is_owner_ = false;
+    }
 
      template <typename T, class Allocator>
     Matrix<T, Allocator>::~Matrix()
