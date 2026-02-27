@@ -97,5 +97,4 @@ if has_gpu == true
   ),
     timeout: 60 # s 
   )
-
 endif
