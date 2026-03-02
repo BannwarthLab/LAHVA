@@ -188,6 +188,8 @@ namespace lahva
         } 
 
         bool ownsData() { return this->is_owner_; };
+
+        Vector<T, Allocator> to_vec();
     };
 
      template <typename T, class Allocator>
@@ -420,5 +422,13 @@ namespace lahva
         size_t max_dim = std::max(n_cols_, n_rows_);
         cpu::CopyVectors(diag.size(), diag.data(), 1, this->data(), max_dim+1);
     }
+
+    template <typename T, class Allocator>
+    Vector<T, Allocator> Matrix<T, Allocator>::to_vec() {
+        return Vector<T, Allocator>(*this);
+    }
+
+
+
     } // namespace cpu
 } // namespace lahva
