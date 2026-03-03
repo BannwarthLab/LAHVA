@@ -450,14 +450,19 @@ namespace lahva
     {
         Matrix<T, Allocator> eri_exchange_full(Shape(n_1_*n_2_, n_3_*n_4_), 0.0);
         T* exchange_ptr = eri_exchange_full.data();
-    
-        for (size_t col = 0; col < n_3_*n_4_; ++col) {
-            size_t k = col % n_4_;
-            size_t l = col / n_4_;
-            size_t base_eri_idx = l*n_1_ + k*n_1_*n_2_;
-            
-            cpu::CopyVectors(n_1_, this->data() + base_eri_idx, 1, exchange_ptr + col*n_1_*n_2_, 1);
-            cpu::CopyVectors(n_1_, this->data() + base_eri_idx + n_1_*n_2_*n_3_, 1, exchange_ptr + n_1_ + col*n_1_*n_2_, 1);
+        
+        // Loop over (j,l) pairs and copy (i,k) blocks efficiently
+        for (size_t j = 0; j < n_2_; ++j) {
+            for (size_t l = 0; l < n_4_; ++l) {
+                for (size_t k = 0; k < n_3_; ++k) {
+                    // Source: eri[i,k,j,l] for all i
+                    size_t src_idx = k * n_1_ + j * n_1_ * n_2_ + l * n_1_ * n_2_ * n_3_;
+                    // Destination: matrix position [i + j*n_1_, k + l*n_3_] for all i
+                    size_t dst_idx = j * n_1_ + (k + l * n_3_) * (n_1_ * n_2_);
+                    // Copy n_1_ elements: all i indices for fixed (j,k,l)
+                    cpu::CopyVectors(n_1_, this->data() + src_idx, 1, exchange_ptr + dst_idx, 1);
+                }
+            }
         }
         return eri_exchange_full;
     }
