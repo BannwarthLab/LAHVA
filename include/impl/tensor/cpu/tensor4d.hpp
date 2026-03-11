@@ -44,7 +44,7 @@ namespace lahva
     //! @brief slim wrapper around a float or double array to allow easy acces with
     //!        four indices using the () operator.
     //!
-    //! If NDEBUG is **not** defined, range checks are performed.  d
+    //! If NDEBUG is **not** defined, range checks are performed.
     //! The data is stored in column-major order in a 1D array.
     //!
     template <class T, class Allocator = StdAllocator<T>>
@@ -66,7 +66,7 @@ namespace lahva
             // deactivated if NDEBUG is defined
             assert(i < this->n_1_ && j < this->n_2_ && k < this->n_3_ && l < this->n_4_);
 
-            // range checks are perfomred in constructor and above (if in debug mode)
+            // range checks are performed in constructor and above (if in debug mode)
             return i + j * n_1_ + k * n_1_ * n_2_ + l * n_1_ * n_2_ * n_3_;
         }
 
@@ -196,9 +196,6 @@ namespace lahva
         {
             (set_diagonal(args...));
         } 
-
-        Matrix<T, Allocator> get_coulomb_eri() const;
-        Matrix<T, Allocator> get_exchange_eri() const;
 
         bool ownsData() { return this->is_owner_; };
     };
@@ -437,31 +434,6 @@ namespace lahva
       size_t stride = n_1_ + n_1_ * n_2_ + n_1_ * n_2_ * n_3_;
       cpu::CopyVectors(diag.size(), diag.data(), 1, this->data(), stride+1);
     }
-
-    // QC functions
-    template<typename T, class Allocator>
-    Matrix<T, Allocator> Tensor4D<T, Allocator>::get_coulomb_eri() const
-    {
-        return Matrix<T, Allocator>(*this);
-    }
-
-    template<typename T, class Allocator>
-    Matrix<T, Allocator> Tensor4D<T, Allocator>::get_exchange_eri() const
-    {
-        Matrix<T, Allocator> eri_exchange_full(Shape(n_1_*n_2_, n_3_*n_4_), 0.0);
-        T* exchange_ptr = eri_exchange_full.data();
-    
-        for (size_t col = 0; col < n_3_*n_4_; ++col) {
-            size_t k = col % n_4_;
-            size_t l = col / n_4_;
-            size_t base_eri_idx = l*n_1_ + k*n_1_*n_2_;
-            
-            cpu::CopyVectors(n_1_, this->data() + base_eri_idx, 1, exchange_ptr + col*n_1_*n_2_, 1);
-            cpu::CopyVectors(n_1_, this->data() + base_eri_idx + n_1_*n_2_*n_3_, 1, exchange_ptr + n_1_ + col*n_1_*n_2_, 1);
-        }
-        return eri_exchange_full;
-    }
-
 
     } // namespace cpu
 } // namespace lahva

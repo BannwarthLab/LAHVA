@@ -52,6 +52,14 @@ namespace lahva
         // shape in each dimension, i.e. data_ has length n_rows_*n_cols
         size_t n_rows_;
         size_t n_cols_;
+        
+        // cached non-owning vector view of the flattened matrix data
+        Vector<T, Allocator> vec_view_;
+        
+        // initializes the cached vector view to point to the matrix data
+        void init_vec_view_() {
+            vec_view_ = Vector<T, Allocator>(this->count_, this->data_, false);
+        }
     
         // indicates whether the Matrix object owns the data and consequently is
         // responsible for freeing it
@@ -189,7 +197,10 @@ namespace lahva
 
         bool ownsData() { return this->is_owner_; };
 
-        Vector<T, Allocator> to_vec();
+        //! @brief Returns a const reference to the cached non-owning vector view
+        const Vector<T, Allocator>& as_vec() const;
+        Vector<T, Allocator>& as_vec();
+
     };
 
      template <typename T, class Allocator>
@@ -215,6 +226,7 @@ namespace lahva
     CPUTensor<T, Allocator>{shape.first*shape.second, alloc}, n_rows_{shape.first}, n_cols_{shape.second}
     {
         check_size_(shape.first, shape.second);
+        init_vec_view_();
     }
 
     template <typename T, class Allocator>
@@ -224,6 +236,7 @@ namespace lahva
         this->data_ = data;
         this->count_ = n_rows_*n_cols_;
         this->is_owner_ = take_ownership;
+        init_vec_view_();
     }
 
 
@@ -232,6 +245,7 @@ namespace lahva
     Matrix(shape, alloc)
     {
         std::fill(this->data_, this->data_ + data_size_(n_rows_, n_cols_), val);
+        init_vec_view_();
     }
 
     template <typename T, class Allocator>
@@ -256,7 +270,7 @@ namespace lahva
             std::copy(init.begin(), init.end(), this->data_);
         }
         
-        
+        init_vec_view_();
     };
     
 
@@ -274,6 +288,7 @@ namespace lahva
     Matrix<T, Allocator>::Matrix(shape, alloc)
     {
         std::copy(data, data + this->data_size_(n_rows_, n_cols_), this->data_);
+        init_vec_view_();
     };
 
     template <class T, class Allocator>
@@ -285,6 +300,7 @@ namespace lahva
         this->data_ = tens4d.data();
         this->count_ = n_rows_ * n_cols_;
         this->is_owner_ = false;
+        init_vec_view_();
     }
 
      template <typename T, class Allocator>
@@ -299,7 +315,7 @@ namespace lahva
     CPUTensor<T, Allocator>{other}, 
     n_rows_{other.n_rows_}, n_cols_{other.n_cols_}
     {
-        
+        init_vec_view_();
     }
 
     template <typename T, class Allocator>
@@ -311,6 +327,7 @@ namespace lahva
 
             n_rows_ = other.n_rows_;
             n_cols_ = other.n_cols_;
+            init_vec_view_();
         }
 
         return *this;
@@ -325,6 +342,7 @@ namespace lahva
    
         other.n_rows_ = 0;
         other.n_cols_ = 0;
+        init_vec_view_();
 
     }
 
@@ -337,6 +355,7 @@ namespace lahva
             
             n_rows_ = other.n_rows_;
             n_cols_ = other.n_cols_;
+            init_vec_view_();
             
             other.n_rows_ = 0;
             other.n_cols_ = 0;
@@ -424,8 +443,13 @@ namespace lahva
     }
 
     template <typename T, class Allocator>
-    Vector<T, Allocator> Matrix<T, Allocator>::to_vec() {
-        return Vector<T, Allocator>(*this);
+    const Vector<T, Allocator>& Matrix<T, Allocator>::as_vec() const {
+        return vec_view_;
+    }
+
+    template <typename T, class Allocator>
+    Vector<T, Allocator>& Matrix<T, Allocator>::as_vec() {
+        return vec_view_;
     }
 
 

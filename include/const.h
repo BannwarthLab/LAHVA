@@ -65,6 +65,10 @@ struct ShapeStruct {
         : first(first), second(second), third(0), fourth(0) {}
 
     constexpr ShapeStruct(std::uint32_t first, std::uint32_t second,
+                          std::uint32_t third)
+        : first(first), second(second), third(third), fourth(0) {}
+
+    constexpr ShapeStruct(std::uint32_t first, std::uint32_t second,
                           std::uint32_t third, std::uint32_t fourth)
         : first(first), second(second), third(third), fourth(fourth) {}
 };

@@ -67,6 +67,14 @@ namespace lahva
         size_t n_rows_ = 0;
         
         size_t n_cols_ = 0;
+        
+        // cached non-owning vector view of the flattened matrix data
+        Vector<T, Allocator, GPUAllocator> vec_view_;
+        
+        // initializes the cached vector view to point to the matrix data
+        void init_vec_view_() {
+            vec_view_ = Vector<T, Allocator, GPUAllocator>(this->count_, this->data_, false);
+        }
     
         // indicates whether the Matrix object owns the data and consequently is
         // responsible for freeing it
@@ -183,6 +191,10 @@ namespace lahva
         void symmetrize(const CudaRuntime& cudart);
 
         bool ownsData() { return this->is_owner_; };
+
+        //! @brief Returns a const reference to the cached non-owning vector view
+        const Vector<T, Allocator, GPUAllocator>& as_vec() const;
+        Vector<T, Allocator, GPUAllocator>& as_vec();
     };
 
     template <typename T, class Allocator, class GPUAllocator>
@@ -209,6 +221,7 @@ namespace lahva
     n_rows_{shape.first}, n_cols_{shape.second}
     {
         this->check_size_(shape.first, shape.second);
+        init_vec_view_();
     }
 
     template <typename T, class Allocator, class GPUAllocator>
@@ -231,6 +244,7 @@ namespace lahva
         {
             std::copy(init.begin(), init.end(), this->data_);
         }
+        init_vec_view_();
     };
 
     template <typename T, class Allocator, class GPUAllocator>
@@ -242,6 +256,7 @@ namespace lahva
         this->count_ = n_rows_*n_cols_; 
         this->is_owner_ = false;
         this->gpu_buffer = true;
+        init_vec_view_();
     }
 
     template <typename T, class Allocator, class GPUAllocator>
@@ -251,6 +266,7 @@ namespace lahva
         this->data_ = data;
         this->count_ = n_rows_*n_cols_;
         this->is_owner_ = take_ownership;
+        init_vec_view_();
     }
 
 
@@ -259,6 +275,7 @@ namespace lahva
     Matrix(shape, alloc, gpualloc)
     {
         std::fill(this->data_, this->data_ + data_size_(n_rows_, n_cols_), val);
+        init_vec_view_();
     }
 
     template <typename T, class Allocator, class GPUAllocator>
@@ -275,6 +292,7 @@ namespace lahva
     Matrix<T, Allocator, GPUAllocator>::Matrix(shape, alloc, gpualloc)
     {
         std::copy(data, data + this->data_size_(n_rows_, n_cols_), this->data_);
+        init_vec_view_();
     };
 
     template <typename T, class Allocator, class GPUAllocator>
@@ -289,6 +307,7 @@ namespace lahva
     GPUTensor<T, Allocator, GPUAllocator>{other}, 
     n_rows_{other.n_rows_}, n_cols_{other.n_cols_}  
     {
+        init_vec_view_();
     }
 
     template <class T, class Allocator, class GPUAllocator>
@@ -302,6 +321,7 @@ namespace lahva
         this->is_owner_ = false;
         this->gpu_data_ = tens4d.gpu_data();
         this->is_on_device_ = (this->gpu_data_ != nullptr);
+        init_vec_view_();
     }
 
     template <typename T, class Allocator, class GPUAllocator>
@@ -313,6 +333,7 @@ namespace lahva
 
             n_rows_ = other.n_rows_;
             n_cols_ = other.n_cols_;
+            init_vec_view_();
         }
 
         return *this;
@@ -327,6 +348,7 @@ namespace lahva
    
         other.n_rows_ = 0;
         other.n_cols_ = 0;
+        init_vec_view_();
 
     }
 
@@ -339,6 +361,7 @@ namespace lahva
             
             n_rows_ = other.n_rows_;
             n_cols_ = other.n_cols_;
+            init_vec_view_();
             
             other.n_rows_ = 0;
             other.n_cols_ = 0;
@@ -441,6 +464,16 @@ namespace lahva
         }
         size_t max_dim = std::max(n_cols_, n_rows_);
         cpu::CopyVectors(diag.size(), diag.data(), 1, this->data(), max_dim+1);
+    }
+
+    template <typename T, class Allocator, class GPUAllocator>
+    const Vector<T, Allocator, GPUAllocator>& Matrix<T, Allocator, GPUAllocator>::as_vec() const {
+        return vec_view_;
+    }
+
+    template <typename T, class Allocator, class GPUAllocator>
+    Vector<T, Allocator, GPUAllocator>& Matrix<T, Allocator, GPUAllocator>::as_vec() {
+        return vec_view_;
     }
 
     template <typename T, class Allocator, class GPUAllocator>
