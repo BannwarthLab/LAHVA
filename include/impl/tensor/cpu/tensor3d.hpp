@@ -54,6 +54,14 @@ namespace lahva
         size_t n_1_;
         size_t n_2_;
         size_t n_3_;
+        
+        // cached non-owning vector view of the flattened tensor data
+        Vector<T, Allocator> vec_view_;
+        
+        // initializes the cached vector view to point to the tensor data
+        void init_vec_view_() {
+            vec_view_ = Vector<T, Allocator>(this->count_, this->data_, false);
+        }
     
         // indicates whether the Tensor3D object owns the data and consequently is
         // responsible for freeing it
@@ -191,6 +199,10 @@ namespace lahva
         }
 
         bool ownsData() { return this->is_owner_; };
+
+        //! @brief Returns a const reference to the cached non-owning vector view
+        const Vector<T, Allocator>& as_vec() const;
+        Vector<T, Allocator>& as_vec();
     };
 
      template <typename T, class Allocator>
@@ -220,6 +232,7 @@ namespace lahva
     CPUTensor<T, Allocator>{data_size_(shape.first, shape.second, shape.third), alloc}, n_1_{shape.first}, n_2_{shape.second}, n_3_{shape.third}
     {
         check_size_(shape.first, shape.second, shape.third);
+        init_vec_view_();
     }
 
     template <typename T, class Allocator>
@@ -229,6 +242,7 @@ namespace lahva
         this->data_ = data;
         this->count_ = n_1_ * n_2_ * n_3_;
         this->is_owner_ = take_ownership;
+        init_vec_view_();
     }
 
 
@@ -237,6 +251,7 @@ namespace lahva
     Tensor3D(shape, alloc)
     {
         std::fill(this->data_, this->data_ + data_size_(n_1_, n_2_, n_3_), val);
+        init_vec_view_();
     }
 
     template <typename T, class Allocator>
@@ -265,7 +280,7 @@ namespace lahva
             std::copy(init.begin(), init.end(), this->data_);
         }
         
-        
+        init_vec_view_();
     };
     
 
@@ -283,6 +298,7 @@ namespace lahva
     Tensor3D<T, Allocator>::Tensor3D(shape, alloc)
     {
         std::copy(data, data + this->data_size_(n_1_, n_2_, n_3_), this->data_);
+        init_vec_view_();
     };
 
     template <typename T, class Allocator>
@@ -297,7 +313,7 @@ namespace lahva
     CPUTensor<T, Allocator>{other}, 
     n_1_{other.n_1_}, n_2_{other.n_2_}, n_3_{other.n_3_}
     {
-        
+        init_vec_view_();
     }
 
     template <typename T, class Allocator>
@@ -310,6 +326,7 @@ namespace lahva
             n_1_ = other.n_1_;
             n_2_ = other.n_2_;
             n_3_ = other.n_3_;
+            init_vec_view_();
         }
 
         return *this;
@@ -325,6 +342,8 @@ namespace lahva
         other.n_1_ = 0;
         other.n_2_ = 0;
         other.n_3_ = 0;
+        
+        init_vec_view_();
 
     }
 
@@ -338,6 +357,8 @@ namespace lahva
             n_1_ = other.n_1_;
             n_2_ = other.n_2_;
             n_3_ = other.n_3_;
+            
+            init_vec_view_();
 
             other.n_1_ = 0;
             other.n_2_ = 0;
@@ -413,6 +434,16 @@ namespace lahva
       }
       size_t stride = n_1_ + n_1_ * n_2_;
       cpu::CopyVectors(diag.size(), diag.data(), 1, this->data(), stride+1);
+    }
+
+    template <typename T, class Allocator>
+    const Vector<T, Allocator>& Tensor3D<T, Allocator>::as_vec() const {
+        return vec_view_;
+    }
+
+    template <typename T, class Allocator>
+    Vector<T, Allocator>& Tensor3D<T, Allocator>::as_vec() {
+        return vec_view_;
     }
 
     } // namespace cpu

@@ -57,6 +57,14 @@ namespace lahva
         size_t n_2_;
         size_t n_3_;
         size_t n_4_;
+        
+        // cached non-owning matrix view of the flattened tensor data
+        Matrix<T, Allocator> mat_view_;
+        
+        // initializes the cached matrix view to point to the tensor data
+        void init_mat_view_() {
+            mat_view_ = Matrix<T, Allocator>(Shape(n_1_ * n_2_, n_3_ * n_4_), this->data_, false);
+        }
     
         // indicates whether the Tensor4D object owns the data and consequently is
         // responsible for freeing it
@@ -198,6 +206,10 @@ namespace lahva
         } 
 
         bool ownsData() { return this->is_owner_; };
+
+        //! @brief Returns a const reference to the cached non-owning matrix view
+        const Matrix<T, Allocator>& as_mat() const;
+        Matrix<T, Allocator>& as_mat();
     };
 
      template <typename T, class Allocator>
@@ -231,6 +243,7 @@ namespace lahva
     CPUTensor<T, Allocator>{data_size_(shape.first, shape.second, shape.third, shape.fourth), alloc}, n_1_{shape.first}, n_2_{shape.second}, n_3_{shape.third}, n_4_{shape.fourth}
     {
         check_size_(shape.first, shape.second, shape.third, shape.fourth);
+        init_mat_view_();
     }
 
     template <typename T, class Allocator>
@@ -240,6 +253,7 @@ namespace lahva
         this->data_ = data;
         this->count_ = n_1_ * n_2_ * n_3_ * n_4_;
         this->is_owner_ = take_ownership;
+        init_mat_view_();
     }
 
 
@@ -248,6 +262,7 @@ namespace lahva
     Tensor4D(shape, alloc)
     {
         std::fill(this->data_, this->data_ + data_size_(n_1_, n_2_, n_3_, n_4_), val);
+        init_mat_view_();
     }
 
     template <typename T, class Allocator>
@@ -279,7 +294,7 @@ namespace lahva
             std::copy(init.begin(), init.end(), this->data_);
         }
         
-        
+        init_mat_view_();
     };
     
 
@@ -297,6 +312,7 @@ namespace lahva
     Tensor4D<T, Allocator>::Tensor4D(shape, alloc)
     {
         std::copy(data, data + this->data_size_(n_1_, n_2_, n_3_, n_4_), this->data_);
+        init_mat_view_();
     };
 
     template <typename T, class Allocator>
@@ -311,7 +327,7 @@ namespace lahva
     CPUTensor<T, Allocator>{other}, 
     n_1_{other.n_1_}, n_2_{other.n_2_}, n_3_{other.n_3_}, n_4_{other.n_4_}
     {
-        
+        init_mat_view_();
     }
 
     template <typename T, class Allocator>
@@ -325,6 +341,7 @@ namespace lahva
             n_2_ = other.n_2_;
             n_3_ = other.n_3_;
             n_4_ = other.n_4_;
+            init_mat_view_();
         }
 
         return *this;
@@ -341,6 +358,8 @@ namespace lahva
         other.n_2_ = 0;
         other.n_3_ = 0;
         other.n_4_ = 0;
+        
+        init_mat_view_();
 
     }
 
@@ -355,6 +374,8 @@ namespace lahva
             n_2_ = other.n_2_;
             n_3_ = other.n_3_;
             n_4_ = other.n_4_;
+            
+            init_mat_view_();
 
             other.n_1_ = 0;
             other.n_2_ = 0;
@@ -433,6 +454,16 @@ namespace lahva
       }
       size_t stride = n_1_ + n_1_ * n_2_ + n_1_ * n_2_ * n_3_;
       cpu::CopyVectors(diag.size(), diag.data(), 1, this->data(), stride+1);
+    }
+
+    template <typename T, class Allocator>
+    const Matrix<T, Allocator>& Tensor4D<T, Allocator>::as_mat() const {
+        return mat_view_;
+    }
+
+    template <typename T, class Allocator>
+    Matrix<T, Allocator>& Tensor4D<T, Allocator>::as_mat() {
+        return mat_view_;
     }
 
     } // namespace cpu
