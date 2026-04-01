@@ -145,7 +145,7 @@ namespace lahva
         Tensor3D &operator+=(T val);
 
         //! @return number of rows/columns of the Tensor3D
-        Shape shape() const { return Shape{n_1_, n_2_, n_3_}; }
+        Shape shape() const { return Shape{static_cast<std::uint32_t>(n_1_), static_cast<std::uint32_t>(n_2_), static_cast<std::uint32_t>(n_3_)}; }
 
         //! prints the Tensor3D as string
         void print() const;
@@ -160,7 +160,7 @@ namespace lahva
                 for (size_t i = 0; i < n_1_; i++)
                 {
                     os << "Slice [" << i << "]:\n";
-                    Matrix<T> slice(Shape(n_2_, n_3_));
+                    Matrix<T> slice(Shape(static_cast<std::uint32_t>(n_2_), static_cast<std::uint32_t>(n_3_)));
                     
                     // Extract slice i into a 2D matrix
                     for (size_t j = 0; j < n_2_; j++)
@@ -286,12 +286,12 @@ namespace lahva
 
     template <typename T, class Allocator>
     Tensor3D<T, Allocator>::Tensor3D(size_t n, const alloc_ptr &alloc) : 
-    Tensor3D<T, Allocator>::Tensor3D(Shape(n, n, n), alloc) 
+    Tensor3D<T, Allocator>::Tensor3D(Shape(static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(n)), alloc) 
     {}
 
     template <typename T, class Allocator>
     Tensor3D<T, Allocator>::Tensor3D(size_t n, T val, const alloc_ptr &alloc) : 
-    Tensor3D<T, Allocator>::Tensor3D(Shape(n, n, n), val, alloc) {}
+    Tensor3D<T, Allocator>::Tensor3D(Shape(static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(n)), val, alloc) {}
 
     template <typename T, class Allocator>
     Tensor3D<T, Allocator>::Tensor3D(const Shape &shape, const T *data, const alloc_ptr &alloc) : 
@@ -398,7 +398,7 @@ namespace lahva
         for (size_t i = 0; i < n_1_; i++)
         {
             std::cout << "Slice [" << i << "]:\n";
-            Matrix<T> slice(Shape(n_2_, n_3_));
+            Matrix<T> slice(Shape(static_cast<std::uint32_t>(n_2_), static_cast<std::uint32_t>(n_3_)));
             
             // Extract slice i into a 2D matrix
             for (size_t j = 0; j < n_2_; j++)

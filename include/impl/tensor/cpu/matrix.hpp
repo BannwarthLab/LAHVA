@@ -142,7 +142,7 @@ namespace lahva
         Matrix &operator+=(T val);
 
         //! @return number of rows/columns of the Matrix
-        Shape shape() const { return Shape{n_rows_, n_cols_}; }
+        Shape shape() const { return Shape{static_cast<std::uint32_t>(n_rows_), static_cast<std::uint32_t>(n_cols_)}; }
 
         //! prints the Matrix as string
         void print() const;
@@ -276,12 +276,12 @@ namespace lahva
 
      template <typename T, class Allocator>
     Matrix<T, Allocator>::Matrix(size_t n, const alloc_ptr &alloc) : 
-    Matrix<T, Allocator>::Matrix(Shape(n, n), alloc) 
+    Matrix<T, Allocator>::Matrix(Shape(static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(n)), alloc) 
     {}
 
      template <typename T, class Allocator>
     Matrix<T, Allocator>::Matrix(size_t n, T val, const alloc_ptr &alloc) : 
-    Matrix<T, Allocator>::Matrix(Shape(n, n), val, alloc) {}
+    Matrix<T, Allocator>::Matrix(Shape(static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(n)), val, alloc) {}
 
      template <typename T, class Allocator>
     Matrix<T, Allocator>::Matrix(const Shape &shape, const T *data, const alloc_ptr &alloc) : 

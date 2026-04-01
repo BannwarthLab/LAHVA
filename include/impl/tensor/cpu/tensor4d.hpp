@@ -63,7 +63,7 @@ namespace lahva
         
         // initializes the cached matrix view to point to the tensor data
         void init_mat_view_() {
-            mat_view_ = Matrix<T, Allocator>(Shape(n_1_ * n_2_, n_3_ * n_4_), this->data_, false);
+            mat_view_ = Matrix<T, Allocator>(Shape(static_cast<std::uint32_t>(n_1_ * n_2_), static_cast<std::uint32_t>(n_3_ * n_4_)), this->data_, false);
         }
     
         // indicates whether the Tensor4D object owns the data and consequently is
@@ -150,7 +150,7 @@ namespace lahva
         Tensor4D &operator+=(T val);
 
         //! @return number of rows/columns of the Tensor4D
-        Shape shape() const { return Shape{n_1_, n_2_, n_3_, n_4_}; }
+        Shape shape() const { return Shape{static_cast<std::uint32_t>(n_1_), static_cast<std::uint32_t>(n_2_), static_cast<std::uint32_t>(n_3_), static_cast<std::uint32_t>(n_4_)}; }
 
         //! prints the Tensor4D as string
         void print() const;
@@ -300,12 +300,12 @@ namespace lahva
 
     template <typename T, class Allocator>
     Tensor4D<T, Allocator>::Tensor4D(size_t n, const alloc_ptr &alloc) : 
-    Tensor4D<T, Allocator>::Tensor4D(Shape(n, n, n, n), alloc) 
+    Tensor4D<T, Allocator>::Tensor4D(Shape(static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(n)), alloc) 
     {}
 
     template <typename T, class Allocator>
     Tensor4D<T, Allocator>::Tensor4D(size_t n, T val, const alloc_ptr &alloc) : 
-    Tensor4D<T, Allocator>::Tensor4D(Shape(n, n, n, n), val, alloc) {}
+    Tensor4D<T, Allocator>::Tensor4D(Shape(static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(n), static_cast<std::uint32_t>(n)), val, alloc) {}
 
     template <typename T, class Allocator>
     Tensor4D<T, Allocator>::Tensor4D(const Shape &shape, const T *data, const alloc_ptr &alloc) : 

@@ -104,7 +104,7 @@ namespace lahva
         const T &operator()(size_t i, size_t j) const;
 
         //! @return number of rows/columns of the matrix
-        Shape shape() const { return Shape(n_, n_); }
+        Shape shape() const { return Shape(static_cast<std::uint32_t>(n_), static_cast<std::uint32_t>(n_)); }
 
         void print() const;
 
