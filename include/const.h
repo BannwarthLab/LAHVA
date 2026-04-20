@@ -109,7 +109,7 @@ namespace lahva
         BLASRuntime(){};
         virtual ~BLASRuntime(){};
     };
-    // CPU Runtime which is essentially a placeholder for nowcode
+    // CPU Runtime which is essentially a placeholder to keep the same API when using GPU routines
     class CPURuntime : public BLASRuntime
     {
     };
