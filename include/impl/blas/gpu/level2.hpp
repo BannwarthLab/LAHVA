@@ -1,3 +1,10 @@
+/// @file level2.hpp
+/// @brief GPU-accelerated BLAS Level-2 operations (matrix-vector operations).
+///
+/// Provides GPU BLAS Level-2 kernel declarations for CUDA acceleration.
+/// Level-2 operations include matrix-vector multiplication, triangular solves, and rank-1/2 updates.
+/// Each function is provided for double and float precision with GPU runtime management.
+
 #ifndef LAHVA_GPU_LEVEL2_HPP
 #define LAHVA_GPU_LEVEL2_HPP
 #include "const.h"

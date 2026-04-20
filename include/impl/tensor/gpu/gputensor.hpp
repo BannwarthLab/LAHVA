@@ -1,3 +1,10 @@
+/// @file gputensor.hpp
+/// @brief GPU-based abstract tensor class for GPU device memory management.
+///
+/// Defines the GPUTensor_ abstract class providing GPU-specific tensor functionality.
+/// Handles CUDA device memory allocation, transfers, and synchronization.
+/// Base class for all specialized GPU tensor types (vectors, matrices, etc.).
+
 #pragma once
 #include <memory>
 #include "impl/tensor/allocators.hpp"
@@ -5,6 +12,7 @@
 #include "impl/tensor/gpu/gputensor.hpp"
 #include "runtime.hpp"
 #include "../../../src/gpu/additional-blas/additional-level1.hpp"
+
 namespace lahva
 {
     namespace gpu

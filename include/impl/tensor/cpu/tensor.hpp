@@ -1,3 +1,10 @@
+/// @file tensor.hpp
+/// @brief Abstract base tensor class for multi-dimensional array data structures.
+///
+/// Defines the abstract tensor interface providing common functionality for all tensor types
+/// (vectors, matrices, etc.). Includes memory management, shape information, and basic operations.
+/// Derived classes specialize for specific tensor shapes and computational contexts.
+
 #ifndef LAHVA_TENSOR_HPP
 #define LAHVA_TENSOR_HPP
 
@@ -6,6 +13,7 @@
 #include <iostream>
 #include "impl/tensor/allocators.hpp"
 #include <omp.h>
+
 namespace lahva
 {
 

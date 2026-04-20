@@ -1,11 +1,14 @@
-#ifndef LAHVA_C_LEVEL2_H
-#define LAHVA_C_LEVEL2_H
-#include "const.h"
-
+/// @file level2.h
+/// @brief C-style BLAS Level-2 operations (matrix-vector operations).
+///
 // Level-2 BLAS-like operations (matrix * vector) - C-style declarations
 // These functions are thin wrappers around optimized CPU BLAS kernels. They operate on
 // raw pointers and use simple scalar parameters for flexibility. Each overload is
 // provided for double and float precision; both precisions are documented explicitly.
+
+#ifndef LAHVA_C_LEVEL2_H
+#define LAHVA_C_LEVEL2_H
+#include "const.h"
 
 namespace lahva
 {

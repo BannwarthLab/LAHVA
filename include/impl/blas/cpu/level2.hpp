@@ -1,13 +1,16 @@
-#ifndef LAHVA_C_LEVEL2_HPP
-#define LAHVA_C_LEVEL2_HPP
-#include "const.h"
-#include "linalg.hpp"
-
+/// @file level2.hpp
+/// @brief C++-style BLAS Level-2 operations (matrix-vector operations).
+///
 // Level-2 BLAS-like operations (matrix * vector) - C++ template declarations
 // These functions are C++-style wrappers operating on Matrix_<>, Vector_<>, and LowTriMatrix_<>
 // objects. They provide convenient overloads for different scalar types and dispatch to optimized
 // CPU BLAS kernels. Each overload is provided for double and float precision; both precisions
 // are documented explicitly.
+
+#ifndef LAHVA_C_LEVEL2_HPP
+#define LAHVA_C_LEVEL2_HPP
+#include "const.h"
+#include "linalg.hpp"
 
 namespace lahva
 {

@@ -1,9 +1,15 @@
+/// @file level1.hpp
+/// @brief GPU-accelerated BLAS Level-1 operations (vector-vector operations).
+///
+/// Provides GPU BLAS Level-1 kernel declarations for CUDA acceleration.
+/// Level-1 operations include vector dot products, vector scaling, and vector addition.
+/// Each function is provided for double and float precision with GPU runtime management.
+
 #ifndef LAHVA_GPU_LEVEL1_HPP
 #define LAHVA_GPU_LEVEL1_HPP
 #include "const.h"
 #include "linalg.hpp"
 #include "runtime.hpp"
-
 
 namespace lahva{
     namespace gpu{

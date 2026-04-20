@@ -1,3 +1,10 @@
+/// @file matrix.hpp
+/// @brief GPU-based matrix tensor implementation.
+///
+/// Provides the Matrix_ class for 2-dimensional tensor storage and operations on GPU.
+/// Supports dense matrix operations with cuBLAS compatibility, column-major storage,
+/// and mixed-precision computations with CPU matrices.
+
 #pragma once
 
 #include "impl/tensor/allocators.hpp"
@@ -12,6 +19,7 @@
 #include <string>
 #include <fstream>
 #include <cassert>
+
 namespace lahva
 {
     namespace gpu

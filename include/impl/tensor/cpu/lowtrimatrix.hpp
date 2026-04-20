@@ -1,3 +1,10 @@
+/// @file lowtrimatrix.hpp
+/// @brief CPU-based lower triangular matrix tensor implementation.
+///
+/// Provides the LowTriMatrix_ class for lower triangular matrix storage and operations on CPU.
+/// Optimized storage for lower triangular structure with BLAS compatibility.
+/// Includes specialized operations leveraging triangular matrix properties.
+
 #pragma once
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/tensor.hpp"

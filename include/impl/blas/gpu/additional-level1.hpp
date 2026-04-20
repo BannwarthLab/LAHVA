@@ -1,9 +1,17 @@
+/// @file additional-level1.hpp
+/// @brief GPU-accelerated additional Level-1 operations beyond standard BLAS.
+///
+/// Provides GPU kernel declarations for supplementary vector-level linear algebra
+/// utilities operating on GPU tensor objects. These extend standard BLAS Level-1 functionality.
+/// Each function is provided for double and float precision with GPU runtime management.
+
 #ifndef LAHVA_ADD_LEVEL1_HPP
 #define LAHVA_ADD_LEVEL1_HPP
 #include "linalg.hpp"
 #include "../../../../src/gpu/gpu-utils/utils.hpp"
 #include "kernels.cuh"
 #include <vector>
+
 namespace lahva
 {
     namespace gpu
