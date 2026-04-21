@@ -15,8 +15,8 @@ namespace lahva
     /// element types (T == double/float/complex_double/complex_float).
     ///
     /// @tparam T Numeric element type of matrices (matches Matrix_<T> template).
-    /// @param Ta    Transpose option for A ("N","T","C").
-    /// @param Tb    Transpose option for B ("N","T","C").
+    /// @param Ta    Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+    /// @param Tb    Transpose option for B: "N" (no transpose, B), "T" (transpose, B^T), "C" (conjugate-transpose, B^H).
     /// @param alpha Scaling factor applied to op(A)*op(B).
     /// @param a     Left-hand input matrix (Matrix_<T>).
     /// @param b     Right-hand input matrix (Matrix_<T>).

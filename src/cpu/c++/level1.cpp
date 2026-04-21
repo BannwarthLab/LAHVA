@@ -9,11 +9,14 @@ namespace lahva
     {
         ///Dot product routines////////////////////////////////////////////////////////////////////
 
-        /*! @brief Take inner product of two Vectors of T
-            \param[in] nelemXY number of elements in Vectors X and Y
-            \param[in] X Vector
-            \param[in] Y Vector
-        */
+        /// @brief Computes the inner product of two tensors treated as vectors.
+        ///
+        /// Performs result = X^T * Y where X and Y are tensors with the same size.
+        ///
+        /// @tparam T Numerical element type (double, float).
+        /// @param X First input tensor.
+        /// @param Y Second input tensor.
+        /// @return The inner product of tensors X and Y.
         template<typename T>
         T InnerVectorProduct(const Tensor<T> &X, const Tensor<T> &Y)
         {
@@ -21,13 +24,16 @@ namespace lahva
             return InnerVectorProduct(X.size(), X.data(), Y.data());
         };
 
-        /// @brief Take inner product of two Vectors of T with strides
-        /// @tparam T Numerical type of the tensors
-        /// @param X Tensor X
-        /// @param strideX Stride between elements in tensor X
-        /// @param Y Tensor Y
-        /// @param strideY Stride between elements in tensor Y
-        /// @return The inner product of tensors X and Y
+        /// @brief Computes the inner product of two tensors treated as vectors with strides.
+        ///
+        /// Performs result = X^T * Y where X and Y are tensors with the same size and specified strides.
+        ///
+        /// @tparam T Numerical element type (double, float).
+        /// @param X First input tensor.
+        /// @param strideX Stride between consecutive elements in tensor X.
+        /// @param Y Second input tensor.
+        /// @param strideY Stride between consecutive elements in tensor Y.
+        /// @return The inner product of tensors X and Y.
         template<typename T>
         T InnerVectorProduct(const Tensor<T> &X, const size_t strideX, const Tensor<T> &Y, const size_t strideY)
         {
@@ -35,15 +41,16 @@ namespace lahva
             return InnerVectorProduct(X.size(), X.data(), strideX, Y.data(), strideY);
         };
 
-        /// Add routines////////////////////////////////////////////////////////////////////
-
-        /// @brief Computes the addition of a scaled tensor treated as vector to another tensor treated as vector with strides
-        /// @tparam T Numerical type of the tensors
-        /// @param a scalar multiplier for tensor x
-        /// @param x Tensor x
-        /// @param ix Stride between elements in tensor x
-        /// @param y Tensor y
-        /// @param iy Stride between elements in tensor y
+        /// @brief Computes the addition of a scaled tensor to another tensor with specified strides.
+        ///
+        /// Performs y = y + a * x where x and y are tensors with specified strides.
+        ///
+        /// @tparam T Numerical element type (double, float).
+        /// @param a Scalar multiplier for tensor x.
+        /// @param x Input tensor x (not modified).
+        /// @param ix Stride between consecutive elements in tensor x.
+        /// @param y Input-output tensor y (destination / input-output).
+        /// @param iy Stride between consecutive elements in tensor y.
         template<typename T>
         void AddVectors(const T a, const Tensor<T> &x, const size_t ix, Tensor<T> &y, const size_t iy)
         {
@@ -51,14 +58,16 @@ namespace lahva
             AddVectors(x.size(), a, x.data(), ix, y.data(), iy);
         };
 
-        /// @brief Computes the addition of a scaled tensor treated as vector to another tensor treated as vector with strides, Mixed precision version
-        /// @tparam T Numerical type of the tensor x
-        /// @tparam U Numerical type of the tensor y
-        /// @param a scalar multiplier for tensor x
-        /// @param x Tensor x
-        /// @param ix Stride between elements in tensor x
-        /// @param y Tensor y
-        /// @param iy Stride between elements in tensor y
+        /// @brief Computes the addition of a scaled tensor to another tensor (mixed precision version).
+        ///
+        /// Performs y = y + a * x where tensors x and y may have different element types.
+        /// Useful for mixed-precision convenience calls.
+        ///
+        /// @tparam T Numerical element type of tensor x.
+        /// @tparam U Numerical element type of tensor y.
+        /// @param a Scalar multiplier for tensor x (cast to T).
+        /// @param x Input tensor x (not modified).
+        /// @param y Input-output tensor y (destination / input-output).
         template<typename T, typename U>
         void AddVectors(const double a, const Tensor<T> &x, Tensor<U> &y)
         {
@@ -80,10 +89,13 @@ namespace lahva
 
 
         // Copy routines////////////////////////////////////////////////////////////////////
-        /// @brief Copies elements from one tensor to another, wrapper to BLAS function <T>copy
-        /// @tparam T Numerical type of the tensors
-        /// @param x Source tensor
-        /// @param y Destination tensor
+        /// @brief Copies elements from one tensor to another.
+        ///
+        /// Performs element-wise copy: y = x.
+        ///
+        /// @tparam T Numerical element type of both tensors.
+        /// @param x Source tensor (not modified).
+        /// @param y Destination tensor (overwritten).
         template<typename T>
         void CopyVectors(const Tensor<T> &x, Tensor<T> &y)
         {
@@ -91,12 +103,14 @@ namespace lahva
             CopyVectors(x.size(), x.data(), y.data());
         }
 
-        /// @brief Copies elements from one tensor to another, Mixed precision version
-        /// @brief if U == T, wrapper to the single-precision or double-precision version
-        /// @tparam T Numerical type of the source tensor
-        /// @tparam U Numerical type of the destination tensor
-        /// @param x Source tensor
-        /// @param y Destination tensor
+        /// @brief Copies elements from one tensor to another (mixed precision version).
+        ///
+        /// Performs element-wise type conversion: y[i] = (U)x[i].
+        ///
+        /// @tparam T Numerical element type of source tensor.
+        /// @tparam U Numerical element type of destination tensor.
+        /// @param x Source tensor (not modified).
+        /// @param y Destination tensor (overwritten).
         template<typename T, typename U>
         void CopyVectors(const Tensor<T> &x, Tensor<U> &y)
         {
@@ -116,12 +130,15 @@ namespace lahva
         }
         }
 
-        /// @brief Copies elements from one tensor to another with strides, wrapper to BLAS function <T>copy
-        /// @tparam T Numerical type of the tensors
-        /// @param x Source tensor x
-        /// @param strideX Stride between elements in tensor x
-        /// @param y Destination tensor y
-        /// @param strideY Stride between elements in tensor y
+        /// @brief Copies elements from one tensor to another with specified strides.
+        ///
+        /// Performs element-wise copy with strides: y = x.
+        ///
+        /// @tparam T Numerical element type of both tensors.
+        /// @param x Source tensor (not modified).
+        /// @param ix Stride between consecutive elements in tensor x.
+        /// @param y Destination tensor (overwritten).
+        /// @param iy Stride between consecutive elements in tensor y.
         template<typename T>
         void CopyVectors(const Tensor<T> &x, size_t ix, Tensor<T> &y, size_t iy)
         {
@@ -130,10 +147,13 @@ namespace lahva
         }
 
         // Swap routines////////////////////////////////////////////////////////////////////
-       /// @brief Swap elements of two tensors treated as vectors, wrapper to BLAS function <T>swap, unit stride version
-       /// @tparam T Numerical type of the tensors
-       /// @param x tensor x
-       /// @param y tensor y
+       /// @brief Swaps elements of two tensors.
+       ///
+       /// Performs element-wise swap: x <-> y (unit stride version).
+       ///
+       /// @tparam T Numerical element type of both tensors.
+       /// @param x First input-output tensor.
+       /// @param y Second input-output tensor.
        template<typename T>
         void SwapVectors(Tensor<T> &x, Tensor<T> &y)
         {
@@ -142,12 +162,15 @@ namespace lahva
         }
 
 
-       /// @brief Swap elements of two tensors treated as vectors, wrapper to BLAS function <T>swap, specified stride version
-       /// @tparam T Numerical type of the tensors
-       /// @param x tensor x
-       /// @param ix stride of tensor x
-       /// @param y tensor y
-       /// @param iy stride of tensor y
+       /// @brief Swaps elements of two tensors with specified strides.
+       ///
+       /// Performs element-wise swap with strides: x <-> y.
+       ///
+       /// @tparam T Numerical element type of both tensors.
+       /// @param x First input-output tensor.
+       /// @param ix Stride between consecutive elements in tensor x.
+       /// @param y Second input-output tensor.
+       /// @param iy Stride between consecutive elements in tensor y.
         template<typename T>
         void SwapVectors(Tensor<T> &x, size_t ix, Tensor<T> &y, size_t iy)
         {
@@ -156,21 +179,27 @@ namespace lahva
         }
 
         // Scale routines////////////////////////////////////////////////////////////////////
-        /// @brief Scales a tensor treated as vector by a scalar multiplier, wrapper to BLAS function <T>scal
-        /// @tparam T Numerical type of the tensor
-        /// @param a scalar multiplier for tensor x
-        /// @param x Tensor x
+        /// @brief Scales a tensor by a scalar multiplier.
+        ///
+        /// Performs: x = a * x (unit stride version).
+        ///
+        /// @tparam T Numerical element type of the tensor.
+        /// @param a Scalar multiplier for tensor x.
+        /// @param x Input-output tensor to be scaled.
         template<typename T>
         void ScaleVector(const T a, Tensor<T> &x)
         {
             ScaleVector(x.size(), a, x.data());
         }
 
-        /// @brief Scales a tensor treated as vector by a scalar multiplier, wrapper to BLAS function <T>scal, specified stride version
-        /// @tparam T Numerical type of the tensor
-        /// @param a scalar multiplier for tensor x
-        /// @param x Tensor x
-        /// @param ix stride of tensor x
+        /// @brief Scales a tensor by a scalar multiplier with stride.
+        ///
+        /// Performs: x = a * x with specified stride.
+        ///
+        /// @tparam T Numerical element type of the tensor.
+        /// @param a Scalar multiplier for tensor x.
+        /// @param x Input-output tensor to be scaled.
+        /// @param ix Stride between consecutive elements in tensor x.
         template<typename T>
         void ScaleVector(const T a, Tensor<T> &x, size_t ix)
         {
@@ -178,10 +207,13 @@ namespace lahva
         };
 
         // Extrema in Vector routines////////////////////////////////////////////////////////
-        /// @brief Get index of the element with the maximum absolute value in a tensor treated as vector, wrapper to BLAS function <T>iamax
-        /// @tparam T Numerical type of the tensor
-        /// @param x Tensor x
-        /// @return Index of the element with the maximum absolute value
+        /// @brief Finds the index of the element with the maximum absolute value in a tensor.
+        ///
+        /// Returns the index of the element with the maximum absolute value.
+        ///
+        /// @tparam T Numerical element type of the tensor.
+        /// @param x Input tensor.
+        /// @return Index (0-based) of the element with the maximum absolute value.
         template<typename T>
         int IndexMaxFromVector(const Tensor<T> &x)
         {
@@ -189,11 +221,14 @@ namespace lahva
         }
 
 
-        /// @brief Get index of the element with the maximum absolute value in a tensor treated as vector, wrapper to BLAS function <T>iamax, specified stride version
-        /// @tparam T Numerical type of the tensor
-        /// @param x Tensor x
-        /// @param ix stride of tensor x
-        /// @return Index of the element with the maximum absolute value
+        /// @brief Finds the index of the element with the maximum absolute value in a tensor with stride.
+        ///
+        /// Returns the index of the element with the maximum absolute value.
+        ///
+        /// @tparam T Numerical element type of the tensor.
+        /// @param x Input tensor.
+        /// @param ix Stride between consecutive elements in tensor x.
+        /// @return Index (0-based) of the element with the maximum absolute value.
         template<typename T>
         int IndexMaxFromVector(const Tensor<T> &x, const size_t ix)
         {

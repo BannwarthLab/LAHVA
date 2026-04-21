@@ -136,6 +136,20 @@ namespace lahva
             MatrixMatrixProductMeta(Ta, Tb, m, n, k, alpha, a, b, beta, c);
         };
 
+        /// @brief Symmetric matrix-matrix multiply (double-precision) pointer-based implementation.
+        ///
+        /// Performs C = alpha * A * B + beta * C when `side == CblasLeft`, or
+        /// C = alpha * B * A + beta * C when `side == CblasRight`. Matrix A is
+        /// assumed to be symmetric and stored in triangular format.
+        ///
+        /// @param side Side on which the symmetric matrix A appears (CblasLeft/CblasRight).
+        /// @param m Number of rows of output matrix C.
+        /// @param n Number of columns of output matrix C.
+        /// @param alpha Scaling factor for the product involving A (double precision).
+        /// @param a Pointer to symmetric matrix A data (double precision).
+        /// @param b Pointer to matrix B data (double precision).
+        /// @param beta Scaling factor for existing contents of C (double precision).
+        /// @param c Pointer to output matrix C data (double precision, overwritten).
         void SymMatrixMatrixProduct(const CBLAS_SIDE side, const size_t m, const size_t n, const double alpha, const double *a,
                                     const double *b, const double beta, double *c)
         {
@@ -159,6 +173,20 @@ namespace lahva
             cblas_dsymm(major, side, tri, m_, n_, alpha, a, lda, b, ldb, beta, c, ldc);
         };
 
+        /// @brief Symmetric matrix-matrix multiply (single-precision) pointer-based implementation.
+        ///
+        /// Performs C = alpha * A * B + beta * C when `side == CblasLeft`, or
+        /// C = alpha * B * A + beta * C when `side == CblasRight`. Matrix A is
+        /// assumed to be symmetric and stored in triangular format.
+        ///
+        /// @param side Side on which the symmetric matrix A appears (CblasLeft/CblasRight).
+        /// @param m Number of rows of output matrix C.
+        /// @param n Number of columns of output matrix C.
+        /// @param alpha Scaling factor for the product involving A (single precision).
+        /// @param a Pointer to symmetric matrix A data (single precision).
+        /// @param b Pointer to matrix B data (single precision).
+        /// @param beta Scaling factor for existing contents of C (single precision).
+        /// @param c Pointer to output matrix C data (single precision, overwritten).
         void SymMatrixMatrixProduct(const CBLAS_SIDE side, const size_t m, const size_t n, const float alpha, const float *a,
                                     const float *b, const float beta, float *c)
         {

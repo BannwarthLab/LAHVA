@@ -7,45 +7,262 @@ namespace lahva
 {
     namespace cpu
     {
-        /// @brief Outer product of two vectors, wrapper to BLAS function <T>ger
-        /// @tparam T Numerical type of the vectors
-        /// @param x First input vector
-        /// @param y Second input vector
-        /// @param A Output matrix to store the outer product
-        /// @param incx Stride between elements of vector x, default 1
-        /// @param incy Stride between elements of vector y, default 1
-        /// @param alpha Scalar multiplier for the outer product, default 1.0
-        template<typename T>
-        void OuterVectorProduct(const Vector<T>& x, const Vector<T>& y, Matrix<T>& A, size_t incx, size_t incy, const T alpha) {
+        /// @brief Outer product of two double-precision vectors, wrapper to BLAS function dger.
+        ///
+        /// Performs A = alpha * x * y^T where x is a vector of size M and y is a vector of size N,
+        /// producing an M x N matrix. This C++ wrapper accepts Vector_<double> typed storage
+        /// and forwards to the lower-level pointer-based implementation.
+        ///
+        /// @param x First input vector (Vector_<double>).
+        /// @param y Second input vector (Vector_<double>).
+        /// @param A Output matrix to store the outer product (Matrix_<double>).
+        /// @param incx Stride between elements of vector x. Default: 1.
+        /// @param incy Stride between elements of vector y. Default: 1.
+        /// @param alpha Scalar multiplier for the outer product. Default: 1.0.
+        void OuterVectorProduct(const Vector<double>& x, const Vector<double>& y, Matrix<double>& A, size_t incx, size_t incy, const double alpha) {
             
             if (A.shape().first != x.size() || A.shape().second != y.size()) {
                 throw std::invalid_argument("OuterVectorProduct: Output matrix A has incorrect shape.");
             }
 
             OuterVectorProduct(x.size(), x.data(), incx, y.size(), y.data(), incy, alpha, A.data());
-        }   
+        }
+
+        /// @brief Outer product of two single-precision vectors, wrapper to BLAS function sger.
+        ///
+        /// Performs A = alpha * x * y^T where x is a vector of size M and y is a vector of size N,
+        /// producing an M x N matrix. This C++ wrapper accepts Vector_<float> typed storage
+        /// and forwards to the lower-level pointer-based implementation.
+        ///
+        /// @param x First input vector (Vector_<float>).
+        /// @param y Second input vector (Vector_<float>).
+        /// @param A Output matrix to store the outer product (Matrix_<float>).
+        /// @param incx Stride between elements of vector x. Default: 1.
+        /// @param incy Stride between elements of vector y. Default: 1.
+        /// @param alpha Scalar multiplier for the outer product. Default: 1.0.
+        void OuterVectorProduct(const Vector<float>& x, const Vector<float>& y, Matrix<float>& A, size_t incx, size_t incy, const float alpha) {
+            if (A.shape().first != x.size() || A.shape().second != y.size()) {
+                throw std::invalid_argument("OuterVectorProduct: Output matrix A has incorrect shape.");
+            }
+
+            OuterVectorProduct(x.size(), x.data(), incx, y.size(), y.data(), incy, alpha, A.data());
+        }
        
-        template <typename T>
-        void MatrixVectorProduct(const char *Ta, const T alpha, const Matrix_<T> &a, const Vector_<T> &x, 
-            const size_t incx, const T beta, Vector_<T> &y, const size_t incy)
+       
+        /// @brief Matrix-vector multiply (GEMV-like), wrapper to BLAS function dgemv (double).
+        ///
+        /// Performs y := alpha * op(A) * x + beta * y where op(A) is A, A^T, or A^H depending on `Ta`.
+        /// This routine computes general matrix-vector products with optional transpose and conjugate-transpose.
+        ///
+        /// @param Ta Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param alpha Scaling factor applied to op(A)*x.
+        /// @param a Left-hand input matrix (Matrix_<double>).
+        /// @param x Input vector (Vector_<double>).
+        /// @param incx Stride between consecutive elements in vector x.
+        /// @param beta Scaling factor applied to existing contents of y.
+        /// @param y Output vector (destination / input-output, Vector_<double>).
+        /// @param incy Stride between consecutive elements in vector y.
+        void MatrixVectorProduct(const char *T, const double alpha, const Matrix_<double> &a,
+                                 const Vector_<double> &x, const size_t incx, const double beta, Vector_<double> &y, const size_t incy)
         {
-            CBLAS_TRANSPOSE trans = get_trans(Ta);
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+            CBLAS_TRANSPOSE trans = get_trans(T);
             int nrow, ncol;
             std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            BLAS_INT lda = get_leading(nrow, ncol);
 
-            MatrixVectorProduct(Ta, nrow, ncol, alpha, a.data(), x.data(), incx, beta, y.data(), incy);
+            cblas_dgemv(major, trans, nrow, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
         };
 
-        /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
-        for specified stride
-            @param[in] alpha double value by which A*x is scaled
-            @param[in] a pointer to the A matrix in column-major ordering
-            @param[in] x pointer to the Vector_ x
-            @param[in] incx stride of Vector_ x
-            @param[in] beta double value by which y is scaled
-            @param[in,out] y pointer to the y Vector_ values
-            @param[in] incy stride of Vector_ y
-        */
+        /// @brief Matrix-vector multiply convenience overload with default parameters (double precision).
+        ///
+        /// Convenience overload where matrix A and vector x are provided first, with optional parameters
+        /// defaulting to no transpose, alpha=1.0, beta=0.0, and unit strides.
+        ///
+        /// @param a Left-hand input matrix (Matrix_<double>).
+        /// @param x Input vector (Vector_<double>).
+        /// @param y Output vector (destination / input-output, Vector_<double>).
+        /// @param Ta Transpose option for A: "N" (default, no transpose), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param alpha Scaling factor applied to op(A)*x. Default: 1.0.
+        /// @param beta Scaling factor applied to existing contents of y. Default: 0.0.
+        /// @param incx Stride between consecutive elements in vector x. Default: 1.
+        /// @param incy Stride between consecutive elements in vector y. Default: 1.
+        void MatrixVectorProduct(const Matrix_<double> &a, const Vector_<double> &x, Vector_<double> &y, const char *T,
+                                 const double alpha, const double beta, const size_t incx, const size_t incy)
+        {
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+            CBLAS_TRANSPOSE trans = get_trans(T);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            BLAS_INT lda = get_leading(nrow, ncol);
+            cblas_dgemv(major, trans, nrow, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
+        };
+
+        /// @brief Matrix-vector multiply (GEMV-like), wrapper to BLAS function sgemv (float).
+        ///
+        /// Performs y := alpha * op(A) * x + beta * y where op(A) is A, A^T, or A^H depending on `Ta`.
+        /// This routine computes general matrix-vector products with optional transpose and conjugate-transpose.
+        ///
+        /// @param Ta Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param alpha Scaling factor applied to op(A)*x.
+        /// @param a Left-hand input matrix (Matrix_<float>).
+        /// @param x Input vector (Vector_<float>).
+        /// @param incx Stride between consecutive elements in vector x.
+        /// @param beta Scaling factor applied to existing contents of y.
+        /// @param y Output vector (destination / input-output, Vector_<float>).
+        /// @param incy Stride between consecutive elements in vector y.
+        void MatrixVectorProduct(const char *T, const float alpha, const Matrix_<float> &a,
+                                 const Vector_<float> &x, const size_t incx, const float beta, Vector_<float> &y, const size_t incy)
+        {
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+            CBLAS_TRANSPOSE trans = get_trans(T);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            BLAS_INT lda = get_leading(nrow, ncol);
+            cblas_sgemv(major, trans, nrow, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
+        };
+
+        /// @brief Matrix-vector multiply convenience overload with default parameters (float precision).
+        ///
+        /// Convenience overload where matrix A and vector x are provided first, with optional parameters
+        /// defaulting to no transpose, alpha=1.0, beta=0.0, and unit strides.
+        ///
+        /// @param a Left-hand input matrix (Matrix_<float>).
+        /// @param x Input vector (Vector_<float>).
+        /// @param y Output vector (destination / input-output, Vector_<float>).
+        /// @param Ta Transpose option for A: "N" (default, no transpose), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param alpha Scaling factor applied to op(A)*x. Default: 1.0.
+        /// @param beta Scaling factor applied to existing contents of y. Default: 0.0.
+        /// @param incx Stride between consecutive elements in vector x. Default: 1.
+        /// @param incy Stride between consecutive elements in vector y. Default: 1.
+        void MatrixVectorProduct(const Matrix_<float> &a, const Vector_<float> &x, Vector_<float> &y, const char *T,
+                                 const float alpha, const float beta, const size_t incx, const size_t incy)
+        {
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+            CBLAS_TRANSPOSE trans = get_trans(T);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            BLAS_INT lda = get_leading(nrow, ncol);
+            cblas_sgemv(major, trans, nrow, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
+        };
+
+        /// @brief Matrix-vector multiply (GEMV-like), wrapper to BLAS function zgemv (complex_double).
+        ///
+        /// Performs y := alpha * op(A) * x + beta * y where op(A) is A, A^T, or A^H depending on `Ta`.
+        /// This routine computes general matrix-vector products with optional transpose and conjugate-transpose.
+        ///
+        /// @param Ta Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param alpha Scaling factor applied to op(A)*x.
+        /// @param a Left-hand input matrix (Matrix_<complex_double>).
+        /// @param x Input vector (Vector_<complex_double>).
+        /// @param incx Stride between consecutive elements in vector x.
+        /// @param beta Scaling factor applied to existing contents of y.
+        /// @param y Output vector (destination / input-output, Vector_<complex_double>).
+        /// @param incy Stride between consecutive elements in vector y.
+        void MatrixVectorProduct(const char *T, const complex_double alpha, const Matrix_<complex_double> &a, const Vector_<complex_double> &x, 
+                                 const size_t incx, const complex_double beta, Vector_<complex_double> &y, const size_t incy)
+        {
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+            CBLAS_TRANSPOSE trans = get_trans(T);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            BLAS_INT lda = get_leading(nrow, ncol);
+
+            cblas_zgemv(major, trans, nrow, ncol, &alpha, a.data(), lda, x.data(), inx, &beta, y.data(), iny);
+        };
+
+        /// @brief Matrix-vector multiply convenience overload with default parameters (complex_double precision).
+        ///
+        /// Convenience overload where matrix A and vector x are provided first, with optional parameters
+        /// defaulting to no transpose, alpha=1.0, beta=0.0, and unit strides.
+        ///
+        /// @param a Left-hand input matrix (Matrix_<complex_double>).
+        /// @param x Input vector (Vector_<complex_double>).
+        /// @param y Output vector (destination / input-output, Vector_<complex_double>).
+        /// @param Ta Transpose option for A: "N" (default, no transpose), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param alpha Scaling factor applied to op(A)*x. Default: 1.0.
+        /// @param beta Scaling factor applied to existing contents of y. Default: 0.0.
+        /// @param incx Stride between consecutive elements in vector x. Default: 1.
+        /// @param incy Stride between consecutive elements in vector y. Default: 1.
+        void MatrixVectorProduct(const Matrix_<complex_double> &a, const Vector_<complex_double> &x, Vector_<complex_double> &y, const char *T,
+                                 const complex_double alpha, const complex_double beta, const size_t incx, const size_t incy)
+        {
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+            CBLAS_TRANSPOSE trans = get_trans(T);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            BLAS_INT lda = get_leading(nrow, ncol);
+            cblas_zgemv(major, trans, nrow, ncol, &alpha, a.data(), lda, x.data(), inx, &beta, y.data(), iny);
+        };
+
+        /// @brief Matrix-vector multiply (GEMV-like), wrapper to BLAS function cgemv (complex_float).
+        ///
+        /// Performs y := alpha * op(A) * x + beta * y where op(A) is A, A^T, or A^H depending on `Ta`.
+        /// This routine computes general matrix-vector products with optional transpose and conjugate-transpose.
+        ///
+        /// @param Ta Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param alpha Scaling factor applied to op(A)*x.
+        /// @param a Left-hand input matrix (Matrix_<complex_float>).
+        /// @param x Input vector (Vector_<complex_float>).
+        /// @param incx Stride between consecutive elements in vector x.
+        /// @param beta Scaling factor applied to existing contents of y.
+        /// @param y Output vector (destination / input-output, Vector_<complex_float>).
+        /// @param incy Stride between consecutive elements in vector y.
+        void MatrixVectorProduct(const char *T, const complex_float alpha, const Matrix_<complex_float> &a, const Vector_<complex_float> &x, 
+                                 const size_t incx, const complex_float beta, Vector_<complex_float> &y, const size_t incy)
+        {
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+            CBLAS_TRANSPOSE trans = get_trans(T);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            BLAS_INT lda = get_leading(nrow, ncol);
+            cblas_cgemv(major, trans, nrow, ncol, &alpha, a.data(), lda, x.data(), inx, &beta, y.data(), iny);
+        };
+
+        /// @brief Matrix-vector multiply convenience overload with default parameters (complex_float precision).
+        ///
+        /// Convenience overload where matrix A and vector x are provided first, with optional parameters
+        /// defaulting to no transpose, alpha=1.0, beta=0.0, and unit strides.
+        ///
+        /// @param a Left-hand input matrix (Matrix_<complex_float>).
+        /// @param x Input vector (Vector_<complex_float>).
+        /// @param y Output vector (destination / input-output, Vector_<complex_float>).
+        /// @param Ta Transpose option for A: "N" (default, no transpose), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param alpha Scaling factor applied to op(A)*x. Default: 1.0.
+        /// @param beta Scaling factor applied to existing contents of y. Default: 0.0.
+        /// @param incx Stride between consecutive elements in vector x. Default: 1.
+        /// @param incy Stride between consecutive elements in vector y. Default: 1.
+        void MatrixVectorProduct(const Matrix_<complex_float> &a, const Vector_<complex_float> &x, Vector_<complex_float> &y, const char *T,
+                                 const complex_float alpha, const complex_float beta, const size_t incx, const size_t incy)
+        {
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+            CBLAS_TRANSPOSE trans = get_trans(T);
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            BLAS_INT lda = get_leading(nrow, ncol);
+            cblas_cgemv(major, trans, nrow, ncol, &alpha, a.data(), lda, x.data(), inx, &beta, y.data(), iny);
+        };
+
+        /// @brief Symmetric matrix-vector multiply (SYMV-like), wrapper to BLAS function dsymv (double).
+        ///
+        /// Performs y := alpha * A * x + beta * y where A is a symmetric matrix.
+        /// Only the lower or upper triangular part of A is used (determined by project configuration).
+        ///
+        /// @param alpha Scaling factor applied to A*x.
+        /// @param a Symmetric input matrix (Matrix_<double>).
+        /// @param x Input vector (Vector_<double>).
+        /// @param incx Stride between consecutive elements in vector x.
+        /// @param beta Scaling factor applied to existing contents of y.
+        /// @param y Output vector (destination / input-output, Vector_<double>).
+        /// @param incy Stride between consecutive elements in vector y.
         void SymMatrixVectorProduct(const double alpha, const Matrix_<double> &a,
                                     const Vector_<double> &x, const size_t incx, const double beta, Vector_<double> &y, const size_t incy)
         {
@@ -59,16 +276,43 @@ namespace lahva
             cblas_dsymv(major, tri, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
         };
 
-        /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
-        for specified stride
-            @param[in] alpha float value by which A*x is scaled
-            @param[in] a pointer to the A matrix in column-major ordering
-            @param[in] x pointer to the Vector_ x
-            @param[in] incx stride of Vector_ x
-            @param[in] beta float value by which y is scaled
-            @param[in,out] y pointer to the y Vector_ values
-            @param[in] incy stride of Vector_ y
-        */
+        /// @brief Symmetric matrix-vector multiply convenience overload with default parameters (double precision).
+        ///
+        /// Convenience overload where matrix A and vector x are provided first, with optional parameters
+        /// defaulting to alpha=1.0, beta=0.0, and unit strides.
+        ///
+        /// @param a Symmetric input matrix (Matrix_<double>).
+        /// @param x Input vector (Vector_<double>).
+        /// @param y Output vector (destination / input-output, Vector_<double>).
+        /// @param alpha Scaling factor applied to A*x. Default: 1.0.
+        /// @param beta Scaling factor applied to existing contents of y. Default: 0.0.
+        /// @param incx Stride between consecutive elements in vector x. Default: 1.
+        /// @param incy Stride between consecutive elements in vector y. Default: 1.
+        void SymMatrixVectorProduct(const Matrix_<double> &a, const Vector_<double> &x, Vector_<double> &y,
+                                    const double alpha, const double beta, const size_t incx, const size_t incy)
+        {
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+
+            BLAS_INT lda = get_leading(nrow, ncol);
+
+            cblas_dsymv(major, tri, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
+        };
+
+        /// @brief Symmetric matrix-vector multiply (SYMV-like), wrapper to BLAS function ssymv (float).
+        ///
+        /// Performs y := alpha * A * x + beta * y where A is a symmetric matrix.
+        /// Only the lower or upper triangular part of A is used (determined by project configuration).
+        ///
+        /// @param alpha Scaling factor applied to A*x.
+        /// @param a Symmetric input matrix (Matrix_<float>).
+        /// @param x Input vector (Vector_<float>).
+        /// @param incx Stride between consecutive elements in vector x.
+        /// @param beta Scaling factor applied to existing contents of y.
+        /// @param y Output vector (destination / input-output, Vector_<float>).
+        /// @param incy Stride between consecutive elements in vector y.
         void SymMatrixVectorProduct(const float alpha, const Matrix_<float> &a,
                                     const Vector_<float> &x, const size_t incx, const float beta, Vector_<float> &y, const size_t incy)
         {
@@ -82,16 +326,43 @@ namespace lahva
             cblas_ssymv(major, tri, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
         };
 
-        /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
-        for specified stride
-            @param[in] alpha double value by which A*x is scaled
-            @param[in] a pointer to the A matrix in column-major ordering
-            @param[in] x pointer to the Vector_ x
-            @param[in] incx stride of Vector_ x
-            @param[in] beta double value by which y is scaled
-            @param[in,out] y pointer to the y Vector_ values
-            @param[in] incy stride of Vector_ y
-        */
+        /// @brief Symmetric matrix-vector multiply convenience overload with default parameters (float precision).
+        ///
+        /// Convenience overload where matrix A and vector x are provided first, with optional parameters
+        /// defaulting to alpha=1.0, beta=0.0, and unit strides.
+        ///
+        /// @param a Symmetric input matrix (Matrix_<float>).
+        /// @param x Input vector (Vector_<float>).
+        /// @param y Output vector (destination / input-output, Vector_<float>).
+        /// @param alpha Scaling factor applied to A*x. Default: 1.0.
+        /// @param beta Scaling factor applied to existing contents of y. Default: 0.0.
+        /// @param incx Stride between consecutive elements in vector x. Default: 1.
+        /// @param incy Stride between consecutive elements in vector y. Default: 1.
+        void SymMatrixVectorProduct(const Matrix_<float> &a, const Vector_<float> &x, Vector_<float> &y,
+                                    const float alpha, const float beta, const size_t incx, const size_t incy)
+        {
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+
+            BLAS_INT lda = get_leading(nrow, ncol);
+
+            cblas_ssymv(major, tri, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
+        };
+
+        /// @brief Symmetric matrix-vector multiply using packed storage (SPMV-like), wrapper to BLAS function dspmv (double).
+        ///
+        /// Performs y := alpha * A * x + beta * y where A is a symmetric matrix stored in packed format.
+        /// Only the lower or upper triangular part of A is used (determined by project configuration).
+        ///
+        /// @param alpha Scaling factor applied to A*x.
+        /// @param a Symmetric input matrix in packed storage format (LowTriMatrix_<double>).
+        /// @param x Input vector (Vector_<double>).
+        /// @param incx Stride between consecutive elements in vector x.
+        /// @param beta Scaling factor applied to existing contents of y.
+        /// @param y Output vector (destination / input-output, Vector_<double>).
+        /// @param incy Stride between consecutive elements in vector y.
         void SymMatrixVectorProduct(const double alpha, const LowTriMatrix_<double> &a,
                                     const Vector_<double> &x, const size_t incx, const double beta, Vector_<double> &y, const size_t incy)
         {
@@ -103,16 +374,41 @@ namespace lahva
             cblas_dspmv(major, tri, ncol, alpha, a.data(), x.data(), inx, beta, y.data(), iny);
         };
 
-        /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
-        for specified stride
-            @param[in] alpha float value by which A*x is scaled
-            @param[in] a pointer to the A matrix in column-major ordering
-            @param[in] x pointer to the Vector_ x
-            @param[in] incx stride of Vector_ x
-            @param[in] beta float value by which y is scaled
-            @param[in,out] y pointer to the y Vector_ values
-            @param[in] incy stride of Vector_ y
-        */
+        /// @brief Symmetric matrix-vector multiply using packed storage with default parameters (double precision).
+        ///
+        /// Convenience overload where packed matrix A and vector x are provided first, with optional parameters
+        /// defaulting to alpha=1.0, beta=0.0, and unit strides.
+        ///
+        /// @param a Symmetric input matrix in packed storage format (LowTriMatrix_<double>).
+        /// @param x Input vector (Vector_<double>).
+        /// @param y Output vector (destination / input-output, Vector_<double>).
+        /// @param alpha Scaling factor applied to A*x. Default: 1.0.
+        /// @param beta Scaling factor applied to existing contents of y. Default: 0.0.
+        /// @param incx Stride between consecutive elements in vector x. Default: 1.
+        /// @param incy Stride between consecutive elements in vector y. Default: 1.
+        void SymMatrixVectorProduct(const LowTriMatrix_<double> &a, const Vector_<double> &x, Vector_<double> &y,
+                                    const double alpha, const double beta, const size_t incx, const size_t incy)
+        {
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+
+            cblas_dspmv(major, tri, ncol, alpha, a.data(), x.data(), inx, beta, y.data(), iny);
+        };
+
+        /// @brief Symmetric matrix-vector multiply using packed storage (SPMV-like), wrapper to BLAS function sspmv (float).
+        ///
+        /// Performs y := alpha * A * x + beta * y where A is a symmetric matrix stored in packed format.
+        /// Only the lower or upper triangular part of A is used (determined by project configuration).
+        ///
+        /// @param alpha Scaling factor applied to A*x.
+        /// @param a Symmetric input matrix in packed storage format (LowTriMatrix_<float>).
+        /// @param x Input vector (Vector_<float>).
+        /// @param incx Stride between consecutive elements in vector x.
+        /// @param beta Scaling factor applied to existing contents of y.
+        /// @param y Output vector (destination / input-output, Vector_<float>).
+        /// @param incy Stride between consecutive elements in vector y.
         void SymMatrixVectorProduct(const float alpha, const LowTriMatrix_<float> &a,
                                     const Vector_<float> &x, const size_t incx, const float beta, Vector_<float> &y, const size_t incy)
         {
@@ -124,14 +420,39 @@ namespace lahva
             cblas_sspmv(major, tri, ncol, alpha, a.data(), x.data(), inx, beta, y.data(), iny);
         };
 
-        /*! @brief Simple interface to DTPMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
-        for specified stride
-            @param[in] T character representing the equation execute "N", "T", or "C"
-            @param[in] unit is the given traingular matrix also a unit matrix
-            @param[in] a pointer to the lower triangular matrix A in column-major ordering
-            @param[in,out] x pointer to the Vector_ x
-            @param[in] incx stride of Vector_ x
-        */
+        /// @brief Symmetric matrix-vector multiply using packed storage with default parameters (float precision).
+        ///
+        /// Convenience overload where packed matrix A and vector x are provided first, with optional parameters
+        /// defaulting to alpha=1.0, beta=0.0, and unit strides.
+        ///
+        /// @param a Symmetric input matrix in packed storage format (LowTriMatrix_<float>).
+        /// @param x Input vector (Vector_<float>).
+        /// @param y Output vector (destination / input-output, Vector_<float>).
+        /// @param alpha Scaling factor applied to A*x. Default: 1.0.
+        /// @param beta Scaling factor applied to existing contents of y. Default: 0.0.
+        /// @param incx Stride between consecutive elements in vector x. Default: 1.
+        /// @param incy Stride between consecutive elements in vector y. Default: 1.
+        void SymMatrixVectorProduct(const LowTriMatrix_<float> &a, const Vector_<float> &x, Vector_<float> &y,
+                                    const float alpha, const float beta, const size_t incx, const size_t incy)
+        {
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+
+            cblas_sspmv(major, tri, ncol, alpha, a.data(), x.data(), inx, beta, y.data(), iny);
+        };
+
+        /// @brief Triangular matrix-vector multiply (TPMV-like), wrapper to BLAS function dtpmv (double).
+        ///
+        /// Performs x := op(A) * x where A is a triangular matrix stored in packed format and op(A) is A, A^T, or A^H.
+        /// Overwrites the input vector x with the result.
+        ///
+        /// @param Ta Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param unit Specifies whether A is a unit triangular matrix (CblasUnit) or not (CblasNonUnit).
+        /// @param a Input triangular matrix in packed storage format (LowTriMatrix_<double>).
+        /// @param x Input-output vector (overwritten with result).
+        /// @param incx Stride between consecutive elements in vector x.
         void LowTriMatrixVectorProduct(const char *T, const CBLAS_DIAG unit, const LowTriMatrix_<double> &a, Vector_<double> &x, const size_t incx)
         {
             BLAS_INT inx = incx;
@@ -143,14 +464,37 @@ namespace lahva
             cblas_dtpmv(major, tri, trans, unit, col, a.data(), x.data(), inx);
         };
 
-        /*! @brief Simple interface to STPMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
-        for specified stride
-            @param[in] T character representing the equation execute "N", "T", or "C"
-            @param[in] unit is the given traingular matrix also a unit matrix
-            @param[in] a pointer to the lower triangular matrix A in column-major ordering
-            @param[in,out] x pointer to the Vector_ x
-            @param[in] incx stride of Vector_ x
-        */
+        /// @brief Triangular matrix-vector multiply with default parameters (double precision).
+        ///
+        /// Convenience overload where packed triangular matrix A and vector x are provided first, with optional parameters
+        /// defaulting to no transpose, non-unit triangular, and unit stride.
+        ///
+        /// @param a Input triangular matrix in packed storage format (LowTriMatrix_<double>).
+        /// @param x Input-output vector (overwritten with result).
+        /// @param Ta Transpose option for A: "N" (default, no transpose), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param unit Specifies whether A is a unit triangular matrix (CblasUnit) or not (CblasNonUnit). Default: CblasNonUnit.
+        /// @param incx Stride between consecutive elements in vector x. Default: 1.
+        void LowTriMatrixVectorProduct(const LowTriMatrix_<double> &a, Vector_<double> &x, const char *T, const CBLAS_DIAG unit, const size_t incx)
+        {
+            BLAS_INT inx = incx;
+            CBLAS_TRANSPOSE trans = get_trans(T);
+
+            int row, col;
+            std::tie(row, col) = check_size_mv(a, x);
+
+            cblas_dtpmv(major, tri, trans, unit, col, a.data(), x.data(), inx);
+        };
+
+        /// @brief Triangular matrix-vector multiply (TPMV-like), wrapper to BLAS function stpmv (float).
+        ///
+        /// Performs x := op(A) * x where A is a triangular matrix stored in packed format and op(A) is A, A^T, or A^H.
+        /// Overwrites the input vector x with the result.
+        ///
+        /// @param Ta Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param unit Specifies whether A is a unit triangular matrix (CblasUnit) or not (CblasNonUnit).
+        /// @param a Input triangular matrix in packed storage format (LowTriMatrix_<float>).
+        /// @param x Input-output vector (overwritten with result).
+        /// @param incx Stride between consecutive elements in vector x.
         void LowTriMatrixVectorProduct(const char *T, const CBLAS_DIAG unit, const LowTriMatrix_<float> &a, Vector_<float> &x, const size_t incx)
         {
             BLAS_INT inx = incx;
@@ -162,17 +506,25 @@ namespace lahva
             cblas_stpmv(major, tri, trans, unit, col, a.data(), x.data(), inx);
         };
 
-        // Explicit template instantiations
-        template void OuterVectorProduct<double>(const Vector<double>& x, const Vector<double>& y, Matrix<double>& A, size_t incx, size_t incy, const double alpha);
-        template void OuterVectorProduct<float>(const Vector<float>& x, const Vector<float>& y, Matrix<float>& A, size_t incx, size_t incy, const float alpha);
-        //
-        template void MatrixVectorProduct<double>(const char *Ta, const double alpha, const Matrix_<double> &a, const Vector_<double> &x, const size_t incx, const double beta, Vector_<double> &y, const size_t incy);
-        template void MatrixVectorProduct<float>(const char *Ta, const float alpha, const Matrix_<float> &a, const Vector_<float> &x, const size_t incx, const float beta, Vector_<float> &y, const size_t incy);
-        template void MatrixVectorProduct<complex_double>(const char *Ta, const complex_double alpha, const Matrix_<complex_double> &a, const Vector_<complex_double> &x, const size_t incx, const complex_double beta, Vector_<complex_double> &y, const size_t incy);
-        template void MatrixVectorProduct<complex_float>(const char *Ta, const complex_float alpha, const Matrix_<complex_float> &a, const Vector_<complex_float> &x, const size_t incx, const complex_float beta, Vector_<complex_float> &y, const size_t incy);
-        //
-        
+        /// @brief Triangular matrix-vector multiply with default parameters (float precision).
+        ///
+        /// Convenience overload where packed triangular matrix A and vector x are provided first, with optional parameters
+        /// defaulting to no transpose, non-unit triangular, and unit stride.
+        ///
+        /// @param a Input triangular matrix in packed storage format (LowTriMatrix_<float>).
+        /// @param x Input-output vector (overwritten with result).
+        /// @param Ta Transpose option for A: "N" (default, no transpose), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param unit Specifies whether A is a unit triangular matrix (CblasUnit) or not (CblasNonUnit). Default: CblasNonUnit.
+        /// @param incx Stride between consecutive elements in vector x. Default: 1.
+        void LowTriMatrixVectorProduct(const LowTriMatrix_<float> &a, Vector_<float> &x, const char *T, CBLAS_DIAG unit, const size_t incx)
+        {
+            BLAS_INT inx = incx;
+            CBLAS_TRANSPOSE trans = get_trans(T);
 
+            int row, col;
+            std::tie(row, col) = check_size_mv(a, x);
 
+            cblas_stpmv(major, tri, trans, unit, col, a.data(), x.data(), inx);
+        };
     }
 }

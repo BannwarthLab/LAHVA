@@ -7,6 +7,18 @@ namespace lahva
 {
     namespace cpu
     {
+        /// @brief Add two double-precision matrices: C = alpha*op(A) + beta*op(B)
+        ///
+        /// Performs scaled matrix addition with optional transposes: C = alpha*op(A) + beta*op(B),
+        /// where op(A) is A or A^T depending on the transpose flag. Matrices A and B are not modified.
+        ///
+        /// @param Ta Transpose option for matrix A: "N" (no transpose, A), "T" (transpose, A^T).
+        /// @param Tb Transpose option for matrix B: "N" (no transpose, B), "T" (transpose, B^T).
+        /// @param alpha Scalar multiplier for op(A) (double precision).
+        /// @param a Input matrix A (double precision).
+        /// @param beta Scalar multiplier for op(B) (double precision).
+        /// @param b Input matrix B (double precision).
+        /// @param c Output matrix C (overwritten with the result, double precision).
         template <>
         void AddMatrices<double>(const char *Ta, const char *Tb, const double alpha, const Matrix_<double> &a, const double beta,
                                  const Matrix_<double> &b, Matrix_<double> &c)
@@ -90,6 +102,18 @@ namespace lahva
 #endif
         };
 
+        /// @brief Add two single-precision matrices: C = alpha*op(A) + beta*op(B)
+        ///
+        /// Performs scaled matrix addition with optional transposes: C = alpha*op(A) + beta*op(B),
+        /// where op(A) is A or A^T depending on the transpose flag. Matrices A and B are not modified.
+        ///
+        /// @param Ta Transpose option for matrix A: "N" (no transpose, A), "T" (transpose, A^T).
+        /// @param Tb Transpose option for matrix B: "N" (no transpose, B), "T" (transpose, B^T).
+        /// @param alpha Scalar multiplier for op(A) (single precision).
+        /// @param a Input matrix A (single precision).
+        /// @param beta Scalar multiplier for op(B) (single precision).
+        /// @param b Input matrix B (single precision).
+        /// @param c Output matrix C (overwritten with the result, single precision).
         template <>
         void AddMatrices<float>(const char *Ta, const char *Tb, const float alpha, const Matrix_<float> &a, const float beta,
                                 const Matrix_<float> &b, Matrix_<float> &c)
@@ -170,6 +194,18 @@ namespace lahva
 #endif
         };
 
+        /// @brief Add two double-precision matrices with default parameters: C = alpha*op(A) + beta*op(B)
+        ///
+        /// Convenience overload with optional transpose and scalar parameters.
+        /// Performs: C = alpha*op(A) + beta*op(B) with optional transposes.
+        ///
+        /// @param a Input matrix A (double precision).
+        /// @param b Input matrix B (double precision).
+        /// @param c Output matrix C (overwritten with the result, double precision).
+        /// @param alpha Scalar multiplier for op(A) (double precision). Default: 1.0.
+        /// @param beta Scalar multiplier for op(B) (double precision). Default: 1.0.
+        /// @param Ta Transpose option for matrix A: "N" (no transpose, A), "T" (transpose, A^T). Default: "N".
+        /// @param Tb Transpose option for matrix B: "N" (no transpose, B), "T" (transpose, B^T). Default: "N".
         template <>
         void AddMatrices<double>(const Matrix_<double> &a, const Matrix_<double> &b, Matrix_<double> &c,
                                  const double alpha, const double beta, const char *Ta, const char *Tb)
@@ -251,6 +287,18 @@ namespace lahva
 #endif
         };
 
+        /// @brief Add two single-precision matrices with default parameters: C = alpha*op(A) + beta*op(B)
+        ///
+        /// Convenience overload with optional transpose and scalar parameters.
+        /// Performs: C = alpha*op(A) + beta*op(B) with optional transposes.
+        ///
+        /// @param a Input matrix A (single precision).
+        /// @param b Input matrix B (single precision).
+        /// @param c Output matrix C (overwritten with the result, single precision).
+        /// @param alpha Scalar multiplier for op(A) (single precision). Default: 1.0.
+        /// @param beta Scalar multiplier for op(B) (single precision). Default: 1.0.
+        /// @param Ta Transpose option for matrix A: "N" (no transpose, A), "T" (transpose, A^T). Default: "N".
+        /// @param Tb Transpose option for matrix B: "N" (no transpose, B), "T" (transpose, B^T). Default: "N".
         template <>
         void AddMatrices<float>(const Matrix_<float> &a, const Matrix_<float> &b, Matrix_<float> &c,
                                 const float alpha, const float beta, const char *Ta, const char *Tb)
