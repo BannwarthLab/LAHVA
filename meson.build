@@ -5,7 +5,7 @@ project(
   
   version: '0.2.0',
   license: 'MIT',
-  meson_version: '>=0.57.2',
+  meson_version: '>=1.3.0',
   default_options: [
     'buildtype=debugoptimized',
     'default_library=both',

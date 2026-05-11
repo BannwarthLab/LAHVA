@@ -67,7 +67,7 @@ namespace lahva
                 T my_part = (T)0.0;
         
                 #pragma omp for
-                for (long i = 0; i < this->size(); i++)
+                for (long i = 0; i < static_cast<long>(this->size()); i++)
                 {
                     my_part += this->data()[i];
                 }

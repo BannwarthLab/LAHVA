@@ -80,7 +80,7 @@ namespace lahva
             else
             {
             #pragma omp parallel for shared(x, y)
-            for (int i = 0; i < x.size(); i++)
+            for (int i = 0; i < static_cast<int>(x.size()); i++)
             {
                 y.data()[i] = static_cast<U>(a * x.data()[i] + y.data()[i]);
             }
@@ -123,7 +123,7 @@ namespace lahva
             {
                 check_equal_size(x, y);
             #pragma omp parallel for shared(x, y)
-            for (int i = 0; i < x.size(); i++)
+            for (int i = 0; i < static_cast<int>(x.size()); i++)
             {
                 y.data()[i] = static_cast<U>(x.data()[i]);
             }
