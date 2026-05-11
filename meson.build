@@ -20,7 +20,7 @@ inc_dirs = []
 lib_deps = []
 subdir('config')
 
-inc_dirs += include_directories('include', is_system: meson.is_subproject()) 
+inc_dirs += include_directories('include') 
 if has_gpu == true
   inc_dirs += include_directories('src/gpu/additional-blas', is_system: meson.is_subproject())
 endif
