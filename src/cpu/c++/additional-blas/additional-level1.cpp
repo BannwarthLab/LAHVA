@@ -22,7 +22,7 @@ namespace lahva
         {
             double trace = 0;
 #pragma omp parallel for shared(matrix) reduction(+ : trace)
-            for (int i = 0; i < matrix.shape().first; i++)
+            for (int i = 0; i < static_cast<int>(matrix.shape().first); i++)
                 trace += (double)matrix(i, i);
             return trace;
         };
@@ -42,7 +42,7 @@ namespace lahva
             double trace = 0;
 
 #pragma omp parallel for shared(matrix) reduction(+ : trace)
-            for (int i = 0; i < matrix.shape().first; i++)
+            for (int i = 0; i < static_cast<int>(matrix.shape().first); i++)
                 trace += (double)matrix(i, i);
             return trace;
         };
@@ -59,7 +59,7 @@ namespace lahva
             double trace = 0;
 
 #pragma omp parallel for shared(diag) reduction(+ : trace)
-            for (int i = 0; i < diag.size(); i++)
+            for (int i = 0; i < static_cast<int>(diag.size()); i++)
                 trace += (double)diag[i];
             return trace;
         };
@@ -76,7 +76,7 @@ namespace lahva
         {
             T norm = 0;
 #pragma omp parallel for reduction(+ : norm)
-            for (int i = 0; i < mat.size(); i++)
+            for (int i = 0; i < static_cast<int>(mat.size()); i++)
             {
                 norm = fma(mat.data()[i], mat.data()[i], norm);
             };
@@ -97,7 +97,7 @@ namespace lahva
         {
             T norm = 0;
 #pragma omp parallel for reduction(+ : norm)
-            for (int i = 0; i < mat.size(); i++)
+            for (int i = 0; i < static_cast<int>(mat.size()); i++)
             {
                 T diff = mat.data()[i] - mat2.data()[i];
                 norm = fma(diff, diff, norm);
@@ -130,7 +130,7 @@ namespace lahva
             T norm = 0;
             check_equal_size(mat1, mat2);
 #pragma omp parallel for shared(mat1, mat2) reduction(+ : norm)
-            for (int i = 0; i < (mat1.size()); i++)
+            for (int i = 0; i < static_cast<int>(mat1.size()); i++)
             {
                 norm += mat1.data()[i] * mat2.data()[i];
             }
@@ -158,7 +158,7 @@ namespace lahva
         {
             check_equal_size(A, B);
 #pragma omp parallel for shared(A, B)
-            for (int i = 0; i < A.size(); i++)
+            for (int i = 0; i < static_cast<int>(A.size()); i++)
             {
                 B.data()[i] = A.data()[i] * B.data()[i];
             }
@@ -178,7 +178,7 @@ namespace lahva
             check_equal_size(A, B);
             check_equal_size(A, C);
 #pragma omp parallel for shared(A, B, C)
-            for (int i = 0; i < A.size(); i++)
+            for (int i = 0; i < static_cast<int>(A.size()); i++)
             {
                 C.data()[i] = A.data()[i] * B.data()[i];
             }
@@ -200,7 +200,7 @@ namespace lahva
             if (increment)
             {
                 #pragma omp parallel for shared(A, B, C)
-                for (int i = 0; i < ndim; i++)
+                for (int i = 0; i < static_cast<int>(ndim); i++)
                 {
                     C[i] += A[i] * B[i];
                 }
@@ -209,7 +209,7 @@ namespace lahva
             else
             {
                 #pragma omp parallel for shared(A, B, C)
-                for (int i = 0; i < ndim; i++)
+                for (int i = 0; i < static_cast<int>(ndim); i++)
                 {
                     C[i] = A[i] * B[i];
                 }

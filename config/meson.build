@@ -80,13 +80,23 @@ code = '''
 
 omp_dep = dependency('openmp', language: 'cpp', required: false)
 
-if omp_dep.found() 
-  lib_deps += omp_dep
+if omp_dep.found()
+  if has_nvcc == true
+    add_project_arguments(['-fopenmp'], language: 'cpp')
+    add_project_link_arguments(['-fopenmp'], language: 'cpp')
+  else
+    lib_deps += omp_dep
+  endif
 elif build_machine.system() == 'darwin' and cc_id == 'clang'
   add_project_arguments(['-Xpreprocessor','-fopenmp'],language: 'cpp')
   add_project_arguments(['-I/opt/homebrew/opt/libomp/include'], language: 'cpp')
   add_project_link_arguments(['-lomp'],language: 'cpp')
   add_project_link_arguments(['-L/opt/homebrew/opt/libomp/lib'], language: 'cpp')
+endif
+
+# Disable C++ assertions in CUDA to avoid __builtin_printf errors with GCC 11+
+if has_nvcc == true
+  add_project_arguments(['-U_GLIBCXX_ASSERTIONS'], language: 'cuda')
 endif
 
 lapack_vendor = get_option('lapack')
