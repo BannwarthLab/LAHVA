@@ -6,6 +6,7 @@
 #include "impl/blas/cpu/level3.hpp"
 #include "impl/blas/cpu/additional-level1.hpp"
 #include "impl/blas/cpu/additional-level2.hpp"
+#include "impl/blas/cpu/additional-level3.hpp"
 #include "impl/blas/cpu/lapack.hpp"
 #ifdef _CUDA
 #include "impl/blas/gpu/level1.hpp"

@@ -34,6 +34,15 @@ test('additional-level-2',
   ),
   )
 
+test('additional-level-3',
+  executable(
+    '@0@-add-level3-tester'.format(meson.project_name()),
+    sources: files('additional-level3.cpp','utils.cpp'),
+    dependencies: lahva_dep,
+    link_language: 'cpp', 
+  ),
+  )
+
 if has_gpu == true
   test('level1-gpu',
   executable(

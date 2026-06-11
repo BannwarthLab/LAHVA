@@ -22,6 +22,20 @@ namespace lahva
             (AddMatrices(args...));
         }
 
+        void MatrixVectorProduct(const char *T, const double alpha, const BlockDiagMatrix<double>& a, const Vector<double>& x,
+                                 const int incx, const double beta, Vector<double>& y, const int incy);
+        void MatrixVectorProduct(const BlockDiagMatrix<double>& a, const Vector<double>& x, Vector<double>& y, 
+                                 const char *T="N", const double alpha=1.0, const int incx=1, const double beta=0.0, const int incy=1) {
+                                    MatrixVectorProduct(T, alpha, a, x, incx, beta, y, incy);
+                                 };
+        
+        void MatrixVectorProduct(const char *T, const float alpha, const BlockDiagMatrix<float>& a, const Vector<float>& x,
+                                 const int incx, const float beta, Vector<float>& y, const int incy);
+        void MatrixVectorProduct(const BlockDiagMatrix<float>& a, const Vector<float>& x, Vector<float>& y, 
+                                 const char *T="N", const float alpha=1.0, const int incx=1, const float beta=0.0, const int incy=1) {
+                                    MatrixVectorProduct(T, alpha, a, x, incx, beta, y, incy);
+                                 };
+
     } // namespace gpu
 
 }

@@ -15,6 +15,26 @@ namespace lahva{
     
     
 
+    // Generic matrix-vector size check that works with any matrix type
+    template<typename MatrixType, typename VectorType>
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const MatrixType& m, const VectorType& vmult, const VectorType& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
+        Shape s = m.shape();
+        BLAS_INT nrow = s.first;
+        BLAS_INT ncol = s.second;
+        if (trans == CblasNoTrans) {
+            assert(nrow == (BLAS_INT)vres.size());
+            assert(ncol == (BLAS_INT)vmult.size());
+            
+        }
+        else {
+            assert(nrow == (BLAS_INT)vmult.size());
+            assert(ncol == (BLAS_INT)vres.size());
+            
+        }
+        
+        return std::make_tuple(nrow, ncol);
+    };
+
     template<typename T>
     std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const Matrix_<T>& m, const Tensor<T>& vmult, const Tensor<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
         Shape s = m.shape();
@@ -53,9 +73,9 @@ namespace lahva{
         return std::make_tuple(nrow, ncol);
     };
 
-    template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT, BLAS_INT> check_size_mm(const Matrix_<T>& a, const Matrix_<T>& b, 
-        const Matrix_<T>& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
+    template<typename MatrixTypeA, typename MatrixTypeB, typename MatrixTypeC>
+    std::tuple<BLAS_INT, BLAS_INT, BLAS_INT> check_size_mm(const MatrixTypeA& a, const MatrixTypeB& b, 
+        const MatrixTypeC& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
         
         Shape sa = a.shape();
         BLAS_INT nrowa = sa.first;
@@ -109,9 +129,9 @@ namespace lahva{
         return std::make_tuple(nrowc, ncolc, k);
     };
 
-    template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_same_shape_mm(const Matrix_<T>& a, const Matrix_<T>& b, 
-        const Matrix_<T>& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
+    template<typename MatrixTypeA, typename MatrixTypeB, typename MatrixTypeC>
+    std::tuple<BLAS_INT, BLAS_INT> check_same_shape_mm(const MatrixTypeA& a, const MatrixTypeB& b, 
+        const MatrixTypeC& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
         
         Shape sa = a.shape();
         BLAS_INT nrowa = sa.first;
@@ -177,5 +197,6 @@ namespace lahva{
 
     BLAS_INT get_leading(BLAS_INT nrow, BLAS_INT ncol, CBLAS_TRANSPOSE trans = CblasNoTrans);
     CBLAS_TRANSPOSE get_trans(const char* T);
-    } // namespace cpu
+
+} // namespace cpu
 }
