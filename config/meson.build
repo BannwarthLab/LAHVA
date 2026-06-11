@@ -109,6 +109,11 @@ elif build_machine.system() == 'darwin' and cc_id == 'clang'
   add_project_link_arguments(['-L/opt/homebrew/opt/libomp/lib'], language: 'cpp')
 endif
 
+# Disable C++ assertions in CUDA to avoid __builtin_printf errors with GCC 11+
+if has_nvcc == true
+  add_project_arguments(['-U_GLIBCXX_ASSERTIONS'], language: 'cuda')
+endif
+
 lapack_vendor = get_option('lapack')
 if lapack_vendor == 'auto'
   if cc_id == 'intel'

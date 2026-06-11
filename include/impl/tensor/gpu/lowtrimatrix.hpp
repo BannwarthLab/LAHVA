@@ -1,3 +1,10 @@
+/// @file lowtrimatrix.hpp
+/// @brief GPU-based lower triangular matrix tensor implementation.
+///
+/// Provides the LowTriMatrix_ class for lower triangular matrix storage and operations on GPU.
+/// Optimized storage for lower triangular structure with cuBLAS compatibility.
+/// Inherits from both GPU and CPU lower triangular interfaces for mixed-precision computations.
+
 #pragma once
 #include "runtime.hpp"
 #include "impl/tensor/gpu/gputensor.hpp"

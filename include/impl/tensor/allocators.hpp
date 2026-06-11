@@ -1,3 +1,9 @@
+/// @file allocators.hpp
+/// @brief Memory allocator abstractions for CPU and GPU tensor storage.
+///
+/// Provides abstract allocator classes and concrete implementations for managing tensor memory
+/// across CPU and GPU devices. Supports custom allocation strategies and memory pooling.
+
 #pragma once
 #ifdef _CUDA
 #include "runtime.hpp"

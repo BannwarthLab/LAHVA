@@ -1,4 +1,11 @@
+/// @file lahva.hpp
+/// @brief C++-style BLAS and LAPACK function declarations for CPU and GPU computation.
+///
+/// This header aggregates all C++-style function declarations (templates and overloads)
+/// for BLAS Level 1, Level 2, Level 3, additional levels, and LAPACK routines.
+
 #ifndef LAHVA_BLAS_HPP
+
 #define LAHVA_BLAS_HPP
 
 #include "impl/blas/cpu/level1.hpp"

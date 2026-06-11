@@ -1,8 +1,16 @@
+/// @file level3.hpp
+/// @brief GPU-accelerated BLAS Level-3 operations (matrix-matrix operations).
+///
+/// Provides GPU BLAS Level-3 kernel declarations for CUDA acceleration.
+/// Level-3 operations include matrix-matrix multiplication, triangular solves, and rank-k updates.
+/// Each function is provided for double and float precision with GPU runtime management.
+
 #ifndef LAHVA_GPU_LEVEL_3_HPP
 #define LAHVA_GPU_LEVEL_3_HPP
 #include "linalg.hpp"
 #include "const.h"
 #include "runtime.hpp"
+
 namespace lahva{
     namespace gpu {
     void MatrixMatrixProduct(const CudaRuntime& cudart, const char* Ta, const char* Tb, const double alpha, const Matrix_<double>& a, const Matrix_<double>& b,

@@ -1,8 +1,16 @@
+/// @file mp-runtime.hpp
+/// @brief Mixed-precision GPU computation runtime configuration and settings.
+///
+/// Provides runtime settings for multi-precision Ozaki-type computations on GPU,
+/// managing parameters for split factor and computational modes for mixed-precision
+/// linear algebra operations.
+
 #include "const.h"
 #include "runtime.hpp"
 
 #include "tensor/gpu/matrix.hpp"
 #include "tensor/allocators.hpp"
+
 namespace lahva
 {
     namespace gpu
