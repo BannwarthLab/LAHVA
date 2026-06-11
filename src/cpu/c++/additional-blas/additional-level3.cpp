@@ -16,11 +16,13 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
-            std::vector<CBLAS_TRANSPOSE> transa_array, transb_array;
-            std::vector<double> alpha_array, beta_array;
-            std::vector<MKL_INT> n_array, ldb_array, ldc_array, m_array, k_array, lda_array, group_size;
+            std::vector<MKL_INT> m_array, k_array, lda_array, group_size;
             std::vector<const double*> a_array, b_array;
             std::vector<double*> c_array;
+
+            a_array.reserve(a.num_blocks());
+            b_array.reserve(a.num_blocks());
+            c_array.reserve(a.num_blocks());
 
             size_t i = 0;
             while (i < a.num_blocks()) {
@@ -36,13 +38,6 @@ namespace lahva
 
                 size_t group_count = i - group_start;
 
-                transa_array.push_back(transa);
-                transb_array.push_back(transb);
-                alpha_array.push_back(alpha);
-                beta_array.push_back(beta);
-                n_array.push_back(n);
-                ldb_array.push_back(k);
-                ldc_array.push_back(m);
                 m_array.push_back(current_m);
                 k_array.push_back(current_k);
                 lda_array.push_back(current_m);
@@ -56,6 +51,13 @@ namespace lahva
             }
 
             MKL_INT group_count = group_size.size();
+            std::vector<CBLAS_TRANSPOSE> transa_array(group_count, transa);
+            std::vector<CBLAS_TRANSPOSE> transb_array(group_count, transb);
+            std::vector<double> alpha_array(group_count, alpha);
+            std::vector<double> beta_array(group_count, beta);
+            std::vector<MKL_INT> n_array(group_count, n);
+            std::vector<MKL_INT> ldb_array(group_count, k);
+            std::vector<MKL_INT> ldc_array(group_count, m);
 
             cblas_dgemm_batch(
                 major,
@@ -86,11 +88,13 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
-            std::vector<CBLAS_TRANSPOSE> transa_array, transb_array;
-            std::vector<double> alpha_array, beta_array;
-            std::vector<MKL_INT> m_array, n_array, k_array, lda_array, ldb_array, ldc_array, group_size;
+            std::vector<MKL_INT> n_array, k_array, ldb_array, group_size;
             std::vector<const double*> a_array, b_array;
             std::vector<double*> c_array;
+
+            a_array.reserve(b.num_blocks());
+            b_array.reserve(b.num_blocks());
+            c_array.reserve(b.num_blocks());
 
             size_t i = 0;
             while (i < b.num_blocks()) {
@@ -106,16 +110,9 @@ namespace lahva
 
                 size_t group_count = i - group_start;
 
-                transa_array.push_back(transa);
-                transb_array.push_back(transb);
-                alpha_array.push_back(alpha);
-                beta_array.push_back(beta);
-                m_array.push_back(a.shape().first);
                 n_array.push_back(current_n);
                 k_array.push_back(current_k);
-                lda_array.push_back(a.shape().first);
                 ldb_array.push_back(current_k);
-                ldc_array.push_back(c.shape().first);
                 group_size.push_back(group_count);
 
                 for (size_t j = group_start; j < i; ++j) {
@@ -126,6 +123,13 @@ namespace lahva
             }
 
             MKL_INT group_count = group_size.size();
+            std::vector<CBLAS_TRANSPOSE> transa_array(group_count, transa);
+            std::vector<CBLAS_TRANSPOSE> transb_array(group_count, transb);
+            std::vector<double> alpha_array(group_count, alpha);
+            std::vector<double> beta_array(group_count, beta);
+            std::vector<MKL_INT> m_array(group_count, a.shape().first);
+            std::vector<MKL_INT> lda_array(group_count, a.shape().first);
+            std::vector<MKL_INT> ldc_array(group_count, c.shape().first);
 
             cblas_dgemm_batch(
                 major,
@@ -156,11 +160,13 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
-            std::vector<CBLAS_TRANSPOSE> transa_array, transb_array;
-            std::vector<float> alpha_array, beta_array;
-            std::vector<MKL_INT> m_array, n_array, k_array, lda_array, ldb_array, ldc_array, group_size;
+            std::vector<MKL_INT> m_array, k_array, lda_array, group_size;
             std::vector<const float*> a_array, b_array;
             std::vector<float*> c_array;
+
+            a_array.reserve(a.num_blocks());
+            b_array.reserve(a.num_blocks());
+            c_array.reserve(a.num_blocks());
 
             size_t i = 0;
             while (i < a.num_blocks()) {
@@ -176,16 +182,9 @@ namespace lahva
 
                 size_t group_count = i - group_start;
 
-                transa_array.push_back(transa);
-                transb_array.push_back(transb);
-                alpha_array.push_back(alpha);
-                beta_array.push_back(beta);
                 m_array.push_back(current_m);
-                n_array.push_back(n);
                 k_array.push_back(current_k);
                 lda_array.push_back(current_m);
-                ldb_array.push_back(k);
-                ldc_array.push_back(m);
                 group_size.push_back(group_count);
 
                 for (size_t j = group_start; j < i; ++j) {
@@ -196,6 +195,13 @@ namespace lahva
             }
 
             MKL_INT group_count = group_size.size();
+            std::vector<CBLAS_TRANSPOSE> transa_array(group_count, transa);
+            std::vector<CBLAS_TRANSPOSE> transb_array(group_count, transb);
+            std::vector<float> alpha_array(group_count, alpha);
+            std::vector<float> beta_array(group_count, beta);
+            std::vector<MKL_INT> n_array(group_count, n);
+            std::vector<MKL_INT> ldb_array(group_count, k);
+            std::vector<MKL_INT> ldc_array(group_count, m);
 
             cblas_sgemm_batch(
                 major,
@@ -226,11 +232,13 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
-            std::vector<CBLAS_TRANSPOSE> transa_array, transb_array;
-            std::vector<float> alpha_array, beta_array;
-            std::vector<MKL_INT> m_array, n_array, k_array, lda_array, ldb_array, ldc_array, group_size;
+            std::vector<MKL_INT> n_array, k_array, ldb_array, group_size;
             std::vector<const float*> a_array, b_array;
             std::vector<float*> c_array;
+
+            a_array.reserve(b.num_blocks());
+            b_array.reserve(b.num_blocks());
+            c_array.reserve(b.num_blocks());
 
             size_t i = 0;
             while (i < b.num_blocks()) {
@@ -246,16 +254,9 @@ namespace lahva
 
                 size_t group_count = i - group_start;
 
-                transa_array.push_back(transa);
-                transb_array.push_back(transb);
-                alpha_array.push_back(alpha);
-                beta_array.push_back(beta);
-                m_array.push_back(a.shape().first);
                 n_array.push_back(current_n);
                 k_array.push_back(current_k);
-                lda_array.push_back(a.shape().first);
                 ldb_array.push_back(current_k);
-                ldc_array.push_back(c.shape().first);
                 group_size.push_back(group_count);
 
                 for (size_t j = group_start; j < i; ++j) {
@@ -266,6 +267,13 @@ namespace lahva
             }
 
             MKL_INT group_count = group_size.size();
+            std::vector<CBLAS_TRANSPOSE> transa_array(group_count, transa);
+            std::vector<CBLAS_TRANSPOSE> transb_array(group_count, transb);
+            std::vector<float> alpha_array(group_count, alpha);
+            std::vector<float> beta_array(group_count, beta);
+            std::vector<MKL_INT> m_array(group_count, a.shape().first);
+            std::vector<MKL_INT> lda_array(group_count, a.shape().first);
+            std::vector<MKL_INT> ldc_array(group_count, c.shape().first);
 
             cblas_sgemm_batch(
                 major,
