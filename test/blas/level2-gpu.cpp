@@ -1,4 +1,4 @@
-#include "common.h"
+#include "../common.h"
 using namespace lahva::gpu;
 #define M 10
 #define N 5 

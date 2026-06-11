@@ -61,17 +61,133 @@ namespace lahva
             }
         }
 
-        // //! @param[in] i row index
-        // //! @param[in] j column index
-        // //! @return reference to Matrix element i,j
-        // T &operator()(size_t i, size_t j);
-        // //! @param[in] i row index
-        // //! @param[in] j column index
-        // //! @return reference to Matrix element i,j
-        // const T &operator()(size_t i, size_t j) const;
+        BlockDiagMatrix(const BlockDiagMatrix &other) :
+            n_rows_{other.n_rows_}, n_cols_{other.n_cols_},
+            matrices{other.matrices},
+            block_rows_{other.block_rows_},
+            block_cols_{other.block_cols_},
+            row_offsets_{other.row_offsets_},
+            col_offsets_{other.col_offsets_}
+        {}
 
-        // //! @brief in-place, scalar addition
-        // BlockDiagMatrix &operator+=(T val);
+        BlockDiagMatrix &operator=(const BlockDiagMatrix &other)
+        {
+            if (this != &other)
+            {
+                free_gpu_cache();
+                n_rows_ = other.n_rows_;
+                n_cols_ = other.n_cols_;
+                matrices = other.matrices;
+                block_rows_ = other.block_rows_;
+                block_cols_ = other.block_cols_;
+                row_offsets_ = other.row_offsets_;
+                col_offsets_ = other.col_offsets_;
+            }
+            return *this;
+        }
+
+        BlockDiagMatrix(BlockDiagMatrix &&other) noexcept :
+            n_rows_{other.n_rows_}, n_cols_{other.n_cols_},
+            matrices{std::move(other.matrices)},
+            block_rows_{std::move(other.block_rows_)},
+            block_cols_{std::move(other.block_cols_)},
+            row_offsets_{std::move(other.row_offsets_)},
+            col_offsets_{std::move(other.col_offsets_)},
+            gpu_data_{other.gpu_data_},
+            gpu_data_valid_{other.gpu_data_valid_}
+        {
+            other.n_rows_ = 0;
+            other.n_cols_ = 0;
+            other.gpu_data_ = nullptr;
+            other.gpu_data_valid_ = false;
+        }
+
+        BlockDiagMatrix &operator=(BlockDiagMatrix &&other) noexcept
+        {
+            if (this != &other)
+            {
+                free_gpu_cache();
+                n_rows_ = other.n_rows_;
+                n_cols_ = other.n_cols_;
+                matrices = std::move(other.matrices);
+                block_rows_ = std::move(other.block_rows_);
+                block_cols_ = std::move(other.block_cols_);
+                row_offsets_ = std::move(other.row_offsets_);
+                col_offsets_ = std::move(other.col_offsets_);
+                gpu_data_ = other.gpu_data_;
+                gpu_data_valid_ = other.gpu_data_valid_;
+                other.n_rows_ = 0;
+                other.n_cols_ = 0;
+                other.gpu_data_ = nullptr;
+                other.gpu_data_valid_ = false;
+            }
+            return *this;
+        }
+
+        BlockDiagMatrix(size_t n_blocks, Shape block_shape)
+        {
+            matrices.reserve(n_blocks);
+            block_rows_.reserve(n_blocks);
+            block_cols_.reserve(n_blocks);
+            for (size_t i = 0; i < n_blocks; ++i)
+                matrices.emplace_back(block_shape);
+            build_offsets_();
+        }
+
+        BlockDiagMatrix(size_t n_blocks, Shape block_shape, T val)
+        {
+            matrices.reserve(n_blocks);
+            block_rows_.reserve(n_blocks);
+            block_cols_.reserve(n_blocks);
+            for (size_t i = 0; i < n_blocks; ++i)
+                matrices.emplace_back(block_shape, val);
+            build_offsets_();
+        }
+
+        explicit BlockDiagMatrix(const std::vector<Shape> &shapes)
+        {
+            matrices.reserve(shapes.size());
+            block_rows_.reserve(shapes.size());
+            block_cols_.reserve(shapes.size());
+            for (const auto &s : shapes)
+                matrices.emplace_back(s);
+            build_offsets_();
+        }
+
+        BlockDiagMatrix(const std::vector<Shape> &shapes, T val)
+        {
+            matrices.reserve(shapes.size());
+            block_rows_.reserve(shapes.size());
+            block_cols_.reserve(shapes.size());
+            for (const auto &s : shapes)
+                matrices.emplace_back(s, val);
+            build_offsets_();
+        }
+
+        explicit BlockDiagMatrix(const std::vector<Matrix<T, Allocator>> &blocks)
+            : matrices(blocks)
+        {
+            block_rows_.reserve(matrices.size());
+            block_cols_.reserve(matrices.size());
+            build_offsets_();
+        }
+
+        explicit BlockDiagMatrix(std::vector<Matrix<T, Allocator>> &&blocks)
+            : matrices(std::move(blocks))
+        {
+            block_rows_.reserve(matrices.size());
+            block_cols_.reserve(matrices.size());
+            build_offsets_();
+        }
+
+        //! @brief in-place, scalar addition
+        BlockDiagMatrix &operator+=(T val)
+        {
+            free_gpu_cache();
+            for (auto &m : matrices)
+                m += val;
+            return *this;
+        }
 
         //! @return number of rows/columns of the Matrix
         Shape shape() const { return Shape{n_rows_, n_cols_}; }
@@ -105,27 +221,95 @@ namespace lahva
         //! @return const reference to block column sizes
         const std::vector<size_t>& get_block_cols() const { return block_cols_; }
 
+        //! @return concatenated diagonals of all blocks
+        cpu::Vector<T, Allocator> get_diagonal() const
+        {
+            size_t total = 0;
+            for (const auto &m : matrices)
+            {
+                Shape s = m.shape();
+                total += std::min(s.first, s.second);
+            }
+            cpu::Vector<T, Allocator> diag(total);
+            size_t offset = 0;
+            for (const auto &m : matrices)
+            {
+                Shape s = m.shape();
+                size_t min_dim = std::min(s.first, s.second);
+                for (size_t i = 0; i < min_dim; i++)
+                    diag[offset + i] = m(i, i);
+                offset += min_dim;
+            }
+            return diag;
+        }
+
+        //! @brief set diagonal of each block from a flat vector of concatenated block diagonals
+        void set_diagonal(const cpu::Vector<T, Allocator> &diag)
+        {
+            free_gpu_cache();
+            size_t offset = 0;
+            for (auto &m : matrices)
+            {
+                Shape s = m.shape();
+                size_t min_dim = std::min(s.first, s.second);
+#pragma omp for
+                for (size_t i = 0; i < min_dim; i++)
+                    m(i, i) = diag[offset + i];
+                offset += min_dim;
+            }
+        }
+
+        //! @brief symmetrize each block in-place: block = (block + block^T) / 2
+        void symmetrize()
+        {
+            free_gpu_cache();
+            for (auto &m : matrices)
+                m.symmetrize();
+        }
+
+        template <typename... Args>
+        void symmetrize(const CPURuntime &rt_, Args &&...args)
+        {
+            (symmetrize(args...));
+        }
+
+        template <typename... Args>
+        cpu::Vector<T, Allocator> get_diagonal(const CPURuntime &rt_, Args &&...args)
+        {
+            return get_diagonal(args...);
+        }
+
+        template <typename... Args>
+        void set_diagonal(const CPURuntime &rt_, Args &&...args)
+        {
+            (set_diagonal(args...));
+        }
+
+        //! @return const void pointer to block data (for compatibility with abstract interface)
+        const void* get_block_data(size_t idx) const {
+            return static_cast<const void*>(matrices[idx].data());
+        }
 
         virtual T &operator()(size_t i, size_t j) override {
-            // Find which block contains this element
             for (size_t b = 0; b < matrices.size(); ++b) {
                 if (i >= row_offsets_[b] && i < row_offsets_[b] + (int)matrices[b].shape().first &&
                     j >= col_offsets_[b] && j < col_offsets_[b] + (int)matrices[b].shape().second) {
                     return matrices[b](i - row_offsets_[b], j - col_offsets_[b]);
                 }
             }
-            throw std::out_of_range("Index out of block diagonal matrix bounds");
+            static T zero{};
+            return zero;
         }
 
         virtual const T &operator()(size_t i, size_t j) const override {
-            // Find which block contains this element
             for (size_t b = 0; b < matrices.size(); ++b) {
                 if (i >= row_offsets_[b] && i < row_offsets_[b] + (int)matrices[b].shape().first &&
                     j >= col_offsets_[b] && j < col_offsets_[b] + (int)matrices[b].shape().second) {
                     return matrices[b](i - row_offsets_[b], j - col_offsets_[b]);
                 }
             }
-            throw std::out_of_range("Index out of block diagonal matrix bounds");
+            static const T zero{};
+            return zero;
         }
 
         void add_block(const Matrix<T, Allocator> &block) {
@@ -186,6 +370,30 @@ namespace lahva
         }
         
     private:
+        static void check_size_(size_t n_rows, size_t n_cols)
+        {
+            if (n_rows != 0 && n_cols > SIZE_MAX / n_rows)
+                throw std::out_of_range("Block size exceeds maximum representable size.");
+        }
+
+        void build_offsets_()
+        {
+            row_offsets_.reserve(matrices.size() + 1);
+            col_offsets_.reserve(matrices.size() + 1);
+            row_offsets_.push_back(0);
+            col_offsets_.push_back(0);
+            for (const auto &m : matrices)
+            {
+                Shape s = m.shape();
+                n_rows_ += s.first;
+                n_cols_ += s.second;
+                block_rows_.push_back(s.first);
+                block_cols_.push_back(s.second);
+                row_offsets_.push_back(row_offsets_.back() + static_cast<int>(s.first));
+                col_offsets_.push_back(col_offsets_.back() + static_cast<int>(s.second));
+            }
+        }
+
         //! @brief Internal method to copy block diagonal matrix to GPU
         void copy_to_gpu_impl() const {
             int num_blocks = matrices.size();
@@ -242,114 +450,7 @@ namespace lahva
         BlockDiagMatrixSparse<T> to_sparse(SparseFormat format = SparseFormat::CSR) const {
             return BlockDiagMatrixSparse<T>(*this, format);
         }
-    };    //     void print(const char* file) const
-    //     {
-    //         for (size_t i=0; i < matrices.size(); i++) {
-    //             matrices[i].print(file);
-    //         }
-            
-    //     }
-    // };
+    };
 
-    //  template <typename T, class Allocator>
-    // void BlockDiagMatrix<T, Allocator>::check_size_(size_t n_rows,
-    //                             size_t n_cols)
-    // {
-    //     if (n_cols > SIZE_MAX)
-    //     {
-    //         throw std::out_of_range("Number of columns exceeds maximum Matrix size.");
-    //     }
-    //     else if (n_rows > SIZE_MAX)
-    //     {
-    //         throw std::out_of_range("Number of rows exceeds maximum Matrix size.");
-    //     }
-    //     else if (data_size_(n_rows, n_cols) > SIZE_MAX)
-    //     {
-    //         throw std::out_of_range("Vector exceeds maximum Matrix size.");
-    //     }
-    // }
-
-    // // copy operations
-    //  template <typename T, class Allocator>
-    // BlockDiagMatrix<T, Allocator>::BlockDiagMatrix(const BlockDiagMatrix<T, Allocator> &other) : 
-    // CPUTensor<T, Allocator>{other}, 
-    // n_rows_{other.n_rows_}, n_cols_{other.n_cols_}
-    // {
-        
-    // }
-
-    // template <typename T, class Allocator>
-    // BlockDiagMatrix<T, Allocator> &BlockDiagMatrix<T, Allocator>::operator=(const BlockDiagMatrix<T, Allocator> &other)
-    // {
-    //     if (this != &other)
-    //     {
-    //         CPUTensor<T, Allocator>::operator=(other);
-
-    //         n_rows_ = other.n_rows_;
-    //         n_cols_ = other.n_cols_;
-    //     }
-
-    //     return *this;
-    // }
-
-    // // move operations
-    // template <typename T, class Allocator>
-    // BlockDiagMatrix<T, Allocator>::BlockDiagMatrix(BlockDiagMatrix<T, Allocator> &&other) :
-    // CPUTensor<T, Allocator>{other},
-    // n_rows_{other.n_rows_}, n_cols_{other.n_cols_}
-    // {
-   
-    //     other.n_rows_ = 0;
-    //     other.n_cols_ = 0;
-
-    // }
-
-    //  template <typename T, class Allocator>
-    // BlockDiagMatrix<T, Allocator> &BlockDiagMatrix<T, Allocator>::operator=(BlockDiagMatrix<T, Allocator> &&other)
-    // {
-    //     if (this != &other)
-    //     {
-    //         CPUTensor<T, Allocator>::operator=(std::move(other));
-            
-    //         n_rows_ = other.n_rows_;
-    //         n_cols_ = other.n_cols_;
-            
-    //         other.n_rows_ = 0;
-    //         other.n_cols_ = 0;
-    //     }
-    //     return *this;
-    // }
-
-    //  template <typename T, class Allocator>
-    // T &BlockDiagMatrix<T, Allocator>::operator()(size_t i, size_t j)
-    // {
-    //     return this->data_[this->data_id_(i, j)];
-    // }
-
-    //  template <typename T, class Allocator>
-    // const T &BlockDiagMatrix<T, Allocator>::operator()(size_t i, size_t j) const
-    // {
-    //     return this->data_[this->data_id_(i, j)];
-    // }
-
-    //  template <typename T, class Allocator>
-    // BlockDiagMatrix<T, Allocator> &BlockDiagMatrix<T, Allocator>::operator+=(T val)
-    // {
-    // #pragma omp for
-    //     for (size_t i = 0; i < data_size_(n_rows_, n_cols_); i++)
-    //     {
-    //         this->data_[i] += val;
-    //     }
-
-    //     return *this;
-    // }
-
-    //  template <typename T, class Allocator>
-    // void BlockDiagMatrix<T, Allocator>::print() const
-    // {
-    //     for (size_t i=0; i < matrices.size(); i++) {
-    //         matrices[i].print();
-    //     }
-
-    } // namespace cpu
+    } // namespace gpu
 } // namespace lahva

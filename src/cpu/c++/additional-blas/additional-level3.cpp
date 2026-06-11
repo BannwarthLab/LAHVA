@@ -10,36 +10,52 @@ namespace lahva
         void MatrixMatrixProduct(const char* Ta, const char* Tb, const double alpha, const BlockDiagMatrix<double>& a, const Matrix_<double>& b,
                              const double beta, Matrix_<double>& c)
         {
-
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
-            std::vector<CBLAS_TRANSPOSE> transa_array(a.num_blocks(), transa), transb_array(a.num_blocks(), transb);
 
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
-            
-            std::vector<double> alpha_array(a.num_blocks(), alpha);
-            std::vector<double> beta_array(a.num_blocks(), beta);
-            std::vector<MKL_INT> n_array(a.num_blocks(), n);
-            std::vector<MKL_INT> ldb_array(a.num_blocks(), k);
-            std::vector<MKL_INT> ldc_array(a.num_blocks(), m);
-            std::vector<MKL_INT> group_size(a.num_blocks(), 1);
 
-            std::vector<MKL_INT> m_array(a.num_blocks()), k_array(a.num_blocks()), lda_array(a.num_blocks());
-            std::vector<const double*> a_array(a.num_blocks()), b_array(a.num_blocks());
-            std::vector<double*> c_array(a.num_blocks());
+            std::vector<CBLAS_TRANSPOSE> transa_array, transb_array;
+            std::vector<double> alpha_array, beta_array;
+            std::vector<MKL_INT> n_array, ldb_array, ldc_array, m_array, k_array, lda_array, group_size;
+            std::vector<const double*> a_array, b_array;
+            std::vector<double*> c_array;
 
-            #pragma omp parallel for schedule(guided)
-            for (size_t i = 0; i < a.num_blocks(); ++i) {
-            
-                m_array[i] = a.get_block(i).shape().first;
-                k_array[i] = a.get_block(i).shape().second;
-                lda_array[i] = a.get_block(i).shape().first;
+            size_t i = 0;
+            while (i < a.num_blocks()) {
+                MKL_INT current_m = a.get_block(i).shape().first;
+                MKL_INT current_k = a.get_block(i).shape().second;
+                size_t group_start = i;
 
-                a_array[i] = a.get_block(i).data();
-                b_array[i] = b.data() + a.get_col_offsets()[i];
-                c_array[i] = c.data() + a.get_row_offsets()[i];
+                while (i < a.num_blocks() &&
+                       a.get_block(i).shape().first == current_m &&
+                       a.get_block(i).shape().second == current_k) {
+                    ++i;
+                }
+
+                size_t group_count = i - group_start;
+
+                transa_array.push_back(transa);
+                transb_array.push_back(transb);
+                alpha_array.push_back(alpha);
+                beta_array.push_back(beta);
+                n_array.push_back(n);
+                ldb_array.push_back(k);
+                ldc_array.push_back(m);
+                m_array.push_back(current_m);
+                k_array.push_back(current_k);
+                lda_array.push_back(current_m);
+                group_size.push_back(group_count);
+
+                for (size_t j = group_start; j < i; ++j) {
+                    a_array.push_back(a.get_block(j).data());
+                    b_array.push_back(b.data() + a.get_col_offsets()[j]);
+                    c_array.push_back(c.data() + a.get_row_offsets()[j]);
+                }
             }
+
+            MKL_INT group_count = group_size.size();
 
             cblas_dgemm_batch(
                 major,
@@ -56,7 +72,7 @@ namespace lahva
                 beta_array.data(),
                 c_array.data(),
                 ldc_array.data(),
-                a.num_blocks(),
+                group_count,
                 group_size.data()
             );
         }
@@ -64,36 +80,52 @@ namespace lahva
         void MatrixMatrixProduct(const char* Ta, const char* Tb, const double alpha, const Matrix_<double>& a, const BlockDiagMatrix<double>& b,
                              const double beta, Matrix_<double>& c)
         {
-
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
-            std::vector<CBLAS_TRANSPOSE> transa_array(b.num_blocks(), transa), transb_array(b.num_blocks(), transb);
 
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
-            
-            std::vector<double> alpha_array(b.num_blocks(), alpha);
-            std::vector<double> beta_array(b.num_blocks(), beta);
-            std::vector<MKL_INT> m_array(b.num_blocks(), a.shape().first);
-            std::vector<MKL_INT> lda_array(b.num_blocks(), a.shape().first);
-            std::vector<MKL_INT> ldc_array(b.num_blocks(), c.shape().first);
-            std::vector<MKL_INT> group_size(b.num_blocks(), 1);
 
-            std::vector<const double*> a_array(b.num_blocks()), b_array(b.num_blocks());
-            std::vector<double*> c_array(b.num_blocks());
-            std::vector<MKL_INT> n_array(b.num_blocks()), k_array(b.num_blocks()), ldb_array(b.num_blocks());
+            std::vector<CBLAS_TRANSPOSE> transa_array, transb_array;
+            std::vector<double> alpha_array, beta_array;
+            std::vector<MKL_INT> m_array, n_array, k_array, lda_array, ldb_array, ldc_array, group_size;
+            std::vector<const double*> a_array, b_array;
+            std::vector<double*> c_array;
 
-            #pragma omp parallel for schedule(guided)
-            for (size_t i = 0; i < b.num_blocks(); ++i) {
+            size_t i = 0;
+            while (i < b.num_blocks()) {
+                MKL_INT current_k = b.get_block(i).shape().first;
+                MKL_INT current_n = b.get_block(i).shape().second;
+                size_t group_start = i;
 
-                n_array[i] = b.get_block(i).shape().second;
-                k_array[i] = b.get_block(i).shape().first;
-                ldb_array[i] = b.get_block(i).shape().first;
+                while (i < b.num_blocks() &&
+                       b.get_block(i).shape().first == current_k &&
+                       b.get_block(i).shape().second == current_n) {
+                    ++i;
+                }
 
-                a_array[i] = a.data() + b.get_col_offsets()[i] * a.shape().first;
-                b_array[i] = b.get_block(i).data();
-                c_array[i] = c.data() + b.get_col_offsets()[i] * c.shape().first;
+                size_t group_count = i - group_start;
+
+                transa_array.push_back(transa);
+                transb_array.push_back(transb);
+                alpha_array.push_back(alpha);
+                beta_array.push_back(beta);
+                m_array.push_back(a.shape().first);
+                n_array.push_back(current_n);
+                k_array.push_back(current_k);
+                lda_array.push_back(a.shape().first);
+                ldb_array.push_back(current_k);
+                ldc_array.push_back(c.shape().first);
+                group_size.push_back(group_count);
+
+                for (size_t j = group_start; j < i; ++j) {
+                    a_array.push_back(a.data() + b.get_col_offsets()[j] * a.shape().first);
+                    b_array.push_back(b.get_block(j).data());
+                    c_array.push_back(c.data() + b.get_col_offsets()[j] * c.shape().first);
+                }
             }
+
+            MKL_INT group_count = group_size.size();
 
             cblas_dgemm_batch(
                 major,
@@ -110,7 +142,7 @@ namespace lahva
                 beta_array.data(),
                 c_array.data(),
                 ldc_array.data(),
-                b.num_blocks(),
+                group_count,
                 group_size.data()
             );
         }
@@ -118,36 +150,52 @@ namespace lahva
         void MatrixMatrixProduct(const char* Ta, const char* Tb, const float alpha, const BlockDiagMatrix<float>& a, const Matrix_<float>& b,
                              const float beta, Matrix_<float>& c)
         {
-
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
-            std::vector<CBLAS_TRANSPOSE> transa_array(a.num_blocks(), transa), transb_array(a.num_blocks(), transb);
 
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
-            
-            std::vector<float> alpha_array(a.num_blocks(), alpha);
-            std::vector<float> beta_array(a.num_blocks(), beta);
-            std::vector<MKL_INT> n_array(a.num_blocks(), n);
-            std::vector<MKL_INT> ldb_array(a.num_blocks(), k);
-            std::vector<MKL_INT> ldc_array(a.num_blocks(), m);
-            std::vector<MKL_INT> group_size(a.num_blocks(), 1);
 
-            std::vector<MKL_INT> m_array(a.num_blocks()), k_array(a.num_blocks()), lda_array(a.num_blocks());
-            std::vector<const float*> a_array(a.num_blocks()), b_array(a.num_blocks());
-            std::vector<float*> c_array(a.num_blocks());
+            std::vector<CBLAS_TRANSPOSE> transa_array, transb_array;
+            std::vector<float> alpha_array, beta_array;
+            std::vector<MKL_INT> m_array, n_array, k_array, lda_array, ldb_array, ldc_array, group_size;
+            std::vector<const float*> a_array, b_array;
+            std::vector<float*> c_array;
 
-            #pragma omp parallel for schedule(guided)
-            for (size_t i = 0; i < a.num_blocks(); ++i) {
-            
-                m_array[i] = a.get_block(i).shape().first;
-                k_array[i] = a.get_block(i).shape().second;
-                lda_array[i] = a.get_block(i).shape().first;
+            size_t i = 0;
+            while (i < a.num_blocks()) {
+                MKL_INT current_m = a.get_block(i).shape().first;
+                MKL_INT current_k = a.get_block(i).shape().second;
+                size_t group_start = i;
 
-                a_array[i] = a.get_block(i).data();
-                b_array[i] = b.data() + a.get_col_offsets()[i];
-                c_array[i] = c.data() + a.get_row_offsets()[i];
+                while (i < a.num_blocks() &&
+                       a.get_block(i).shape().first == current_m &&
+                       a.get_block(i).shape().second == current_k) {
+                    ++i;
+                }
+
+                size_t group_count = i - group_start;
+
+                transa_array.push_back(transa);
+                transb_array.push_back(transb);
+                alpha_array.push_back(alpha);
+                beta_array.push_back(beta);
+                m_array.push_back(current_m);
+                n_array.push_back(n);
+                k_array.push_back(current_k);
+                lda_array.push_back(current_m);
+                ldb_array.push_back(k);
+                ldc_array.push_back(m);
+                group_size.push_back(group_count);
+
+                for (size_t j = group_start; j < i; ++j) {
+                    a_array.push_back(a.get_block(j).data());
+                    b_array.push_back(b.data() + a.get_col_offsets()[j]);
+                    c_array.push_back(c.data() + a.get_row_offsets()[j]);
+                }
             }
+
+            MKL_INT group_count = group_size.size();
 
             cblas_sgemm_batch(
                 major,
@@ -164,7 +212,7 @@ namespace lahva
                 beta_array.data(),
                 c_array.data(),
                 ldc_array.data(),
-                a.num_blocks(),
+                group_count,
                 group_size.data()
             );
         }
@@ -172,36 +220,52 @@ namespace lahva
         void MatrixMatrixProduct(const char* Ta, const char* Tb, const float alpha, const Matrix_<float>& a, const BlockDiagMatrix<float>& b,
                              const float beta, Matrix_<float>& c)
         {
-
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
-            std::vector<CBLAS_TRANSPOSE> transa_array(b.num_blocks(), transa), transb_array(b.num_blocks(), transb);
 
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
-            
-            std::vector<float> alpha_array(b.num_blocks(), alpha);
-            std::vector<float> beta_array(b.num_blocks(), beta);
-            std::vector<MKL_INT> m_array(b.num_blocks(), a.shape().first);
-            std::vector<MKL_INT> lda_array(b.num_blocks(), a.shape().first);
-            std::vector<MKL_INT> ldc_array(b.num_blocks(), c.shape().first);
-            std::vector<MKL_INT> group_size(b.num_blocks(), 1);
 
-            std::vector<const float*> a_array(b.num_blocks()), b_array(b.num_blocks());
-            std::vector<float*> c_array(b.num_blocks());
-            std::vector<MKL_INT> n_array(b.num_blocks()), k_array(b.num_blocks()), ldb_array(b.num_blocks());
+            std::vector<CBLAS_TRANSPOSE> transa_array, transb_array;
+            std::vector<float> alpha_array, beta_array;
+            std::vector<MKL_INT> m_array, n_array, k_array, lda_array, ldb_array, ldc_array, group_size;
+            std::vector<const float*> a_array, b_array;
+            std::vector<float*> c_array;
 
-            #pragma omp parallel for schedule(guided)
-            for (size_t i = 0; i < b.num_blocks(); ++i) {
+            size_t i = 0;
+            while (i < b.num_blocks()) {
+                MKL_INT current_k = b.get_block(i).shape().first;
+                MKL_INT current_n = b.get_block(i).shape().second;
+                size_t group_start = i;
 
-                n_array[i] = b.get_block(i).shape().second;
-                k_array[i] = b.get_block(i).shape().first;
-                ldb_array[i] = b.get_block(i).shape().first;
+                while (i < b.num_blocks() &&
+                       b.get_block(i).shape().first == current_k &&
+                       b.get_block(i).shape().second == current_n) {
+                    ++i;
+                }
 
-                a_array[i] = a.data() + b.get_col_offsets()[i] * a.shape().first;
-                b_array[i] = b.get_block(i).data();
-                c_array[i] = c.data() + b.get_col_offsets()[i] * c.shape().first;
+                size_t group_count = i - group_start;
+
+                transa_array.push_back(transa);
+                transb_array.push_back(transb);
+                alpha_array.push_back(alpha);
+                beta_array.push_back(beta);
+                m_array.push_back(a.shape().first);
+                n_array.push_back(current_n);
+                k_array.push_back(current_k);
+                lda_array.push_back(a.shape().first);
+                ldb_array.push_back(current_k);
+                ldc_array.push_back(c.shape().first);
+                group_size.push_back(group_count);
+
+                for (size_t j = group_start; j < i; ++j) {
+                    a_array.push_back(a.data() + b.get_col_offsets()[j] * a.shape().first);
+                    b_array.push_back(b.get_block(j).data());
+                    c_array.push_back(c.data() + b.get_col_offsets()[j] * c.shape().first);
+                }
             }
+
+            MKL_INT group_count = group_size.size();
 
             cblas_sgemm_batch(
                 major,
@@ -218,7 +282,7 @@ namespace lahva
                 beta_array.data(),
                 c_array.data(),
                 ldc_array.data(),
-                b.num_blocks(),
+                group_count,
                 group_size.data()
             );
         }

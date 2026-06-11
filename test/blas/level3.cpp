@@ -1,4 +1,4 @@
-#include "common.h"
+#include "../common.h"
 using namespace lahva::cpu;
 #define M 10
 #define N 5 

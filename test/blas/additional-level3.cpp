@@ -1,5 +1,5 @@
-#include "common.h"
-#include "utils.hpp"
+#include "../common.h"
+#include "../utils.hpp"
 
 using namespace lahva::cpu;
 
@@ -208,16 +208,167 @@ int test_blockdiag_times_dense_alpha_beta() {
     return stat;
 }
 
+template<typename T>
+int test_dense_times_blockdiag_square() {
+    int stat = 0;
+    T thr = get_threshold<T>();
+
+    BlockDiagMatrix<T> B;
+
+    {
+        Matrix<T> block1(Shape{3, 3}, T(1.0));
+        for (int i = 0; i < 9; ++i)
+            block1.data()[i] = T(i + 1.0);
+        B.add_block(block1);
+    }
+
+    {
+        Matrix<T> block2(Shape{2, 2}, T(2.0));
+        for (int i = 0; i < 4; ++i)
+            block2.data()[i] = T(i + 1.0);
+        B.add_block(block2);
+    }
+
+    Matrix<T> A(Shape{5, 5}, T(0.5));
+    Matrix<T> C(Shape{5, 5}, T(0.0));
+    MatrixMatrixProduct("N", "N", T(1.0), A, B, T(0.0), C);
+
+    Matrix<T> B_dense = expand_block_diagonal(B);
+    Matrix<T> C_expected(Shape{5, 5}, T(0.0));
+    MatrixMatrixProduct("N", "N", T(1.0), A, B_dense, T(0.0), C_expected);
+
+    if (!check(C.data(), C_expected.data(), thr, 25,
+               "Matrix * BlockDiagMatrix result mismatch (square)")) {
+        stat += 1;
+    }
+
+    return stat;
+}
+
+template<typename T>
+int test_dense_times_blockdiag() {
+    int stat = 0;
+    T thr = get_threshold<T>();
+
+    BlockDiagMatrix<T> B;
+
+    {
+        Matrix<T> block1(Shape{3, 3}, T(1.0));
+        for (int i = 0; i < 9; ++i)
+            block1.data()[i] = T(i + 1.0);
+        B.add_block(block1);
+    }
+
+    {
+        Matrix<T> block2(Shape{2, 2}, T(2.0));
+        for (int i = 0; i < 4; ++i)
+            block2.data()[i] = T(i + 1.0);
+        B.add_block(block2);
+    }
+
+    Matrix<T> A(Shape{4, 5}, T(0.5));
+    Matrix<T> C(Shape{4, 5}, T(0.0));
+    MatrixMatrixProduct("N", "N", T(1.0), A, B, T(0.0), C);
+
+    Matrix<T> B_dense = expand_block_diagonal(B);
+    Matrix<T> C_expected(Shape{4, 5}, T(0.0));
+    MatrixMatrixProduct("N", "N", T(1.0), A, B_dense, T(0.0), C_expected);
+
+    if (!check(C.data(), C_expected.data(), thr, 20,
+               "Matrix * BlockDiagMatrix result mismatch")) {
+        stat += 1;
+    }
+
+    return stat;
+}
+
+template<typename T>
+int test_dense_times_blockdiag_alpha_beta() {
+    int stat = 0;
+    T thr = get_threshold<T>();
+
+    BlockDiagMatrix<T> B;
+
+    {
+        Matrix<T> block1(Shape{3, 3}, T(1.0));
+        for (int i = 0; i < 9; ++i)
+            block1.data()[i] = T(i + 1.0);
+        B.add_block(block1);
+    }
+
+    {
+        Matrix<T> block2(Shape{2, 2}, T(2.0));
+        for (int i = 0; i < 4; ++i)
+            block2.data()[i] = T(i + 1.0);
+        B.add_block(block2);
+    }
+
+    Matrix<T> A(Shape{4, 5}, T(0.5));
+    Matrix<T> B_dense = expand_block_diagonal(B);
+
+    // alpha = 2.0, beta = 0.0
+    {
+        Matrix<T> C(Shape{4, 5}, T(0.0));
+        MatrixMatrixProduct("N", "N", T(2.0), A, B, T(0.0), C);
+
+        Matrix<T> C_expected(Shape{4, 5}, T(0.0));
+        MatrixMatrixProduct("N", "N", T(2.0), A, B_dense, T(0.0), C_expected);
+
+        if (!check(C.data(), C_expected.data(), thr, 20,
+                   "Matrix * BlockDiagMatrix with alpha=2.0, beta=0.0")) {
+            stat += 1;
+        }
+    }
+
+    // alpha = 1.0, beta = 2.0
+    {
+        Matrix<T> C(Shape{4, 5}, T(1.0));
+        MatrixMatrixProduct("N", "N", T(1.0), A, B, T(2.0), C);
+
+        Matrix<T> C_expected(Shape{4, 5}, T(1.0));
+        MatrixMatrixProduct("N", "N", T(1.0), A, B_dense, T(2.0), C_expected);
+
+        if (!check(C.data(), C_expected.data(), thr, 20,
+                   "Matrix * BlockDiagMatrix with alpha=1.0, beta=2.0")) {
+            stat += 1;
+        }
+    }
+
+    // alpha = 0.5, beta = 0.5
+    {
+        Matrix<T> C(Shape{4, 5}, T(2.0));
+        MatrixMatrixProduct("N", "N", T(0.5), A, B, T(0.5), C);
+
+        Matrix<T> C_expected(Shape{4, 5}, T(2.0));
+        MatrixMatrixProduct("N", "N", T(0.5), A, B_dense, T(0.5), C_expected);
+
+        if (!check(C.data(), C_expected.data(), thr, 20,
+                   "Matrix * BlockDiagMatrix with alpha=0.5, beta=0.5")) {
+            stat += 1;
+        }
+    }
+
+    return stat;
+}
+
 int main(){
     int stat = 0;
-    
+
     stat += test_blockdiag_times_dense_square<double>();
     stat += test_blockdiag_times_dense<double>();
     stat += test_blockdiag_times_dense_alpha_beta<double>();
-    
+
     stat += test_blockdiag_times_dense_square<float>();
     stat += test_blockdiag_times_dense<float>();
     stat += test_blockdiag_times_dense_alpha_beta<float>();
-    
+
+    stat += test_dense_times_blockdiag_square<double>();
+    stat += test_dense_times_blockdiag<double>();
+    stat += test_dense_times_blockdiag_alpha_beta<double>();
+
+    stat += test_dense_times_blockdiag_square<float>();
+    stat += test_dense_times_blockdiag<float>();
+    stat += test_dense_times_blockdiag_alpha_beta<float>();
+
     return stat;
 }

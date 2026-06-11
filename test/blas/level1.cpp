@@ -1,4 +1,4 @@
-#include "common.h"
+#include "../common.h"
 
 using namespace lahva::cpu;
 const double thr2 = 5.0e-15;

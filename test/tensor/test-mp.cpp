@@ -1,6 +1,6 @@
-#include "common.h"
+#include "../common.h"
 #include <random>
-#include "utils.hpp"
+#include "../utils.hpp"
 
 #include <omp.h>
 

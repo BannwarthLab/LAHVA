@@ -1,5 +1,5 @@
 #include "runtime.hpp"
-#include "common.h"
+#include "../common.h"
 #include <vector>
 
 using Vector =  gpu::Vector<double, CudaHostAllocator<double>, CudaDeviceAsyncAllocator<double>>;

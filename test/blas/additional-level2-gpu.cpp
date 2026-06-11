@@ -1,5 +1,5 @@
-#include "common.h"
-#include "utils.hpp"
+#include "../common.h"
+#include "../utils.hpp"
 
 using namespace lahva::gpu;
 
