@@ -339,7 +339,7 @@ namespace lahva
         }
 
         void MatrixMatrixProduct(const char* Ta, const char* Tb, const float alpha, const BlockDiagMatrix<float>& a, const Matrix_<float>& b,
-                             const double beta, Matrix_<float>& c)
+                             const float beta, Matrix_<float>& c)
         {
             
             int p = b.shape().second;
