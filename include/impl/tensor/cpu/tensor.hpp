@@ -90,8 +90,6 @@ namespace lahva
             return this->data()[static_cast<size_t>(index)];
         };
 
-       // virtual const CPUAllocator<T> get_allocator() const = 0;
-
     };
 
     template <typename T, typename Allocator = StdAllocator<T>>
