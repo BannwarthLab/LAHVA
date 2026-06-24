@@ -114,9 +114,9 @@ def generate_recipe(name: str) -> str:
     lines.append("    dnf -y update")
     lines.append("    dnf groupinstall -y \"Development Tools\"")
     lines.append("    dnf install -y wget git python3-pip")
-    lines.append("    dnf install -y cmake meson ninja-build")
     lines.append("    dnf install -y epel-release")
     lines.append("    dnf config-manager --set-enabled crb")
+    lines.append("    dnf install -y cmake meson ninja-build")
     lines.append("")
     
     # Intel OneAPI repo if needed (for compiler or MKL)
