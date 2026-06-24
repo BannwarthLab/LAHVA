@@ -147,6 +147,8 @@ main-test-gpu-cmake:
 # Documentation
 documentation-build:
   stage: documentation-build
+  before_script:
+    - if ! command -v doxygen &> /dev/null; then module load doxygen; fi
   script:
   - doxygen .gitlab/Doxyfile
   artifacts:
