@@ -109,7 +109,6 @@ namespace lahva
         //! @param[in] shape dimensions (rows, columns)
         //! @param[in] alloc allocator instance for memory management
         Matrix(const Shape &shape, const alloc_ptr &alloc = Allocator());
-        template<typename U>
 
         //! @brief Allocate and initialize matrix from initializer list
         //! @param[in] shape dimensions (rows, columns)
