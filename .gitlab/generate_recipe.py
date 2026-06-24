@@ -116,7 +116,8 @@ def generate_recipe(name: str) -> str:
     lines.append("    dnf install -y wget git python3-pip")
     lines.append("    dnf install -y epel-release")
     lines.append("    dnf config-manager --set-enabled crb")
-    lines.append("    dnf install -y cmake meson ninja-build")
+    lines.append("    dnf install -y cmake")
+    lines.append("    pip3 install meson ninja")
     lines.append("")
     
     # Intel OneAPI repo if needed (for compiler or MKL)
@@ -165,7 +166,7 @@ def generate_recipe(name: str) -> str:
     
     # Environment section
     lines.append("%environment")
-    lines.append("    export PATH=~/.local/bin:$PATH")
+    # lines.append("    export PATH=~/.local/bin:$PATH")
     
     # Collect all environment variables
     env_vars = {}
