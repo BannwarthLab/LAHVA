@@ -110,8 +110,6 @@ namespace lahva
         //! @param[in] alloc allocator instance for memory management
         Matrix(const Shape &shape, const alloc_ptr &alloc = Allocator());
         template<typename U>
-        Matrix(const Shape &shape, const std::shared_ptr<CPUAllocator<U>> &alloc)
-        : Matrix<T, Allocator>{shape, Allocator(*alloc)} {};
 
         //! @brief Allocate and initialize matrix from initializer list
         //! @param[in] shape dimensions (rows, columns)
