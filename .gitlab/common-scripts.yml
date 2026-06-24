@@ -29,10 +29,12 @@
     - cd _build
     - meson compile
     - export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+    - meson install
     - meson test -j 1
 
 .cmake_test:
   script:
     - cd _build
     - make -j 4
+    - cmake --install .
     - ctest
