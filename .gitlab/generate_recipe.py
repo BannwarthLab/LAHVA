@@ -53,7 +53,6 @@ LAPACK_CONFIG = {
 GPU_CONFIG = {
     "none": {},
     "cuda11.8": {
-        "repo": "https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo",
         "packages": "cuda-compiler-11-8 cuda-cudart-devel-11-8 libcusolver-devel-11-8 libcublas-devel-11-8 libcusparse-devel-11-8",
         "env": {
             "PATH": "/usr/local/cuda-11.8/bin${PATH:+:${PATH}}",
@@ -64,7 +63,6 @@ GPU_CONFIG = {
         },
     },
     "cuda12.5": {
-        "repo": "https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo",
         "packages": "cuda-compiler-12-5 cuda-cudart-devel-12-5 libcusolver-devel-12-5 libcublas-devel-12-5 libcusparse-devel-12-5 libnvjitlink-devel-12-5",
         "env": {
             "PATH": "/usr/local/cuda-12.5/bin${PATH:+:${PATH}}",
@@ -75,7 +73,6 @@ GPU_CONFIG = {
         },
     },
     "cuda13.0": {
-        "repo": "https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo",
         "packages": "cuda-compiler-13-0 cuda-cudart-devel-13-0 libcusolver-devel-13-0 libcublas-devel-13-0 libcusparse-devel-13-0 libnvjitlink-devel-13-0",
         "env": {
             "PATH": "/usr/local/cuda-13.0/bin${PATH:+:${PATH}}",
@@ -86,6 +83,13 @@ GPU_CONFIG = {
         },
     },
 }
+
+def get_cuda_repo(os_name: str, gpu: str) -> str:
+    """Get the appropriate CUDA repo URL based on OS and GPU version."""
+    if gpu == "none":
+        return None
+    rhel_version = "9" if os_name == "rl9" else "10"
+    return f"https://developer.download.nvidia.com/compute/cuda/repos/rhel{rhel_version}/x86_64/cuda-rhel{rhel_version}.repo"
 
 def parse_recipe_name(name: str) -> Tuple[str, str, str, str]:
     """Parse recipe name in format: OS-COMPILER-LAPACK-GPU"""
@@ -160,9 +164,10 @@ def generate_recipe(name: str) -> str:
     lines.append("")
     
     # CUDA repo if needed
-    if GPU_CONFIG[gpu].get("repo"):
+    cuda_repo = get_cuda_repo(os_name, gpu)
+    if cuda_repo:
         lines.append("    # CUDA Repository")
-        lines.append(f"    dnf config-manager --add-repo {GPU_CONFIG[gpu]['repo']}")
+        lines.append(f"    dnf config-manager --add-repo {cuda_repo}")
         lines.append("")
     
     # GPU installation
