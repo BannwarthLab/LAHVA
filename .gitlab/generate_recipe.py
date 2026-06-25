@@ -4,7 +4,7 @@ from typing import Dict, Tuple
 # Configuration mappings for each component
 OS_CONFIG = {
     "rl9": "rockylinux:9",
-    "rl10": "rockylinux:10",
+    "rl10": "rockylinux/rockylinux:10",
 }
 
 COMPILER_CONFIG = {
