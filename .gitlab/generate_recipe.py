@@ -164,10 +164,9 @@ def generate_recipe(name: str) -> str:
     lines.append("")
     
     # CUDA repo if needed
-    cuda_repo = get_cuda_repo(os_name, gpu)
-    if cuda_repo:
+    if GPU_CONFIG[gpu].get("repo"):
         lines.append("    # CUDA Repository")
-        lines.append(f"    dnf config-manager --add-repo {cuda_repo}")
+        lines.append(f"    dnf config-manager --add-repo {GPU_CONFIG[gpu]['repo']}")
         lines.append("")
     
     # GPU installation
