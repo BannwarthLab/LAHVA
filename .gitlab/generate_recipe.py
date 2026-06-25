@@ -4,6 +4,7 @@ from typing import Dict, Tuple
 # Configuration mappings for each component
 OS_CONFIG = {
     "rl9": "rockylinux:9",
+    "rl10": "rockylinux:10",
 }
 
 COMPILER_CONFIG = {
@@ -71,6 +72,17 @@ GPU_CONFIG = {
             "LD_LIBRARY_PATH": "/usr/local/cuda-12.5/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}",
             "LIBRARY_PATH": "/usr/local/cuda-12.5/lib64:/usr/local/cuda-12.5/targets/x86_64-linux/lib:$LIBRARY_PATH",
             "CUDA_HOME": "/usr/local/cuda-12.5",
+        },
+    },
+    "cuda13.0": {
+        "repo": "https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo",
+        "packages": "cuda-compiler-13-0 cuda-cudart-devel-13-0 libcusolver-devel-13-0 libcublas-devel-13-0 libcusparse-devel-13-0 libnvjitlink-devel-13-0",
+        "env": {
+            "PATH": "/usr/local/cuda-13.0/bin${PATH:+:${PATH}}",
+            "CPATH": "/usr/local/cuda-13.0/targets/x86_64-linux/include:$CPATH",
+            "LD_LIBRARY_PATH": "/usr/local/cuda-13.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}",
+            "LIBRARY_PATH": "/usr/local/cuda-13.0/lib64:/usr/local/cuda-13.0/targets/x86_64-linux/lib:$LIBRARY_PATH",
+            "CUDA_HOME": "/usr/local/cuda-13.0",
         },
     },
 }
@@ -166,7 +178,6 @@ def generate_recipe(name: str) -> str:
     
     # Environment section
     lines.append("%environment")
-    # lines.append("    export PATH=~/.local/bin:$PATH")
     
     # Collect all environment variables
     env_vars = {}

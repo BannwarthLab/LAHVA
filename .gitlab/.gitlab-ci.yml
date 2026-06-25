@@ -13,6 +13,7 @@ stages:
     matrix:
       - OS:
           - "RL9"
+          - "RL10"
         COMPILER:
           - "gnu-openblas"
           - "gnu-mkl2023.2.0"
@@ -27,6 +28,7 @@ stages:
     matrix:
       - OS:
           - "RL9"
+          - "RL10"
         COMPILER:
           - "gnu-openblas"
           - "gnu-mkl2023.2.0"
@@ -36,6 +38,7 @@ stages:
         GPU:
           - "cuda11.8"
           - "cuda12.5"
+          - "cuda13.0"
 
 # General testing
 .test_template: &test_template
