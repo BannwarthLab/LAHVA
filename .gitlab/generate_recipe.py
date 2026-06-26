@@ -163,14 +163,12 @@ def generate_recipe(name: str) -> str:
     lines.append(f"    dnf install -y {LAPACK_CONFIG[lapack]['packages']}")
     lines.append("")
     
-    # CUDA repo if needed
-    if GPU_CONFIG[gpu].get("repo"):
-        lines.append("    # CUDA Repository")
-        lines.append(f"    dnf config-manager --add-repo {GPU_CONFIG[gpu]['repo']}")
-        lines.append("")
-    
     # GPU installation
     if gpu != "none":
+        cuda_repo = get_cuda_repo(os_name, gpu)
+        lines.append("    # CUDA Repository")
+        lines.append(f"    dnf config-manager --add-repo {cuda_repo}")
+        lines.append("")
         lines.append(f"    # {gpu.upper()} Installation")
         lines.append(f"    dnf install -y {GPU_CONFIG[gpu]['packages']}")
         lines.append("")
