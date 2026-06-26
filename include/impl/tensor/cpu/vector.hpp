@@ -21,7 +21,7 @@ namespace lahva
         {
         };
 
-        //! @brief Vector wrapper
+        /// @brief Vector wrapper
         template <class T, class Allocator = StdAllocator<T>>
         class Vector : public CPUTensor<T, Allocator>, virtual public Vector_<T>
         {
@@ -30,80 +30,80 @@ namespace lahva
             using size_type = std::size_t;
             using alloc_ptr = CPUAllocator<T>;
 
-            //! @brief Default constructor - creates empty vector without allocation
+            /// @brief Default constructor - creates empty vector without allocation
             Vector() { this->no_alloc = true; };
 
-            //! @brief Allocate vector storage without initialization
-            //! @param[in] count number of elements to allocate
-            //! @param[in] alloc allocator instance for memory management
+            /// @brief Allocate vector storage without initialization
+            /// @param[in] count number of elements to allocate
+            /// @param[in] alloc allocator instance for memory management
             Vector(size_type count, const alloc_ptr &alloc = Allocator());
 
-            //! @brief Copy constructor
-            //! @param[in] x source vector to copy
+            /// @brief Copy constructor
+            /// @param[in] x source vector to copy
             Vector(const Vector &x);
 
-            //! @brief Allocate vector initialized with uniform value
-            //! @param[in] count number of elements to allocate
-            //! @param[in] value initialization value for all elements
-            //! @param[in] alloc allocator instance for memory management
+            /// @brief Allocate vector initialized with uniform value
+            /// @param[in] count number of elements to allocate
+            /// @param[in] value initialization value for all elements
+            /// @param[in] alloc allocator instance for memory management
             Vector(size_type count, const T &value, const alloc_ptr &alloc = Allocator());
 
-            //! @brief Wrap existing data pointer with optional ownership
-            //! @param[in] count number of elements
-            //! @param[in] ptr pointer to vector data
-            //! @param[in] take_onwership if true, vector will free data on destruction; if false, external code is responsible
-            //! @param[in] alloc allocator instance for memory management
+            /// @brief Wrap existing data pointer with optional ownership
+            /// @param[in] count number of elements
+            /// @param[in] ptr pointer to vector data
+            /// @param[in] take_onwership if true, vector will free data on destruction; if false, external code is responsible
+            /// @param[in] alloc allocator instance for memory management
             Vector(size_type count, T *ptr, bool take_onwership = true, const alloc_ptr &alloc = Allocator());
 
-            //! @brief Copy data from const pointer into newly allocated vector
-            //! @param[in] count number of elements
-            //! @param[in] ptr pointer to read-only vector data
-            //! @param[in] alloc allocator instance for memory management
+            /// @brief Copy data from const pointer into newly allocated vector
+            /// @param[in] count number of elements
+            /// @param[in] ptr pointer to read-only vector data
+            /// @param[in] alloc allocator instance for memory management
             Vector(size_type count, const T *ptr, const alloc_ptr &alloc = Allocator());
 
-            //! @brief Initialize vector from initializer list
-            //! @param[in] init initializer list with element values
-            //! @param[in] alloc allocator instance for memory management
+            /// @brief Initialize vector from initializer list
+            /// @param[in] init initializer list with element values
+            /// @param[in] alloc allocator instance for memory management
             Vector(std::initializer_list<T> init, const alloc_ptr &alloc = Allocator());
 
-            //! @brief Destructor - deallocates vector data if owned
+            /// @brief Destructor - deallocates vector data if owned
             ~Vector();
 
-            //! @brief Copy assignment operator
+            /// @brief Copy assignment operator
             Vector &operator=(const Vector &other);
 
-            //! @brief Move assignment operator
+            /// @brief Move assignment operator
             Vector &operator=(Vector &&other);
             
-            //! @brief Non-const element access operator
-            //! @tparam D index type (implicitly converted to size_t)
-            //! @param[in] index element index
-            //! @return reference to element at index
+            /// @brief Non-const element access operator
+            /// @tparam D index type (implicitly converted to size_t)
+            /// @param[in] index element index
+            /// @return reference to element at index
             template <typename D>
             T &operator[](D index) const
             {
                 return this->data_[static_cast<size_t>(index)];
             };
 
-            //! @brief Const element access operator
-            //! @tparam D index type (implicitly converted to size_t)
-            //! @param[in] index element index
-            //! @return reference to element at index
+            /// @brief Const element access operator
+            /// @tparam D index type (implicitly converted to size_t)
+            /// @param[in] index element index
+            /// @return reference to element at index
             template <typename D>
             T &operator[](D index)
             {
                 return this->data_[static_cast<size_t>(index)];
             };
 
-            //! @brief Get pointer to first element
-            //! @return pointer to beginning of vector data
+            /// @brief Get pointer to first element
+            /// @return pointer to beginning of vector data
             T *begin() const { return &(this->data_[0]); };
 
-            //! @brief Get pointer past the last element
-            //! @return pointer to one past the last element
+            /// @brief Get pointer past the last element
+            /// @return pointer to one past the last element
             T *end() const { return &(this->data_[this->count_]); };
 
-            //! @brief Print vector elements to stdout with line breaks
+            /// @brief Print vector elements to stdout with line breaks
             void print() const;
         };
 
@@ -187,5 +187,5 @@ namespace lahva
             }
         }
 
-    }
+    } // namespace cpu
 } // namespace lahva

@@ -38,85 +38,85 @@ namespace lahva
         using alloc_ptr = CPUAllocator<T>;
         using gpualloc_ptr = GPUAllocator;
 
-        //! @brief Default constructor for GPU vector
+        /// @brief Default constructor for GPU vector
         Vector() : GPUTensor<T, Allocator, GPUAllocator>() {};
 
-        //! @brief Construct a GPU vector with specified count
-        //! @param[in] count number of elements in the vector
-        //! @param[in] alloc host (CPU) memory allocator
-        //! @param[in] gpualloc device (GPU) memory allocator
+        /// @brief Construct a GPU vector with specified count
+        /// @param[in] count number of elements in the vector
+        /// @param[in] alloc host (CPU) memory allocator
+        /// @param[in] gpualloc device (GPU) memory allocator
         Vector(size_type count, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator());
         template<typename U, typename V>
         Vector(size_type count, const CPUAllocator<U> &alloc = Allocator(), const GPUAllocator_<V> &gpualloc = GPUAllocator())
         : GPUTensor<T, Allocator, GPUAllocator>{count, static_cast<Allocator>(alloc), static_cast<GPUAllocator>(gpualloc)}  {};
 
-        //! @brief Construct a GPU vector using GPU memory with CudaRuntime
-        //! @param[in] count number of elements in the vector
-        //! @param[in] cudart CUDA runtime instance for GPU operations
-        //! @param[in] gpualloc device (GPU) memory allocator
+        /// @brief Construct a GPU vector using GPU memory with CudaRuntime
+        /// @param[in] count number of elements in the vector
+        /// @param[in] cudart CUDA runtime instance for GPU operations
+        /// @param[in] gpualloc device (GPU) memory allocator
         Vector(size_type count, const CudaRuntime &cudart, const gpualloc_ptr  &gpualloc = GPUAllocator());
         template<typename V>
         Vector(size_type count, const CudaRuntime &cudart, const GPUAllocator_<V>  &gpualloc = GPUAllocator())
         : GPUTensor<T, Allocator, GPUAllocator>{gpualloc} { std::cout << "Created here << std::endl";};
 
-        //! @brief Copy constructor for GPU vector
-        //! @param[in] x source vector to copy
+        /// @brief Copy constructor for GPU vector
+        /// @param[in] x source vector to copy
         Vector(const Vector &x);
 
-        //! @brief Move constructor for GPU vector
-        //! @param[in] x source vector to move from
+        /// @brief Move constructor for GPU vector
+        /// @param[in] x source vector to move from
         Vector(Vector &&x);
 
-        //! @brief Construct a GPU vector initialized with a single value
-        //! @param[in] count number of elements in the vector
-        //! @param[in] value initial value for all elements
-        //! @param[in] alloc host (CPU) memory allocator
-        //! @param[in] gpualloc device (GPU) memory allocator
+        /// @brief Construct a GPU vector initialized with a single value
+        /// @param[in] count number of elements in the vector
+        /// @param[in] value initial value for all elements
+        /// @param[in] alloc host (CPU) memory allocator
+        /// @param[in] gpualloc device (GPU) memory allocator
         Vector(size_type count, const T &value, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr  &gpualloc = GPUAllocator());
 
-        //! @brief Construct a GPU vector from existing data pointer
-        //! @param[in] count number of elements in the vector
-        //! @param[in] ptr pointer to data
-        //! @param[in] take_onwership if true, vector takes ownership of memory
-        //! @param[in] alloc host (CPU) memory allocator
-        //! @param[in] gpualloc device (GPU) memory allocator
+        /// @brief Construct a GPU vector from existing data pointer
+        /// @param[in] count number of elements in the vector
+        /// @param[in] ptr pointer to data
+        /// @param[in] take_onwership if true, vector takes ownership of memory
+        /// @param[in] alloc host (CPU) memory allocator
+        /// @param[in] gpualloc device (GPU) memory allocator
         Vector(size_type count, T *ptr, bool take_onwership = true, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr  &gpualloc = GPUAllocator());
 
-        //! @brief Construct a GPU vector from const data pointer
-        //! @param[in] count number of elements in the vector
-        //! @param[in] ptr pointer to constant data to copy
-        //! @param[in] alloc host (CPU) memory allocator
-        //! @param[in] gpualloc device (GPU) memory allocator
+        /// @brief Construct a GPU vector from const data pointer
+        /// @param[in] count number of elements in the vector
+        /// @param[in] ptr pointer to constant data to copy
+        /// @param[in] alloc host (CPU) memory allocator
+        /// @param[in] gpualloc device (GPU) memory allocator
         Vector(size_type count, const T *ptr, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr  &gpualloc = GPUAllocator());
 
-        //! @brief Construct a GPU vector from initializer list
-        //! @param[in] init initializer list with vector values
-        //! @param[in] alloc host (CPU) memory allocator
-        //! @param[in] gpualloc device (GPU) memory allocator
+        /// @brief Construct a GPU vector from initializer list
+        /// @param[in] init initializer list with vector values
+        /// @param[in] alloc host (CPU) memory allocator
+        /// @param[in] gpualloc device (GPU) memory allocator
         Vector(std::initializer_list<T> init, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator());
 
-        //! @brief Destructor for GPU vector
+        /// @brief Destructor for GPU vector
         ~Vector();
 
-        //! @brief Copy assignment operator
-        //! @param[in] other source vector
-        //! @return reference to this vector
+        /// @brief Copy assignment operator
+        /// @param[in] other source vector
+        /// @return reference to this vector
         Vector &operator=(const Vector &other);
 
-        //! @brief Move assignment operator
-        //! @param[in] other source vector to move from
-        //! @return reference to this vector
+        /// @brief Move assignment operator
+        /// @param[in] other source vector to move from
+        /// @return reference to this vector
         Vector &operator=(Vector &&other);
 
-        //! @brief Returns iterator to beginning of vector data
-        //! @return pointer to first element
+        /// @brief Returns iterator to beginning of vector data
+        /// @return pointer to first element
         T *begin() const { return &(this->data_[0]); };
 
-        //! @brief Returns iterator to end of vector data
-        //! @return pointer to one past the last element
+        /// @brief Returns iterator to end of vector data
+        /// @return pointer to one past the last element
         T *end() const { return &(this->data_[this->count_]); };
 
-        //! @brief Print vector contents to standard output
+        /// @brief Print vector contents to standard output
         void print() const;
     };
 
