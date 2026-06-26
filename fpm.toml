@@ -1,11 +1,11 @@
 name = "lahva"
 version = "0.2.0"
 license = "MIT-license"
-maintainer = ["@psteinbach"]
-author = ["Pit Steinbach"]
+maintainer = ["@psteinbach", "@markheezen", "@christoph.bannwarth"]
+author = ["Pit Steinbach", "Mark Heezen", "Christoph Bannwarth"]
 description = "Linear Algebra on Heterogenous/Vectorized Architecture"
 keywords = ["LAHVA", "gpu", "linear algebra"]
-copyright = "Copyright 2025 P. Steinbach"
+copyright = "Copyright 2025 P. Steinbach, M. Heezen, C. Bannwarth"
 
 [build]
 link = ["lapack", "blas"]

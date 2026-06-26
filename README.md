@@ -1,177 +1,328 @@
 ![LAHVA-Logo](./graphics/lahva_logo.jpg)
 
-# LAHVA - Linear Algebra on Heterogenous/Vectorized Architecture
+# LAHVA - Linear Algebra on Heterogeneous/Vectorized Architecture
 
-## Motivation & Purpose
+LAHVA is a modern C++ library providing simplified, runtime-based abstractions over BLAS and LAPACK libraries for both CPU and GPU computation. It encapsulates the complexity of heterogeneous computing into an intuitive API with support for multiple numerical precisions, mixed-precision operations (GPU), and seamless host-device memory management.
 
-The motivation behind the LAHVA project is to create a commodity layer that enables faster and more user-friendly interaction with heterogeneous computing hardware. The API of BLAS and LAPACK libraries are usually cumbersome especially when moving to accelerator hardware such as GPUs. Due to the complexity of the hardware and the communication between host and device (the accelerator) more objects are needed to control the execution of linear algebra operations. We want to come in and simplify the API by bundling the additional objects needed for the execution in a runtime. Additionally, we have implemented Tensor classes for Vector, Matrix and Lower triangular matrix. Due to the fact that memory spaces of the host and device are usually separate, we also need to take care of the transfer of information and addressing the right memory space in functions. Therefore, we went for a solution where a Tensor object can have to pointers, a host and device pointer. Allocators can then be used for both to allocate the memory. For GPU allocators we also implement the transfer within the allocator object.
-The project is heavily focussed on using template variables for numeric precision as well as execution of the function on either host or device merely by changing the used Runtime. 
+## Key Features
 
-The iceberg symbolizes graphically the motivation of this project to simplify the interface between LAHVA and a vendor BLAS library such as nvidia's cuBLAS.
+- Unified API for CPU and GPU linear algebra operations
+- Runtime abstraction managing GPU resources (streams, handles, memory) so you don't manage CUDA directly
+- Tensor classes (Vector, Matrix, Lower Triangular Matrix) with template-based precision and execution location
+- Automatic memory management with custom allocators for host and device memory spaces
+- Mixed-precision support for GPU operations
+- Straightforward switching between CPU and GPU execution via template parameters
+
+## Motivation
+
+The motivation behind LAHVA is to simplify interaction with heterogeneous computing hardware. BLAS and LAPACK libraries have cumbersome APIs, especially when targeting accelerators like GPUs. GPU computation introduces additional complexity: managing host-device memory spaces, CUDA streams, cuBLAS/cuSOLVER handles, and synchronization points.
+
+LAHVA solves this by bundling GPU resource management into a runtime object that acts as a context manager for your computations. Instead of manually creating and managing CUDA streams and handles, you create a `CudaRuntime` once and pass it to your tensor operations. The runtime handles memory checking, stream management, and device synchronization transparently.
+
+The iceberg graphic below illustrates this philosophy: users interact with a simple LAHVA interface while the complexity of GPU resource management is hidden below.
 
 ![Graphical Motivation](./graphics/iceberg.png)
 
-## Compatibility 
+## Core Concepts
 
-We test the implementation for a permutation of the following operating systems, compilers and BLAS/LAPACK implementations with and without GPU support:
+### The Runtime Abstraction
 
-| Operating System | Compiler | CPU BLAS/LAPACK | CUDA |
-|------------------|----------|-----------------|------|
-| Ubuntu 20.04 | intel oneAPI 2023.2.0 | intel oneMKL 2023.2.0 | 11.8 |
-| | gcc-9 | OpenBLAS |  |
+The **Runtime** is the central innovation in LAHVA. It encapsulates GPU resource management and provides a unified context for computations:
 
-Build system: meson (v. 1.4.0), cmake (> 3.18)
-Build generator: ninja, make
+```cpp
+// Create a GPU runtime - this handles all CUDA resource setup
+lahva::CudaRuntime gpu_runtime;
 
-We also provide apptainer recipes to use for building and deployment purposes. You can find them in the subfolder `apptainer_recipe`.
-
-## Compile from source
-
-Currently, we support both [meson](https://mesonbuild.com/) and CMake build system.  
-
-### Meson build
-
-First of all, LAHVA can be compiled with and without GPU support (default is with GPU support, nvidia only).  
-This behavior is set by `-Dgpu=true` or within the `meson_options.txt` file.
-
-#### GPU build
-
-If you are planning to use an nvidia GPU, you will need the compute capability of your GPU or the range of GPUs that the software should be deployed to. One resource to find out this value is [techpowerup](https://www.techpowerup.com/). You can search for your hardware and find the compute capability (cc) under Graphics Features then CUDA. The cc value is given with a `.` between both digits. However, when changing the value of `gpu_arch` in `meson_options.txt` remove the `.` and fill in the cc values of all cards that will be used with the program in the array.
-
-Next you should take care that `meson` is able to find your CUDA installation. The easiest way to take care of this is to set the `CUDA_ROOT` environment variable used by `meson`. It should point to the root of your CUDA installation path, i.e. `/mnt/group-lib/nvidia-hpc-sdk/Linux_x86_64/24.7/cuda/11.8/`. When you are using a non-standard installation path for CUDA if you are on a shared HPC or other system, it can be necessary to also set the paths for `libcudart` the CUDA runtime library and other libraries such as `libcublas` or `libcusolver`. YOu can achieve this by setting or extending the `LIBRARY_PATH` environment variable. For example: `export LIBRARY_PATH=/mnt/group-lib/nvidia-hpc-sdk/Linux_x86_64/24.7/cuda/11.8/lib64:$LIBRARY_PATH`. Finally, if you have several `nvcc` versions installed it might be helpful to set the path of `nvcc` also explicitly.
-Now that the compile environment is setup for GPU compilation, we need to setup the meson build. Optional arguments are: the lapack vendor (options: `mkl`, `openblas`; default: `auto`)
-
-
-``` bash
-meson setup _build -Dgpu=true [optional: -Dlapack=mkl,openblas]
+// The runtime manages:
+// - CUDA device selection (automatically picks GPU with max memory)
+// - cuBLAS handle lifecycle
+// - CUDA streams for asynchronous execution
+// - Memory availability checking
+// - cuSOLVER handle for advanced operations
 ```
 
-After the setup, we can compile LAHVA like so:
+When you execute linear algebra operations on GPU tensors, you pass the runtime as context. The runtime:
+1. Manages device selection - automatically selects the GPU with the most available memory
+2. Handles stream management - creates and manages CUDA streams for asynchronous execution
+3. Encapsulates cuBLAS/cuSOLVER handles - library contexts are created/destroyed automatically
+4. Performs memory checking - verifies sufficient GPU memory is available before operations
+5. Synchronizes execution - provides methods to synchronize GPU operations when needed
 
-``` bash
-meson compile -C _build 
+This means you write linear algebra code without touching CUDA directly - the runtime abstracts away all the boilerplate.
+
+### Tensor Classes
+
+LAHVA provides three tensor abstractions for both CPU and GPU:
+
+- **Vector** - 1D tensor for vectors
+- **Matrix** - 2D tensor for matrices  
+- **LowerTriMatrix** - Symmetric 2D tensor stored in packed format
+
+All tensor classes:
+- Support multiple numerical precisions via template parameters (`int`, `float`, `double`, `__half` on GPU)
+- Use allocators for memory management (similar to `std::vector`)
+- Have both CPU-only and GPU-capable variants
+- Support RAII semantics for automatic memory cleanup
+
+For GPU tensors, memory is split between host and device spaces:
+```cpp
+// GPU Matrix with explicit allocators for host and device memory
+lahva::gpu::Matrix<float, CudaHostAllocator<float>, CudaDeviceAsyncAllocator<float>> mat(5, 5, 1.0);
+// mat automatically manages transfer between host and device memory
 ```
 
-Lastly, we can test the library using the provided unit tests.
+### Static vs. Polymorphic Usage
 
-``` bash
-meson test -C _build 
+**Static Usage** (fixed at compile time):
+```cpp
+#include <linalg.hpp>
+using namespace lahva::cpu;
+Vector<double> cpu_vec(5, 2.0);
+
+using namespace lahva::gpu;
+Vector<double> gpu_vec(5, 2.0);
 ```
 
-#### Use as subproject in other projects
+**Polymorphic Usage** (runtime selection):
+```cpp
+#include "example/lahva_wrap.hpp"
 
-One of the more common applications is to use LAHVA as a subproject in other projects to reuse the implemented tensor classes and its BLAS interface.
+template<typename blas_impl>
+class MyClass {
+  template<typename U>
+  using Vector = typename TensorFactory<blas_impl>::template Vector<U>;
+  template<typename U>
+  using Matrix = typename TensorFactory<blas_impl>::template Matrix<U>;
+  // ...
+};
 
-Using `meson` this is rather straightforward, the following dependency should be added to the `meson.build` file.
+// Instantiate for CPU or GPU at runtime
+MyClass<cpuBLAS> cpu_version;
+MyClass<gpuBLAS> gpu_version;
+```
+
+### Mixed Precision
+LAHVA provides mixed-precision linear algebra operations on NVIDIA GPUs, enabling computations where different numerical precisions are used within the same algorithm. Mixed precision leverages lower precision (FP16/half-precision) for faster computation and reduced memory usage while maintaining accuracy through selective use of higher precision (FP32/FP64) for critical operations. This approach is especially valuable on consumer-grade GPUs, which often have significantly higher throughput for FP16 operations compared to professional hardware. By using mixed precision, you can achieve:
+
+LAHVA abstracts the complexity of managing mixed-precision matrices and ensuring numerical stability, allowing you to benefit from GPU acceleration without manually orchestrating precision conversions.
+
+## Building from Source
+
+LAHVA supports both Meson and CMake build systems.
+
+### GPU Build (Nvidia)
+
+#### Compile with Meson
+
+```bash
+meson setup _build -Dgpu=true -Dlapack=mkl  # or openblas
+meson compile -C _build
+meson test -C _build
+```
+
+Or for a CPU-only build:
+```bash
+meson setup _build -Dgpu=false
+meson compile -C _build
+meson test -C _build
+```
+
+#### Compile with CMake
+
+```bash
+mkdir build && cd build
+cmake .. -DENABLE_GPU=ON
+make
+ctest
+```
+
+Or for a CPU-only build:
+```bash
+mkdir build && cd build
+cmake .. -DENABLE_GPU=OFF
+make
+ctest
+```
+
+### Using LAHVA as a Subproject
+
+To use LAHVA as a dependency in another Meson project:
 
 ```python
 lahva_dep = dependency(
   'lahva',
-  version: '>=0.0.0',
+  version: '>=0.2.0',
   fallback: ['lahva', 'lahva_dep'],
   default_options: ['default_library=static'],
 )
 ```
 
-## Usage
-
-LAHVA provides an implementation for 3 kinds of Tensor Classes:
-- Vector (1D-Tensor)
-- Matrix (2D-Tensor)
-- Lower Triangular Matrix [LowTriMatrix] (symmetric 2D Tensor, in packed mode)
-
-In accordance with the purpose of this library, these classes are available in a CPU-only and in a GPU and CPU version. Similar to the std-library containers they are available for various numerical precisions (i.e. `int`, `double`, `float`) via template parameters. Additionally, similar to `std::vector` allocators are used to allocate and deallocate memory for the containers. However, this template parameter is optional.
-
-In general, there are two ways to use the provided Tensor classes:
-a) in a static fashion, i.e. import one namespace and use it in that way. This works best outside of classes.
-b) in a polymorphic fashion, where the actual tensor type is resolved only at runtime using a template parameter in a class of our implementation.
-
-### Setup Tensor classes
-
-#### Static fashion
-
-For CPU-only tensor classes, we import the `linalg.hpp` header that defines the tensor classes and then use the namespace `lahva::cpu`.
-
+Then link it to your target:
+```python
+executable('my_app', 'main.cpp', dependencies: [lahva_dep])
 ```
-#include <linalg.hpp>
 
-lahva::cpu::Vector<double> p(5, 2.0);
+A more elaborate file to wrap LAHVA in your subproject is found in the examples [folder](examples/lahva_wrap.hpp).
+
+## Usage Examples
+
+### Basic CPU Usage
+
+```cpp
+#include <linalg.hpp>
+#include <iostream>
 
 using namespace lahva::cpu;
-// construct a 5 by 5 matrix, using the Shape struct and initializing the values to 1.0
-Matrix<float> s(Shape(5, 5), 1.0);
-```
 
-For tensor classes, that also have GPU-compatibility, we include the same header but use the namespace `lahva::gpu`.
-In comparison to the CPU tensor, GPU tensors rely on two Allocators one for the CPU memory space and for the GPU memory space that also handles memory transfers between host and device.
-
-```
-#include <linalg.hpp>
-
-lahva::gpu::Vector<double> p(5, 2.0);
-
-using namespace lahva::gpu;
-// similar to the CPU Matrix, we have a quadratic 5 x 5 matrix
-// here we explicitly give the template parameters for the Allocators instead of relying on default values. 
-Matrix<float, CudaHostAllocator<float>, CudaDeviceAsyncAllocator<float>> s(5, 1.0);
-```
-
-#### Polymorphic fashion
-
-In order to change between CPU and GPU tensors in a polymorphic fashion, a few additional components come in handy.
-We provide an example for this infrastructure in `example/lahva_wrap.hpp`. We extend the namespaces `lahva::cpu` and `lahva::gpu` with empty structs. These are used as template parameters and markers to lead the compiler to use the appropriate functions and classes from the CPU or GPU namespace. In an application we would include this `lahva_wrap.hpp`, and implement our `TestClass` as follows:
-
-For the `testclass.hpp`:
-```
-#include "example/lahva_wrap.hpp"
-
-using namespace lahva::cpu;
-using namespace lahva::gpu;
-
-template<typename blas_impl>
-class TestClass
-{
-  public:
-    template<typename U>
-    using Vector = typename TensorFactory<blas_impl>::template Vector<U>;
-    template<typename U>
-    using Matrix = typename TensorFactory<blas_impl>::template Matrix<U>;   
-    template<typename U>
-    using LowTriMatrix = typename TensorFactory<blas_impl>::template LowTriMatrix<U>;
-  private:
-    Vector<double> vec1;
-    Matrix<float> mat2;
-    LowTriMatrix<int> low3;
+int main() {
+    // Create vectors
+    Vector<double> v1(5, 1.0);
+    Vector<double> v2(5, 2.0);
+    
+    // Vector operations (BLAS Level 1)
+    double dot_result = InnerVectorProduct(v1, v2);
+    std::cout << "Dot product: " << dot_result << std::endl;
+    
+    Vector<double> v3(5, 0.0);
+    AddVectors(1.0, v2, v3);  // v3 = v3 + 1.0 * v2
+    
+    // Create matrices
+    Matrix<double> A(Shape(5, 5), 0.5);
+    Matrix<double> B(Shape(5, 5), 1.5);
+    Matrix<double> C(Shape(5, 5), 0.0);
+    
+    // Matrix-matrix multiplication (BLAS Level 3)
+    MatrixMatrixProduct(A, B, C);  // C = A * B
+    
+    // Matrix-vector multiplication (BLAS Level 2)
+    Vector<double> result(5, 0.0);
+    MatrixVectorProduct("N", 1.0, A, v1, 1, 0.0, result, 1);  // result = A * v1
+    
+    return 0;
 }
 ```
 
-When creating the classes in a `impl.cpp` file for example we would create a CPU-only and a GPU and CPU class.
+### Basic GPU Usage
 
+```cpp
+#include <linalg.hpp>
+#include <iostream>
+
+using namespace lahva::gpu;
+
+int main() {
+    // Create runtime - selects GPU with maximum available memory
+    CudaRuntime cudart;
+    
+    // Create GPU tensors
+    Vector<double> v1(100, 1.0);
+    Vector<double> v2(100, 2.0);
+    Matrix<float> A(Shape(50, 50), 0.5);
+    Matrix<float> B(Shape(50, 50), 1.5);
+    Matrix<float> C(Shape(50, 50), 0.0);
+    
+    // Vector operations (BLAS Level 1) - automatically on GPU
+    double dot_result = InnerVectorProduct(v1, v2);
+    
+    // Matrix multiplication (BLAS Level 3) - accelerated by cuBLAS
+    MatrixMatrixProduct(cudart, A, B, C);  // C = A * B
+    
+    // All memory transfers and cuBLAS calls are handled transparently by the runtime
+    
+    return 0;
+}
 ```
-#include "testclass.hpp"
 
-TestClass<cpuBLAS> test_cpu;
-TestClass<gpuBLAS> test_gpu;
+## Architecture Details
+
+### GPU Memory Management
+
+GPU tensors handle memory in two separate spaces:
+
+1. Host Memory - accessible by CPU, transferred from device
+2. Device Memory - on GPU, accessed by cuBLAS/cuSOLVER kernels
+
+LAHVA provides allocators for both spaces:
+- `CudaHostAllocator<T>` - allocates pinned host memory for efficient GPU transfer
+- `CudaDeviceAllocator<T>` - allocates device memory
+- `CudaDeviceAsyncAllocator<T>` - allocates with asynchronous copy support
+
+### Stream Management
+
+The runtime manages CUDA streams for asynchronous execution:
+
+```cpp
+// Default: uses per-thread stream (implicit synchronization)
+CudaRuntime default_runtime;
+
+// Enable explicit stream management
+default_runtime.enableAsyncCopy();
+
+// Launch operations asynchronously
+// ... GPU operations ...
+
+// Synchronize when needed
+default_runtime.synchronize();
 ```
 
-To see the effect of this design choice you can visit one of our libraries based on LAHVA: [GAMBITS](https://git.rwth-aachen.de/bannwarthlab/gambits). 
+## Testing & Compatibility
 
-## Support
+LAHVA has a comprehensive continuous integration test suite running on multiple OS, compiler, and BLAS library combinations. All tests are executed with both **Meson and CMake** build systems. Our GitLab CI/CD pipeline is run on a NVIDIA GeForce RTX 3070 but we occasionally test LAHVA on other GPUs as well. 
 
-Please open an issue in this GitLab repo, so we can help you out.
+| OS | Compiler | BLAS Library | CUDA |
+|---|----------|--------------|------|
+| Rocky Linux 9 | GCC | OpenBLAS | None |
+| Rocky Linux 9 | GCC | Intel MKL 2023.2.0 | None |
+| Rocky Linux 9 | GCC | Intel MKL 2025.3.0 | None |
+| Rocky Linux 9 | Intel oneAPI 2023.2.0 | Intel MKL 2023.2.0 | None |
+| Rocky Linux 9 | Intel oneAPI 2025.3.0 | Intel MKL 2025.3.0 | None |
+| Rocky Linux 10 | GCC | OpenBLAS | None |
+| Rocky Linux 10 | GCC | Intel MKL 2023.2.0 | None |
+| Rocky Linux 10 | GCC | Intel MKL 2025.3.0 | None |
+| Rocky Linux 10 | Intel oneAPI 2023.2.0 | Intel MKL 2023.2.0 | None |
+| Rocky Linux 10 | Intel oneAPI 2025.3.0 | Intel MKL 2025.3.0 | None |
+| Rocky Linux 9 | GCC | OpenBLAS | 11.8, 12.5, 13.0 |
+| Rocky Linux 9 | GCC | Intel MKL 2023.2.0 | 11.8, 12.5, 13.0 |
+| Rocky Linux 9 | GCC | Intel MKL 2025.3.0 | 11.8, 12.5, 13.0 |
+| Rocky Linux 9 | Intel oneAPI 2023.2.0 | Intel MKL 2023.2.0 | 11.8, 12.5, 13.0 |
+| Rocky Linux 9 | Intel oneAPI 2025.3.0 | Intel MKL 2025.3.0 | 11.8, 12.5, 13.0 |
+| Rocky Linux 10 | GCC | OpenBLAS | 13.0 |
+| Rocky Linux 10 | GCC | Intel MKL 2023.2.0 | 13.0 |
+| Rocky Linux 10 | GCC | Intel MKL 2025.3.0 | 13.0 |
+| Rocky Linux 10 | Intel oneAPI 2023.2.0 | Intel MKL 2023.2.0 | 13.0 |
+| Rocky Linux 10 | Intel oneAPI 2025.3.0 | Intel MKL 2025.3.0 | 13.0 |
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+> **Note:** LAHVA GPU support is NVIDIA-only using CUDA, cuBLAS, and cuSOLVER. There are no plans to extend support to other GPU manufacturers (such as AMD and Intel).
 
-## Authors and acknowledgment
+## Known Usage and Community
 
-Original author: Pit Steinbach  
-with contributions from: Mark Heezen  
-under the supervision of: Christoph Bannwarth
+LAHVA originates from a computational chemists, where GPU-accelerated linear algebra is essential for quantum chemistry simulations, molecular dynamics, and electronic structure calculations. 
+
+However, LAHVA's design is domain-agnostic and can benefit any field requiring efficient GPU-accelerated linear algebra operations. LAHVA's simplified API and runtime abstraction can help you leverage GPU acceleration without dealing with low-level CUDA complexity. 
+
+In case you are using LAHVA in a different field, please reach out via a [GitLab issue](https://git.rwth-aachen.de/bannwarthlab/lahva/-/issues). We're interested in understanding how LAHVA can serve the broader scientific computing community and would be happy to discuss how it might fit your use case. 
+
+So far, we know that LAHVA is used in:
+- [GAMBITS](https://git.rwth-aachen.de/bannwarthlab/gambits) - Purification methods for quantum chemistry
+
+## Authors
+
+- Pit Steinbach
+- Mark Heezen
+- Christoph Bannwarth
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
+LAHVA is distributed under the MIT License. See [LICENSE](LICENSE) for details.
 
-This project is still in an experimental state, though we are committed to keep the API stable, changes could occur.
+## Project Status
+
+LAHVA is actively maintained. The API is considered stable, though enhancements and bug fixes are continuously integrated. The library is suitable for production use with proper testing for your specific use case.
+
+## Support & Issues
+
+Please open an issue on GitLab if you encounter problems or have questions. We're happy to help with:
+- Build issues
+- CUDA/hardware compatibility questions  
+- Feature requests
+- Bug reports
