@@ -16,7 +16,9 @@ namespace lahva{
     {
 
         /// @brief Adds two GPU matrices with optional transposition.
+        ///
         /// Performs C = alpha * op(A) + beta * op(B) where op is specified by Ta and Tb.
+        ///
         /// @tparam T Numerical type of matrix elements (double, float, complex types).
         /// @param cudart CUDA runtime instance
         /// @param Ta Operation on matrix A ("N" for no transpose, "T" for transpose).
@@ -31,7 +33,9 @@ namespace lahva{
         const T beta, Matrix_<T>& c);
 
         /// @brief Adds two GPU matrices with optional transposition (convenience overload).
+        ///
         /// Performs C = alpha * op(A) + beta * op(B) with default parameters.
+        ///
         /// @tparam T Numerical type of matrix elements (double, float, complex types).
         /// @param cudart CUDA runtime instance
         /// @param a First input GPU matrix (Matrix_<T>).
@@ -46,8 +50,10 @@ namespace lahva{
         const T alpha = 1.0 , const T beta = 1.0, const char* Ta = "N", const char* Tb = "N");
 
         /// @brief Computes scaled symmetric product using ON2 scaling (GPU).
+        ///
         /// Computes matrix_out = scaling1 * matrix1 * scaling2 * matrix2 where scaling factors are diagonal.
         /// Optimized for symmetric matrices with explicit scaling vectors.
+        ///
         /// @param cudart CUDA runtime instance
         /// @param diag1 Diagonal scaling vector for first matrix (Vector_<double>).
         /// @param matrix1 First input matrix in single-precision (Matrix_<float>).

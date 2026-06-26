@@ -314,6 +314,33 @@ namespace lahva
             get_cublas_error(istat);
         };
 
+        void MatrixMatrixProductFP16(const CudaRuntime &cudart, const char *Ta, const char *Tb, const float alpha, const Matrix_<__half> &a, const Matrix_<__half> &b,
+                                     const float beta, Matrix_<float> &c)
+        {
+            cublasOperation_t transa = get_trans(Ta);
+            cublasOperation_t transb = get_trans(Tb);
+
+            check_device_alloc(cudart, a);
+            check_device_alloc(cudart, b);
+            check_device_alloc(cudart, c);
+
+            int m, n, k;
+            std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
+
+            cudaDataType_t sp_type = CUDA_R_32F;
+            cudaDataType_t half_type = CUDA_R_16F;
+            cublasComputeType_t computeType = CUBLAS_COMPUTE_32F;
+
+            size_t lda = get_leading(m, k);
+            size_t ldb = get_leading(k, n);
+            size_t ldc = get_leading(m, n);
+
+            cudart.cublasSetStream_();
+            cublasStatus_t istat = cublasGemmEx(cudart.handle, transa, transb, m, n, k, &alpha, a.gpu_data(), half_type, lda, b.gpu_data(),
+                                                half_type, ldb, &beta, c.gpu_data(), sp_type, ldc, computeType, CUBLAS_GEMM_DEFAULT);
+            get_cublas_error(istat);
+        };
+
         void MatrixMatrixProductFP16(const CudaRuntime &cudart, const Matrix_<__half> &a, const Matrix_<__half> &b, Matrix_<float> &c,
                                      const float alpha, const float beta, const char *Ta, const char *Tb)
         {

@@ -21,8 +21,10 @@ namespace lahva
     {
 
         /// @brief Computes symmetric matrix product with diagonal scaling using mixed precision.
+        ///
         /// Performs scaled multiplication D1 * M1 * D2 * M2 with symmetrization.
         /// Combines scaled matrices maintaining symmetry property.
+        ///
         /// @tparam Allocator Host memory allocator type for vectors.
         /// @tparam GPUAllocator Device memory allocator type for vectors.
         /// @tparam All2 Host memory allocator type for matrices.
@@ -49,7 +51,9 @@ namespace lahva
         };
 
         /// @brief Computes symmetric matrix product with diagonal scaling using mixed-precision matrices.
+        ///
         /// Performs scaled multiplication D1 * M1 * D2 * M2 with symmetrization using iterative refinement.
+        ///
         /// @tparam Allocator Host memory allocator type for vectors.
         /// @tparam GPUAllocator Device memory allocator type for vectors.
         /// @tparam All2 Host memory allocator type for matrices.
