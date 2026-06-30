@@ -61,7 +61,7 @@ namespace lahva
     static const CBLAS_LAYOUT major = CblasColMajor;
     static const CBLAS_UPLO tri = CblasLower;
     static const int l_major = CblasColMajor;
-    static char l_uplo = 'L';
+    [[maybe_unused]] static char l_uplo = 'L';
     static char l_nondiag = 'N';
     static const char major_char = 'C';
 

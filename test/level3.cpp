@@ -5,7 +5,6 @@ using namespace lahva::cpu;
 #define K 3
 
 const double thr2 = 5.0e-15;
-const float thr = 5.0e-7;
 float vf[9] = {1.0, 4.0, 5.0, 0.0, 2.0, 6.0, 0.0, 0.0, 3.0};
 double vd[9] = {1.0, 4.0, 5.0, 0.0, 2.0, 6.0, 0.0, 0.0, 3.0};
 float *pf = vf;

@@ -5,7 +5,6 @@
 
 using namespace lahva::cpu;
 
-const double thr2 = 5.0e-15;
 const float thr = 5.0e-7;
 template<typename T>
 T get_complex_thr(){

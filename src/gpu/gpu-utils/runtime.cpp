@@ -127,7 +127,7 @@ namespace lahva
         size_t n_sm = deviceProp.multiProcessorCount;
 
         size_t best_block_size = 0;
-        int rest = -500;
+        size_t rest = -500;
 
         for (auto i : { 512,  256, 128})
         {

@@ -36,9 +36,9 @@ namespace lahva
             int m, n;
             std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
-            BLAS_INT lda = get_leading(m, n, transa);
-            BLAS_INT ldb = get_leading(m, n, transb);
-            BLAS_INT ldc = get_leading(m, n);
+            [[maybe_unused]] BLAS_INT lda = get_leading(m, n, transa);
+            [[maybe_unused]] BLAS_INT ldb = get_leading(m, n, transb);
+            [[maybe_unused]]BLAS_INT ldc = get_leading(m, n);
 #if defined(_MKL_H_)
             mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
 
@@ -131,9 +131,9 @@ namespace lahva
             int m, n;
             std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
-            BLAS_INT lda = get_leading(m, n, transa);
-            BLAS_INT ldb = get_leading(m, n, transb);
-            BLAS_INT ldc = get_leading(m, n);
+            [[maybe_unused]] BLAS_INT lda = get_leading(m, n, transa);
+            [[maybe_unused]] BLAS_INT ldb = get_leading(m, n, transb);
+            [[maybe_unused]]BLAS_INT ldc = get_leading(m, n);
 
 #if defined(_MKL_H_)
             mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
@@ -223,9 +223,9 @@ namespace lahva
             int m, n;
             std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
-            BLAS_INT lda = get_leading(m, n, transa);
-            BLAS_INT ldb = get_leading(m, n, transb);
-            BLAS_INT ldc = get_leading(m, n);
+            [[maybe_unused]] BLAS_INT lda = get_leading(m, n, transa);
+            [[maybe_unused]] BLAS_INT ldb = get_leading(m, n, transb);
+            [[maybe_unused]] BLAS_INT ldc = get_leading(m, n);
 
 #if defined(_MKL_H_)
             mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
@@ -316,9 +316,9 @@ namespace lahva
             int m, n;
             std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
-            BLAS_INT lda = get_leading(m, n, transa);
-            BLAS_INT ldb = get_leading(m, n, transb);
-            BLAS_INT ldc = get_leading(m, n);
+            [[maybe_unused]] BLAS_INT lda = get_leading(m, n, transa);
+            [[maybe_unused]] BLAS_INT ldb = get_leading(m, n, transb);
+            [[maybe_unused]] BLAS_INT ldc = get_leading(m, n);
 
 #if defined(_MKL_H_)
             mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
