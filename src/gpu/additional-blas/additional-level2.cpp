@@ -151,5 +151,5 @@ namespace lahva
             cudart.cublasSetStream_();
             get_cublas_error(cublasSgeam(cudart.handle, transa, transb, m, n, &alpha, a.gpu_data(), lda, &beta, b.gpu_data(), ldb, c.gpu_data(), ldc));
         };
-    }
-}
+    } // namespace gpu
+} // namespace lahva

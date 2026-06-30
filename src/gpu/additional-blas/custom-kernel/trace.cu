@@ -435,5 +435,5 @@ namespace lahva
             sSetDiagonal<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(diag.size(), diag.gpu_data(), m.gpu_data());
         }
 
-    } // namespace Purification_kernel
-} // namespace Purification
+    } // namespace gpu
+} // namespace lahva

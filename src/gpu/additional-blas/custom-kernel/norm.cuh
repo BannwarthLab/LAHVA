@@ -98,4 +98,4 @@ namespace lahva
         }
 
     } // namespace gpu
-} //namespace lahva
+} // namespace lahva
