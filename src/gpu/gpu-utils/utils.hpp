@@ -4,8 +4,7 @@
 /// Provides helper functions for managing GPU tensor allocation, validating tensor shapes
 /// for BLAS operations, and managing CUDA operations like stream handling.
 
-#ifndef LAHVA_GPU_UTILS_HPP
-#define LAHVA_GPU_UTILS_HPP
+#pragma once
 #include "linalg.hpp"
 #include "runtime.hpp"
 
@@ -252,6 +251,4 @@ namespace lahva
     };
 
     } // namespace gpu
-
-}
-#endif
+} // namespace lahva

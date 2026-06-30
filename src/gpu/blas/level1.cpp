@@ -5,11 +5,11 @@
 /// using NVIDIA's cuBLAS library for GPU acceleration. Supports operations like
 /// inner products, vector addition, and scalar multiplication on GPU tensors.
 
+#include "../../cpu/utils/utils.hpp"
+#include "../gpu-utils/utils.hpp"
+#include "impl/blas/gpu/level1.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
-#include "../../cpu/utils/utils.hpp"
-#include "impl/blas/gpu/level1.hpp"
-#include "../gpu-utils/utils.hpp"
 
 namespace lahva{
     namespace gpu{
@@ -381,5 +381,5 @@ namespace lahva{
         cublasStatus_t istat = cublasSscal(cudart.handle, x.size(), &a, x.gpu_data(), ix);
         get_cublas_error(istat);
     }
-    }
-}
+    } // namespace gpu
+} // namespace lahva

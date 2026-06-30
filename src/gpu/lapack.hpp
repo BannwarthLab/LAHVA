@@ -6,9 +6,9 @@
 /// with LU factorization. Each operation is provided for both double and float precision
 /// with GPU runtime management.
 
+#include "../gpu-utils/utils.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
-#include "../gpu-utils/utils.hpp"
 
 namespace lahva
 {

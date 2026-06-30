@@ -4,15 +4,15 @@
 /// Provides CUDA kernels for matrix decomposition into lower-precision components,
 /// mixed-precision arithmetic operations, and type conversion for iterative refinement algorithms.
 
-#include "linalg.hpp"
-#include "runtime.hpp"
+#include <vector>
 #include "../../gpu-utils/utils.hpp"
-#include "impl/blas/gpu/level1.hpp"
+#include "common.h"
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/additional-level2.hpp"
-#include "common.h"
+#include "impl/blas/gpu/level1.hpp"
 #include "impl/tensor/allocators.hpp"
-#include <vector>
+#include "linalg.hpp"
+#include "runtime.hpp"
 
 namespace lahva
 {
@@ -492,6 +492,6 @@ namespace lahva
         template void SplitMatrix<float, __half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>(const CudaRuntime &cudart, Matrix_<float> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>> &out, GPUTensor_<int> &coeff, int maxsplit);
         template void SplitMatrix<double, __half, CudaHostAllocator<__half>, CudaDeviceAllocator<__half>>(const CudaRuntime &cudart, Matrix_<double> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAllocator<__half>>> &out, GPUTensor_<int> &coeff, int maxsplit);
         template void SplitMatrix<double, __half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>(const CudaRuntime &cudart, Matrix_<double> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>> &out, GPUTensor_<int> &coeff, int maxsplit);
+    
     } // namespace gpu
-
 } // namespace lahva

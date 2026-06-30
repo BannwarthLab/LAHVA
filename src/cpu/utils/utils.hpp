@@ -2,9 +2,9 @@
 /// @brief CPU utility functions for tensor and matrix dimension validation.
 
 #pragma once
-#include "linalg.hpp"
-#include "const.h"
 #include <tuple>
+#include "const.h"
+#include "linalg.hpp"
 
 #include <assert.h>
 

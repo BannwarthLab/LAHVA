@@ -4,16 +4,14 @@
 /// Implements specialized GPU kernels for matrix addition with mixed-precision support
 /// and optimized 1D/2D blocking strategies for various type combinations.
 
-#include "linalg.hpp"
-#include "runtime.hpp"
-#include "impl/blas/gpu/additional-level1.hpp"
-#include "../gpu-utils/utils.hpp"
-#include "reductions/reduction.cuh"
-#include "reductions/common.cuh"
-#include "additional-level1.cuh"
 #include "./additional-level1.hpp"
-#include "add-vectors.hpp"
+#include "additional-level1.cuh"
 #include "custom-kernel/common.h"
+#include "impl/blas/gpu/additional-level1.hpp"
+#include "linalg.hpp"
+#include "reductions/common.cuh"
+#include "reductions/reduction.cuh"
+#include "runtime.hpp"
 namespace lahva
 {
     namespace gpu

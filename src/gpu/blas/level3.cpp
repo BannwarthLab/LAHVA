@@ -4,10 +4,10 @@
 /// Implements GPU versions of Level-3 BLAS operations (matrix-matrix operations)
 /// using NVIDIA's cuBLAS library. Supports matrix multiplication and symmetric matrix operations.
 
+#include "../gpu-utils/utils.hpp"
+#include "impl/blas/gpu/level3.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
-#include "impl/blas/gpu/level3.hpp"
-#include "../gpu-utils/utils.hpp"
 
 namespace lahva
 {
@@ -575,5 +575,5 @@ namespace lahva
             get_cublas_error(istat);
         };
 
-    }
+    } // namespace gpu
 } // namespace lahva

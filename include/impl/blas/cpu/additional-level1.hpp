@@ -7,13 +7,12 @@
 // dispatch to optimized CPU implementations.
 // Each overload is provided for double and float precision; both precisions are documented explicitly.
 
-#ifndef LAHVA_ADD_LEVEL1_CPU_HPP
-#define LAHVA_ADD_LEVEL1_CPU_HPP
+#pragma once
+#include "const.h"
+#include "impl/tensor/cpu/lowtrimatrix.hpp"
+#include "impl/tensor/cpu/matrix.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
 #include "impl/tensor/cpu/vector.hpp"
-#include "impl/tensor/cpu/matrix.hpp"
-#include "impl/tensor/cpu/lowtrimatrix.hpp"
-#include "const.h"
 #include "level1.h"
 
 namespace lahva
@@ -251,4 +250,3 @@ namespace lahva
     } // namespace gpu
 
 }
-#endif

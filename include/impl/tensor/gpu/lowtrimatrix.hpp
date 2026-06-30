@@ -6,10 +6,11 @@
 /// Inherits from both GPU and CPU lower triangular interfaces for mixed-precision computations.
 
 #pragma once
-#include "runtime.hpp"
-#include "impl/tensor/gpu/gputensor.hpp"
-#include "impl/tensor/cpu/lowtrimatrix.hpp"
 #include <omp.h>
+
+#include "impl/tensor/cpu/lowtrimatrix.hpp"
+#include "impl/tensor/gpu/gputensor.hpp"
+#include "runtime.hpp"
 
 namespace lahva
 {

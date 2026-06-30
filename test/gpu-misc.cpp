@@ -1,6 +1,7 @@
 #include "runtime.hpp"
 #include "common.h"
 #include <vector>
+#include "timer.hpp"
 
 using Vector =  gpu::Vector<double, CudaHostAllocator<double>, CudaDeviceAsyncAllocator<double>>;
 

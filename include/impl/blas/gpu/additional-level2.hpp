@@ -5,10 +5,9 @@
 /// operating on GPU matrix and vector objects. These extend standard BLAS Level-2 functionality.
 /// Each function is provided for double and float precision with GPU runtime management.
 
-#ifndef LAHVA_ADD_LEVEL2_GPU_HPP
-#define LAHVA_ADD_LEVEL2_GPU_HPP
-#include "linalg.hpp"
+#pragma once
 #include "const.h"
+#include "linalg.hpp"
 #include "runtime.hpp"
 
 namespace lahva{
@@ -67,4 +66,3 @@ namespace lahva{
     } // namespace gpu
     
 }   
-#endif

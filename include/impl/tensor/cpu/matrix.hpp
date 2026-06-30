@@ -7,16 +7,16 @@
 
 #pragma once
 
-#include "impl/tensor/allocators.hpp"
-#include "impl/tensor/cpu/tensor.hpp"
-#include "impl/tensor/cpu/vector.hpp"
-#include "impl/blas/cpu/level1.h"
-#include <initializer_list>
-#include <omp.h>
-#include <iostream>
-#include <string>
-#include <fstream>
 #include <cassert>
+#include <fstream>
+#include <initializer_list>
+#include <iostream>
+#include <omp.h>
+#include <string>
+
+#include "impl/blas/cpu/level1.h"
+#include "impl/tensor/allocators.hpp"
+#include "impl/tensor/cpu/vector.hpp"
 
 namespace lahva
 {

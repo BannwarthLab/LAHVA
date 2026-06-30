@@ -1,8 +1,8 @@
-#include "common.h"
-#include <random>
-#include "utils.hpp"
-
 #include <omp.h>
+#include <random>
+#include "common.h"
+#include "utils.hpp"
+#include "timer.hpp"
 
 using namespace lahva::gpu;
 template <typename T>

@@ -4,10 +4,10 @@
 /// Implements GPU versions of additional matrix operations including scaled matrix addition
 /// with optional transposition using NVIDIA's cuBLAS library.
 
+#include "../gpu-utils/utils.hpp"
+#include "impl/blas/gpu/additional-level2.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
-#include "impl/blas/gpu/additional-level2.hpp"
-#include "../gpu-utils/utils.hpp"
 namespace lahva
 {
     namespace gpu

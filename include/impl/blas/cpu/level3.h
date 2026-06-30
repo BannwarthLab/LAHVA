@@ -6,8 +6,7 @@
 // raw pointers and use simple scalar parameters for flexibility. Each overload is
 // provided for double and float precision; both precisions are documented explicitly.
 
-#ifndef LAHVA_C_LEVEL_3_H
-#define LAHVA_C_LEVEL_3_H
+#pragma once
 #include "const.h"
 
 namespace lahva
@@ -250,4 +249,3 @@ namespace lahva
         };
     }
 }
-#endif

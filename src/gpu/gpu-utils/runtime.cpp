@@ -4,12 +4,12 @@
 /// Provides CUDA device initialization, memory management, and cuBLAS context setup
 /// for GPU-accelerated linear algebra operations.
 
-#include <cuda_runtime.h>
 #include <cublas_v2.h>
-#include "runtime.hpp"
+#include <cuda_runtime.h>
 #include <iostream>
-#include <string>
 #include <omp.h>
+#include <string>
+#include "runtime.hpp"
 
 /// @brief Checks CUDA error status and throws on failure.
 ///

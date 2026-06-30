@@ -7,11 +7,11 @@
 
 #pragma once
 #include <memory>
+
+#include "../../../src/gpu/additional-blas/additional-level1.hpp"
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
-#include "impl/tensor/gpu/gputensor.hpp"
 #include "runtime.hpp"
-#include "../../../src/gpu/additional-blas/additional-level1.hpp"
 
 namespace lahva
 {

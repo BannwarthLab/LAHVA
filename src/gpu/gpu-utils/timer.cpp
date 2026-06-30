@@ -5,8 +5,8 @@
 /// measurement of GPU kernel and operation execution times.
 
 #include <cstddef>
-#include <string>
 #include <cuda_runtime.h>
+#include <string>
 #include "runtime.hpp"
 #include "timer.hpp"
 
@@ -163,4 +163,4 @@ namespace lahva
         return time;
     }
 
-}
+} // namespace lahva

@@ -4,8 +4,8 @@
 /// Provides functors implementing various reduction operations (max, min, add, subtract, power)
 /// with correctly-rounded arithmetic for GPU reduction algorithms.
 
-#include "cuda_runtime.h"
 #include <cfloat>
+#include "cuda_runtime.h"
 
 namespace lahva
 {
@@ -314,5 +314,4 @@ namespace lahva
         };
        
     } // namespace gpu
-
 } // namespace lahva

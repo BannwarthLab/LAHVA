@@ -5,12 +5,12 @@
 /// using FP16 computation with FP32 accumulation and iterative refinement.
 
 #pragma once
-#include "impl/blas/gpu/level1.hpp"
-#include "impl/blas/gpu/level3.hpp"
+#include "../gpu-utils/utils.hpp"
+#include "custom-kernel/mixed-precision.h"
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/additional-level3.hpp"
-#include "custom-kernel/mixed-precision.h"
-#include "../gpu-utils/utils.hpp"
+#include "impl/blas/gpu/level1.hpp"
+#include "impl/blas/gpu/level3.hpp"
 
 namespace lahva
 {

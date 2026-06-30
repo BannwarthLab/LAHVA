@@ -7,10 +7,9 @@
 // dispatch to optimized CPU implementations. Each overload is provided for double and
 // float precision; both precisions are documented explicitly.
 
-#ifndef LAHVA_ADD_LEVEL2_CPU_HPP
-#define LAHVA_ADD_LEVEL2_CPU_HPP
-#include "linalg.hpp"
+#pragma once
 #include "const.h"
+#include "linalg.hpp"
 
 namespace lahva
 {
@@ -63,5 +62,4 @@ namespace lahva
 
     } // namespace gpu
 
-}
-#endif
+} // namespace lahva

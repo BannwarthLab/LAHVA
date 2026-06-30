@@ -7,10 +7,9 @@
 // CPU BLAS kernels. Each overload is provided for double and float precision; both precisions
 // are documented explicitly.
 
-#ifndef LAHVA_C_LEVEL_3_HPP
-#define LAHVA_C_LEVEL_3_HPP
-#include "linalg.hpp"
+#pragma once
 #include "const.h"
+#include "linalg.hpp"
 
 namespace lahva
 {
@@ -170,4 +169,3 @@ namespace lahva
 
     }
 }
-#endif

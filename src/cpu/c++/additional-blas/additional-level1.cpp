@@ -1,3 +1,10 @@
+/// @file additional-level1.cpp
+/// @brief CPU C++ implementations of extended/custom Level-1 BLAS operations.
+///
+/// Implements additional vector and trace operations beyond standard BLAS Level-1,
+/// including trace computation with optional OpenMP parallelization. Provides type-specific
+/// implementations for double, float, and complex types.
+
 #include "impl/blas/cpu/additional-level1.hpp"
 #ifdef W_OPENMP
 #include <omp.h>
@@ -235,6 +242,6 @@ namespace lahva
         template void HadamardProduct(const Tensor<float> &A, const Tensor<float> &B, Tensor<float> &C);
         template void HadamardProduct(const size_t ndim, const double *A, const double *B, double *C, bool increment);
         template void HadamardProduct(const size_t ndim, const float *A, const float *B, float *C, bool increment);
+    
     } // namespace cpu
-
 } // namespace lahva

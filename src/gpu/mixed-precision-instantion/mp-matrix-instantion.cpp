@@ -5,11 +5,11 @@
 /// matrix decomposition (split) and composition (merge) to enable iterative refinement
 /// using lower-precision arithmetic with higher-precision residual correction.
 
-#include "impl/tensor/gpu/mixed-precision-classes/mixed-precision-matrix.hpp"
-#include "impl/tensor/allocators.hpp"
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/level1.hpp"
+#include "impl/tensor/allocators.hpp"
 #include "impl/tensor/gpu/matrix.hpp"
+#include "impl/tensor/gpu/mixed-precision-classes/mixed-precision-matrix.hpp"
 #include "impl/tensor/gpu/vector.hpp"
 #include "runtime.hpp"
 
@@ -94,10 +94,19 @@ namespace lahva
             
         }
 
+        /// @brief Merges split lower-precision components with equal weight.
+        ///
+        /// Convenience overload that sums all split components with coefficient 1.0,
+        /// useful for cases where equal contribution from each component is desired.
+        ///
+        /// @tparam high High-precision floating-point type.
+        /// @tparam Allocator Host memory allocator type.
+        /// @tparam GPUAllocator Device memory allocator type.
+        /// @param cudart CUDA runtime instance.
         template <typename high, typename Allocator, typename GPUAllocator>
         void MixedPrecisionMatrix<high, Allocator, GPUAllocator>::merge(const CudaRuntime &cudart)
         {
-            
+
             for (size_t i = 0; i < max_split_ ; ++i)
             {
                 AddVectors(cudart, 1.0, this->getSplitMatrix<float>(i), *this);

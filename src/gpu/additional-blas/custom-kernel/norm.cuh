@@ -6,8 +6,9 @@
 
 #pragma once
 #include "../../gpu-utils/utils.hpp"
-#include "common.h"
 #include "../reductions/reduction.cuh"
+#include "common.h"
+
 namespace lahva
 {
     namespace gpu
@@ -97,5 +98,4 @@ namespace lahva
         }
 
     } // namespace gpu
-    
-}
+} //namespace lahva

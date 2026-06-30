@@ -1,5 +1,11 @@
-#include "impl/blas/cpu/level3.h"
+/// @file level3.cpp
+/// @brief CPU C-level Level-3 BLAS function implementations.
+///
+/// Low-level C implementations of Level-3 BLAS operations (matrix-matrix multiplication)
+/// with runtime type dispatching to appropriate GEMM routines (dgemm, sgemm, etc.).
+
 #include "../utils/utils.hpp"
+#include "impl/blas/cpu/level3.h"
 
 namespace lahva
 {
@@ -209,5 +215,5 @@ namespace lahva
 
             cblas_ssymm(major, side, tri, m_, n_, alpha, a, lda, b, ldb, beta, c, ldc);
         };
-    }
-}
+    } // namespace cpu
+} // namespace lahva

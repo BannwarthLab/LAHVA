@@ -7,8 +7,7 @@
 /// It serves as the foundational layer for the LAHVA library's linear algebra operations.
 
 // Linear algebra backend
-#ifndef LAHVA_CONST_H
-#define LAHVA_CONST_H
+#pragma once
 #include <cstdint>
 #include <complex>
 #ifdef _WIN32
@@ -137,4 +136,3 @@ namespace lahva
     static const cublasFillMode_t tri_gpu = CUBLAS_FILL_MODE_LOWER;
 #endif
 }
-#endif

@@ -6,9 +6,11 @@
 /// Includes specialized operations leveraging triangular matrix properties.
 
 #pragma once
-#include "impl/tensor/allocators.hpp"
-#include "impl/tensor/cpu/tensor.hpp"
+#include <cassert>
 #include <omp.h>
+
+#include "impl/tensor/allocators.hpp"
+#include "impl/tensor/cpu/vector.hpp"
 
 namespace lahva
 {

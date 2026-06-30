@@ -6,17 +6,14 @@
 /// error reporting macros for convenient debugging and a CudaRuntime class that abstracts
 /// CUDA device state and configuration for use in linear algebra operations.
 
-#ifndef LAHVA_GPU_RUNTIME_HPP
-#define LAHVA_GPU_RUNTIME_HPP
-#include "const.h"
-
+#pragma once
 #include <cuda_runtime.h>
 #include <cusolverDn.h>
-#include <memory>
 #include <iostream>
-
-#include <cmath>
 #include <limits>
+#include <memory>
+
+#include "const.h"
 
 /// @brief Default number of threads per block for CUDA kernel launches.
 #define THREADS_PER_BLOCK 512
@@ -313,4 +310,3 @@ namespace lahva{
         cusolverDnHandle_t *getHandlePtr() { return &handle; }
     };
 }
-#endif

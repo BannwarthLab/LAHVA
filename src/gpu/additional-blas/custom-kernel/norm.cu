@@ -4,12 +4,10 @@
 /// Provides template-instantiated host functions that launch block-size-specialized
 /// GPU kernels for computing Frobenius norms with parallel reduction.
 
-#include "impl/blas/gpu/additional-level1.hpp"
-#include "norm.cuh"
-#include "reductions/reduction.cuh"
-#include "reductions/common.cuh"
 #include "common.h"
 #include "linalg.hpp"
+#include "norm.cuh"
+#include "reductions/common.cuh"
 
 namespace lahva
 {
@@ -134,6 +132,6 @@ namespace lahva
         template void FrobeniusKernel<double>(const CudaRuntime &cudart, const unsigned long long ndim, const double *mat, double *vec);
         template void FrobeniusKernel2<float>(const CudaRuntime &cudart, const unsigned long long ndim, const float *mat1, const float* mat2, float *vec);
         template void FrobeniusKernel2<double>(const CudaRuntime &cudart, const unsigned long long ndim, const double *mat1, const double * mat2, double *vec);
+    
     } // namespace gpu
-
 } // namespace lahva

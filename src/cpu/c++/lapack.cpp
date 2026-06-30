@@ -1,7 +1,14 @@
-#include "linalg.hpp"
-#include "impl/blas/cpu/lapack.hpp"
+/// @file lapack.cpp
+/// @brief CPU C++ template implementations of LAPACK linear algebra routines.
+///
+/// Provides C++ template functions for LAPACK operations including LU factorization, QR
+/// factorization, Cholesky decomposition, eigenvalue solvers, and matrix inversions.
+/// Functions accept Matrix<T> and Vector<T> types and forward to Fortran LAPACK routines.
+
 #include <stdexcept>
+#include "impl/blas/cpu/lapack.hpp"
 #include "lapack_wrap.hpp"
+#include "linalg.hpp"
 
 namespace lahva
 {
@@ -732,5 +739,4 @@ namespace lahva
         }; 
         
     } // namespace cpu
-
-}
+} // namespace lahva

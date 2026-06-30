@@ -4,8 +4,8 @@
 /// Provides CUDA cuSolver library initialization, cleanup, and stream management
 /// for GPU-accelerated linear algebra operations.
 
-#include "runtime.hpp"
 #include <iostream>
+#include "runtime.hpp"
 
 /// @brief Checks cuSolver error status and throws on failure.
 ///

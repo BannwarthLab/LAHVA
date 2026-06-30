@@ -4,14 +4,14 @@
 /// Defines the abstract tensor interface providing common functionality for all tensor types
 /// (vectors, matrices, etc.). Includes memory management, shape information, and basic operations.
 
-#ifndef LAHVA_TENSOR_HPP
-#define LAHVA_TENSOR_HPP
+#pragma once
 
-#include <memory>
-#include <iterator>
 #include <iostream>
-#include "impl/tensor/allocators.hpp"
+#include <iterator>
+#include <memory>
 #include <omp.h>
+
+#include "impl/tensor/allocators.hpp"
 
 namespace lahva
 {
@@ -265,5 +265,3 @@ namespace lahva
     };
 
 } // namespace lahva
-
-#endif

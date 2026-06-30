@@ -4,8 +4,8 @@
 /// Provides CUDA kernels for computing matrix traces, symmetrizing matrices,
 /// and extracting/setting diagonal elements efficiently on GPU.
 
-#include "impl/blas/gpu/additional-level1.hpp"
 #include "../../gpu-utils/utils.hpp"
+#include "impl/blas/gpu/additional-level1.hpp"
 
 namespace lahva
 {

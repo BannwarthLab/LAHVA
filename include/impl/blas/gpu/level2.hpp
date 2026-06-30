@@ -5,8 +5,7 @@
 /// Level-2 operations include matrix-vector multiplication, triangular solves, and rank-1/2 updates.
 /// Each function is provided for double and float precision with GPU runtime management.
 
-#ifndef LAHVA_GPU_LEVEL2_HPP
-#define LAHVA_GPU_LEVEL2_HPP
+#pragma once
 #include "const.h"
 #include "linalg.hpp"
 #include "runtime.hpp"
@@ -290,5 +289,3 @@ namespace lahva{
 
     } // namespace gpu
 } // namespace lahva
-
-#endif

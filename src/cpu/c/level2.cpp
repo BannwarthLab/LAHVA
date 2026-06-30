@@ -1,5 +1,11 @@
-#include "impl/blas/cpu/level2.h"
+/// @file level2.cpp
+/// @brief CPU C-level Level-2 BLAS function implementations.
+///
+/// Low-level C implementations of Level-2 BLAS operations (matrix-vector multiply, outer
+/// product) dispatching to CBLAS routines. Supports double, float, and complex types.
+
 #include "../utils/utils.hpp"
+#include "impl/blas/cpu/level2.h"
 
 namespace lahva
 {
@@ -370,5 +376,6 @@ namespace lahva
 
             cblas_ssymv(major, tri, ncol, alpha, a, lda, x, inx, beta, y, iny);
         };
-    }
-}
+        
+    } // namespace cpu
+} // namespace lahva

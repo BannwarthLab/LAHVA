@@ -4,9 +4,9 @@
 /// Implements helper functions for managing GPU memory, BLAS operation parameters,
 /// and tensor dimension validation.
 
-#include "utils.hpp"
-#include "runtime.hpp"
 #include <string>
+#include "runtime.hpp"
+#include "utils.hpp"
 
 namespace lahva {
     namespace gpu
@@ -40,6 +40,6 @@ namespace lahva {
             return CUBLAS_OP_N;
         }
     };
+
     } // namespace gpu
-    
-}
+} // namespace lahva

@@ -6,8 +6,8 @@
 
 #pragma once
 #include <cmath>
-#include <typeinfo>
 #include <float.h>
+#include <typeinfo>
 
 #include "runtime.hpp"
 #include <cuda_fp16.h>

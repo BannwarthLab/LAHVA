@@ -5,10 +5,9 @@
 /// Level-3 operations include matrix-matrix multiplication, triangular solves, and rank-k updates.
 /// Each function is provided for double and float precision with GPU runtime management.
 
-#ifndef LAHVA_GPU_LEVEL_3_HPP
-#define LAHVA_GPU_LEVEL_3_HPP
-#include "linalg.hpp"
+#pragma once
 #include "const.h"
+#include "linalg.hpp"
 #include "runtime.hpp"
 
 namespace lahva{
@@ -257,4 +256,3 @@ namespace lahva{
                              const float alpha = 1.0 , const float beta = 0.0, const char* Ta = "N", const char* Tb = "N");                         
     } // namespace gpu
 } // namespace lahva
-#endif

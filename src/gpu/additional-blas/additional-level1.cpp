@@ -4,13 +4,13 @@
 /// Implements specialized GPU kernels for element-wise tensor operations including
 /// Hadamard products (element-wise multiplication) and mixed-precision vector addition.
 
-#include "linalg.hpp"
-#include "runtime.hpp"
-#include "impl/blas/gpu/additional-level1.hpp"
-#include "impl/blas/gpu/level1.hpp"
-#include "custom-kernel/hadamard.h"
 #include "../gpu-utils/utils.hpp"
 #include "add-vectors.hpp"
+#include "custom-kernel/hadamard.h"
+#include "impl/blas/gpu/additional-level1.hpp"
+#include "linalg.hpp"
+#include "runtime.hpp"
+
 namespace lahva{
     namespace gpu
     {
