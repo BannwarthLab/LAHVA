@@ -62,7 +62,7 @@ namespace lahva
     static const CBLAS_UPLO tri = CblasLower;
     static const int l_major = CblasColMajor;
     [[maybe_unused]] static char l_uplo = 'L';
-    static char l_nondiag = 'N';
+    [[maybe_unused]] static char l_nondiag = 'N';
     static const char major_char = 'C';
 
     /// @brief Type alias for tensor shape representation as (rows, columns) pair.
