@@ -2,7 +2,7 @@
 
 # LAHVA - Linear Algebra on Heterogeneous/Vectorized Architecture
 
-LAHVA is a modern C++ library providing simplified, runtime-based abstractions over BLAS and LAPACK libraries for both CPU and GPU computation. It encapsulates the complexity of heterogeneous computing into an intuitive API with support for multiple numerical precisions, mixed-precision operations (GPU), and seamless host-device memory management.
+LAHVA is a modern C++ library that lets you write GPU-accelerated linear algebra code without learning CUDA. If you're familiar with BLAS and LAPACK on CPU, you already know LAHVA's API—it works the same way on GPU. Just create a `CudaRuntime` and pass it to your operations. The runtime handles all the GPU complexity: device memory, streams, handles, and synchronization. LAHVA even offers mixed-precision operations on the GPU to accelerate your code even more. 
 
 ## Key Features
 
@@ -15,11 +15,11 @@ LAHVA is a modern C++ library providing simplified, runtime-based abstractions o
 
 ## Motivation
 
-The motivation behind LAHVA is to simplify interaction with heterogeneous computing hardware. BLAS and LAPACK libraries have cumbersome APIs, especially when targeting accelerators like GPUs. GPU computation introduces additional complexity: managing host-device memory spaces, CUDA streams, cuBLAS/cuSOLVER handles, and synchronization points.
+You've written CPU linear algebra code using BLAS and LAPACK. Now you want to move it to GPU for speed. But GPU programming requires learning CUDA, cuBLAS, memory management, streams, and synchronization, in other words: a steep learning curve for what should be a straightforward port.
 
-LAHVA solves this by bundling GPU resource management into a runtime object that acts as a context manager for your computations. Instead of manually creating and managing CUDA streams and handles, you create a `CudaRuntime` once and pass it to your tensor operations. The runtime handles memory checking, stream management, and device synchronization transparently.
+LAHVA bridges this gap. Its API is identical to CPU BLAS/LAPACK side you keep your algorithm unchanged. Instead of managing CUDA streams, handles, and device memory yourself, you create a single `CudaRuntime` object and pass it to your operations. The runtime handles all the GPU infrastructure: device selection, cuBLAS/cuSOLVER setup, memory transfers, and synchronization.
 
-The iceberg graphic below illustrates this philosophy: users interact with a simple LAHVA interface while the complexity of GPU resource management is hidden below.
+The iceberg graphic below illustrates this philosophy: you see a familiar BLAS/LAPACK interface while GPU resource management is completely hidden below.
 
 ![Graphical Motivation](./graphics/iceberg.png)
 
@@ -267,36 +267,19 @@ default_runtime.synchronize();
 
 ## Testing & Compatibility
 
-LAHVA has a comprehensive continuous integration test suite running on multiple OS, compiler, and BLAS library combinations. All tests are executed with both **Meson and CMake** build systems. Our GitLab CI/CD pipeline is run on a NVIDIA GeForce RTX 3070 but we occasionally test LAHVA on other GPUs as well. 
+LAHVA has a comprehensive continuous integration test suite running on multiple OS, compiler, and BLAS library combinations. All tests are executed with both **Meson and CMake** build systems. Our GitLab CI/CD pipeline is run on an NVIDIA GeForce RTX 3070 but we occasionally test LAHVA on other GPUs as well. 
 
-| OS | Compiler | BLAS Library | CUDA |
-|---|----------|--------------|------|
-| Rocky Linux 9 | GCC | OpenBLAS | None |
-| Rocky Linux 9 | GCC | Intel MKL 2023.2.0 | None |
-| Rocky Linux 9 | GCC | Intel MKL 2025.3.0 | None |
-| Rocky Linux 9 | Intel oneAPI 2023.2.0 | Intel MKL 2023.2.0 | None |
-| Rocky Linux 9 | Intel oneAPI 2025.3.0 | Intel MKL 2025.3.0 | None |
-| Rocky Linux 10 | GCC | OpenBLAS | None |
-| Rocky Linux 10 | GCC | Intel MKL 2023.2.0 | None |
-| Rocky Linux 10 | GCC | Intel MKL 2025.3.0 | None |
-| Rocky Linux 10 | Intel oneAPI 2023.2.0 | Intel MKL 2023.2.0 | None |
-| Rocky Linux 10 | Intel oneAPI 2025.3.0 | Intel MKL 2025.3.0 | None |
-| Rocky Linux 9 | GCC | OpenBLAS | 11.8, 12.5, 13.0 |
-| Rocky Linux 9 | GCC | Intel MKL 2023.2.0 | 11.8, 12.5, 13.0 |
-| Rocky Linux 9 | GCC | Intel MKL 2025.3.0 | 11.8, 12.5, 13.0 |
-| Rocky Linux 9 | Intel oneAPI 2023.2.0 | Intel MKL 2023.2.0 | 11.8, 12.5, 13.0 |
-| Rocky Linux 9 | Intel oneAPI 2025.3.0 | Intel MKL 2025.3.0 | 11.8, 12.5, 13.0 |
-| Rocky Linux 10 | GCC | OpenBLAS | 13.0 |
-| Rocky Linux 10 | GCC | Intel MKL 2023.2.0 | 13.0 |
-| Rocky Linux 10 | GCC | Intel MKL 2025.3.0 | 13.0 |
-| Rocky Linux 10 | Intel oneAPI 2023.2.0 | Intel MKL 2023.2.0 | 13.0 |
-| Rocky Linux 10 | Intel oneAPI 2025.3.0 | Intel MKL 2025.3.0 | 13.0 |
+
+- Operating Systems: Rocky Linux 9, 10
+- Compilers: GCC, Intel oneAPI (2023.2, 2025.3)
+- BLAS Libraries: OpenBLAS, Intel MKL (2023.2, 2025.3)
+- CUDA Versions: 11.8, 12.5, 13.0 (Rocky Linux 9); 13.0 (Rocky Linux 10)
 
 > **Note:** LAHVA GPU support is NVIDIA-only using CUDA, cuBLAS, and cuSOLVER. There are no plans to extend support to other GPU manufacturers (such as AMD and Intel).
 
 ## Known Usage and Community
 
-LAHVA originates from a computational chemists, where GPU-accelerated linear algebra is essential for quantum chemistry simulations, molecular dynamics, and electronic structure calculations. 
+LAHVA originates from computational chemists, where GPU-accelerated linear algebra is essential for electronic structure calculations. 
 
 However, LAHVA's design is domain-agnostic and can benefit any field requiring efficient GPU-accelerated linear algebra operations. LAHVA's simplified API and runtime abstraction can help you leverage GPU acceleration without dealing with low-level CUDA complexity. 
 
