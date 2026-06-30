@@ -1,19 +1,39 @@
+/// @file additional-level3-add.hpp
+/// @brief Additional Level-3 matrix operations for mixed-precision iterative refinement.
+///
+/// Provides batch matrix multiplication and mixed-precision symmetric/general matrix products
+/// using FP16 computation with FP32 accumulation and iterative refinement.
+
 #pragma once
-#include "impl/blas/gpu/additional-level1.hpp"
+#include "impl/blas/gpu/level1.hpp"
 #include "impl/blas/gpu/level3.hpp"
+#include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/additional-level3.hpp"
 #include "custom-kernel/mixed-precision.h"
 #include "../gpu-utils/utils.hpp"
-#include "timer.hpp"
-#include "impl/blas/gpu/additional-level1.hpp"
-#include "impl/blas/gpu/level1.hpp"
 
 namespace lahva
 {
     namespace gpu
     {
-        
-        
+        /// @brief Batched matrix-matrix product using FP16 computation.
+        ///
+        /// Computes multiple matrix products C[i] = alpha*A[i]*B[i] + beta*C[i] in a single batched operation
+        /// using half-precision (FP16) computation with single-precision (FP32) accumulation for efficiency.
+        ///
+        /// @tparam Allocator Host memory allocator for input matrices.
+        /// @tparam GPUAllocator Device memory allocator for input matrices.
+        /// @tparam Allocator2 Host memory allocator for output matrices.
+        /// @tparam GPUAllocator2 Device memory allocator for output matrices.
+        /// @param cudart CUDA runtime instance.
+        /// @param a_array Vector of half-precision input matrices A.
+        /// @param b_array Vector of half-precision input matrices B.
+        /// @param c_array Vector of single-precision output matrices C.
+        /// @param alpha Scalar factor for matrix products.
+        /// @param beta Scalar factor for matrix C accumulation.
+        /// @param Ta Transposition flag for matrices A ('N' or 'T').
+        /// @param Tb Transposition flag for matrices B ('N' or 'T').
+        /// @param fast Enable fast mode optimization (default: false).
         template <typename Allocator, typename GPUAllocator, typename Allocator2, typename GPUAllocator2>
         void MatrixMatrixProductBatchFP16(const CudaRuntime &cudart, const std::vector<Matrix<__half, Allocator, GPUAllocator>> &a_array, 
             const std::vector<Matrix<__half, Allocator, GPUAllocator>> &b_array, const std::vector<Matrix<float, Allocator2, GPUAllocator2>> &c_array,
@@ -21,8 +41,6 @@ namespace lahva
         {
             cublasOperation_t transa = get_trans(Ta);
             cublasOperation_t transb = get_trans(Tb);
-
-            //assert(a_array.size() * b_array.size() == c_array.size());
 
             auto [m, n, k] = check_size_mm(a_array[0], b_array[0], c_array[0], transa, transb);
 
@@ -101,6 +119,24 @@ namespace lahva
             delete[] c_ptrs;
         };
 
+        /// @brief Mixed-precision symmetric matrix-matrix product with iterative refinement.
+        ///
+        /// Computes C = alpha*A*A^T + beta*C using mixed-precision arithmetic where A is decomposed
+        /// into split components for iterative refinement. Uses FP16 for computation and high-precision
+        /// for refinement.
+        ///
+        /// @tparam high High-precision floating-point type (e.g., double).
+        /// @tparam Allocator Host memory allocator type.
+        /// @tparam GPUAllocator Device memory allocator type.
+        /// @param cudart CUDA runtime instance.
+        /// @param mp_rt Mixed-precision runtime configuration.
+        /// @param A Input mixed-precision symmetric matrix.
+        /// @param B Input mixed-precision matrix (unused, for compatibility).
+        /// @param C Input/output high-precision result matrix.
+        /// @param alpha Scalar factor for matrix product (default: 1.0).
+        /// @param beta Scalar factor for matrix C accumulation (default: 0.0).
+        /// @param Ta Transposition flag for matrix A (default: "N").
+        /// @param Tb Transposition flag for matrix B (default: "N").
         template <typename high, typename Allocator, typename GPUAllocator>
         void SymMatrixMatrixProduct(const CudaRuntime &cudart, const MPRuntime& mp_rt, const MixedPrecisionMatrix<high, Allocator, GPUAllocator> &A,
                                  const MixedPrecisionMatrix<high, Allocator, GPUAllocator> &B, Matrix<high, Allocator, GPUAllocator> &C,
@@ -128,12 +164,30 @@ namespace lahva
             }
             else
             {
-                // since C is non MP we just send it to the GEMM
+                // since C is not MP we just send it to the GEMM
                 MatrixMatrixProduct(cudart, A, B, C, alpha, beta, Ta, Tb);
             }
         };
 
 
+        /// @brief Mixed-precision general matrix-matrix product with iterative refinement.
+        ///
+        /// Computes C = alpha*A*B + beta*C using mixed-precision arithmetic where matrices are decomposed
+        /// into split components for iterative refinement. Uses FP16 for computation and high-precision
+        /// for residual correction.
+        ///
+        /// @tparam high High-precision floating-point type (e.g., double).
+        /// @tparam Allocator Host memory allocator type.
+        /// @tparam GPUAllocator Device memory allocator type.
+        /// @param cudart CUDA runtime instance.
+        /// @param mp_rt Mixed-precision runtime configuration controlling refinement settings.
+        /// @param A Input mixed-precision matrix A.
+        /// @param B Input mixed-precision matrix B.
+        /// @param C Input/output mixed-precision matrix C, replaced with result.
+        /// @param alpha Scalar factor for matrix product (default: 1.0).
+        /// @param beta Scalar factor for matrix C accumulation (default: 0.0).
+        /// @param Ta Transposition flag for matrix A (default: "N").
+        /// @param Tb Transposition flag for matrix B (default: "N").
         template <typename high, typename Allocator, typename GPUAllocator>
         void MatrixMatrixProduct(const CudaRuntime &cudart, const MPRuntime &mp_rt, const MixedPrecisionMatrix<high, Allocator, GPUAllocator> &A,
                                  const MixedPrecisionMatrix<high, Allocator, GPUAllocator> &B, MixedPrecisionMatrix<high, Allocator, GPUAllocator> &C,
@@ -318,4 +372,4 @@ namespace lahva
         };
 
     } // namespace gpu
-}
+} // namespace lahva
