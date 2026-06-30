@@ -126,7 +126,7 @@ namespace lahva
         cudaGetDeviceProperties(&deviceProp, this->cudaDevice);
         size_t n_sm = deviceProp.multiProcessorCount;
 
-        size_t best_block_size = 0;
+        [[maybe_unused]] size_t best_block_size = 0;
         size_t rest = -500;
 
         for (auto i : { 512,  256, 128})

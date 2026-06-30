@@ -14,7 +14,6 @@ double vd[9] = {1.0, 4.0, 5.0, 0.0, 2.0, 6.0, 0.0, 0.0, 3.0};
 float *pf = vf;
 double *pd = vd;
 
-const double thr2 = 5.0e-15;
 const float thr = 5.0e-7;
 
 int test_dgemv_zero_v_cpp(CudaRuntime& cudart){
