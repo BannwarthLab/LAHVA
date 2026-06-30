@@ -8,7 +8,6 @@
 #pragma once
 #include <memory>
 
-#include "../../../src/gpu/additional-blas/additional-level1.hpp"
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
 #include "runtime.hpp"
@@ -17,7 +16,29 @@ namespace lahva
 {
     namespace gpu
     {
+#ifdef __CUDACC__
+        /// @brief GPU kernel for copying tensor data with optional type conversion.
+        template<typename in, typename out>
+        __global__ void CopyTensors_(unsigned long size, const in* d_in, out* d_out)
+        {
+            unsigned long idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if (idx < size)
+                d_out[idx] = d_in[idx];
+        }
 
+        /// @brief Host wrapper for type-converting tensor copy.
+        template<typename in, typename out>
+        void CopyTensors(const unsigned long size, const in* d_in, out* d_out)
+        {
+            unsigned int blockSize = 512;
+            int gridSize = (int)((size + blockSize - 1) / blockSize);
+            CopyTensors_<in, out><<<gridSize, blockSize, 0, 0>>>(size, d_in, d_out);
+        }
+#else
+        /// @brief Forward declaration for non-CUDA compilation.
+        template<typename in, typename out>
+        void CopyTensors(const unsigned long size, const in* d_in, out* d_out);
+#endif
         template <typename T>
         class GPUTensor_ : public virtual Tensor<T>
         {

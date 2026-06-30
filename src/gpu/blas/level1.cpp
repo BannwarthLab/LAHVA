@@ -6,7 +6,7 @@
 /// inner products, vector addition, and scalar multiplication on GPU tensors.
 
 #include "../../cpu/utils/utils.hpp"
-#include "../gpu-utils/utils.hpp"
+#include "impl/gpu/utils.hpp"
 #include "impl/blas/gpu/level1.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"

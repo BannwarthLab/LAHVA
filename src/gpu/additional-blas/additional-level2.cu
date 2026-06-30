@@ -4,7 +4,7 @@
 /// Implements specialized GPU kernels for matrix addition with mixed-precision support
 /// and optimized 1D/2D blocking strategies for various type combinations.
 
-#include "./additional-level1.hpp"
+#include "impl/blas/gpu/additional-level1.hpp"
 #include "additional-level1.cuh"
 #include "custom-kernel/common.h"
 #include "impl/blas/gpu/additional-level1.hpp"

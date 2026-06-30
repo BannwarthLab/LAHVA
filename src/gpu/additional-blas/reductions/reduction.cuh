@@ -5,7 +5,7 @@
 /// warp-level operations, and custom reduction functors for efficient GPU aggregation.
 
 #pragma once
-#include "../../gpu-utils/utils.hpp"
+#include "impl/gpu/utils.hpp"
 
 namespace lahva
 {

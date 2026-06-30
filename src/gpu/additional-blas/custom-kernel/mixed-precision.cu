@@ -5,7 +5,7 @@
 /// mixed-precision arithmetic operations, and type conversion for iterative refinement algorithms.
 
 #include <vector>
-#include "../../gpu-utils/utils.hpp"
+#include "impl/gpu/utils.hpp"
 #include "common.h"
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/additional-level2.hpp"

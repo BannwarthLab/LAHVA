@@ -5,7 +5,7 @@
 /// using NVIDIA's cuBLAS library. Supports matrix-vector multiplication, outer products,
 /// and related operations on GPU vectors and matrices.
 
-#include "../gpu-utils/utils.hpp"
+#include "impl/gpu/utils.hpp"
 #include "impl/blas/gpu/level2.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"

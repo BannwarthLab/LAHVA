@@ -5,7 +5,7 @@
 /// using parallel reduction with per-block partial sums.
 
 #pragma once
-#include "../../gpu-utils/utils.hpp"
+#include "impl/gpu/utils.hpp"
 #include "../reductions/reduction.cuh"
 #include "common.h"
 

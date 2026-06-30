@@ -4,7 +4,7 @@
 /// Implements specialized GPU kernels for element-wise tensor operations including
 /// Hadamard products (element-wise multiplication) and mixed-precision vector addition.
 
-#include "../gpu-utils/utils.hpp"
+#include "impl/gpu/utils.hpp"
 #include "add-vectors.hpp"
 #include "custom-kernel/hadamard.h"
 #include "impl/blas/gpu/additional-level1.hpp"

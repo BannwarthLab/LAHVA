@@ -8,9 +8,9 @@
 #pragma once
 #include <vector>
 
-#include "../../../../src/gpu/gpu-utils/utils.hpp"
 #include "kernels.cuh"
 #include "linalg.hpp"
+#include "impl/gpu/utils.hpp"
 
 namespace lahva
 {
@@ -580,6 +580,20 @@ namespace lahva
         /// @param as Array of component vectors on GPU (array of device pointers).
         /// @param b Output result vector on GPU (device pointer).
         void MergeOzaki(const CudaRuntime &cudart, unsigned long long ndim, unsigned int nsplit, const double *alphas, const float **as, double *b);
+
+        /// @brief GPU kernel for copying and converting tensors between types.
+        ///
+        /// Performs element-wise copy with type conversion from input to output tensor.
+        /// Supports mixed-precision conversions (e.g., double to float, float to double).
+        ///
+        /// @tparam in Input element type.
+        /// @tparam out Output element type.
+        /// @param size Number of elements to copy.
+        /// @param d_in Input device pointer.
+        /// @param d_out Output device pointer.
+        template<typename in, typename out>
+        __global__ void CopyTensors_(unsigned long size, const in* d_in, out* d_out);
+
     } // namespace gpu
 
 } // namespace lahva

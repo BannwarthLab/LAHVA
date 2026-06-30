@@ -6,7 +6,7 @@
 
 #include <string>
 #include "runtime.hpp"
-#include "utils.hpp"
+#include "impl/gpu/utils.hpp"
 
 namespace lahva {
     namespace gpu

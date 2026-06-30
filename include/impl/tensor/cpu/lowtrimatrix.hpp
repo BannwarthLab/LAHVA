@@ -7,8 +7,11 @@
 
 #pragma once
 #include <cassert>
+#include <cmath>
+#include <iostream>
 #include <omp.h>
 
+#include "const.h"
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/vector.hpp"
 

@@ -4,7 +4,7 @@
 /// Implements specialized GPU kernels for tensor reductions, mixed-precision vector operations,
 /// and custom element-wise operations with optimized Kahan summation for Ozaki algorithm.
 
-#include "./additional-level1.hpp"
+#include "impl/blas/gpu/additional-level1.hpp"
 #include "additional-level1.cuh"
 #include "custom-kernel/common.h"
 #include "impl/blas/gpu/additional-level1.hpp"
@@ -257,39 +257,6 @@ namespace lahva
             return res[0];
         }
 
-        /// @brief GPU kernel for type-converting tensor copy.
-        ///
-        /// Copies elements from input to output with automatic type conversion.
-        ///
-        /// @tparam in Input element type.
-        /// @tparam out Output element type.
-        /// @param size Number of elements.
-        /// @param d_in Input array on device.
-        /// @param d_out Output array on device.
-        template<typename in, typename out>
-        __global__ void CopyTensors_(unsigned long size, const in* d_in, out* d_out)
-        {
-            unsigned long idx = blockIdx.x * blockDim.x + threadIdx.x;
-            if (idx < size)
-                d_out[idx] = d_in[idx];
-        }
-
-        /// @brief Host wrapper for type-converting tensor copy.
-        ///
-        /// Launches GPU kernel with fixed block size (512 threads).
-        ///
-        /// @tparam in Input element type.
-        /// @tparam out Output element type.
-        /// @param size Number of elements.
-        /// @param d_in Input array on device.
-        /// @param d_out Output array on device.
-        template<typename in, typename out>
-        void CopyTensors(const unsigned long size, const in* d_in, out* d_out)
-        {
-            unsigned int blockSize = 512;
-            int gridSize = (int)ceil(((float)size / blockSize));
-            CopyTensors_<in, out><<<gridSize, blockSize, 0, 0>>>(size, d_in, d_out);
-        }
 
         template float MaxElement_<float>(const CudaRuntime& cudart, const GPUTensor_<float>& in, GPUTensor_<float>& res);
         template double MaxElement_<double>(const CudaRuntime& cudart, const GPUTensor_<double>& in, GPUTensor_<double>& res);
