@@ -1,4 +1,0 @@
-ml nvhpc-hpcx-cuda13
-ml ninja meson
-ml mkl
-ml gnu-compilers/15 compiler
