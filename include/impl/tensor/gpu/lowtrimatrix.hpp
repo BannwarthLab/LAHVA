@@ -265,8 +265,8 @@ namespace lahva
     /// @brief Copy constructor implementation
     template <typename T, class Allocator, class GPUAllocator>
     LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(const LowTriMatrix<T, Allocator, GPUAllocator> &other) :
-    n_{other.n_},
-    GPUTensor<T, Allocator, GPUAllocator>(static_cast<const GPUTensor<T, Allocator, GPUAllocator>&>(other))
+    GPUTensor<T, Allocator, GPUAllocator>(static_cast<const GPUTensor<T, Allocator, GPUAllocator>&>(other)),
+    n_{other.n_}
     {
 
     }
@@ -286,7 +286,7 @@ namespace lahva
     /// @brief Move constructor implementation
     template <typename T, class Allocator, class GPUAllocator>
     LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(LowTriMatrix<T, Allocator, GPUAllocator> &&other) :
-    n_{other.n_}, GPUTensor<T, Allocator, GPUAllocator>{static_cast<GPUTensor<T, Allocator, GPUAllocator>&&>(other)}
+    GPUTensor<T, Allocator, GPUAllocator>{static_cast<GPUTensor<T, Allocator, GPUAllocator>&&>(other)}, n_{other.n_}
     {
 
     }

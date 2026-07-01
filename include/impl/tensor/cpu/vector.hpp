@@ -43,6 +43,10 @@ namespace lahva
             /// @param[in] x source vector to copy
             Vector(const Vector &x);
 
+            /// @brief Move constructor
+            /// @param[in] x source vector to move from
+            Vector(Vector &&x) noexcept;
+
             /// @brief Allocate vector initialized with uniform value
             /// @param[in] count number of elements to allocate
             /// @param[in] value initialization value for all elements
@@ -138,6 +142,12 @@ namespace lahva
         /// @brief Copy constructor implementation
         template <typename T, class Allocator>
         Vector<T, Allocator>::Vector(const Vector &x) : CPUTensor<T, Allocator>{x}
+        {
+        };
+
+        /// @brief Move constructor implementation
+        template <typename T, class Allocator>
+        Vector<T, Allocator>::Vector(Vector &&x) noexcept : CPUTensor<T, Allocator>{std::move(x)}
         {
         };
 

@@ -128,7 +128,7 @@ namespace lahva
         LowTriMatrix(const LowTriMatrix &);
 
         /// @brief Move constructor
-        LowTriMatrix(LowTriMatrix &&);
+        LowTriMatrix(LowTriMatrix &&) noexcept;
 
         /// @brief Copy assignment operator
         LowTriMatrix &operator=(const LowTriMatrix &);
@@ -257,8 +257,8 @@ namespace lahva
     /// @brief Copy constructor implementation
     template <typename T, class Allocator>
     LowTriMatrix<T, Allocator>::LowTriMatrix(const LowTriMatrix<T, Allocator> &other) :
-    n_{other.n_},
-    CPUTensor<T, Allocator>(other)
+    CPUTensor<T, Allocator>(other),
+    n_{other.n_}
     {
 
     }
@@ -277,8 +277,8 @@ namespace lahva
 
     /// @brief Move constructor implementation
     template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(LowTriMatrix<T, Allocator> &&other) :
-    n_{other.n_}, CPUTensor<T, Allocator>{other}
+    LowTriMatrix<T, Allocator>::LowTriMatrix(LowTriMatrix<T, Allocator> &&other) noexcept :
+    CPUTensor<T, Allocator>{std::move(other)}, n_{other.n_}
     {
 
     }

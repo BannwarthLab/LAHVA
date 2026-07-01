@@ -71,6 +71,16 @@ namespace lahva
             return trace;
         };
 
+        double ComputeTrace(const CPURuntime &cudart, const Vector_<float> &diag)
+        {
+            double trace = 0;
+
+#pragma omp parallel for shared(diag) reduction(+ : trace)
+            for (int i = 0; i < static_cast<int>(diag.size()); i++)
+                trace += (double)diag[i];
+            return trace;
+        };
+
         /// @brief Compute the Frobenius norm of a tensor/matrix
         ///
         /// Computes the Frobenius norm: ||A||_F = sqrt(sum(a_ij^2)).

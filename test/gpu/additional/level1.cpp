@@ -1,4 +1,4 @@
-#include "common.h"
+#include "test_common.h"
 #include "utils.hpp"
 #include <random>
 #include <limits>
@@ -168,28 +168,13 @@ int test_HadamardProduct(const CudaRuntime& cudart)
 int main(){
     int exit = 0;
     CudaRuntime cudart;
-    std::cout << "Starting test_Frobenius_norm (double)" << std::endl;
     exit += test_Frobenius_norm<double>(cudart);
-
-    std::cout << "Starting test_Frobenius_norm (float)" << std::endl;
     exit += test_Frobenius_norm<float>(cudart);
-
-    std::cout << "Starting test_Frobenius_norm2 (double)" << std::endl;
     exit += test_Frobenius_norm2<double>(cudart);
-
-    std::cout << "Starting test_Frobenius_norm2 (float)" << std::endl;
     exit += test_Frobenius_norm2<float>(cudart);
-
-    std::cout << "Starting test_Frobenius_norm2_diff (double)" << std::endl;
     exit += test_Frobenius_norm2_diff<double>(cudart);
-
-    std::cout << "Starting test_Frobenius_norm2_diff (float)" << std::endl;
     exit += test_Frobenius_norm2_diff<float>(cudart);
-
-    std::cout << "Starting test_HadamardProduct (double)" << std::endl;
     exit += test_HadamardProduct<double>(cudart);
-
-    std::cout << "Starting test_HadamardProduct (float)" << std::endl;
     exit += test_HadamardProduct<float>(cudart);
 
     return exit;

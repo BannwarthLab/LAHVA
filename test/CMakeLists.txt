@@ -1,52 +1,47 @@
+# Main test CMakeLists.txt
+# Mirrors the project structure: test/cpu and test/gpu
 
-# Level 1 test
-add_executable(${PROJECT_NAME}-level1-tester level1.cpp utils.cpp)
-target_link_libraries(${PROJECT_NAME}-level1-tester PRIVATE ${PROJECT_NAME})
-add_test(NAME level1 COMMAND ${PROJECT_NAME}-level1-tester)
+enable_testing()
 
-# Level 2 test
-add_executable(${PROJECT_NAME}-level2-tester level2.cpp utils.cpp)
-target_link_libraries(${PROJECT_NAME}-level2-tester PRIVATE ${PROJECT_NAME})
-add_test(NAME level2 COMMAND ${PROJECT_NAME}-level2-tester)
+# Coverage options
+option(ENABLE_COVERAGE "Enable code coverage" OFF)
+if(ENABLE_COVERAGE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs -ftest-coverage")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage -fprofile-arcs -ftest-coverage")
+endif()
 
-# Level 3 test
-add_executable(${PROJECT_NAME}-level3-tester level3.cpp utils.cpp)
-target_link_libraries(${PROJECT_NAME}-level3-tester PRIVATE ${PROJECT_NAME})
-add_test(NAME level3 COMMAND ${PROJECT_NAME}-level3-tester)
+# Common test utilities
+add_library(test-utils OBJECT
+    common/utils.cpp
+)
+target_include_directories(test-utils PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/common
+    ${PROJECT_SOURCE_DIR}/include
+)
 
-# Additional Level 2 test
-add_executable(${PROJECT_NAME}-add-level2-tester additional-level2.cpp utils.cpp)
-target_link_libraries(${PROJECT_NAME}-add-level2-tester PRIVATE ${PROJECT_NAME})
-add_test(NAME additional-level-2 COMMAND ${PROJECT_NAME}-add-level2-tester)
+# Add CPU tests
+add_subdirectory(cpu)
 
-# GPU tests
+# Add GPU tests if CUDA is enabled
 if(GPU)
-  add_executable(${PROJECT_NAME}-level1-gpu-tester level1-gpu.cpp utils.cpp)
-  target_link_libraries(${PROJECT_NAME}-level1-gpu-tester PRIVATE ${PROJECT_NAME})
-  add_test(NAME level1-gpu COMMAND ${PROJECT_NAME}-level1-gpu-tester)
+    add_subdirectory(gpu)
+endif()
 
-  add_executable(${PROJECT_NAME}-level2-gpu-tester level2-gpu.cpp utils.cpp)
-  target_link_libraries(${PROJECT_NAME}-level2-gpu-tester PRIVATE ${PROJECT_NAME})
-  add_test(NAME level2-gpu COMMAND ${PROJECT_NAME}-level2-gpu-tester)
+# Coverage target
+if(ENABLE_COVERAGE)
+    find_program(GCOV gcov)
+    find_program(LCOV lcov)
 
-  add_executable(${PROJECT_NAME}-add-level1-gpu-tester additional-level1-gpu.cpp utils.cpp)
-  target_link_libraries(${PROJECT_NAME}-add-level1-gpu-tester PRIVATE ${PROJECT_NAME})
-  add_test(NAME additional-level-1-gpu COMMAND ${PROJECT_NAME}-add-level1-gpu-tester)
-
-  add_executable(${PROJECT_NAME}-add-level2-gpu-tester additional-level2-gpu.cpp utils.cpp)
-  target_link_libraries(${PROJECT_NAME}-add-level2-gpu-tester PRIVATE ${PROJECT_NAME})
-  add_test(NAME additional-level-2-gpu COMMAND ${PROJECT_NAME}-add-level2-gpu-tester)
-  
-  add_executable(${PROJECT_NAME}-gpu-misc gpu-misc.cpp)
-  target_link_libraries(${PROJECT_NAME}-gpu-misc PRIVATE ${PROJECT_NAME})
-  add_test(NAME gpu-misc COMMAND ${PROJECT_NAME}-gpu-misc)
-
-  add_executable(${PROJECT_NAME}-mat-attributes-tester mat-attributes.cpp utils.cpp)
-  target_link_libraries(${PROJECT_NAME}-mat-attributes-tester PRIVATE ${PROJECT_NAME})
-  add_test(NAME mat-attributes COMMAND ${PROJECT_NAME}-mat-attributes-tester)
-  
-  add_executable(${PROJECT_NAME}-test-mp test-mp.cpp)
-  target_link_libraries(${PROJECT_NAME}-test-mp PRIVATE ${PROJECT_NAME})
-  add_test(NAME test-mp COMMAND ${PROJECT_NAME}-test-mp)
-
+    if(LCOV)
+        add_custom_target(coverage
+            COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+            COMMAND ${LCOV} --capture --directory . --output-file coverage.info
+            COMMAND ${LCOV} --remove coverage.info '/usr/*' '${PROJECT_SOURCE_DIR}/include/netlib/*' --output-file coverage.info
+            COMMAND ${LCOV} --list coverage.info
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+            COMMENT "Generating coverage report"
+        )
+    else()
+        message(WARNING "lcov not found, coverage target will not be available")
+    endif()
 endif()
