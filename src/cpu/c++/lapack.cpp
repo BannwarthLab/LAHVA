@@ -15,6 +15,8 @@ namespace lahva
 
     namespace cpu
     {
+        using lahva::l_uplo;
+        using lahva::l_major;
 
         /// @brief Compute LU factorization of a double-precision matrix
         ///
@@ -658,12 +660,11 @@ namespace lahva
             {
                 throw std::runtime_error("l_jobz should be 'N' or 'V'");
             }
-            LPCK_INT size_work = 2 * n - 1;
-            LPCK_INT size_iwork = 1;
+            LPCK_INT size_work = 2 * n + 1;
+            LPCK_INT size_iwork = 3 + 5 * n;
             if (l_jobz == 'V')
             {
                 size_work = 1 + 6 * n + 2 * n * n;
-                size_iwork = 3 + 5 * n;
             }
             
             Vector<double> work(size_work);
@@ -712,12 +713,11 @@ namespace lahva
             {
                 throw std::runtime_error("l_jobz should be 'N' or 'V'");
             }
-            LPCK_INT size_work = 2 * n - 1;
-            LPCK_INT size_iwork = 1;
+            LPCK_INT size_work = 2 * n + 1;
+            LPCK_INT size_iwork = 3 + 5 * n;
             if (l_jobz == 'V')
             {
                 size_work = 1 + 6 * n + 2 * n * n;
-                size_iwork = 3 + 5 * n;
             }
             
             Vector<float> work(size_work);
