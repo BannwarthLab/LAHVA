@@ -256,10 +256,14 @@ int test_vector_copy_assignment() {
     }
 
     // Self-assignment should be safe
+    #if defined(__clang__)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wself-assign-overloaded"
+    #endif
     v1 = v1;
+    #if defined(__clang__)
     #pragma GCC diagnostic pop
+    #endif
     if (!check((int)v1.size(), 3, "Self-assignment should not break vector")) {
         failures += 1;
     }

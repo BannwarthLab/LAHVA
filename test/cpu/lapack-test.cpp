@@ -6,9 +6,6 @@
 
 using namespace lahva::cpu;
 
-// Use standard tolerances for LAPACK tests
-const double TOLERANCE = DEFAULT_DOUBLE_TOLERANCE;
-
 // Fill matrix with random values
 template<typename T>
 void fill_random(Matrix<T>& m) {
