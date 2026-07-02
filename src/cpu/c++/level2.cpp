@@ -258,6 +258,86 @@ namespace lahva
             cblas_cgemv(major, trans, nrow, ncol, &alpha, a.data(), lda, x.data(), inx, &beta, y.data(), iny);
         };
 
+        /// @brief Block-diagonal matrix-vector multiply with full transpose support (double precision).
+        ///
+        /// Performs y := alpha * op(A) * x + beta * y where A is a block-diagonal matrix and op(A) is A, A^T, or A^H
+        /// depending on the transpose flag `Ta`. Each diagonal block is multiplied independently with corresponding
+        /// portions of the input vector using BLAS dgemv, then accumulated with optional scaling. Results are
+        /// parallelized across blocks using OpenMP.
+        ///
+        /// @param Ta    Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param alpha Scaling factor applied to op(A)*x.
+        /// @param a     Block-diagonal input matrix (BlockDiagMatrix_<double>).
+        /// @param x     Input vector (Vector_<double>).
+        /// @param incx  Stride between consecutive elements in vector x.
+        /// @param beta  Scaling factor applied to existing contents of y.
+        /// @param y     Output vector (destination / input-output, Vector_<double>).
+        /// @param incy  Stride between consecutive elements in vector y.
+        /// @note Benchmarking showed this method to be faster than MKL batched GEMV.
+        template <>
+        void MatrixVectorProduct(const char *Ta, const double alpha, const BlockDiagMatrix_<double> &a, const Vector_<double> &x,
+                                 const size_t incx, const double beta, Vector_<double> &y, const size_t incy)
+        {
+            CBLAS_TRANSPOSE trans = get_trans(Ta);
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+
+            #pragma omp parallel for schedule(guided)
+            for (size_t i = 0; i < a.num_blocks(); ++i) {
+                Shape block_shape = a.get_block_shape(i);
+                BLAS_INT m = static_cast<BLAS_INT>(block_shape.first);
+                BLAS_INT n = static_cast<BLAS_INT>(block_shape.second);
+
+                const double* Ai = static_cast<const double*>(a.get_block_data(i));
+                const double* xi = x.data() + a.get_col_offsets()[i];
+                double* yi = y.data() + a.get_row_offsets()[i];
+
+                cblas_dgemv(major, trans, m, n, alpha, Ai, m, xi, inx, beta, yi, iny);
+            }
+        }
+
+        /// @brief Block-diagonal matrix-vector multiply with full transpose support (single precision).
+        ///
+        /// Performs y := alpha * op(A) * x + beta * y where A is a block-diagonal matrix and op(A) is A, A^T, or A^H
+        /// depending on the transpose flag `Ta`. Each diagonal block is multiplied independently with corresponding
+        /// portions of the input vector using BLAS sgemv, then accumulated with optional scaling. Results are
+        /// parallelized across blocks using OpenMP. Float variant.
+        ///
+        /// @param Ta    Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param alpha Scaling factor applied to op(A)*x.
+        /// @param a     Block-diagonal input matrix (BlockDiagMatrix_<float>).
+        /// @param x     Input vector (Vector_<float>).
+        /// @param incx  Stride between consecutive elements in vector x.
+        /// @param beta  Scaling factor applied to existing contents of y.
+        /// @param y     Output vector (destination / input-output, Vector_<float>).
+        /// @param incy  Stride between consecutive elements in vector y.
+        /// @note Benchmarking showed this method to be faster than MKL batched GEMV.
+        template <>
+        void MatrixVectorProduct(const char *Ta, const float alpha, const BlockDiagMatrix_<float> &a, const Vector_<float> &x,
+                                 const size_t incx, const float beta, Vector_<float> &y, const size_t incy)
+        {
+            CBLAS_TRANSPOSE trans = get_trans(Ta);
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+            int nrow, ncol;
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+
+            #pragma omp parallel for schedule(guided)
+            for (size_t i = 0; i < a.num_blocks(); ++i) {
+                Shape block_shape = a.get_block_shape(i);
+                BLAS_INT m = static_cast<BLAS_INT>(block_shape.first);
+                BLAS_INT n = static_cast<BLAS_INT>(block_shape.second);
+
+                const float* Ai = static_cast<const float*>(a.get_block_data(i));
+                const float* xi = x.data() + a.get_col_offsets()[i];
+                float* yi = y.data() + a.get_row_offsets()[i];
+
+                cblas_sgemv(major, trans, m, n, alpha, Ai, m, xi, inx, beta, yi, iny);
+            }
+        }
+
         /// @brief Symmetric matrix-vector multiply (SYMV-like), wrapper to BLAS function dsymv (double).
         ///
         /// Performs y := alpha * A * x + beta * y where A is a symmetric matrix.

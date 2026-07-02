@@ -7,12 +7,18 @@
 #define LAHVA_LINALG_H
 #include <memory>
 #include <vector>
-#include <iterator>
-#include <assert.h>
-#include <iostream>
+
+#include "impl/tensor/allocators.hpp"
+#include "impl/tensor/cpu/blockdiagmatrix.hpp"
+#include "impl/tensor/cpu/lowtrimatrix.hpp"
+#include "impl/tensor/cpu/matrix.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
 #ifdef _CUDA
 #include <cuda_fp16.h>
+#include "impl/mp-runtime.hpp"
+#include "impl/tensor/gpu/blockdiagmatrix.hpp"
+#include "impl/tensor/gpu/lowtrimatrix.hpp"
+#include "impl/tensor/gpu/matrix.hpp"
 #include "impl/tensor/gpu/vector.hpp"
 #include "impl/tensor/gpu/matrix.hpp"
 #include "impl/tensor/gpu/lowtrimatrix.hpp"

@@ -5,6 +5,7 @@
 /// across CPU and GPU devices. Supports custom allocation strategies and memory pooling.
 
 #pragma once
+#include <cstddef>
 #ifdef _CUDA
 #include "runtime.hpp"
 #endif

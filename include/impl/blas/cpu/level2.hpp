@@ -143,6 +143,81 @@ namespace lahva
             MatrixVectorProduct(Ta, static_cast<T>(alpha), a, x, incx, static_cast<T>(beta), y, incy);
         };
 
+        /// @brief Block-diagonal matrix-vector multiply with full parameters: y = alpha * op(A) * x + beta * y
+        ///
+        /// Performs block-wise matrix-vector multiplication where A is a block-diagonal matrix.
+        /// Supports transpose operations on each diagonal block.
+        ///
+        /// @tparam T Numeric element type (double, float).
+        /// @param Ta   Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param alpha Scaling factor for op(A)*x.
+        /// @param a     Block-diagonal input matrix (BlockDiagMatrix_<T>).
+        /// @param x     Input vector (Vector_<T>).
+        /// @param incx  Stride for x (in elements).
+        /// @param beta  Scaling factor applied to existing contents of y.
+        /// @param y     Output vector (Vector_<T>).
+        /// @param incy  Stride for y (in elements).
+        template <typename T>
+        void MatrixVectorProduct(const char *Ta, const T alpha, const BlockDiagMatrix_<T> &a, const Vector_<T> &x,
+                                 const size_t incx, const T beta, Vector_<T> &y, const size_t incy);
+
+        /// @brief Block-diagonal matrix-vector multiply: y = alpha * A * x + beta * y
+        ///
+        /// Performs block-wise matrix-vector multiplication where A is a block-diagonal matrix.
+        /// Each block of A multiplies the corresponding portion of x using optimized BLAS
+        ///
+        /// @tparam T Numeric element type (double, float).
+        /// @param alpha Scaling factor for A*x.
+        /// @param a     Block-diagonal input matrix (BlockDiagMatrix_<T>).
+        /// @param x     Input vector (Vector_<T>).
+        /// @param beta  Scaling factor applied to existing contents of y.
+        /// @param y     Output vector (Vector_<T>).
+        template <typename T>
+        void MatrixVectorProduct(const T alpha, const BlockDiagMatrix_<T> &a, const Vector_<T> &x,
+                                 const T beta, Vector_<T> &y)
+        {
+            MatrixVectorProduct("N", alpha, a, x, 1, beta, y, 1);
+        };
+
+        /// @brief Convenience wrapper matching standard Matrix signature: y := op(A)*x + beta*y
+        ///
+        /// This template overload matches the standard Matrix interface with support for
+        /// transpose, strides, and scalar factors. Supports the common case y := A*x with defaults.
+        ///
+        /// @tparam T Numeric element type (double, float).
+        /// @param a     Block-diagonal input matrix (BlockDiagMatrix_<T>).
+        /// @param x     Input vector (Vector_<T>).
+        /// @param y     Output vector (Vector_<T>).
+        /// @param Ta    Transpose option for A: "N" (default, no transpose), "T" (transpose, A^T), "C" (conjugate-transpose, A^H). Default: "N".
+        /// @param alpha Scaling factor for op(A)*x. Default: 1.0.
+        /// @param beta  Scaling factor for existing y. Default: 0.0.
+        /// @param incx  Stride for x (in elements). Default: 1.
+        /// @param incy  Stride for y (in elements). Default: 1.
+        template <typename T>
+        inline void MatrixVectorProduct(const BlockDiagMatrix_<T> &a, const Vector_<T> &x, Vector_<T> &y,
+                                        const char *Ta = "N", const T alpha = static_cast<T>(1.0), const T beta = static_cast<T>(0.0), const size_t incx = 1, const size_t incy = 1)
+        {
+            MatrixVectorProduct(Ta, alpha, a, x, incx, beta, y, incy);
+        };
+
+        /// @brief Simplified convenience wrapper: y := alpha*A*x + beta*y with defaults.
+        ///
+        /// This template overload uses default transpose="N", alpha=1 and beta=0 to
+        /// support the common case y := A*x, with convenience scalar type conversion.
+        ///
+        /// @tparam T Numeric element type (double, float).
+        /// @param a     Block-diagonal input matrix (BlockDiagMatrix_<T>).
+        /// @param x     Input vector (Vector_<T>).
+        /// @param y     Output vector (Vector_<T>).
+        /// @param alpha Scaling factor for A*x. Default: 1.0.
+        /// @param beta  Scaling factor for existing y. Default: 0.0.
+        template <typename T, typename Scalar = T, typename Scalar2 = T>
+        void MatrixVectorProduct(const BlockDiagMatrix_<T> &a, const Vector_<T> &x, Vector_<T> &y,
+                                 const Scalar alpha = 1.0, const Scalar2 beta = 0.0)
+        {
+            MatrixVectorProduct("N", (T)alpha, a, x, 1, (T)beta, y, 1);
+        };
+
         /// @brief Symmetric matrix-vector multiply (double precision), wrapper to BLAS function dsymv.
         ///
         /// Computes y := alpha * A * x + beta * y where A is a symmetric matrix stored in
