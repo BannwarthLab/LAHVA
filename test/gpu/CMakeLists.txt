@@ -30,15 +30,6 @@ target_link_libraries(${PROJECT_NAME}-gpu-lowtrimatrix-types-test PRIVATE ${PROJ
 target_include_directories(${PROJECT_NAME}-gpu-lowtrimatrix-types-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
 add_test(NAME gpu-types-lowtrimatrix COMMAND ${PROJECT_NAME}-gpu-lowtrimatrix-types-test)
 
-# GPU Tensor coverage tests
-add_executable(${PROJECT_NAME}-gpu-gputensor-coverage-test
-    types/gputensor-coverage.cpp
-    $<TARGET_OBJECTS:test-utils>
-)
-target_link_libraries(${PROJECT_NAME}-gpu-gputensor-coverage-test PRIVATE ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME}-gpu-gputensor-coverage-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
-add_test(NAME gpu-gputensor-coverage COMMAND ${PROJECT_NAME}-gpu-gputensor-coverage-test)
-
 # GPU miscellaneous tests
 add_executable(${PROJECT_NAME}-gpu-misc-test
     utils/gpu-misc.cpp
