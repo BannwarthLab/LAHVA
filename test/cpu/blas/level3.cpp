@@ -371,7 +371,7 @@ int test_blockdiag_gemm_simple() {
 
     Matrix<T> C(Shape{4, 3}, static_cast<T>(0));
 
-    MatrixMatrixProduct(static_cast<T>(1), A, B, static_cast<T>(0), C);
+    MatrixMatrixProduct(A, B, C);
 
     if (!check(C(0, 0), static_cast<T>(5), tol, "C(0,0) should be 5")) failures += 1;
     if (!check(C(0, 1), static_cast<T>(17), tol, "C(0,1) should be 17")) failures += 1;
@@ -395,7 +395,7 @@ int test_blockdiag_gemm_with_beta() {
     Matrix<T> B(Shape{2, 2}, static_cast<T>(1));
     Matrix<T> C(Shape{2, 2}, static_cast<T>(2));
 
-    MatrixMatrixProduct(static_cast<T>(1), A, B, static_cast<T>(2), C);
+    MatrixMatrixProduct(A, B, C, static_cast<T>(1), static_cast<T>(2));
 
     if (!check(C(0, 0), static_cast<T>(8), tol, "C(0,0) should be 8")) failures += 1;
     if (!check(C(1, 1), static_cast<T>(10), tol, "C(1,1) should be 10")) failures += 1;
@@ -416,7 +416,7 @@ int test_blockdiag_gemm_scaling() {
     Matrix<T> B(Shape{2, 2}, static_cast<T>(1));
     Matrix<T> C(Shape{2, 2}, static_cast<T>(0));
 
-    MatrixMatrixProduct(static_cast<T>(2), A, B, static_cast<T>(0), C);
+    MatrixMatrixProduct(A, B, C, static_cast<T>(2), static_cast<T>(0));
 
     if (!check(C(0, 0), static_cast<T>(8), tol, "C(0,0) should be 8")) failures += 1;
     if (!check(C(1, 1), static_cast<T>(12), tol, "C(1,1) should be 12")) failures += 1;
@@ -442,7 +442,7 @@ int test_blockdiag_gemm_varying_blocks() {
 
     Matrix<T> C(Shape{3, 2}, static_cast<T>(0));
 
-    MatrixMatrixProduct(static_cast<T>(1), A, B, static_cast<T>(0), C);
+    MatrixMatrixProduct(A, B, C);
 
     if (!check(C(0, 0), static_cast<T>(2), tol, "C(0,0) should be 2")) failures += 1;
     if (!check(C(1, 0), static_cast<T>(11), tol, "C(1,0) should be 11")) failures += 1;
@@ -552,7 +552,7 @@ int test_dense_times_blockdiag_gemm_simple() {
 
     Matrix<T> C(Shape{3, 3}, static_cast<T>(0));
 
-    MatrixMatrixProduct(static_cast<T>(1), A, B, static_cast<T>(0), C);
+    MatrixMatrixProduct(A, B, C);
 
     if (!check(C(0, 0), static_cast<T>(9), tol, "C(0,0) should be 9")) failures += 1;
     if (!check(C(1, 1), static_cast<T>(26), tol, "C(1,1) should be 26")) failures += 1;
