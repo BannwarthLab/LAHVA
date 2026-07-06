@@ -610,6 +610,63 @@ int test_dense_times_blockdiag_gemm_transpose() {
     return failures;
 }
 
+template <typename T>
+int test_blockdiag_mixed_shapes_gemm() {
+    int failures = 0;
+    const T tol = std::is_same<T, double>::value ? 1e-14 : 1e-6;
+
+    // Create 3 blocks of shape 2x2 and 1 block of shape 3x3
+    // Total size: 3×2 + 3 = 9 rows and cols
+    std::vector<Matrix<T>> blocks;
+
+    // Initialize 2x2 blocks with specific values
+    Matrix<T> b1(Shape{2, 2});
+    b1(0, 0) = 1.0; b1(0, 1) = 2.0;
+    b1(1, 0) = 3.0; b1(1, 1) = 4.0;
+    blocks.push_back(b1);
+    blocks.push_back(b1);  // Same block twice
+    blocks.push_back(b1);  // Same block three times
+
+    // Initialize 3x3 block
+    Matrix<T> b2(Shape{3, 3});
+    b2(0, 0) = 5.0; b2(0, 1) = 0.0; b2(0, 2) = 0.0;
+    b2(1, 0) = 0.0; b2(1, 1) = 5.0; b2(1, 2) = 0.0;
+    b2(2, 0) = 0.0; b2(2, 1) = 0.0; b2(2, 2) = 5.0;
+    blocks.push_back(b2);  // Different shaped block
+
+    BlockDiagMatrix<T> A(blocks);
+
+    // Create dense matrix for blockdiag × dense (9x2)
+    Matrix<T> B(Shape{9, 2}, static_cast<T>(1.0));
+    Matrix<T> C_blockdiag_dense(Shape{9, 2}, static_cast<T>(0));
+
+    // blockdiag × dense: A * B
+    MatrixMatrixProduct("N", "N", static_cast<T>(1.0), A, B, static_cast<T>(0.0), C_blockdiag_dense);
+
+    // Each 2x2 block multiplied by [1,1]^T gives [3, 7]^T
+    if (!check(C_blockdiag_dense(0, 0), static_cast<T>(3), tol, "BlockDiag×Dense(0,0)")) failures += 1;
+    if (!check(C_blockdiag_dense(1, 0), static_cast<T>(7), tol, "BlockDiag×Dense(1,0)")) failures += 1;
+    if (!check(C_blockdiag_dense(2, 0), static_cast<T>(3), tol, "BlockDiag×Dense(2,0)")) failures += 1;
+    // 3x3 block (5*I) multiplied by [1,1,1]^T gives [5, 5, 5]^T
+    if (!check(C_blockdiag_dense(6, 0), static_cast<T>(5), tol, "BlockDiag×Dense(6,0)")) failures += 1;
+
+    // Create dense matrix for dense × blockdiag (9x9)
+    Matrix<T> A_dense(Shape{9, 9}, static_cast<T>(1.0));
+    Matrix<T> C_dense_blockdiag(Shape{9, 9}, static_cast<T>(0));
+
+    // dense × blockdiag: A_dense * A
+    MatrixMatrixProduct("N", "N", static_cast<T>(1.0), A_dense, A, static_cast<T>(0.0), C_dense_blockdiag);
+
+    // First 2x2 block result: each row [1,1,1,1,1,1,1,1,1] dotted with block column
+    // Row 0 of A_dense is all 1s, times first column of block [1,3] = 4
+    if (!check(C_dense_blockdiag(0, 0), static_cast<T>(4), tol, "Dense×BlockDiag(0,0)")) failures += 1;
+    if (!check(C_dense_blockdiag(0, 1), static_cast<T>(6), tol, "Dense×BlockDiag(0,1)")) failures += 1;
+    // 3x3 block result: each row [1,...,1] times scaled identity = [5, 5, 5]
+    if (!check(C_dense_blockdiag(6, 6), static_cast<T>(5), tol, "Dense×BlockDiag(6,6)")) failures += 1;
+
+    return failures;
+}
+
 int main(){
     int stat = 0;
 
@@ -679,6 +736,8 @@ int main(){
     stat += test_dense_times_blockdiag_gemm_with_alpha_beta<float>();
     stat += test_dense_times_blockdiag_gemm_transpose<double>();
     stat += test_dense_times_blockdiag_gemm_transpose<float>();
+    stat += test_blockdiag_mixed_shapes_gemm<double>();
+    stat += test_blockdiag_mixed_shapes_gemm<float>();
 
     if (stat == 0) {
         std::cout << "All CPU Level-3 BLAS tests passed!" << std::endl;

@@ -8,7 +8,6 @@
 
 #include "impl/blas/cpu/additional-level1.hpp"
 #include "impl/blas/cpu/additional-level2.hpp"
-#include "impl/blas/cpu/additional-level3.hpp"
 #include "impl/blas/cpu/lapack.hpp"
 #include "impl/blas/cpu/level1.hpp"
 #include "impl/blas/cpu/level2.hpp"

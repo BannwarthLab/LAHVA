@@ -2,5 +2,4 @@
 srcs += files(
     'additional-level1.cpp',
     'additional-level2.cpp',
-    'additional-level3.cpp',
 )

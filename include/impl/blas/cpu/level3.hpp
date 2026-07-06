@@ -82,147 +82,72 @@ namespace lahva
             MatrixMatrixProduct(Ta, Tb, (T)alpha, a, b, (T)beta, c);
         };
 
-        /// @brief Block-diagonal matrix multiply with transpose support: C = alpha * op(A) * op(B) + beta * C
+        /// @brief Block-diagonal matrix multiply: C = alpha * op(A) * op(B) + beta * C
         ///
-        /// Performs block-wise matrix multiplication where A is a block-diagonal matrix.
-        /// Supports transpose operations on both A and B.
+        /// Performs C = alpha * op(A) * op(B) + beta * C where A is block-diagonal,
+        /// and op(X) is X, X^T, or X^H depending on transpose flags.
         ///
-        /// @tparam T Numeric element type (double, float).
-        /// @param Ta   Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
-        /// @param Tb   Transpose option for B: "N" (no transpose, B), "T" (transpose, B^T), "C" (conjugate-transpose, B^H).
+        /// @param Ta    Transpose for A: "N" (none), "T" (transpose), "C" (conjugate-transpose).
+        /// @param Tb    Transpose for B: "N" (none), "T" (transpose), "C" (conjugate-transpose).
         /// @param alpha Scaling factor for op(A)*op(B).
-        /// @param a     Block-diagonal input matrix (BlockDiagMatrix_<T>).
-        /// @param b     Dense input matrix (Matrix_<T>).
-        /// @param beta  Scaling factor applied to existing contents of c.
-        /// @param c     Output dense matrix (Matrix_<T>).
+        /// @param a     Block-diagonal input matrix.
+        /// @param b     Dense input matrix.
+        /// @param beta  Scaling factor for existing c.
+        /// @param c     Output matrix (modified).
         template <typename T>
         void MatrixMatrixProduct(const char *Ta, const char *Tb, const T alpha, const BlockDiagMatrix_<T> &a, const Matrix_<T> &b,
                                  const T beta, Matrix_<T> &c);
 
-        /// @brief Block-diagonal matrix multiply with dense matrix: C = alpha * A * B + beta * C
+        /// @brief Block-diagonal multiply with default parameters, convenience overload.
         ///
-        /// Performs block-wise matrix multiplication where A is a block-diagonal matrix.
-        /// Each block of A multiplies the corresponding rows of B using optimized BLAS.
+        /// Performs C = alpha * op(A) * op(B) + beta * C with defaults: Ta="N", Tb="N".
         ///
-        /// @tparam T Numeric element type (double, float).
-        /// @param alpha Scaling factor for A*B.
-        /// @param a     Block-diagonal input matrix (BlockDiagMatrix_<T>).
-        /// @param b     Dense input matrix (Matrix_<T>).
-        /// @param beta  Scaling factor applied to existing contents of c.
-        /// @param c     Output dense matrix (Matrix_<T>).
-        template <typename T>
-        void MatrixMatrixProduct(const T alpha, const BlockDiagMatrix_<T> &a, const Matrix_<T> &b,
-                                 const T beta, Matrix_<T> &c)
-        {
-            MatrixMatrixProduct("N", "N", alpha, a, b, beta, c);
-        };
-
-        /// @brief Convenience overload matching standard Matrix signature: C := op(A)*op(B) + beta*C
-        ///
-        /// This template overload matches the standard Matrix interface with support for
-        /// transpose operations on both A and B.
-        ///
-        /// @tparam T Numeric element type (double, float).
-        /// @param a     Block-diagonal input matrix (BlockDiagMatrix_<T>).
-        /// @param b     Dense input matrix (Matrix_<T>).
-        /// @param c     Output dense matrix (Matrix_<T>).
-        /// @param alpha Scaling factor for op(A)*op(B). Default: 1.0.
-        /// @param beta  Scaling factor for existing c. Default: 0.0.
-        /// @param Ta    Transpose option for A: "N" (default, no transpose), "T" (transpose, A^T), "C" (conjugate-transpose, A^H). Default: "N"
-        /// @param Tb    Transpose option for B: "N" (default, no transpose), "T" (transpose, B^T), "C" (conjugate-transpose, B^H). Default: "N"
+        /// @param a     Block-diagonal input matrix.
+        /// @param b     Dense input matrix.
+        /// @param c     Output matrix (modified).
+        /// @param alpha Scaling factor for A*B (default: 1.0).
+        /// @param beta  Scaling factor for existing c (default: 0.0).
+        /// @param Ta    Transpose for A (default: "N").
+        /// @param Tb    Transpose for B (default: "N").
         template <typename T, typename Scalar = T, typename Scalar2 = T>
-        inline void MatrixMatrixProduct(const BlockDiagMatrix_<T> &a, const Matrix_<T> &b, Matrix_<T> &c,
-                                        const Scalar alpha = 1.0, const Scalar2 beta = 0.0, const char *Ta = "N", const char *Tb = "N")
+        void MatrixMatrixProduct(const BlockDiagMatrix_<T> &a, const Matrix_<T> &b, Matrix_<T> &c,
+                                const Scalar alpha = 1.0, const Scalar2 beta = 0.0, const char *Ta = "N", const char *Tb = "N")
         {
             MatrixMatrixProduct(Ta, Tb, (T)alpha, a, b, (T)beta, c);
         };
 
-        /// @brief Convenience overload that uses default transpose flags and scalar defaults.
+        /// @brief Block-diagonal matrix multiply: C = alpha * op(A) * op(B) + beta * C
         ///
-        /// Performs C = alpha * op(A) * op(B) + beta * C with `Ta`/`Tb` defaulting to "N"
-        /// (no transpose) and alpha/beta defaulting to 1/0 respectively.
-        /// Useful for the common case C = A*B.
+        /// Performs C = alpha * op(A) * op(B) + beta * C where B is block-diagonal,
+        /// and op(X) is X, X^T, or X^H depending on transpose flags.
         ///
-        /// @tparam T Numeric element type (double, float).
-        /// @param a     Block-diagonal input matrix (BlockDiagMatrix_<T>).
-        /// @param b     Dense input matrix (Matrix_<T>).
-        /// @param c     Output dense matrix (Matrix_<T>).
-        /// @param alpha Scaling factor for A*B. Default: 1.0.
-        /// @param beta  Scaling factor for existing c. Default: 0.0.
-        template <typename T, typename Scalar = T, typename Scalar2 = T>
-        void MatrixMatrixProduct(const BlockDiagMatrix_<T> &a, const Matrix_<T> &b, Matrix_<T> &c,
-                                 const Scalar alpha = 1.0, const Scalar2 beta = 0.0)
-        {
-            MatrixMatrixProduct("N", "N", (T)alpha, a, b, (T)beta, c);
-        };
-
-        /// @brief Dense matrix with block-diagonal matrix multiply: C = alpha * A * B + beta * C
-        ///
-        /// Performs block-wise matrix multiplication where B is a block-diagonal matrix.
-        /// A is multiplied with each block of B using optimized BLAS.
-        ///
-        /// @tparam T Numeric element type (double, float).
-        /// @param alpha Scaling factor for A*B.
-        /// @param a     Dense input matrix (Matrix_<T>).
-        /// @param b     Block-diagonal input matrix (BlockDiagMatrix_<T>).
-        /// @param beta  Scaling factor applied to existing contents of c.
-        /// @param c     Output dense matrix (Matrix_<T>).
-        template <typename T>
-        void MatrixMatrixProduct(const T alpha, const Matrix_<T> &a, const BlockDiagMatrix_<T> &b,
-                                 const T beta, Matrix_<T> &c);
-
-        /// @brief Dense matrix with block-diagonal matrix multiply with full transpose support: C = alpha * op(A) * op(B) + beta * C
-        ///
-        /// Performs block-wise matrix multiplication where B is a block-diagonal matrix.
-        /// Supports transpose operations on both A and B.
-        ///
-        /// @tparam T Numeric element type (double, float).
-        /// @param Ta   Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
-        /// @param Tb   Transpose option for B: "N" (no transpose, B), "T" (transpose, B^T), "C" (conjugate-transpose, B^H).
+        /// @param Ta    Transpose for A: "N" (none), "T" (transpose), "C" (conjugate-transpose).
+        /// @param Tb    Transpose for B: "N" (none), "T" (transpose), "C" (conjugate-transpose).
         /// @param alpha Scaling factor for op(A)*op(B).
-        /// @param a     Dense input matrix (Matrix_<T>).
-        /// @param b     Block-diagonal input matrix (BlockDiagMatrix_<T>).
-        /// @param beta  Scaling factor applied to existing contents of c.
-        /// @param c     Output dense matrix (Matrix_<T>).
+        /// @param a     Block-diagonal input matrix.
+        /// @param b     Dense input matrix.
+        /// @param beta  Scaling factor for existing c.
+        /// @param c     Output matrix (modified).
         template <typename T>
         void MatrixMatrixProduct(const char *Ta, const char *Tb, const T alpha, const Matrix_<T> &a, const BlockDiagMatrix_<T> &b,
                                  const T beta, Matrix_<T> &c);
 
-        /// @brief Convenience overload for dense*blockdiag: C := op(A)*op(B) + beta*C
+        /// @brief Block-diagonal multiply with default parameters, convenience overload.
         ///
-        /// This template overload matches the standard interface with support for
-        /// transpose operations on both A and B.
+        /// Performs C = alpha * op(A) * op(B) + beta * C with defaults: Ta="N", Tb="N".
         ///
-        /// @tparam T Numeric element type (double, float).
-        /// @param a     Dense input matrix (Matrix_<T>).
-        /// @param b     Block-diagonal input matrix (BlockDiagMatrix_<T>).
-        /// @param c     Output dense matrix (Matrix_<T>).
-        /// @param alpha Scaling factor for op(A)*op(B). Default: 1.0.
-        /// @param beta  Scaling factor for existing c. Default: 0.0.
-        /// @param Ta    Transpose option for A: "N" (default, no transpose), "T" (transpose, A^T), "C" (conjugate-transpose, A^H). Default: "N"
-        /// @param Tb    Transpose option for B: "N" (default, no transpose), "T" (transpose, B^T), "C" (conjugate-transpose, B^H). Default: "N"
+        /// @param a     Block-diagonal input matrix.
+        /// @param b     Dense input matrix.
+        /// @param c     Output matrix (modified).
+        /// @param alpha Scaling factor for A*B (default: 1.0).
+        /// @param beta  Scaling factor for existing c (default: 0.0).
+        /// @param Ta    Transpose for A (default: "N").
+        /// @param Tb    Transpose for B (default: "N").
         template <typename T, typename Scalar = T, typename Scalar2 = T>
-        inline void MatrixMatrixProduct(const Matrix_<T> &a, const BlockDiagMatrix_<T> &b, Matrix_<T> &c,
-                                        const Scalar alpha = 1.0, const Scalar2 beta = 0.0, const char *Ta = "N", const char *Tb = "N")
+        void MatrixMatrixProduct(const Matrix_<T> &a, const BlockDiagMatrix_<T> &b, Matrix_<T> &c,
+                                const Scalar alpha = 1.0, const Scalar2 beta = 0.0, const char *Ta = "N", const char *Tb = "N")
         {
             MatrixMatrixProduct(Ta, Tb, (T)alpha, a, b, (T)beta, c);
-        };
-
-        /// @brief Convenience overload for dense*blockdiag without transpose: C = alpha * A * B + beta * C
-        ///
-        /// Simplified interface for the common case with no transpose operations.
-        ///
-        /// @tparam T Numeric element type (double, float).
-        /// @param alpha Scaling factor for A*B.
-        /// @param a     Dense input matrix (Matrix_<T>).
-        /// @param b     Block-diagonal input matrix (BlockDiagMatrix_<T>).
-        /// @param beta  Scaling factor applied to existing contents of c.
-        /// @param c     Output dense matrix (Matrix_<T>).
-        template <typename T>
-        void MatrixMatrixProduct(const T alpha, const Matrix_<T> &a, const BlockDiagMatrix_<T> &b,
-                                 const T beta, Matrix_<T> &c)
-        {
-            MatrixMatrixProduct("N", "N", alpha, a, b, beta, c);
         };
 
         /// @brief Symmetric matrix-matrix multiply (double precision), wrapper to BLAS function dsymm.
