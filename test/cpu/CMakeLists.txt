@@ -1,84 +1,83 @@
-# CPU Tests - mirrors src/cpu structure
-# Tests for CPU implementation (both C and C++ API)
+# CPU Tests
 
-# Type/Class Tests
-# Vector type tests
-add_executable(${PROJECT_NAME}-cpu-vector-types-test
-    types/vector-types.cpp
+# Tensor type tests
+# Vector tensor tests
+add_executable(${PROJECT_NAME}-cpu-tensor-vector
+    tensor/vector.cpp
     $<TARGET_OBJECTS:test-utils>
 )
-target_link_libraries(${PROJECT_NAME}-cpu-vector-types-test PRIVATE ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME}-cpu-vector-types-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
-add_test(NAME cpu-types-vector COMMAND ${PROJECT_NAME}-cpu-vector-types-test)
+target_link_libraries(${PROJECT_NAME}-cpu-tensor-vector PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-cpu-tensor-vector PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME cpu-tensor-vector COMMAND ${PROJECT_NAME}-cpu-tensor-vector)
 
-# Matrix type tests
-add_executable(${PROJECT_NAME}-cpu-matrix-types-test
-    types/matrix-types.cpp
+# Matrix tensor tests
+add_executable(${PROJECT_NAME}-cpu-tensor-matrix
+    tensor/matrix.cpp
     $<TARGET_OBJECTS:test-utils>
 )
-target_link_libraries(${PROJECT_NAME}-cpu-matrix-types-test PRIVATE ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME}-cpu-matrix-types-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
-add_test(NAME cpu-types-matrix COMMAND ${PROJECT_NAME}-cpu-matrix-types-test)
+target_link_libraries(${PROJECT_NAME}-cpu-tensor-matrix PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-cpu-tensor-matrix PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME cpu-tensor-matrix COMMAND ${PROJECT_NAME}-cpu-tensor-matrix)
 
-# LowerTriMatrix type tests
-add_executable(${PROJECT_NAME}-cpu-lowtrimatrix-types-test
-    types/lowtrimatrix-types.cpp
+# LowerTriMatrix tensor tests
+add_executable(${PROJECT_NAME}-cpu-tensor-lowtrimatrix
+    tensor/lowtrimatrix.cpp
     $<TARGET_OBJECTS:test-utils>
 )
-target_link_libraries(${PROJECT_NAME}-cpu-lowtrimatrix-types-test PRIVATE ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME}-cpu-lowtrimatrix-types-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
-add_test(NAME cpu-types-lowtrimatrix COMMAND ${PROJECT_NAME}-cpu-lowtrimatrix-types-test)
+target_link_libraries(${PROJECT_NAME}-cpu-tensor-lowtrimatrix PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-cpu-tensor-lowtrimatrix PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME cpu-tensor-lowtrimatrix COMMAND ${PROJECT_NAME}-cpu-tensor-lowtrimatrix)
 
-# Level 1 BLAS tests (impl)
-add_executable(${PROJECT_NAME}-cpu-level1-test
-    impl/level1.cpp
+# Level 1 BLAS tests
+add_executable(${PROJECT_NAME}-cpu-level1
+    blas/level1.cpp
     $<TARGET_OBJECTS:test-utils>
 )
-target_link_libraries(${PROJECT_NAME}-cpu-level1-test PRIVATE ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME}-cpu-level1-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
-add_test(NAME cpu-blas-level1 COMMAND ${PROJECT_NAME}-cpu-level1-test)
+target_link_libraries(${PROJECT_NAME}-cpu-level1 PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-cpu-level1 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME cpu-blas-level1 COMMAND ${PROJECT_NAME}-cpu-level1)
 
-# Level 2 BLAS tests (impl)
-add_executable(${PROJECT_NAME}-cpu-level2-test
-    impl/level2.cpp
+# Level 2 BLAS tests
+add_executable(${PROJECT_NAME}-cpu-level2
+    blas/level2.cpp
     $<TARGET_OBJECTS:test-utils>
 )
-target_link_libraries(${PROJECT_NAME}-cpu-level2-test PRIVATE ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME}-cpu-level2-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
-add_test(NAME cpu-blas-level2 COMMAND ${PROJECT_NAME}-cpu-level2-test)
+target_link_libraries(${PROJECT_NAME}-cpu-level2 PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-cpu-level2 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME cpu-blas-level2 COMMAND ${PROJECT_NAME}-cpu-level2)
 
-# Level 3 BLAS tests (impl)
-add_executable(${PROJECT_NAME}-cpu-level3-test
-    impl/level3.cpp
+# Level 3 BLAS tests
+add_executable(${PROJECT_NAME}-cpu-level3
+    blas/level3.cpp
     $<TARGET_OBJECTS:test-utils>
 )
-target_link_libraries(${PROJECT_NAME}-cpu-level3-test PRIVATE ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME}-cpu-level3-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
-add_test(NAME cpu-blas-level3 COMMAND ${PROJECT_NAME}-cpu-level3-test)
+target_link_libraries(${PROJECT_NAME}-cpu-level3 PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-cpu-level3 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME cpu-blas-level3 COMMAND ${PROJECT_NAME}-cpu-level3)
 
-# Additional Level 1 tests (additional-blas)
-add_executable(${PROJECT_NAME}-cpu-additional-level1-test
-    blas/additional/level1.cpp
+# Additional Level 1 tests
+add_executable(${PROJECT_NAME}-cpu-blas-additional-level1
+    blas/additional-level1.cpp
     $<TARGET_OBJECTS:test-utils>
 )
-target_link_libraries(${PROJECT_NAME}-cpu-additional-level1-test PRIVATE ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME}-cpu-additional-level1-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
-add_test(NAME cpu-additional-level1 COMMAND ${PROJECT_NAME}-cpu-additional-level1-test)
+target_link_libraries(${PROJECT_NAME}-cpu-blas-additional-level1 PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-cpu-blas-additional-level1 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME cpu-blas-additional-level1 COMMAND ${PROJECT_NAME}-cpu-blas-additional-level1)
 
-# Additional Level 2 tests (additional-blas)
-add_executable(${PROJECT_NAME}-cpu-additional-level2-test
-    blas/additional/level2.cpp
+# Additional Level 2 tests
+add_executable(${PROJECT_NAME}-cpu-blas-additional-level2
+    blas/additional-level2.cpp
     $<TARGET_OBJECTS:test-utils>
 )
-target_link_libraries(${PROJECT_NAME}-cpu-additional-level2-test PRIVATE ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME}-cpu-additional-level2-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
-add_test(NAME cpu-additional-level2 COMMAND ${PROJECT_NAME}-cpu-additional-level2-test)
+target_link_libraries(${PROJECT_NAME}-cpu-blas-additional-level2 PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-cpu-blas-additional-level2 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME cpu-blas-additional-level2 COMMAND ${PROJECT_NAME}-cpu-blas-additional-level2)
 
 # LAPACK tests
-add_executable(${PROJECT_NAME}-cpu-lapack-test
-    lapack-test.cpp
+add_executable(${PROJECT_NAME}-cpu-blas-lapack
+    blas/lapack.cpp
     $<TARGET_OBJECTS:test-utils>
 )
-target_link_libraries(${PROJECT_NAME}-cpu-lapack-test PRIVATE ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME}-cpu-lapack-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
-add_test(NAME cpu-lapack COMMAND ${PROJECT_NAME}-cpu-lapack-test)
+target_link_libraries(${PROJECT_NAME}-cpu-blas-lapack PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-cpu-blas-lapack PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME cpu-blas-lapack COMMAND ${PROJECT_NAME}-cpu-blas-lapack)
