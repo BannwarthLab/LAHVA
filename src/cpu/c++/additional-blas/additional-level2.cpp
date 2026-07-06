@@ -1,7 +1,14 @@
-#include "linalg.hpp"
-#include "impl/blas/cpu/additional-level2.hpp"
+/// @file additional-level2.cpp
+/// @brief CPU C++ implementations of extended/custom Level-2 BLAS operations.
+///
+/// Implements additional matrix-vector and matrix-matrix operations beyond standard BLAS
+/// Level-2, including matrix addition with optional transposes. Supports OpenMP parallelization
+/// for multi-threaded execution.
+
 #include "../../utils/utils.hpp"
+#include "impl/blas/cpu/additional-level2.hpp"
 #include "impl/blas/cpu/level1.hpp"
+#include "linalg.hpp"
 
 namespace lahva
 {
@@ -29,9 +36,9 @@ namespace lahva
             int m, n;
             std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
-            BLAS_INT lda = get_leading(m, n, transa);
-            BLAS_INT ldb = get_leading(m, n, transb);
-            BLAS_INT ldc = get_leading(m, n);
+            [[maybe_unused]] BLAS_INT lda = get_leading(m, n, transa);
+            [[maybe_unused]] BLAS_INT ldb = get_leading(m, n, transb);
+            [[maybe_unused]]BLAS_INT ldc = get_leading(m, n);
 #if defined(_MKL_H_)
             mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
 
@@ -124,9 +131,9 @@ namespace lahva
             int m, n;
             std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
-            BLAS_INT lda = get_leading(m, n, transa);
-            BLAS_INT ldb = get_leading(m, n, transb);
-            BLAS_INT ldc = get_leading(m, n);
+            [[maybe_unused]] BLAS_INT lda = get_leading(m, n, transa);
+            [[maybe_unused]] BLAS_INT ldb = get_leading(m, n, transb);
+            [[maybe_unused]]BLAS_INT ldc = get_leading(m, n);
 
 #if defined(_MKL_H_)
             mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
@@ -216,9 +223,9 @@ namespace lahva
             int m, n;
             std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
-            BLAS_INT lda = get_leading(m, n, transa);
-            BLAS_INT ldb = get_leading(m, n, transb);
-            BLAS_INT ldc = get_leading(m, n);
+            [[maybe_unused]] BLAS_INT lda = get_leading(m, n, transa);
+            [[maybe_unused]] BLAS_INT ldb = get_leading(m, n, transb);
+            [[maybe_unused]] BLAS_INT ldc = get_leading(m, n);
 
 #if defined(_MKL_H_)
             mkl_domatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
@@ -309,9 +316,9 @@ namespace lahva
             int m, n;
             std::tie(m, n) = check_same_shape_mm(a, b, c, transa, transb);
 
-            BLAS_INT lda = get_leading(m, n, transa);
-            BLAS_INT ldb = get_leading(m, n, transb);
-            BLAS_INT ldc = get_leading(m, n);
+            [[maybe_unused]] BLAS_INT lda = get_leading(m, n, transa);
+            [[maybe_unused]] BLAS_INT ldb = get_leading(m, n, transb);
+            [[maybe_unused]] BLAS_INT ldc = get_leading(m, n);
 
 #if defined(_MKL_H_)
             mkl_somatadd(major_char, *Ta, *Tb, m, n, alpha, a.data(), lda, beta, b.data(), ldb, c.data(), ldc);
@@ -542,5 +549,5 @@ namespace lahva
 
 #endif
 
-    }
-}
+    } // namespace cpu
+} // namespace lahva

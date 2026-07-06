@@ -1,7 +1,14 @@
-#include "linalg.hpp"
-#include "impl/blas/cpu/level2.hpp"
+/// @file level2.cpp
+/// @brief CPU C++ template implementations of Level-2 BLAS operations.
+///
+/// Provides C++ template functions for Level-2 BLAS matrix-vector operations including
+/// outer products and matrix-vector multiplication. Functions accept Matrix<T> and Vector<T>
+/// types and forward to lower-level pointer-based CBLAS routines.
+
 #include "../utils/utils.hpp"
 #include "impl/blas/cpu/level2.h"
+#include "impl/blas/cpu/level2.hpp"
+#include "linalg.hpp"
 
 namespace lahva
 {
@@ -486,6 +493,5 @@ namespace lahva
             cblas_stpmv(major, tri, trans, unit, col, a.data(), x.data(), inx);
         };
 
-
-    }
-}
+    } // namespace cpu
+} // namespace lahva

@@ -4,6 +4,7 @@ from typing import Dict, Tuple
 # Configuration mappings for each component
 OS_CONFIG = {
     "rl9": "rockylinux:9",
+    "rl10": "rockylinux/rockylinux:10",
 }
 
 COMPILER_CONFIG = {
@@ -52,7 +53,6 @@ LAPACK_CONFIG = {
 GPU_CONFIG = {
     "none": {},
     "cuda11.8": {
-        "repo": "https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo",
         "packages": "cuda-compiler-11-8 cuda-cudart-devel-11-8 libcusolver-devel-11-8 libcublas-devel-11-8 libcusparse-devel-11-8",
         "env": {
             "PATH": "/usr/local/cuda-11.8/bin${PATH:+:${PATH}}",
@@ -63,7 +63,6 @@ GPU_CONFIG = {
         },
     },
     "cuda12.5": {
-        "repo": "https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo",
         "packages": "cuda-compiler-12-5 cuda-cudart-devel-12-5 libcusolver-devel-12-5 libcublas-devel-12-5 libcusparse-devel-12-5 libnvjitlink-devel-12-5",
         "env": {
             "PATH": "/usr/local/cuda-12.5/bin${PATH:+:${PATH}}",
@@ -73,7 +72,24 @@ GPU_CONFIG = {
             "CUDA_HOME": "/usr/local/cuda-12.5",
         },
     },
+    "cuda13.0": {
+        "packages": "cuda-compiler-13-0 cuda-cudart-devel-13-0 libcusolver-devel-13-0 libcublas-devel-13-0 libcusparse-devel-13-0 libnvjitlink-devel-13-0",
+        "env": {
+            "PATH": "/usr/local/cuda-13.0/bin${PATH:+:${PATH}}",
+            "CPATH": "/usr/local/cuda-13.0/targets/x86_64-linux/include:$CPATH",
+            "LD_LIBRARY_PATH": "/usr/local/cuda-13.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}",
+            "LIBRARY_PATH": "/usr/local/cuda-13.0/lib64:/usr/local/cuda-13.0/targets/x86_64-linux/lib:$LIBRARY_PATH",
+            "CUDA_HOME": "/usr/local/cuda-13.0",
+        },
+    },
 }
+
+def get_cuda_repo(os_name: str, gpu: str) -> str:
+    """Get the appropriate CUDA repo URL based on OS and GPU version."""
+    if gpu == "none":
+        return None
+    rhel_version = "9" if os_name == "rl9" else "10"
+    return f"https://developer.download.nvidia.com/compute/cuda/repos/rhel{rhel_version}/x86_64/cuda-rhel{rhel_version}.repo"
 
 def parse_recipe_name(name: str) -> Tuple[str, str, str, str]:
     """Parse recipe name in format: OS-COMPILER-LAPACK-GPU"""
@@ -116,6 +132,8 @@ def generate_recipe(name: str) -> str:
     lines.append("    dnf install -y wget git python3-pip")
     lines.append("    dnf install -y epel-release")
     lines.append("    dnf config-manager --set-enabled crb")
+    lines.append("    dnf install -y cmake")
+    lines.append("    pip3 install meson ninja")
     lines.append("")
     
     # Intel OneAPI repo if needed (for compiler or MKL)
@@ -145,14 +163,12 @@ def generate_recipe(name: str) -> str:
     lines.append(f"    dnf install -y {LAPACK_CONFIG[lapack]['packages']}")
     lines.append("")
     
-    # CUDA repo if needed
-    if GPU_CONFIG[gpu].get("repo"):
-        lines.append("    # CUDA Repository")
-        lines.append(f"    dnf config-manager --add-repo {GPU_CONFIG[gpu]['repo']}")
-        lines.append("")
-    
     # GPU installation
     if gpu != "none":
+        cuda_repo = get_cuda_repo(os_name, gpu)
+        lines.append("    # CUDA Repository")
+        lines.append(f"    dnf config-manager --add-repo {cuda_repo}")
+        lines.append("")
         lines.append(f"    # {gpu.upper()} Installation")
         lines.append(f"    dnf install -y {GPU_CONFIG[gpu]['packages']}")
         lines.append("")
@@ -164,7 +180,6 @@ def generate_recipe(name: str) -> str:
     
     # Environment section
     lines.append("%environment")
-    lines.append("    export PATH=~/.local/bin:$PATH")
     
     # Collect all environment variables
     env_vars = {}

@@ -1,3 +1,9 @@
+/// @file level1.cpp
+/// @brief CPU C-level Level-1 BLAS function implementations.
+///
+/// Low-level C implementations of Level-1 BLAS operations (dot products, norms, vector
+/// operations) dispatching to CBLAS routines. Supports double, float, and complex types.
+
 #include "impl/blas/cpu/level1.h"
 
 namespace lahva
@@ -429,5 +435,5 @@ namespace lahva
             return cblas_isamax(n, x, incx);
         }
 
-    }
-}
+    } // namespace cpu
+} // namespace lahva

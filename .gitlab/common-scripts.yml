@@ -11,7 +11,6 @@
 
 .compiler_setup:
   script:
-    - export PATH=~/.local/bin:$PATH
     - |
       if [[ "$COMPILER" == gnu* ]]; then
         export CC=gcc CXX=g++ FC=gfortran

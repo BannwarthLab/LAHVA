@@ -353,10 +353,6 @@ int test_c_symm_with_beta_right() {
     return stat_;
 }
 
-// ============================================================================
-// BlockDiagMatrix GEMM Tests (Templated)
-// ============================================================================
-
 template<typename T>
 int test_blockdiag_gemm_simple() {
     int failures = 0;

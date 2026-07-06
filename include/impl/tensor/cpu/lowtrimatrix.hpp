@@ -6,9 +6,14 @@
 /// Includes specialized operations leveraging triangular matrix properties.
 
 #pragma once
-#include "impl/tensor/allocators.hpp"
-#include "impl/tensor/cpu/tensor.hpp"
+#include <cassert>
+#include <cmath>
+#include <iostream>
 #include <omp.h>
+
+#include "const.h"
+#include "impl/tensor/allocators.hpp"
+#include "impl/tensor/cpu/vector.hpp"
 
 namespace lahva
 {
@@ -22,104 +27,152 @@ namespace lahva
         public:
             virtual Shape shape() const  = 0;
 
-            //! @param[in] i row index
-            //! @param[in] j column index
-            //! @return reference to Matrix element i,j
+            /// @param[in] i row index
+            /// @param[in] j column index
+            /// @return reference to Matrix element i,j
             virtual T &operator()(size_t i, size_t j) = 0;
-            //! @param[in] i row index
-            //! @param[in] j column index
-            //! @return reference to Matrix element i,j
+
+            /// @param[in] i row index
+            /// @param[in] j column index
+            /// @return reference to Matrix element i,j
             virtual const T &operator()(size_t i, size_t j) const = 0;
     };
 
+    /// @brief Lower triangular matrix with optimized storage.
+    ///
+    /// Stores only lower triangular elements in row-major order of the lower triangle.
+    /// Provides compact storage and efficient operations for lower triangular matrices.
+    /// If NDEBUG is **not** defined, range checks are performed.
+    ///
     template <class T, class Allocator = StdAllocator<T>>
     class LowTriMatrix : virtual public CPUTensor<T, Allocator>, virtual public LowTriMatrix_<T>
     {
         using alloc_ptr = CPUAllocator<T>;   
     protected:
-        // shape in each dimension, i.e. data_ has length n_rows_^2
+        /// @brief Matrix dimension (n x n)
         size_t n_;
 
+        /// @brief Calculate linear index for lower triangular element
+        /// @param[in] i row index
+        /// @param[in] j column index
+        /// @return linear index in 1D storage array
+        /// @note Range checks deactivated if NDEBUG is defined
         inline size_t data_id_(size_t i, size_t j) const
         {
-            // deactivated if NDEBUG is defined
             assert(i <= n_ && j <= n_);
-            // row index is always greater than column index in lower triangle
             assert(i >= j);
-
-            // range checks are perfomred in constructor and above (if in debug mode)
             return (n_ * (j) - (j - 1) * (j) / 2) + (i - j);
         }
 
-        // length of the array data_
+        /// @brief Calculate total size needed for lower triangular storage
+        /// @param[in] n matrix dimension (n x n)
+        /// @return number of elements needed: n*(n+n)/2
         static size_t data_size_(size_t n)
         {
             return (n * n + n) / 2;
         }
 
-        // raises an error, if the shape is not valid
-        // Vector uses ulong as shape, so the check shape function has to be able
-        // to deal with that
+        /// @brief Validate matrix dimensions
+        /// @param[in] shape dimension to validate
+        /// @throws std::out_of_range if dimension exceeds maximum size
         static void check_size_(long unsigned int shape);
 
     public:
-        //! construct an n x n matrix
-        //! It is not guaranteed that the values will be initialized
+        /// @brief Allocate lower triangular matrix without initialization
+        /// @param[in] n matrix dimension (n x n)
+        /// @param[in] cpualloc allocator instance for memory management
         LowTriMatrix(size_t n,const alloc_ptr &cpualloc = Allocator());
         template <typename U>
         LowTriMatrix(size_t n, const std::shared_ptr<CPUAllocator<U>> &alloc)
         : LowTriMatrix<T,Allocator>(n, Allocator(*alloc))
         { };
-        //! construct an n x n matrix initialized with value val
+
+        /// @brief Allocate lower triangular matrix initialized with uniform value
+        /// @param[in] n matrix dimension (n x n)
+        /// @param[in] val initialization value for all elements
+        /// @param[in] cpualloc allocator instance for memory management
         LowTriMatrix(size_t n, T val,const alloc_ptr &cpualloc = Allocator());
         template <typename U>
         LowTriMatrix(size_t n, T val, const std::shared_ptr<CPUAllocator<U>> &alloc)
         : LowTriMatrix<T,Allocator>(n, val, Allocator(*alloc))
         { };
-        //! give dimension n and data as a Vector conatining the values of the lower traingular Matrix
+
+        /// @brief Copy data from vector into lower triangular storage
+        /// @param[in] n matrix dimension (n x n)
+        /// @param[in] data vector containing lower triangular elements
+        /// @param[in] cpualloc allocator instance for memory management
         LowTriMatrix(size_t n, const Vector_<T> &data, const alloc_ptr &cpualloc = Allocator());
-        //! create a matrix with shape (shape must be square)
-        //! It is not guaranteed that the values will be initialized
+
+        /// @brief Allocate lower triangular matrix with specified shape without initialization
+        /// @param[in] shape dimensions (must be square)
+        /// @param[in] cpualloc allocator instance for memory management
+        /// @throws std::logic_error if shape is not square
         LowTriMatrix(const Shape &shape, const alloc_ptr &cpualloc = Allocator());
-        //! create a non-initialized matrix with shape (shape must be square) and
-        //! initialize all values to val
+
+        /// @brief Allocate lower triangular matrix with specified shape initialized with uniform value
+        /// @param[in] shape dimensions (must be square)
+        /// @param[in] val initialization value for all elements
+        /// @param[in] cpualloc allocator instance for memory management
+        /// @throws std::logic_error if shape is not square
         LowTriMatrix(const Shape &shape, T val, const alloc_ptr &cpualloc = Allocator());
-        //! construct a matrix by giving ownership of the raw data
-        //! note: the data needs to be in the format defined by data_id_()
-        //! @param n number of columns/rows of the matrix
+
+        /// @brief Wrap existing data pointer with optional ownership
+        /// @param[in] n matrix dimension (n x n)
+        /// @param[in] data pointer to lower triangular matrix data in storage format
+        /// @param[in] take_ownership if true, matrix will free data on destruction; if false, external code is responsible
+        /// @param[in] cpualloc allocator instance for memory management
+        /// @note data must be in lower triangular storage format as defined by data_id_()
         LowTriMatrix(size_t n, T *data, bool take_ownership = true,const alloc_ptr &cpualloc = Allocator());
+
+        /// @brief Copy constructor
         LowTriMatrix(const LowTriMatrix &);
-        LowTriMatrix(LowTriMatrix &&);
+
+        /// @brief Move constructor
+        LowTriMatrix(LowTriMatrix &&) noexcept;
+
+        /// @brief Copy assignment operator
         LowTriMatrix &operator=(const LowTriMatrix &);
+
+        /// @brief Move assignment operator
         LowTriMatrix &operator=(LowTriMatrix &&);
+
+        /// @brief Destructor - deallocates matrix data if owned
         virtual ~LowTriMatrix();
 
-        //! Provides element acces.
-        //! If NDEBUG is **not** defined, range checks are performed and it will be
-        //! checked that the first index is greater than or equal to the second.
-        //!
-        //! @param[in] i row index
-        //! @param[in] j column index
-        //! @return reference to matrix element i,j
+        /// @brief Non-const element access with automatic index swapping for upper triangle
+        /// @param[in] i row index
+        /// @param[in] j column index
+        /// @return reference to matrix element i,j
+        /// @note If i < j, indices are swapped to maintain lower triangular access pattern
+        /// @note Range checks deactivated if NDEBUG is defined
         T &operator()(size_t i, size_t j);
-        //! Provides element acces.
-        //! If NDEBUG is **not** defined, range checks are performed and it will be
-        //! checked that the first index is greater than or equal to the second.
-        //! @param[in] i row index
-        //! @param[in] j column index
-        //! @return reference to matrix element i,j
+
+        /// @brief Const element access with automatic index swapping for upper triangle
+        /// @param[in] i row index
+        /// @param[in] j column index
+        /// @return reference to matrix element i,j
+        /// @note If i < j, indices are swapped to maintain lower triangular access pattern
+        /// @note Range checks deactivated if NDEBUG is defined
         const T &operator()(size_t i, size_t j) const;
 
-        //! @return number of rows/columns of the matrix
+        /// @brief Get matrix dimensions
+        /// @return shape with equal rows and columns
         Shape shape() const { return Shape(n_, n_); }
 
+        /// @brief Print lower triangular portion to stdout
         void print() const;
 
+        /// @brief Extract diagonal elements into new vector
+        /// @return vector containing diagonal elements
         Vector<T, Allocator> get_diagonal() const;
 
+        /// @brief Set diagonal elements from vector
+        /// @param[in] diag vector containing diagonal values
+        /// @throws std::runtime_error if vector size doesn't match matrix dimension
         void set_diagonal(Vector<T, Allocator> &diag);
     };
 
+    /// @brief Implementation: Validate matrix dimensions against SIZE_MAX
     template <typename T, class Allocator>
     void LowTriMatrix<T, Allocator>::check_size_(long unsigned int n)
     {
@@ -129,15 +182,17 @@ namespace lahva
         }
     }
 
+    /// @brief Implementation: Allocate lower triangular storage without initialization
     template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(size_t size, const alloc_ptr& alloc ) : 
-    CPUTensor<T, Allocator>{data_size_(size), alloc}, n_{size}                                     
+    LowTriMatrix<T, Allocator>::LowTriMatrix(size_t size, const alloc_ptr& alloc ) :
+    CPUTensor<T, Allocator>{data_size_(size), alloc}, n_{size}
     {
         check_size_(size);
     }
 
+    /// @brief Implementation: Allocate and fill lower triangular storage with value
     template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(size_t size, T val, const alloc_ptr& alloc ) : 
+    LowTriMatrix<T, Allocator>::LowTriMatrix(size_t size, T val, const alloc_ptr& alloc ) :
     LowTriMatrix(size, alloc)
     {
         check_size_(size);
@@ -145,8 +200,9 @@ namespace lahva
         std::fill(this->data_, this->data_ + data_size_(size), val);
     }
 
+    /// @brief Implementation: Construct from Shape, validate square dimensions
     template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(const Shape &shape, const alloc_ptr& alloc ) : 
+    LowTriMatrix<T, Allocator>::LowTriMatrix(const Shape &shape, const alloc_ptr& alloc ) :
     LowTriMatrix(shape.first, alloc)
     {
         if (shape.first != shape.second)
@@ -155,8 +211,9 @@ namespace lahva
         }
     }
 
+    /// @brief Implementation: Construct from Shape with value, validate square dimensions
     template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(const Shape &shape, T val, const alloc_ptr& alloc ) : 
+    LowTriMatrix<T, Allocator>::LowTriMatrix(const Shape &shape, T val, const alloc_ptr& alloc ) :
     LowTriMatrix{shape.first, val, alloc}
     {
         if (shape.first != shape.second)
@@ -165,9 +222,9 @@ namespace lahva
         }
     }
 
-
+    /// @brief Implementation: Copy elements from vector into lower triangular storage
     template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(size_t n, const Vector_<T> &data, const alloc_ptr& alloc ) : 
+    LowTriMatrix<T, Allocator>::LowTriMatrix(size_t n, const Vector_<T> &data, const alloc_ptr& alloc ) :
     LowTriMatrix{n, alloc}
     {
         check_size_(data.size());
@@ -177,8 +234,9 @@ namespace lahva
             this->data_[i] = data[i];
         }
     }
-    
-    
+
+
+    /// @brief Implementation: Wrap existing data pointer, set ownership based on parameter
     template <typename T, class Allocator>
     LowTriMatrix<T, Allocator>::LowTriMatrix(size_t n, T *data, bool take_ownership,const alloc_ptr &cpualloc)
     :  CPUTensor<T, Allocator>{cpualloc}, n_{n}
@@ -186,24 +244,26 @@ namespace lahva
         this->data_ = data;
         this->count_ = data_size_(n);
         this->is_owner_ = take_ownership;
-    
+
     }
 
+    /// @brief Destructor implementation
     template <typename T, class Allocator>
     LowTriMatrix<T, Allocator>::~LowTriMatrix()
     {
-    
+
     }
 
-    // copy operations
+    /// @brief Copy constructor implementation
     template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(const LowTriMatrix<T, Allocator> &other) : 
-    n_{other.n_}, 
-    CPUTensor<T, Allocator>(other)
+    LowTriMatrix<T, Allocator>::LowTriMatrix(const LowTriMatrix<T, Allocator> &other) :
+    CPUTensor<T, Allocator>(other),
+    n_{other.n_}
     {
-        
+
     }
 
+    /// @brief Copy assignment operator implementation
     template <typename T, class Allocator>
     LowTriMatrix<T, Allocator> &LowTriMatrix<T, Allocator>::operator=(const LowTriMatrix<T, Allocator> &other)
     {
@@ -215,14 +275,15 @@ namespace lahva
         return *this;
     }
 
-    // move operations
+    /// @brief Move constructor implementation
     template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(LowTriMatrix<T, Allocator> &&other) : 
-    n_{other.n_}, CPUTensor<T, Allocator>{other}
+    LowTriMatrix<T, Allocator>::LowTriMatrix(LowTriMatrix<T, Allocator> &&other) noexcept :
+    CPUTensor<T, Allocator>{std::move(other)}, n_{other.n_}
     {
-  
+
     }
 
+    /// @brief Move assignment operator implementation
     template <typename T, class Allocator>
     LowTriMatrix<T, Allocator> &LowTriMatrix<T, Allocator>::operator=(LowTriMatrix<T, Allocator> &&other)
     {
@@ -235,6 +296,8 @@ namespace lahva
         return *this;
     }
 
+    /// @brief Implementation: Element access with automatic symmetrization for upper triangle
+    /// If i < j, swaps indices to maintain lower triangular access pattern
     template <typename T, class Allocator>
     T &LowTriMatrix<T, Allocator>::operator()(size_t i, size_t j)
     {
@@ -247,6 +310,8 @@ namespace lahva
         return this->data_[data_id_(i, j)];
     }
 
+    /// @brief Implementation: Const element access with automatic symmetrization for upper triangle
+    /// If i < j, swaps indices to maintain lower triangular access pattern
     template <typename T, class Allocator>
     const T &LowTriMatrix<T, Allocator>::operator()(size_t i, size_t j) const
     {
@@ -259,6 +324,7 @@ namespace lahva
         return this->data_[data_id_(i, j)];
     }
 
+    /// @brief Implementation: Print lower triangular portion to stdout
     template <typename T, class Allocator>
     void LowTriMatrix<T, Allocator>::print() const
     {
@@ -272,6 +338,7 @@ namespace lahva
         }
     }
 
+    /// @brief Implementation: Extract diagonal elements into new vector
     template <typename T, class Allocator>
     Vector<T, Allocator> LowTriMatrix<T, Allocator>::get_diagonal() const
     {
@@ -286,6 +353,7 @@ namespace lahva
         return diag;
     }
 
+    /// @brief Implementation: Set diagonal elements from vector
     template <typename T, class Allocator>
     void LowTriMatrix<T, Allocator>::set_diagonal(Vector<T, Allocator> &diag)
     {
@@ -297,5 +365,5 @@ namespace lahva
         }
     }
 
-} // namespace gpu
+} // namespace cpu
 } // namespace lahva

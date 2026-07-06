@@ -7,13 +7,12 @@
 // dispatch to optimized CPU implementations.
 // Each overload is provided for double and float precision; both precisions are documented explicitly.
 
-#ifndef LAHVA_ADD_LEVEL1_CPU_HPP
-#define LAHVA_ADD_LEVEL1_CPU_HPP
+#pragma once
+#include "const.h"
+#include "impl/tensor/cpu/lowtrimatrix.hpp"
+#include "impl/tensor/cpu/matrix.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
 #include "impl/tensor/cpu/vector.hpp"
-#include "impl/tensor/cpu/matrix.hpp"
-#include "impl/tensor/cpu/lowtrimatrix.hpp"
-#include "const.h"
 #include "level1.h"
 
 namespace lahva
@@ -33,7 +32,7 @@ namespace lahva
         template <typename T>
         double ComputeTrace(const CPURuntime &cpurt, const Matrix_<T> &matrix, bool use_diag = false);
 
-        /// @brief Compute the trace of a matrix from its diagonal
+        /// @brief Compute the trace of a matrix from its diagonal (double precision)
         ///
         /// Computes the trace from a pre-extracted diagonal vector (sum of all elements).
         ///
@@ -41,6 +40,15 @@ namespace lahva
         /// @param diag Input vector containing the diagonal elements.
         /// @return The trace (sum of diagonal elements) as a double-precision scalar.
         double ComputeTrace(const CPURuntime &cpurt, const Vector_<double> &diag);
+
+        /// @brief Compute the trace of a matrix from its diagonal (single precision)
+        ///
+        /// Computes the trace from a pre-extracted diagonal vector (sum of all elements).
+        ///
+        /// @param cpurt CPU Runtime instance.
+        /// @param diag Input vector containing the diagonal elements.
+        /// @return The trace (sum of diagonal elements) as a double-precision scalar.
+        double ComputeTrace(const CPURuntime &cpurt, const Vector_<float> &diag);
 
         /// @brief Compute the Frobenius norm of a matrix
         ///
@@ -251,4 +259,3 @@ namespace lahva
     } // namespace gpu
 
 }
-#endif

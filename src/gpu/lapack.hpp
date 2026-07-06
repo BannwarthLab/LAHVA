@@ -1,11 +1,31 @@
+/// @file lapack.hpp
+/// @brief GPU-accelerated LAPACK operations for solving linear systems.
+///
+/// Provides GPU kernel implementations for LAPACK-style linear system solvers
+/// using CUDA's cuSolver library. Supports solving general systems of linear equations
+/// with LU factorization. Each operation is provided for both double and float precision
+/// with GPU runtime management.
+
+#include "impl/gpu/utils.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
-#include "../gpu-utils/utils.hpp"
 
 namespace lahva
 {
     namespace gpu
     {
+        /// @brief Solves a system of linear equations A*X = B using LU factorization with transposition.
+        ///
+        /// Performs LU factorization of matrix A followed by forward/backward substitution
+        /// to compute X = A^(-1) * B. Supports optional matrix transposition via Ta parameter.
+        ///
+        /// @tparam T Floating-point type (double or float) for the matrices.
+        /// @tparam Allocator Host memory allocator type for matrices.
+        /// @tparam GPUAllocator Device memory allocator type for matrices.
+        /// @param cudart CUDA runtime instance.
+        /// @param Ta Transposition flag ('T' for transpose, 'N' for no transpose).
+        /// @param a Coefficient matrix (m x m square matrix), modified in-place with LU factors.
+        /// @param b Right-hand side matrix (m x nrhs), replaced with solution X.
         template<typename T, class Allocator, class GPUAllocator>
         void SolveGenSysLinEquations(CudaRuntime& cudart, const char* Ta, Matrix<T, Allocator, GPUAllocator>& a, Matrix<T, Allocator, GPUAllocator>& b)
         {
@@ -61,6 +81,18 @@ namespace lahva
             
         };
 
+        /// @brief Solves a system of linear equations A*X = B using LU factorization with optional transposition.
+        ///
+        /// Performs LU factorization of matrix A followed by forward/backward substitution
+        /// to compute X = A^(-1) * B. Transposition flag is provided at the end of the parameter list.
+        ///
+        /// @tparam T Floating-point type (double or float) for the matrices.
+        /// @tparam Allocator Host memory allocator type for matrices.
+        /// @tparam GPUAllocator Device memory allocator type for matrices.
+        /// @param cudart CUDA runtime instance.
+        /// @param a Coefficient matrix (m x m square matrix), modified in-place with LU factors.
+        /// @param b Right-hand side matrix (m x nrhs), replaced with solution X.
+        /// @param Ta Transposition flag ('T' for transpose, 'N' for no transpose).
         template<typename T, typename Allocator, typename GPUAllocator>
         void SolveGenSysLinEquations(CudaRuntime& cudart, Matrix<T, Allocator, GPUAllocator>& a, Matrix<T, Allocator, GPUAllocator>& b, const char* Ta)
         {
@@ -117,6 +149,5 @@ namespace lahva
             
         };
 
-    }
-    
+    } // namespace gpu
 } // namespace lahva

@@ -7,8 +7,7 @@
 /// It serves as the foundational layer for the LAHVA library's linear algebra operations.
 
 // Linear algebra backend
-#ifndef LAHVA_CONST_H
-#define LAHVA_CONST_H
+#pragma once
 #include <cstdint>
 #include <complex>
 #ifdef _WIN32
@@ -62,8 +61,8 @@ namespace lahva
     static const CBLAS_LAYOUT major = CblasColMajor;
     static const CBLAS_UPLO tri = CblasLower;
     static const int l_major = CblasColMajor;
-    static char l_uplo = 'L';
-    static char l_nondiag = 'N';
+    [[maybe_unused]] static char l_uplo = 'L';
+    [[maybe_unused]] static char l_nondiag = 'N';
     static const char major_char = 'C';
 
     /// @brief Type alias for tensor shape representation as (rows, columns) pair.
@@ -137,4 +136,3 @@ namespace lahva
     static const cublasFillMode_t tri_gpu = CUBLAS_FILL_MODE_LOWER;
 #endif
 }
-#endif

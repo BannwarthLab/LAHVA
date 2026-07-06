@@ -1,17 +1,28 @@
-#include "impl/blas/gpu/additional-level1.hpp"
-#include "norm.cuh"
-#include "reductions/reduction.cuh"
-#include "reductions/common.cuh"
+/// @file norm.cu
+/// @brief Host wrappers for GPU Frobenius norm computation kernels.
+///
+/// Provides template-instantiated host functions that launch block-size-specialized
+/// GPU kernels for computing Frobenius norms with parallel reduction.
+
 #include "common.h"
 #include "linalg.hpp"
+#include "norm.cuh"
+#include "reductions/common.cuh"
 
 namespace lahva
 {
     namespace gpu
     {
-       
-
-        
+        /// @brief Host wrapper to compute squared Frobenius norm of a matrix.
+        ///
+        /// Launches GPU kernel specialized by block size. Produces per-block partial sums
+        /// that must be further reduced on host to get final norm squared value.
+        ///
+        /// @tparam T Floating-point type (float or double).
+        /// @param cudart CUDA runtime instance.
+        /// @param ndim Total number of elements in matrix.
+        /// @param mat Input matrix.
+        /// @param vec Output vector of partial sums (one per block).
         template <typename T>
         void FrobeniusKernel(const CudaRuntime &cudart, unsigned long long ndim, const T *mat, T *vec)
         {
@@ -59,6 +70,17 @@ namespace lahva
 
         };
 
+        /// @brief Host wrapper to compute squared Frobenius norm of matrix difference.
+        ///
+        /// Launches GPU kernel specialized by block size for norm of A - B.
+        /// Produces per-block partial sums that must be further reduced on host to get final norm squared value.
+        ///
+        /// @tparam T Floating-point type (float or double).
+        /// @param cudart CUDA runtime instance.
+        /// @param ndim Total number of elements in matrices.
+        /// @param mat1 First input matrix (A).
+        /// @param mat2 Second input matrix (B).
+        /// @param vec Output vector of partial sums (one per block).
         template <typename T>
         void FrobeniusKernel2(const CudaRuntime &cudart, unsigned long long ndim, const T *mat1, const T* mat2, T *vec)
         {
@@ -106,12 +128,10 @@ namespace lahva
 
         };
 
-        // template __global__ static void Frobenius_<float, 1024>(const unsigned long long size, const float* mat, float* sum);
-        // template __global__ static void Frobenius_<double, 1024>(const unsigned long long size, const double* mat, double* sum);
         template void FrobeniusKernel<float>(const CudaRuntime &cudart, const unsigned long long ndim, const float *mat, float *vec);
         template void FrobeniusKernel<double>(const CudaRuntime &cudart, const unsigned long long ndim, const double *mat, double *vec);
         template void FrobeniusKernel2<float>(const CudaRuntime &cudart, const unsigned long long ndim, const float *mat1, const float* mat2, float *vec);
         template void FrobeniusKernel2<double>(const CudaRuntime &cudart, const unsigned long long ndim, const double *mat1, const double * mat2, double *vec);
+    
     } // namespace gpu
-
 } // namespace lahva

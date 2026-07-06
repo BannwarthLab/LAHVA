@@ -1,7 +1,15 @@
-#include "linalg.hpp"
-#include "impl/blas/cpu/level3.hpp"
-#include "impl/blas/cpu/level3.h"
+/// @file level3.cpp
+/// @brief CPU C++ template implementations of Level-3 BLAS operations.
+///
+/// Provides C++ template functions for Level-3 BLAS matrix-matrix operations including
+/// matrix multiplication. Supports optional transposition and scalar factors. Functions
+/// accept Matrix<T> types and forward to lower-level pointer-based CBLAS GEMM routines.
+
 #include "../utils/utils.hpp"
+#include "impl/blas/cpu/level3.h"
+#include "impl/blas/cpu/level3.hpp"
+#include "linalg.hpp"
+
 namespace lahva
 {
     namespace cpu
@@ -516,5 +524,5 @@ namespace lahva
             cblas_ssymm(major, side, tri, m, n, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
         };
 
-    }
+    } // namespace cpu
 } // namespace lahva

@@ -13,6 +13,7 @@ stages:
     matrix:
       - OS:
           - "RL9"
+          - "RL10"
         COMPILER:
           - "gnu-openblas"
           - "gnu-mkl2023.2.0"
@@ -25,8 +26,7 @@ stages:
 .gpu_matrix: &gpu_matrix
   parallel:
     matrix:
-      - OS:
-          - "RL9"
+      - OS: ["RL9"]
         COMPILER:
           - "gnu-openblas"
           - "gnu-mkl2023.2.0"
@@ -36,6 +36,16 @@ stages:
         GPU:
           - "cuda11.8"
           - "cuda12.5"
+          - "cuda13.0"
+      - OS: ["RL10"]
+        COMPILER:
+          - "gnu-openblas"
+          - "gnu-mkl2023.2.0"
+          - "gnu-mkl2025.3.0"
+          - "intel2023.2.0-mkl2023.2.0"
+          - "intel2025.3.0-mkl2025.3.0"
+        GPU:
+          - "cuda13.0"
 
 # General testing
 .test_template: &test_template
@@ -147,6 +157,8 @@ main-test-gpu-cmake:
 # Documentation
 documentation-build:
   stage: documentation-build
+  before_script:
+    - if ! command -v doxygen &> /dev/null; then module load doxygen; fi
   script:
   - doxygen .gitlab/Doxyfile
   artifacts:

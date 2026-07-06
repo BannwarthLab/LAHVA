@@ -6,8 +6,7 @@
 /// headers and defining consistent integer type aliases (LPCK_INT) used throughout
 /// the library for LAPACK function calls.
 
-#ifndef LAHVA_LAPACK_WRAP_HPP
-#define LAHVA_LAPACK_WRAP_HPP
+#pragma once
 
 #include <complex>
 #ifdef _WIN32
@@ -37,5 +36,3 @@ typedef CBLAS_ORDER CBLAS_LAYOUT;
 #include <mkl.h>
 typedef lapack_int LPCK_INT;
 #endif
-
-#endif // LAHVA_LAPACK_WRAP_HPP

@@ -1,7 +1,14 @@
-#include "linalg.hpp"
+/// @file level1.cpp
+/// @brief CPU C++ template implementations of Level-1 BLAS operations.
+///
+/// Provides C++ template functions for Level-1 BLAS vector-vector operations including
+/// inner products, norms, vector addition, and scaling. Functions accept Matrix<T> and
+/// Vector<T> types and forward to lower-level pointer-based CBLAS routines.
+
 #include "../utils/utils.hpp"
-#include "impl/blas/cpu/level1.hpp"
 #include "impl/blas/cpu/level1.h"
+#include "impl/blas/cpu/level1.hpp"
+#include "linalg.hpp"
 
 namespace lahva
 {
@@ -269,5 +276,5 @@ namespace lahva
         template int IndexMaxFromVector<float>(const Tensor<float> &x);
         template int IndexMaxFromVector<double>(const Tensor<double> &x, const size_t ix);
         template int IndexMaxFromVector<float>(const Tensor<float> &x, const size_t ix);
-    }
-}
+    } // namespace cpu
+} // namespace lahva

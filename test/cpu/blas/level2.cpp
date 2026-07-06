@@ -465,10 +465,6 @@ int test_ger(){
     return stat_;
 }
 
-// ============================================================================
-// BlockDiagMatrix GEMV Tests (Templated)
-// ============================================================================
-
 template<typename T>
 int test_blockdiag_gemv_simple() {
     int failures = 0;

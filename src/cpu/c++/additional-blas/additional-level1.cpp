@@ -1,3 +1,10 @@
+/// @file additional-level1.cpp
+/// @brief CPU C++ implementations of extended/custom Level-1 BLAS operations.
+///
+/// Implements additional vector and trace operations beyond standard BLAS Level-1,
+/// including trace computation with optional OpenMP parallelization. Provides type-specific
+/// implementations for double, float, and complex types.
+
 #include "impl/blas/cpu/additional-level1.hpp"
 #ifdef W_OPENMP
 #include <omp.h>
@@ -55,6 +62,16 @@ namespace lahva
         /// @param diag Input vector containing the diagonal elements.
         /// @return The trace (sum of diagonal elements) as a double-precision scalar.
         double ComputeTrace(const CPURuntime &cudart, const Vector_<double> &diag)
+        {
+            double trace = 0;
+
+#pragma omp parallel for shared(diag) reduction(+ : trace)
+            for (int i = 0; i < static_cast<int>(diag.size()); i++)
+                trace += (double)diag[i];
+            return trace;
+        };
+
+        double ComputeTrace(const CPURuntime &cudart, const Vector_<float> &diag)
         {
             double trace = 0;
 
@@ -235,6 +252,6 @@ namespace lahva
         template void HadamardProduct(const Tensor<float> &A, const Tensor<float> &B, Tensor<float> &C);
         template void HadamardProduct(const size_t ndim, const double *A, const double *B, double *C, bool increment);
         template void HadamardProduct(const size_t ndim, const float *A, const float *B, float *C, bool increment);
+    
     } // namespace cpu
-
 } // namespace lahva

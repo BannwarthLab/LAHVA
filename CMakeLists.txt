@@ -11,16 +11,14 @@ project(
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-option(WITH_TESTS "Copmile Testsuite" ON)
 # Follow GNU conventions for installing directories
 include(GNUInstallDirs)
 
+option(WITH_TESTS "Compile Testsuite" ON)
 option(GPU "Enable GPU support" OFF)
 option(LAPACK_VENDOR "Specify LAPACK vendor" "auto")
 option(CUSTOM_LIBRARIES "Custom libraries for LAPACK" "")
 #option(CUDA_ARCHITECTURES "NVIDIA Compute Capability (list of strings)" "89;86;80")
-
-option(WITH_TESTS "Copmile Testsuite" OFF)
 
 add_library(
   "${PROJECT_NAME}-lib" SHARED
@@ -169,5 +167,5 @@ export(TARGETS
 # add the testsuite
 if (WITH_TESTS)
   enable_testing()
-  add_subdirectory("test")
+  add_subdirectory(test)
 endif()

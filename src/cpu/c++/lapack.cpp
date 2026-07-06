@@ -1,13 +1,22 @@
-#include "linalg.hpp"
-#include "impl/blas/cpu/lapack.hpp"
+/// @file lapack.cpp
+/// @brief CPU C++ template implementations of LAPACK linear algebra routines.
+///
+/// Provides C++ template functions for LAPACK operations including LU factorization, QR
+/// factorization, Cholesky decomposition, eigenvalue solvers, and matrix inversions.
+/// Functions accept Matrix<T> and Vector<T> types and forward to Fortran LAPACK routines.
+
 #include <stdexcept>
+#include "impl/blas/cpu/lapack.hpp"
 #include "lapack_wrap.hpp"
+#include "linalg.hpp"
 
 namespace lahva
 {
 
     namespace cpu
     {
+        using lahva::l_uplo;
+        using lahva::l_major;
 
         /// @brief Compute LU factorization of a double-precision matrix
         ///
@@ -651,12 +660,11 @@ namespace lahva
             {
                 throw std::runtime_error("l_jobz should be 'N' or 'V'");
             }
-            LPCK_INT size_work = 2 * n - 1;
-            LPCK_INT size_iwork = 1;
+            LPCK_INT size_work = 2 * n + 1;
+            LPCK_INT size_iwork = 3 + 5 * n;
             if (l_jobz == 'V')
             {
                 size_work = 1 + 6 * n + 2 * n * n;
-                size_iwork = 3 + 5 * n;
             }
             
             Vector<double> work(size_work);
@@ -705,12 +713,11 @@ namespace lahva
             {
                 throw std::runtime_error("l_jobz should be 'N' or 'V'");
             }
-            LPCK_INT size_work = 2 * n - 1;
-            LPCK_INT size_iwork = 1;
+            LPCK_INT size_work = 2 * n + 1;
+            LPCK_INT size_iwork = 3 + 5 * n;
             if (l_jobz == 'V')
             {
                 size_work = 1 + 6 * n + 2 * n * n;
-                size_iwork = 3 + 5 * n;
             }
             
             Vector<float> work(size_work);
@@ -732,5 +739,4 @@ namespace lahva
         }; 
         
     } // namespace cpu
-
-}
+} // namespace lahva
