@@ -6,30 +6,30 @@ cpu_test_utils_dep = declare_dependency(
 )
 
 # Vector type tests
-test('cpu-types-vector',
+test('cpu-tensor-vector',
   executable(
-    'lahva-cpu-vector-types-test',
-    sources: files('types/vector-types.cpp'),
+    'lahva-cpu-tensor-vector',
+    sources: files('tensor/vector.cpp'),
     dependencies: [lahva_dep, cpu_test_utils_dep],
     link_language: 'cpp',
   ),
 )
 
 # Matrix type tests
-test('cpu-types-matrix',
+test('cpu-tensor-matrix',
   executable(
-    'lahva-cpu-matrix-types-test',
-    sources: files('types/matrix-types.cpp'),
+    'lahva-cpu-matrix-tensor',
+    sources: files('tensor/matrix.cpp'),
     dependencies: [lahva_dep, cpu_test_utils_dep],
     link_language: 'cpp',
   ),
 )
 
 # LowTriMatrix type tests
-test('cpu-types-lowtrimatrix',
+test('cpu-tensor-lowtrimatrix',
   executable(
-    'lahva-cpu-lowtrimatrix-types-test',
-    sources: files('types/lowtrimatrix-types.cpp'),
+    'lahva-cpu-lowtrimatrix-tensor',
+    sources: files('tensor/lowtrimatrix.cpp'),
     dependencies: [lahva_dep, cpu_test_utils_dep],
     link_language: 'cpp',
   ),
@@ -38,8 +38,8 @@ test('cpu-types-lowtrimatrix',
 # BLAS Level 1 tests
 test('cpu-blas-level1',
   executable(
-    'lahva-cpu-level1-test',
-    sources: files('impl/level1.cpp'),
+    'lahva-cpu-level1',
+    sources: files('blas/level1.cpp'),
     dependencies: [lahva_dep, cpu_test_utils_dep],
     link_language: 'cpp',
   ),
@@ -48,8 +48,8 @@ test('cpu-blas-level1',
 # BLAS Level 2 tests
 test('cpu-blas-level2',
   executable(
-    'lahva-cpu-level2-test',
-    sources: files('impl/level2.cpp'),
+    'lahva-cpu-level2',
+    sources: files('blas/level2.cpp'),
     dependencies: [lahva_dep, cpu_test_utils_dep],
     link_language: 'cpp',
   ),
@@ -58,38 +58,38 @@ test('cpu-blas-level2',
 # BLAS Level 3 tests
 test('cpu-blas-level3',
   executable(
-    'lahva-cpu-level3-test',
-    sources: files('impl/level3.cpp'),
+    'lahva-cpu-level3',
+    sources: files('blas/level3.cpp'),
     dependencies: [lahva_dep, cpu_test_utils_dep],
     link_language: 'cpp',
   ),
 )
 
 # Additional Level 1 tests
-test('cpu-additional-level1',
+test('cpu-blas-additional-level1',
   executable(
-    'lahva-cpu-additional-level1-test',
-    sources: files('blas/additional/level1.cpp'),
+    'lahva-cpu-blas-additional-level1',
+    sources: files('blas/additional-level1.cpp'),
     dependencies: [lahva_dep, cpu_test_utils_dep],
     link_language: 'cpp',
   ),
 )
 
 # Additional Level 2 tests
-test('cpu-additional-level2',
+test('cpu-blas-additional-level2',
   executable(
-    'lahva-cpu-additional-level2-test',
-    sources: files('blas/additional/level2.cpp'),
+    'lahva-cpu-blas-additional-level2',
+    sources: files('blas/additional-level2.cpp'),
     dependencies: [lahva_dep, cpu_test_utils_dep],
     link_language: 'cpp',
   ),
 )
 
 # LAPACK tests
-test('cpu-lapack',
+test('cpu-blas-lapack',
   executable(
-    'lahva-cpu-lapack-test',
-    sources: files('lapack-test.cpp'),
+    'lahva-cpu-blas-lapack',
+    sources: files('blas/lapack.cpp'),
     dependencies: [lahva_dep, cpu_test_utils_dep],
     link_language: 'cpp',
   ),

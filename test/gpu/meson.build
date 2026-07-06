@@ -6,59 +6,59 @@ gpu_test_utils_dep = declare_dependency(
 )
 
 # GPU Tensor type tests
-test('gpu-tensor-types',
+test('gpu-tensor-tensor',
   executable(
-    'lahva-gpu-tensor-types-test',
-    sources: files('types/gpu-tensor-types.cpp'),
+    'lahva-gpu-tensor-tensor',
+    sources: files('tensor/gpu-tensor.cpp'),
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
   ),
 )
 
 # Vector type tests
-test('gpu-types-vector',
+test('gpu-tensor-vector',
   executable(
-    'lahva-gpu-vector-types-test',
-    sources: files('types/vector-types.cpp'),
+    'lahva-gpu-vector-tensor',
+    sources: files('tensor/vector.cpp'),
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
   ),
 )
 
 # Matrix type tests
-test('gpu-types-matrix',
+test('gpu-tensor-matrix',
   executable(
-    'lahva-gpu-matrix-types-test',
-    sources: files('types/matrix-types.cpp'),
+    'lahva-gpu-matrix-tensor',
+    sources: files('tensor/matrix.cpp'),
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
   ),
 )
 
 # LowTriMatrix type tests
-test('gpu-types-lowtrimatrix',
+test('gpu-tensor-lowtrimatrix',
   executable(
-    'lahva-gpu-lowtrimatrix-types-test',
-    sources: files('types/lowtrimatrix-types.cpp'),
+    'lahva-gpu-lowtrimatrix-tensor',
+    sources: files('tensor/lowtrimatrix.cpp'),
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
   ),
 )
 
 # Mixed-Precision Matrix tests
-test('gpu-mixed-precision-matrix',
+test('gpu-tensor-mixed-precision-matrix',
   executable(
-    'lahva-gpu-mixed-precision-matrix-test',
-    sources: files('types/mixed-precision-matrix-test.cpp'),
+    'lahva-gpu-tensor-mixed-precision-matrix',
+    sources: files('tensor/mixed-precision-matrix.cpp'),
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
   ),
 )
 
 # GPU miscellaneous tests
-test('gpu-misc',
+test('gpu-utils-misc',
   executable(
-    'lahva-gpu-misc-test',
+    'lahva-gpu-utils-misc',
     sources: files('utils/gpu-misc.cpp'),
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
@@ -69,7 +69,7 @@ test('gpu-misc',
 # BLAS Level 1 tests
 test('gpu-blas-level1',
   executable(
-    'lahva-gpu-level1-test',
+    'lahva-gpu-level1',
     sources: files('blas/level1.cpp'),
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
@@ -79,7 +79,7 @@ test('gpu-blas-level1',
 # BLAS Level 2 tests
 test('gpu-blas-level2',
   executable(
-    'lahva-gpu-level2-test',
+    'lahva-gpu-level2',
     sources: files('blas/level2.cpp'),
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
@@ -89,7 +89,7 @@ test('gpu-blas-level2',
 # BLAS Level 3 tests
 test('gpu-blas-level3',
   executable(
-    'lahva-gpu-level3-test',
+    'lahva-gpu-level3',
     sources: files('blas/level3.cpp'),
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
@@ -97,20 +97,20 @@ test('gpu-blas-level3',
 )
 
 # Additional Level 1 tests
-test('gpu-additional-level1',
+test('gpu-blas-additional-level1',
   executable(
-    'lahva-gpu-additional-level1-test',
-    sources: files('additional/level1.cpp'),
+    'lahva-gpu-blas-additional-level1',
+    sources: files('blas/additional-level1.cpp'),
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
   ),
 )
 
 # Additional Level 2 tests
-test('gpu-additional-level2',
+test('gpu-blas-additional-level2',
   executable(
-    'lahva-gpu-additional-level2-test',
-    sources: files('additional/level2.cpp'),
+    'lahva-gpu-additional-level2',
+    sources: files('blas/additional-level2.cpp'),
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
   ),
