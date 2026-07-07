@@ -29,13 +29,13 @@ target_include_directories(${PROJECT_NAME}-cpu-tensor-lowtrimatrix PRIVATE ${CMA
 add_test(NAME cpu-tensor-lowtrimatrix COMMAND ${PROJECT_NAME}-cpu-tensor-lowtrimatrix)
 
 # BlockDiagMatrix type tests
-add_executable(${PROJECT_NAME}-cpu-blockdiagmatrix-types
-    types/blockdiagmatrix-types.cpp
+add_executable(${PROJECT_NAME}-cpu-tensor-blockdiagmatrix
+    tensor/blockdiagmatrix.cpp
     $<TARGET_OBJECTS:test-utils>
 )
-target_link_libraries(${PROJECT_NAME}-cpu-blockdiagmatrix-types PRIVATE ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME}-cpu-blockdiagmatrix-types PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
-add_test(NAME cpu-types-blockdiagmatrix COMMAND ${PROJECT_NAME}-cpu-blockdiagmatrix-types)
+target_link_libraries(${PROJECT_NAME}-cpu-tensor-blockdiagmatrix PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-cpu-tensor-blockdiagmatrix PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME cpu-tensor-blockdiagmatrix COMMAND ${PROJECT_NAME}-cpu-tensor-blockdiagmatrix)
 
 # Level 1 BLAS tests
 add_executable(${PROJECT_NAME}-cpu-level1
