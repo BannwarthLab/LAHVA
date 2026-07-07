@@ -294,6 +294,231 @@ int test_outer_product(CudaRuntime& cudart){
     return stat_;
 }
 
+template <typename T>
+int test_gpu_blockdiag_gemv_simple() {
+    int failures = 0;
+
+    CudaRuntime cudart;
+
+    // Create block diagonal matrix with two 2x2 blocks
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    // Create input vector
+    Vector<T, CudaHostAllocator<T>> x(4);
+    x[0] = 1.0;
+    x[1] = 2.0;
+    x[2] = 3.0;
+    x[3] = 4.0;
+
+    // Create output vector
+    Vector<T, CudaHostAllocator<T>> y(4, 0.0);
+
+    // Compute y = A * x
+    MatrixVectorProduct(cudart, "N", static_cast<T>(1.0), A, x, static_cast<T>(0.0), y);
+
+    // Check results
+    if (!check(y[0], static_cast<T>(5.0), get_tolerance<T>(), "y[0] should be 5")) {
+        failures += 1;
+    }
+    if (!check(y[1], static_cast<T>(11.0), get_tolerance<T>(), "y[1] should be 11")) {
+        failures += 1;
+    }
+    if (!check(y[2], static_cast<T>(39.0), get_tolerance<T>(), "y[2] should be 39")) {
+        failures += 1;
+    }
+    if (!check(y[3], static_cast<T>(53.0), get_tolerance<T>(), "y[3] should be 53")) {
+        failures += 1;
+    }
+
+    return failures;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemv_with_beta() {
+    int failures = 0;
+
+    CudaRuntime cudart;
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T, CudaHostAllocator<T>> x(2, static_cast<T>(1.0));
+    Vector<T, CudaHostAllocator<T>> y(2, static_cast<T>(2.0));
+
+    MatrixVectorProduct(cudart, "N", static_cast<T>(1.0), A, x, static_cast<T>(2.0), y);
+
+    if (!check(y[0], static_cast<T>(8.0), get_tolerance<T>(), "y[0] should be 8")) {
+        failures += 1;
+    }
+    if (!check(y[1], static_cast<T>(10.0), get_tolerance<T>(), "y[1] should be 10")) {
+        failures += 1;
+    }
+
+    return failures;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemv_varying_blocks() {
+    int failures = 0;
+
+    CudaRuntime cudart;
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{1, 1}, {2}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{1, 1}, {3}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T, CudaHostAllocator<T>> x(4);
+    x[0] = 1.0;
+    x[1] = 2.0;
+    x[2] = 3.0;
+    x[3] = 4.0;
+
+    Vector<T, CudaHostAllocator<T>> y(4, static_cast<T>(0.0));
+
+    MatrixVectorProduct(cudart, "N", static_cast<T>(1.0), A, x, static_cast<T>(0.0), y);
+
+    if (!check(y[0], static_cast<T>(2.0), get_tolerance<T>(), "y[0] should be 2")) {
+        failures += 1;
+    }
+    if (!check(y[1], static_cast<T>(11.0), get_tolerance<T>(), "y[1] should be 11")) {
+        failures += 1;
+    }
+    if (!check(y[2], static_cast<T>(16.0), get_tolerance<T>(), "y[2] should be 16")) {
+        failures += 1;
+    }
+    if (!check(y[3], static_cast<T>(12.0), get_tolerance<T>(), "y[3] should be 12")) {
+        failures += 1;
+    }
+
+    return failures;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemv_transpose() {
+    int failures = 0;
+
+    CudaRuntime cudart;
+
+    // Create block diagonal matrix with one 2x2 block
+    // Matrix in column-major: {1, 3, 2, 4} represents:
+    // [1 2]
+    // [3 4]
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    // Create input vector
+    Vector<T, CudaHostAllocator<T>> x(2);
+    x[0] = 1.0;
+    x[1] = 2.0;
+
+    // Create output vector
+    Vector<T, CudaHostAllocator<T>> y(2, static_cast<T>(0.0));
+
+    // Compute y = A^T * x
+    // A^T = [1 3]
+    //       [2 4]
+    // A^T * x = [1*1 + 3*2, 2*1 + 4*2] = [7, 10]
+    MatrixVectorProduct(cudart, "T", static_cast<T>(1.0), A, x, static_cast<T>(0.0), y);
+
+    if (!check(y[0], static_cast<T>(7.0), get_tolerance<T>(), "y[0] should be 7")) {
+        failures += 1;
+    }
+    if (!check(y[1], static_cast<T>(10.0), get_tolerance<T>(), "y[1] should be 10")) {
+        failures += 1;
+    }
+
+    return failures;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemv_transpose_with_beta() {
+    int failures = 0;
+
+    CudaRuntime cudart;
+
+    // Create block diagonal matrix with one 2x2 block
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T, CudaHostAllocator<T>> x(2, static_cast<T>(1.0));
+    Vector<T, CudaHostAllocator<T>> y(2, static_cast<T>(2.0));
+
+    // Compute y = A^T * x + 2*y
+    // A^T = [1 2]
+    //       [3 4]
+    // A^T * x = [1*1 + 2*1, 3*1 + 4*1] = [3, 7]
+    // result = [3, 7] + 2*[2, 2] = [7, 11]
+    MatrixVectorProduct(cudart, "T", static_cast<T>(1.0), A, x, static_cast<T>(2.0), y);
+
+    if (!check(y[0], static_cast<T>(7.0), get_tolerance<T>(), "y[0] should be 7")) {
+        failures += 1;
+    }
+    if (!check(y[1], static_cast<T>(11.0), get_tolerance<T>(), "y[1] should be 11")) {
+        failures += 1;
+    }
+
+    return failures;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemv_transpose_multiple_blocks() {
+    int failures = 0;
+
+    CudaRuntime cudart;
+
+    // Create block diagonal matrix with two 2x2 blocks
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    // Create input vector
+    Vector<T, CudaHostAllocator<T>> x(4);
+    x[0] = 1.0;
+    x[1] = 2.0;
+    x[2] = 3.0;
+    x[3] = 4.0;
+
+    // Create output vector
+    Vector<T, CudaHostAllocator<T>> y(4, static_cast<T>(0.0));
+
+    // Compute y = A^T * x
+    // Block 1: A1^T = [1 3], A1^T * [1, 2] = [7, 10]
+    //                 [2 4]
+    // Block 2: A2^T = [5 7], A2^T * [3, 4] = [43, 50]
+    //                 [6 8]
+    MatrixVectorProduct(cudart, "T", static_cast<T>(1.0), A, x, static_cast<T>(0.0), y);
+
+    if (!check(y[0], static_cast<T>(7.0), get_tolerance<T>(), "y[0] should be 7")) {
+        failures += 1;
+    }
+    if (!check(y[1], static_cast<T>(10.0), get_tolerance<T>(), "y[1] should be 10")) {
+        failures += 1;
+    }
+    if (!check(y[2], static_cast<T>(43.0), get_tolerance<T>(), "y[2] should be 43")) {
+        failures += 1;
+    }
+    if (!check(y[3], static_cast<T>(50.0), get_tolerance<T>(), "y[3] should be 50")) {
+        failures += 1;
+    }
+
+    return failures;
+}
+
 int main(){
     int stat = 0;
     CudaRuntime cudart;
@@ -319,5 +544,19 @@ int main(){
     printf("7th Test");
     stat += test_outer_product<double>(cudart);
     stat += test_outer_product<float>(cudart);
+    std::cout << "8th Test - BlockDiag GEMV (double precision)" << std::endl;
+    stat += test_gpu_blockdiag_gemv_simple<double>();
+    stat += test_gpu_blockdiag_gemv_with_beta<double>();
+    stat += test_gpu_blockdiag_gemv_varying_blocks<double>();
+    stat += test_gpu_blockdiag_gemv_transpose<double>();
+    stat += test_gpu_blockdiag_gemv_transpose_with_beta<double>();
+    stat += test_gpu_blockdiag_gemv_transpose_multiple_blocks<double>();
+    std::cout << "9th Test - BlockDiag GEMV (single precision)" << std::endl;
+    stat += test_gpu_blockdiag_gemv_simple<float>();
+    stat += test_gpu_blockdiag_gemv_with_beta<float>();
+    stat += test_gpu_blockdiag_gemv_varying_blocks<float>();
+    stat += test_gpu_blockdiag_gemv_transpose<float>();
+    stat += test_gpu_blockdiag_gemv_transpose_with_beta<float>();
+    stat += test_gpu_blockdiag_gemv_transpose_multiple_blocks<float>();
     return stat;
 };

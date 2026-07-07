@@ -223,7 +223,15 @@ int test_mp_matrix_self_assignment() {
     MixedPrecisionMatrix<T> m(s);
     m.data()[0] = (T)1.5;
 
+    // Self-assignment should be safe
+    #if defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wself-assign-overloaded"
+    #endif
     m = m;
+    #if defined(__clang__)
+    #pragma GCC diagnostic pop
+    #endif
 
     double tol = get_tolerance<T>();
     if (!check(m.data()[0], (T)1.5, tol, "MP matrix self assignment")) {

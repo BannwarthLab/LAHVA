@@ -55,6 +55,26 @@ test('gpu-tensor-mixed-precision-matrix',
   ),
 )
 
+# Blockmatrix type tests
+test('gpu-tensor-blockmatrix',
+  executable(
+    'lahva-gpu-tensor-blockmatrix',
+    sources: files('tensor/blockmatrix.cpp'),
+    dependencies: [lahva_dep, gpu_test_utils_dep],
+    link_language: 'cpp',
+  ),
+)
+
+# Blockdiag type tests
+test('gpu-tensor-blockdiagmatrix',
+  executable(
+    'lahva-gpu-tensor-blockdiagmatrix',
+    sources: files('tensor/blockdiagmatrix.cpp'),
+    dependencies: [lahva_dep, gpu_test_utils_dep],
+    link_language: 'cpp',
+  ),
+)
+
 # GPU miscellaneous tests
 test('gpu-utils-misc',
   executable(
@@ -126,3 +146,12 @@ test('gpu-mixed-precision',
   ),
   timeout: 60,
 )
+
+#test('gpu-blockdiag-level3',
+#  executable(
+#    'lahva-gpu-blockdiag-level3',
+#    sources: files('blas/blockdiag-level3.cpp'),
+#    dependencies: [lahva_dep, gpu_test_utils_dep],
+#    link_language: 'cpp',
+#  ),
+#)

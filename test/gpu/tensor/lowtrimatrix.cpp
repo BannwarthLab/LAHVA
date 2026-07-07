@@ -205,7 +205,14 @@ int test_gpu_lowtrimatrix_copy_assignment() {
     }
 
     // Self-assignment should be safe
+    #if defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wself-assign-overloaded"
+    #endif
     m1 = m1;
+    #if defined(__clang__)
+    #pragma GCC diagnostic pop
+    #endif
     if (!check((int)m1.size(), 6, "GPU self-assignment packed size n*(n+1)/2 = 3*4/2 = 6")) {
         failures += 1;
     }

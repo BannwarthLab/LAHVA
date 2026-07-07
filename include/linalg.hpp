@@ -20,7 +20,9 @@
 #ifdef _CUDA
 #include <cuda_fp16.h>
 #include "impl/mp-runtime.hpp"
-#include "impl/tensor/gpu/blockdiagmatrix.hpp"
+#include "impl/tensor/gpu/block-matrix-classes/block-matrix.hpp"
+#include "impl/tensor/gpu/block-matrix-classes/block-diag-matrix.hpp"
+#include "impl/tensor/gpu/block-matrix-classes/sparse-matrix.hpp"
 #include "impl/tensor/gpu/lowtrimatrix.hpp"
 #include "impl/tensor/gpu/matrix.hpp"
 #include "impl/tensor/gpu/vector.hpp"

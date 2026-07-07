@@ -176,8 +176,15 @@ int test_gputensor_copy_assignment_self() {
     int failures = 0;
     Matrix<double> m(Shape(2, 2), 2.5);
 
-    // Self-assignment (exercises line 132 check)
+     // Self-assignment should be safe
+    #if defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wself-assign-overloaded"
+    #endif
     m = m;
+    #if defined(__clang__)
+    #pragma GCC diagnostic pop
+    #endif
 
     if (!check((int)m.size(), 4, "Copy assignment self")) {
         failures += 1;
