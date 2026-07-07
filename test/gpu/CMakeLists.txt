@@ -46,6 +46,25 @@ target_link_libraries(${PROJECT_NAME}-gpu-tensor-mixed-precision-matrix PRIVATE 
 target_include_directories(${PROJECT_NAME}-gpu-tensor-mixed-precision-matrix PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
 add_test(NAME gpu-tensor-mixed-precision-matrix COMMAND ${PROJECT_NAME}-gpu-tensor-mixed-precision-matrix)
 
+# Blockmatrix tensor tests
+add_executable(${PROJECT_NAME}-gpu-tensor-blockmatrix
+    tensor/blockmatrix.cpp
+    $<TARGET_OBJECTS:test-utils>
+)
+target_link_libraries(${PROJECT_NAME}-gpu-tensor-blockmatrix PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-gpu-tensor-blockmatrix PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME gpu-tensor-blockmatrix COMMAND ${PROJECT_NAME}-gpu-tensor-blockmatrix)
+
+# Blockdiagmatrix tensor tests
+add_executable(${PROJECT_NAME}-gpu-tensor-blockdiagmatrix
+    tensor/blockmatrix.cpp
+    $<TARGET_OBJECTS:test-utils>
+)
+target_link_libraries(${PROJECT_NAME}-gpu-tensor-blockdiagmatrix PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-gpu-tensor-blockdiagmatrix PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME gpu-tensor-blockdiagmatrix COMMAND ${PROJECT_NAME}-gpu-tensor-blockdiagmatrix)
+
+
 # GPU miscellaneous tests
 add_executable(${PROJECT_NAME}-gpu-utils-misc
     utils/gpu-misc.cpp
