@@ -164,5 +164,5 @@ export(TARGETS
 # add the testsuite
 if (WITH_TESTS)
   enable_testing()
-  add_subdirectory(test)
+  add_subdirectory("test")
 endif()
