@@ -6,24 +6,25 @@
 /// and mixed-precision computations with CPU matrices.
 
 #pragma once
-#include "impl/tensor/allocators.hpp"
-#include "impl/tensor/gpu/gputensor.hpp"
-#include "impl/tensor/cpu/tensor.hpp"
-#include "impl/tensor/cpu/matrix.hpp"
-#include "impl/tensor/gpu/vector.hpp"
-#include "impl/blas/cpu/level1.h"
-#include <initializer_list>
-#include <omp.h>
-#include <iostream>
-#include <string>
-#include <fstream>
+
 #include <cassert>
+#include <fstream>
+#include <initializer_list>
+#include <iostream>
+#include <omp.h>
+#include <string>
+
+#include "impl/blas/cpu/level1.h"
+#include "impl/tensor/allocators.hpp"
+#include "impl/tensor/cpu/matrix.hpp"
+#include "impl/tensor/cpu/tensor.hpp"
+#include "impl/tensor/gpu/gputensor.hpp"
+#include "impl/tensor/gpu/vector.hpp"
+
 namespace lahva
 {
     namespace gpu
     {
-        
-    
     
     template<typename T>
     class Matrix_ : public virtual GPUTensor_<T>, public virtual cpu::Matrix_<T>

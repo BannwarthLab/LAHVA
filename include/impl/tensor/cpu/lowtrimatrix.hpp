@@ -6,15 +6,19 @@
 /// Includes specialized operations leveraging triangular matrix properties.
 
 #pragma once
-#include "impl/tensor/allocators.hpp"
-#include "impl/tensor/cpu/tensor.hpp"
+#include <cassert>
+#include <cmath>
+#include <iostream>
 #include <omp.h>
+
+#include "const.h"
+#include "impl/tensor/allocators.hpp"
+#include "impl/tensor/cpu/vector.hpp"
 
 namespace lahva
 {
     namespace cpu
-    {
-        
+    {       
 
     template<typename T>
     class LowTriMatrix_ : virtual public Tensor<T>

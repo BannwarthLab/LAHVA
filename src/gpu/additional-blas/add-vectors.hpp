@@ -1,4 +1,10 @@
-#pragma once 
+/// @file add-vectors.hpp
+/// @brief Mixed-precision vector addition kernels for GPU computation.
+///
+/// Provides functions for adding vectors with type conversion between different
+/// precisions (double, float, half-precision).
+
+#pragma once
 #include "linalg.hpp"
 
 namespace lahva

@@ -1,3 +1,9 @@
+/// @file hadamard.h
+/// @brief GPU kernels for Hadamard product (element-wise multiplication) operations.
+///
+/// Provides custom GPU kernels for efficient element-wise tensor multiplication
+/// in both in-place and out-of-place variants with single and double precision.
+
 #pragma once
 #include <cuda_runtime.h>
 #include "cublas_v2.h"

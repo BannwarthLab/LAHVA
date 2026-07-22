@@ -6,11 +6,14 @@
 /// Each function is provided for double and float precision with GPU runtime management.
 
 #pragma once
-#include "linalg.hpp"
 #include "const.h"
+#include "linalg.hpp"
 #include "runtime.hpp"
-namespace lahva{
-    namespace gpu {
+
+namespace lahva
+{
+    namespace gpu 
+    {
     void MatrixMatrixProduct(const CudaRuntime& cudart, const char* Ta, const char* Tb, const double alpha, const Matrix_<double>& a, const Matrix_<double>& b,
                              const double beta, Matrix_<double>& c);
     void MatrixMatrixProduct(const CudaRuntime& cudart, const Matrix_<double>& a, const Matrix_<double>& b, Matrix_<double>& c,

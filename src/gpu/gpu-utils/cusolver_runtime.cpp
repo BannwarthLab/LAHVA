@@ -1,5 +1,11 @@
-#include "runtime.hpp"
+/// @file cusolver_runtime.cpp
+/// @brief NVIDIA cuSolver runtime wrapper implementation.
+///
+/// Provides CUDA cuSolver library initialization, cleanup, and stream management
+/// for GPU-accelerated linear algebra operations.
+
 #include <iostream>
+#include "runtime.hpp"
 
 void get_cusolv_ERROR(cusolverStatus_t stat, const char *file, int line)
     {

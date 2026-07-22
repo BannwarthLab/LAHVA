@@ -10,9 +10,10 @@
 #include "linalg.hpp"
 #include "runtime.hpp"
 
-namespace lahva{
-    namespace gpu{ 
-
+namespace lahva
+{
+    namespace gpu
+    {
     void OuterVectorProduct(const CudaRuntime& cudart, const Vector<double>& x, const Vector<double>& y, Matrix<double>& A, size_t incx = 1, size_t incy = 1, const double alpha = 1.0);
     void OuterVectorProduct(const CudaRuntime& cudart, const Vector<float>& x, const Vector<float>& y, Matrix<float>& A, size_t incx = 1, size_t incy = 1, const float alpha = 1.0);
 

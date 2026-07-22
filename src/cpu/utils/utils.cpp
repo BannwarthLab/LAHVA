@@ -1,7 +1,14 @@
-#include "const.h"
-#include "utils.hpp"
+/// @file utils.cpp
+/// @brief CPU utility functions for BLAS/LAPACK operations.
+///
+/// Provides helper functions for calculating leading dimensions in column-major storage,
+/// handling transpose flags, shape validation, and other utilities supporting CPU BLAS/LAPACK
+/// functions throughout the library.
+
 #include <cstring>
 #include <iostream>
+#include "const.h"
+#include "utils.hpp"
 
 namespace lahva
 {

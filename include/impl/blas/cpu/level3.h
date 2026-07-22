@@ -9,8 +9,10 @@
 #pragma once
 #include "const.h"
 
-namespace lahva{
-    namespace cpu{
+namespace lahva
+{
+    namespace cpu
+    {
     void MatrixMatrixProduct(const char* Ta, const char* Tb, const size_t m, const size_t n, const size_t k, 
                              const double alpha, const double* a, const double* b, const double beta, double* c);
     void MatrixMatrixProduct(const size_t m, const size_t n, const size_t k, const double* a, const double* b, double* c,

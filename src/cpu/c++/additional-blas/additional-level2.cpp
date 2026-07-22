@@ -1,3 +1,10 @@
+/// @file additional-level2.cpp
+/// @brief CPU C++ implementations of extended/custom Level-2 BLAS operations.
+///
+/// Implements additional matrix-vector and matrix-matrix operations beyond standard BLAS
+/// Level-2, including matrix addition with optional transposes. Supports OpenMP parallelization
+/// for multi-threaded execution.
+
 #include "linalg.hpp"
 #include "impl/blas/cpu/additional-level2.hpp"
 #include "../../utils/utils.hpp"

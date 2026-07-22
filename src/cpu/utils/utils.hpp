@@ -1,11 +1,15 @@
+/// @file utils.hpp
+/// @brief CPU utility functions for tensor and matrix dimension validation.
+
 #pragma once
-#include "linalg.hpp"
-#include "const.h"
 #include <tuple>
+#include "const.h"
+#include "linalg.hpp"
 
 #include <assert.h>
 
-namespace lahva{
+namespace lahva
+{
     template<typename T, typename U>
     void check_equal_size(const Tensor<T>& v1, const Tensor<U>& v2){
         assert(v1.size() == v2.size());

@@ -5,11 +5,14 @@
 /// (vectors, matrices, etc.). Includes memory management, shape information, and basic operations.
 
 #pragma once
-#include <memory>
-#include <iterator>
+
 #include <iostream>
-#include "impl/tensor/allocators.hpp"
+#include <iterator>
+#include <memory>
 #include <omp.h>
+
+#include "impl/tensor/allocators.hpp"
+
 namespace lahva
 {
 

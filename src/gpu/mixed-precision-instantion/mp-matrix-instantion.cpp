@@ -1,11 +1,18 @@
-#include "impl/tensor/gpu/mixed-precision-classes/mixed-precision-matrix.hpp"
-#include "impl/tensor/allocators.hpp"
+/// @file mp-matrix-instantion.cpp
+/// @brief Mixed-precision matrix template instantiation for GPU computation.
+///
+/// Provides template implementations for MixedPrecisionMatrix operations including
+/// matrix decomposition (split) and composition (merge) to enable iterative refinement
+/// using lower-precision arithmetic with higher-precision residual correction.
+
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/level1.hpp"
+#include "impl/tensor/allocators.hpp"
 #include "impl/tensor/gpu/matrix.hpp"
+#include "impl/tensor/gpu/mixed-precision-classes/mixed-precision-matrix.hpp"
 #include "impl/tensor/gpu/vector.hpp"
 #include "runtime.hpp"
-#include "timer.hpp"
+
 namespace lahva
 {
     namespace gpu

@@ -1,7 +1,14 @@
+/// @file level2.cpp
+/// @brief GPU-accelerated Level-2 BLAS operations implementation.
+///
+/// Implements GPU versions of Level-2 BLAS operations (matrix-vector operations)
+/// using NVIDIA's cuBLAS library. Supports matrix-vector multiplication, outer products,
+/// and related operations on GPU vectors and matrices.
+
+#include "impl/gpu/utils.hpp"
+#include "impl/blas/gpu/level2.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
-#include "impl/blas/gpu/level2.hpp"
-#include "../gpu-utils/utils.hpp"
 
 namespace lahva
 {

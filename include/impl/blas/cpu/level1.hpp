@@ -11,8 +11,10 @@
 #include "const.h"
 #include "linalg.hpp"
 
-namespace lahva{
-    namespace cpu{
+namespace lahva
+{
+    namespace cpu
+    {
     double InnerVectorProduct(const Tensor<double>& X, const Tensor<double>& Y);
     float InnerVectorProduct(const Tensor<float>& X, const Tensor<float>& Y);
     double InnerVectorProduct(const Tensor<double>& X, const size_t strideX, const Tensor<double>& Y, const size_t strideY);

@@ -6,12 +6,14 @@
 /// (e.g., float64) for accuracy. Optimizes performance for mixed-precision linear algebra algorithms.
 
 #pragma once
-#include "impl/tensor/allocators.hpp"
-#include "impl/tensor/gpu/gputensor.hpp"
-#include "impl/tensor/cpu/tensor.hpp"
-#include "impl/tensor/cpu/matrix.hpp"
-#include "impl/tensor/gpu/matrix.hpp"
+
 #include <vector>
+#include "impl/tensor/allocators.hpp"
+#include "impl/tensor/cpu/matrix.hpp"
+#include "impl/tensor/cpu/tensor.hpp"
+#include "impl/tensor/gpu/gputensor.hpp"
+#include "impl/tensor/gpu/matrix.hpp"
+
 namespace lahva
 {
     namespace gpu

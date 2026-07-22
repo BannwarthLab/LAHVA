@@ -8,17 +8,11 @@
 // Each overload is provided for double and float precision; both precisions are documented explicitly.
 
 #pragma once
-#include <memory>
-#include <vector>
-#include <iterator>
-#include <assert.h>
-#include <iostream>
+#include "const.h"
+#include "impl/tensor/cpu/lowtrimatrix.hpp"
+#include "impl/tensor/cpu/matrix.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
 #include "impl/tensor/cpu/vector.hpp"
-#include "impl/tensor/cpu/matrix.hpp"
-#include "impl/tensor/cpu/lowtrimatrix.hpp"
-#include "impl/tensor/allocators.hpp"
-#include "const.h"
 #include "level1.h"
 
 namespace lahva

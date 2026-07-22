@@ -1,12 +1,12 @@
-/// @file utils.hpp
-/// @brief GPU utility functions for device memory management and BLAS operation validation.
+/// @file utils.cpp
+/// @brief Implementation of GPU utility functions for BLAS operations.
 ///
-/// Provides helper functions for managing GPU tensor allocation, validating tensor shapes
-/// for BLAS operations, and managing CUDA operations like stream handling.
+/// Implements helper functions for managing GPU memory, BLAS operation parameters,
+/// and tensor dimension validation.
 
-#include "utils.hpp"
-#include "runtime.hpp"
 #include <string>
+#include "runtime.hpp"
+#include "impl/gpu/utils.hpp"
 
 namespace lahva {
     namespace gpu

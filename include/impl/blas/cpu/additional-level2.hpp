@@ -8,15 +8,14 @@
 // float precision; both precisions are documented explicitly.
 
 #pragma once
-#include "linalg.hpp"
 #include "const.h"
+#include "linalg.hpp"
 
 namespace lahva
 {
     namespace cpu
     {
-
-        
+       
         template <typename T>
         void AddMatrices(const char *Ta, const char *Tb, const T alpha, const Matrix_<T> &a, const T beta,
                          const Matrix_<T> &b, Matrix_<T> &c);

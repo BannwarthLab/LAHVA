@@ -1,13 +1,16 @@
-/* purification.cu */
-/* Routines for  purification includin  purification including purifier class */
+/// @file trace.cu
+/// @brief GPU kernels for matrix trace, symmetrization, and diagonal operations.
+///
+/// Provides CUDA kernels for computing matrix traces, symmetrizing matrices,
+/// and extracting/setting diagonal elements efficiently on GPU.
+
+#include "impl/gpu/utils.hpp"
 #include "impl/blas/gpu/additional-level1.hpp"
-#include "../../gpu-utils/utils.hpp"
 
 namespace lahva
 {
     namespace gpu
     {
-
         // GPU kernels to take a matrix trace
         // expects that trace is zero at beginning (we must memset externally)
         // compute trace of matrix on the GPU

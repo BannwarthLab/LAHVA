@@ -9,8 +9,10 @@
 #pragma once
 #include "const.h"
 
-namespace lahva{
-    namespace cpu{ 
+namespace lahva
+{
+    namespace cpu
+    {
     double InnerVectorProduct(const size_t nelemXY, const double* X, const double* Y);
     float InnerVectorProduct(const size_t nelemXY, const float* X, const float* Y);
     double InnerVectorProduct(const size_t nelemXY, const double* X, const size_t strideX, const double* Y, const size_t strideY);

@@ -10,9 +10,10 @@
 #include "linalg.hpp"
 #include "runtime.hpp"
 
-
-namespace lahva{
-    namespace gpu{
+namespace lahva
+{
+    namespace gpu
+    {
     double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<double>& X, const GPUTensor_<double>& Y);
     float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<float>& X, const GPUTensor_<float>& Y);
     double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<double>& X, const size_t strideX, const GPUTensor_<double>& Y, const size_t strideY);

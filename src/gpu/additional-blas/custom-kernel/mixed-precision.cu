@@ -1,13 +1,19 @@
-#include "linalg.hpp"
-#include "runtime.hpp"
-#include "../../gpu-utils/utils.hpp"
-#include "impl/blas/gpu/level1.hpp"
+/// @file mixed-precision.cu
+/// @brief GPU kernels for mixed-precision matrix decomposition and iterative refinement.
+///
+/// Provides CUDA kernels for matrix decomposition into lower-precision components,
+/// mixed-precision arithmetic operations, and type conversion for iterative refinement algorithms.
+
+#include <vector>
+#include "impl/gpu/utils.hpp"
+#include "common.h"
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/additional-level2.hpp"
-#include "common.h"
-#include "timer.hpp"
+#include "impl/blas/gpu/level1.hpp"
 #include "impl/tensor/allocators.hpp"
-#include <vector>
+#include "linalg.hpp"
+#include "runtime.hpp"
+
 namespace lahva
 {
     namespace gpu

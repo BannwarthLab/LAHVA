@@ -1,3 +1,10 @@
+/// @file additional-level1.cpp
+/// @brief CPU C++ implementations of extended/custom Level-1 BLAS operations.
+///
+/// Implements additional vector and trace operations beyond standard BLAS Level-1,
+/// including trace computation with optional OpenMP parallelization. Provides type-specific
+/// implementations for double, float, and complex types.
+
 #include "impl/blas/cpu/additional-level1.hpp"
 #ifdef W_OPENMP
 #include <omp.h>

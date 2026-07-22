@@ -1,12 +1,18 @@
+/// @file norm.cuh
+/// @brief GPU kernels for computing matrix norms (Frobenius and Frobenius difference).
+///
+/// Provides CUDA kernels for efficient parallel computation of Frobenius norms
+/// using parallel reduction with per-block partial sums.
+
 #pragma once
-#include "../../gpu-utils/utils.hpp"
-#include "common.h"
+#include "impl/gpu/utils.hpp"
 #include "../reductions/reduction.cuh"
+#include "common.h"
+
 namespace lahva
 {
     namespace gpu
     {
-
         template <size_t blockSize, typename T>
         __global__ static void Frobenius_(const unsigned long long size, const T *mat, T *sum)
         {

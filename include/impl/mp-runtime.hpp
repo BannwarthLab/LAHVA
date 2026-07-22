@@ -8,11 +8,11 @@
 
 #include "tensor/gpu/matrix.hpp"
 #include "tensor/allocators.hpp"
+
 namespace lahva
 {
     namespace gpu
     {
-        
         /// @brief Multi-Precision runtime settings
         class MPRuntime
         {

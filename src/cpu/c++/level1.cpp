@@ -1,10 +1,19 @@
-#include "linalg.hpp"
-#include "../utils/utils.hpp"
-#include "impl/blas/cpu/level1.hpp"
-#include "impl/blas/cpu/level1.h"
+/// @file level1.cpp
+/// @brief CPU C++ template implementations of Level-1 BLAS operations.
+///
+/// Provides C++ template functions for Level-1 BLAS vector-vector operations including
+/// inner products, norms, vector addition, and scaling. Functions accept Matrix<T> and
+/// Vector<T> types and forward to lower-level pointer-based CBLAS routines.
 
-namespace lahva{
-    namespace cpu{
+#include "../utils/utils.hpp"
+#include "impl/blas/cpu/level1.h"
+#include "impl/blas/cpu/level1.hpp"
+#include "linalg.hpp"
+
+namespace lahva
+{
+    namespace cpu
+    {
     /*! @brief Take inner product of two Vectors of doubles
         \param[in] nelemXY number of elements in Vectors X and Y
         \param[in] X Vector

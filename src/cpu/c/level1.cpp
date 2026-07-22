@@ -1,10 +1,17 @@
-#include  "impl/blas/cpu/level1.h"
+/// @file lapack.cpp
+/// @brief CPU C-level LAPACK function implementations.
+///
+/// Low-level C implementations of LAPACK routines for solving linear systems, computing
+/// matrix factorizations (LU, QR, Cholesky), and other linear algebra operations.
 
+#include <stdexcept>
+#include "impl/blas/cpu/lapack.h"
+#include "lapack_wrap.hpp"
 
-namespace lahva{
+namespace lahva
+{
     namespace cpu
     {
-    
     /*! @brief Take inner product of two Vectors of doubles
         \param[in] nelemXY number of elements in Vectors X and Y
         \param[in] X Vector

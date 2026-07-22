@@ -1,11 +1,16 @@
-#include "cuda_runtime.h"
+/// @file common.cuh
+/// @brief GPU reduction operation functors for custom reduction kernels.
+///
+/// Provides functors implementing various reduction operations (max, min, add, subtract, power)
+/// with correctly-rounded arithmetic for GPU reduction algorithms.
+
 #include <cfloat>
+#include "cuda_runtime.h"
 
 namespace lahva
 {
     namespace gpu
     {
-        
         template <typename T>
         class amax_
         { 

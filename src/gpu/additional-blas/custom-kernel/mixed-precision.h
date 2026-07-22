@@ -1,3 +1,9 @@
+/// @file mixed-precision.h
+/// @brief GPU kernels for mixed-precision matrix operations.
+///
+/// Provides custom GPU kernel for symmetrized matrix operations with diagonal scaling
+/// using mixed-precision arithmetic.
+
 #pragma once
 
 #include "linalg.hpp"

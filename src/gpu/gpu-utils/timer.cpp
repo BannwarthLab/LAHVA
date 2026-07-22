@@ -1,6 +1,12 @@
+/// @file timer.cpp
+/// @brief GPU timer implementation for CUDA event-based profiling.
+///
+/// Provides GPU-based timing functionality using CUDA events for accurate
+/// measurement of GPU kernel and operation execution times.
+
 #include <cstddef>
-#include <string>
 #include <cuda_runtime.h>
+#include <string>
 #include "runtime.hpp"
 #include "timer.hpp"
 

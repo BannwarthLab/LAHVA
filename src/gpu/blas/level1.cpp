@@ -1,11 +1,20 @@
+/// @file level1.cpp
+/// @brief GPU-accelerated Level-1 BLAS operations implementation.
+///
+/// Implements GPU versions of Level-1 BLAS operations (vector-vector operations)
+/// using NVIDIA's cuBLAS library for GPU acceleration. Supports operations like
+/// inner products, vector addition, and scalar multiplication on GPU tensors.
+
+#include "../../cpu/utils/utils.hpp"
+#include "impl/gpu/utils.hpp"
+#include "impl/blas/gpu/level1.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
-#include "../../cpu/utils/utils.hpp"
-#include "impl/blas/gpu/level1.hpp"
-#include "../gpu-utils/utils.hpp"
 
-namespace lahva{
-    namespace gpu{
+namespace lahva
+{
+    namespace gpu
+    {
     /*! @brief Take inner product of two Vectors of doubles
         \param[in] nelemXY number of elements in Vectors X and Y
         \param[in] X Vector

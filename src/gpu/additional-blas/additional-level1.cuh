@@ -1,10 +1,15 @@
+/// @file additional-level1.cuh
+/// @brief GPU kernel for applying unary operations to tensors.
+///
+/// Provides a generic GPU kernel template for applying custom unary operations
+/// element-wise to tensors.
+
 #pragma once
 #include "runtime.hpp"
 namespace lahva
 {
     namespace gpu
     {
-        
         template<typename T, class op>
         __global__ void ApplyKernel_(unsigned long long ndim, T *a, op func)
         {

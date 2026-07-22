@@ -5,9 +5,10 @@
 /// LAPACK operations include matrix factorizations (LU, QR, Cholesky), linear system solvers,
 /// and eigenvalue decompositions. Each function is provided for double and float precision.
 
-#pragma once
 #include "const.h"
-namespace lahva{
+
+namespace lahva
+{
 
     namespace cpu
     {

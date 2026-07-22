@@ -1,13 +1,17 @@
-#include "linalg.hpp"
-#include "runtime.hpp"
+/// @file additional-level1.cu
+/// @brief GPU implementations of additional Level-1 operations (element-wise vector operations).
+///
+/// Implements specialized GPU kernels for tensor reductions, mixed-precision vector operations,
+/// and custom element-wise operations with optimized Kahan summation for Ozaki algorithm.
+
 #include "impl/blas/gpu/additional-level1.hpp"
-#include "../gpu-utils/utils.hpp"
-#include "reductions/reduction.cuh"
-#include "reductions/common.cuh"
 #include "additional-level1.cuh"
-#include "./additional-level1.hpp"
-#include "add-vectors.hpp"
 #include "custom-kernel/common.h"
+#include "impl/blas/gpu/additional-level1.hpp"
+#include "linalg.hpp"
+#include "reductions/common.cuh"
+#include "reductions/reduction.cuh"
+#include "runtime.hpp"
 namespace lahva
 {
     namespace gpu

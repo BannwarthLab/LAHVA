@@ -1,5 +1,11 @@
+/// @file reduction.cuh
+/// @brief GPU parallel reduction kernels with custom operations.
+///
+/// Provides highly-optimized parallel reduction algorithms using shared memory,
+/// warp-level operations, and custom reduction functors for efficient GPU aggregation.
+
 #pragma once
-#include "../../gpu-utils/utils.hpp"
+#include "impl/gpu/utils.hpp"
 
 namespace lahva
 {

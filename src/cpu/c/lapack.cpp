@@ -1,6 +1,13 @@
+/// @file lapack.cpp
+/// @brief CPU C-level LAPACK function implementations.
+///
+/// Low-level C implementations of LAPACK routines for solving linear systems, computing
+/// matrix factorizations (LU, QR, Cholesky), and other linear algebra operations.
+
 #include "lapack_wrap.hpp"
 #include "impl/blas/cpu/lapack.h"
 #include <stdexcept>
+
 namespace lahva
 {
 

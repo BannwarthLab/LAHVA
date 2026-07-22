@@ -6,10 +6,12 @@
 /// Vectors can be initialized from various sources and support mathematical operations.
 
 #pragma once
-#include <memory>
-#include "impl/tensor/cpu/tensor.hpp"
 #include <initializer_list>
+#include <memory>
 #include <omp.h>
+
+#include "impl/tensor/cpu/tensor.hpp"
+
 namespace lahva
 {
     namespace cpu

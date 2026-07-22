@@ -1,8 +1,16 @@
-#include "impl/blas/cpu/level2.h"
-#include "../utils/utils.hpp"
+/// @file level2.cpp
+/// @brief CPU C-level Level-2 BLAS function implementations.
+///
+/// Low-level C implementations of Level-2 BLAS operations (matrix-vector multiply, outer
+/// product) dispatching to CBLAS routines. Supports double, float, and complex types.
 
-namespace lahva{
-    namespace cpu{
+#include "../utils/utils.hpp"
+#include "impl/blas/cpu/level2.h"
+
+namespace lahva
+{
+    namespace cpu
+    {
     /// @brief Simple interface to DGER \f$\mathbf{A}=alpha*\vec{x}*\vec{y}**T + A\f$
     /// @param ndimX number of elements in x
     /// @param x pointer to x values

@@ -1,3 +1,9 @@
+/// @file hadamard.cu
+/// @brief GPU kernel implementations for Hadamard product (element-wise multiplication).
+///
+/// Provides CUDA kernel implementations for efficient element-wise multiplication
+/// operations on GPU vectors with single and double precision support.
+
 #include <math.h>
 #include "hadamard.h"
 

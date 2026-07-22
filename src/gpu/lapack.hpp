@@ -1,6 +1,14 @@
+/// @file lapack.hpp
+/// @brief GPU-accelerated LAPACK operations for solving linear systems.
+///
+/// Provides GPU kernel implementations for LAPACK-style linear system solvers
+/// using CUDA's cuSolver library. Supports solving general systems of linear equations
+/// with LU factorization. Each operation is provided for both double and float precision
+/// with GPU runtime management.
+
+#include "impl/gpu/utils.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
-#include "../gpu-utils/utils.hpp"
 
 namespace lahva
 {

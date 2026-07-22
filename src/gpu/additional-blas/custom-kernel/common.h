@@ -1,7 +1,13 @@
+/// @file common.h
+/// @brief Common numeric utility templates for GPU custom kernels.
+///
+/// Provides compile-time and runtime utilities for querying floating-point type properties,
+/// performing rounded arithmetic operations, and managing precision-specific constants.
+
 #pragma once
 #include <cmath>
-#include <typeinfo>
 #include <float.h>
+#include <typeinfo>
 
 #include "runtime.hpp"
 #include <cuda_fp16.h>

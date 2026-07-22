@@ -8,11 +8,13 @@
 // are documented explicitly.
 
 #pragma once
-#include "linalg.hpp"
 #include "const.h"
+#include "linalg.hpp"
 
-namespace lahva{
-    namespace cpu {
+namespace lahva
+{
+    namespace cpu
+    {
     void MatrixMatrixProduct(const char* Ta, const char* Tb, const double alpha, const Matrix_<double>& a, const Matrix_<double>& b,
                              const double beta, Matrix_<double>& c);
     void MatrixMatrixProduct(const Matrix_<double>& a, const Matrix_<double>& b, Matrix_<double>& c,

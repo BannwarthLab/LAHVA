@@ -6,11 +6,13 @@
 /// Inherits from both GPU and CPU vector interfaces for mixed-precision computations.
 
 #pragma once
-#include "runtime.hpp"
-#include "impl/tensor/gpu/gputensor.hpp"
-#include "impl/tensor/cpu/vector.hpp"
 #include <initializer_list>
 #include <omp.h>
+
+#include "impl/tensor/cpu/vector.hpp"
+#include "impl/tensor/gpu/gputensor.hpp"
+#include "runtime.hpp"
+
 namespace lahva
 {
     namespace gpu

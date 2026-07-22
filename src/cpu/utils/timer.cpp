@@ -1,10 +1,15 @@
-#include "timer.hpp"
-#include <string>
-#include <iostream>
-#include <chrono>
-#include <sstream>
+/// @file timer.cpp
+/// @brief CPU timing and performance measurement utilities implementation.
+///
+/// Provides CPUTimer class implementation for tracking and recording high-resolution
+/// timing measurements of CPU operations, useful for performance profiling and benchmarking.
 
-namespace lahva{
+#include <iostream>
+#include <sstream>
+#include "timer.hpp"
+
+namespace lahva
+{
 void CPUTimer::push(std::string label) {
         int it;
         it = find(label);

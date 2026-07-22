@@ -6,10 +6,12 @@
 /// Each function is provided for double and float precision with GPU runtime management.
 
 #pragma once
-#include "linalg.hpp"
-#include "../../../../src/gpu/gpu-utils/utils.hpp"
-#include "kernels.cuh"
 #include <vector>
+
+#include "kernels.cuh"
+#include "linalg.hpp"
+#include "impl/gpu/utils.hpp"
+
 namespace lahva
 {
     namespace gpu

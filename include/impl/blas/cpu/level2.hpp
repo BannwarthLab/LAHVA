@@ -11,8 +11,10 @@
 #include "const.h"
 #include "linalg.hpp"
 
-namespace lahva{
-    namespace cpu{
+namespace lahva
+{
+    namespace cpu
+    {
     void OuterVectorProduct(const Vector<double>& x, const Vector<double>& y, Matrix<double>& A, size_t incx = 1, size_t incy = 1, const double alpha = 1.0);
     void OuterVectorProduct(const Vector<float>& x, const Vector<float>& y, Matrix<float>& A, size_t incx = 1, size_t incy = 1, const float alpha = 1.0);
 
