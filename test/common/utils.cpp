@@ -2,6 +2,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <complex>
+#include <iostream>
 
 
 bool
@@ -9,6 +10,7 @@ check(double* actual, double* expected, double tol, int ndim, const char* msg)
 {
     for (int i = 0; i != ndim; i++) {
         if (!check(actual[i], expected[i], tol, msg)) {
+            std::cerr << "[Fatal] " << msg << ": Array check failed at index " << i << std::endl;
             return false;
         }
     }
@@ -20,6 +22,7 @@ check(float* actual, float* expected, float tol, int ndim, const char* msg)
 {
     for (int i = 0; i != ndim; i++) {
         if (!check(actual[i], expected[i], tol, msg)) {
+            std::cerr << "[Fatal] " << msg << ": Array check failed at index " << i << std::endl;
             return false;
         }
     }
@@ -31,6 +34,7 @@ check(const int* actual, const int* expected, int ndim, const char* msg)
 {
     for (int i = 0; i != ndim; i++) {
         if (!check(actual[i], expected[i], msg)) {
+            std::cerr << "[Fatal] " << msg << ": Array check failed at index " << i << std::endl;
             return false;
         }
     }

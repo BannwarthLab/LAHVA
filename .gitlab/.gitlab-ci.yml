@@ -1,0 +1,181 @@
+include:
+  - local: .gitlab/common-scripts.yml
+
+stages:
+  - main-container
+  - main-testing
+  - documentation-build
+  - documentation-deploy
+
+# Containers
+.cpu_matrix: &cpu_matrix
+  parallel:
+    matrix:
+      - OS:
+          - "RL9"
+          - "RL10"
+        COMPILER:
+          - "gnu-openblas"
+          - "gnu-mkl2023.2.0"
+          - "gnu-mkl2025.3.0"
+          - "intel2023.2.0-mkl2023.2.0"
+          - "intel2025.3.0-mkl2025.3.0"
+        GPU:
+          - "none"
+
+.gpu_matrix: &gpu_matrix
+  parallel:
+    matrix:
+      - OS: ["RL9"]
+        COMPILER:
+          - "gnu-openblas"
+          - "gnu-mkl2023.2.0"
+          - "gnu-mkl2025.3.0"
+          - "intel2023.2.0-mkl2023.2.0"
+          - "intel2025.3.0-mkl2025.3.0"
+        GPU:
+          - "cuda11.8"
+          - "cuda12.5"
+          - "cuda13.0"
+      - OS: ["RL10"]
+        COMPILER:
+          - "gnu-openblas"
+          - "gnu-mkl2023.2.0"
+          - "gnu-mkl2025.3.0"
+          - "intel2023.2.0-mkl2023.2.0"
+          - "intel2025.3.0-mkl2025.3.0"
+        GPU:
+          - "cuda13.0"
+
+# General testing
+.test_template: &test_template
+  cache:
+    key: "$OS-$COMPILER-$GPU-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  artifacts:
+    when: on_failure
+    paths:
+      - _build/meson-logs/*txt
+      - _build/Testing/Temporary/*log
+
+# Main container building
+build-main-cpu-containers:
+  stage: main-container
+  extends: .build_container
+  tags:
+    - shell
+  cache:
+    key: "$OS-$COMPILER-$GPU-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  <<: *cpu_matrix
+
+build-main-gpu-containers:
+  stage: main-container
+  extends: .build_container
+  tags:
+    - shell
+  cache:
+    key: "$OS-$COMPILER-$GPU-$CI_COMMIT_REF_SLUG"
+    paths:
+      - containers/
+  <<: *gpu_matrix
+
+# Main testing
+main-test-cpu-meson:
+  <<: [*test_template, *cpu_matrix]
+  stage: main-testing
+  needs:
+    - build-main-cpu-containers
+  variables:
+    IMAGE_NAME: ""
+    CONTAINER_NAME: "containers/${OS}-${COMPILER}-${GPU}.sif"
+    APPTAINER_EXEC_ARGS: ""
+  tags:
+    - cpu
+  before_script:
+    - !reference [.compiler_setup, script]
+  script:
+    - if [[ "$COMPILER" == *mkl* ]]; then LAPACK="mkl"; elif [[ "$COMPILER" == *openblas* ]]; then LAPACK="openblas"; fi
+    - meson setup _build --prefix=$CI_PROJECT_DIR/install --buildtype=debug -Dlapack=$LAPACK -Dgpu="disabled"
+    - !reference [.meson_test, script]
+
+main-test-gpu-meson:
+  <<: [*test_template, *gpu_matrix]
+  stage: main-testing
+  needs:
+    - build-main-gpu-containers
+  variables:
+    IMAGE_NAME: ""
+    CONTAINER_NAME: "containers/${OS}-${COMPILER}-${GPU}.sif"
+    APPTAINER_EXEC_ARGS: "--nv"
+  tags:
+    - gpu
+  before_script:
+    - !reference [.compiler_setup, script]
+  script:
+    - if [[ "$COMPILER" == *mkl* ]]; then LAPACK="mkl"; elif [[ "$COMPILER" == *openblas* ]]; then LAPACK="openblas"; fi
+    - meson setup _build --prefix=$CI_PROJECT_DIR/install --buildtype=debug -Dlapack=$LAPACK -Dgpu="enabled"
+    - !reference [.meson_test, script]
+
+main-test-cpu-cmake:
+  <<: [*test_template, *cpu_matrix]
+  stage: main-testing
+  needs:
+    - build-main-cpu-containers
+  variables:
+    IMAGE_NAME: ""
+    CONTAINER_NAME: "containers/${OS}-${COMPILER}-${GPU}.sif"
+    APPTAINER_EXEC_ARGS: ""
+  tags:
+    - cpu
+  before_script:
+    - !reference [.compiler_setup, script]
+  script:
+    - case "$COMPILER" in gnu-openblas) LAPACK="openblas" ;; gnu-mkl*) LAPACK="mkl-rt" ;; intel*) LAPACK="mkl" ;; esac
+    - cmake -B _build -DCMAKE_INSTALL_PREFIX=$CI_PROJECT_DIR/install -DLAPACK_VENDOR=$LAPACK -DGPU=OFF
+    - !reference [.cmake_test, script]
+
+main-test-gpu-cmake:
+  <<: [*test_template, *gpu_matrix]
+  stage: main-testing
+  needs:
+    - build-main-gpu-containers
+  variables:
+    IMAGE_NAME: ""
+    CONTAINER_NAME: "containers/${OS}-${COMPILER}-${GPU}.sif"
+    APPTAINER_EXEC_ARGS: "--nv"
+  tags:
+    - gpu
+  before_script:
+    - !reference [.compiler_setup, script]
+  script:
+    - cmake -B _build -DCMAKE_INSTALL_PREFIX=$CI_PROJECT_DIR/install -DLAPACK_VENDOR=$LAPACK -DGPU=ON
+    - !reference [.cmake_test, script]
+
+# Documentation
+documentation-build:
+  stage: documentation-build
+  before_script:
+    - if ! command -v doxygen &> /dev/null; then module load doxygen; fi
+  script:
+  - doxygen .gitlab/Doxyfile
+  artifacts:
+    paths:
+    - doxygen/
+  tags:
+    - shell
+  
+documentation-deploy:
+  stage: documentation-deploy
+  script:
+  - mv doxygen/documentation/html/ public/
+  artifacts:
+    paths:
+    - public
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+  tags:
+    - shell
+

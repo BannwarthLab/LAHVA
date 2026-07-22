@@ -1,8 +1,8 @@
-#include "common.h"
-#include <random>
-#include "utils.hpp"
-
 #include <omp.h>
+#include <random>
+#include "test_common.h"
+#include "utils.hpp"
+#include "timer.hpp"
 
 using namespace lahva::gpu;
 template <typename T>
@@ -12,15 +12,15 @@ void fill_with_rd_values(Matrix<T>& m)
     std::minstd_rand eng(rd()); // Seed the generator
 
     std::normal_distribution<> distr(0.0, 0.1);
-    #pragma omp parallel for shared(m)    
+    #pragma omp parallel for shared(m)
     for (size_t i = 0; i < m.shape().first; i++)
     {
         for (size_t j = 0; j < m.shape().second; j++)
         {
             if (i == j)
-                m(i, j) = 1.0 + std::abs(distr(eng));
+                m(i, j) = (T)(1.0 + std::abs(distr(eng)));
             else
-                m(i, j) = std::abs(distr(eng));
+                m(i, j) = (T)std::abs(distr(eng));
         }
     }
 }
@@ -49,9 +49,9 @@ double CompareGEMMS(Shape& shape)
     B.copy2device(cudart);
     C.copy2device(cudart);
     timer.pop();
-    
+
     timer.push("GEMM");
-    MatrixMatrixProduct(cudart, A, B, C, 1.0, 0.0);
+    MatrixMatrixProduct(cudart, A, B, C, (T)1.0, (T)0.0);
     cudart.synchronize();
     timer.pop();
 
@@ -67,7 +67,7 @@ double CompareGEMMS(Shape& shape)
     MatrixMatrixProduct(cudart, mp_rt, A, B, C2, (T)1.0, (T)0.0);
     cudart.synchronize();
     timer.pop();
-   
+
     cudart.synchronize();
     std::cout << "Markidis: Forb. Norm " << FrobeniusNorm(cudart, C, C2) << std::endl;
     timer.pop();
@@ -78,16 +78,28 @@ double CompareGEMMS(Shape& shape)
 
 
 int main()
-{   
-    for (int i = 10; i <16; i++)
+{
+    for (int i = 10; i < 16; i++)
     {
         std::cout.precision(12);
         int n = int((i*256));
-        std::cout << "Shape: " << n << "x" << n << std::endl;
+        std::cout << "Shape: " << n << "x" << n << " (double)" << std::endl;
         Shape shape(n, n);
-        //CompareGEMMS<float>(shape);
         double err = CompareGEMMS<double>(shape);
         if (err > 1e-5)
+        {
+            std::cout << "Test failed with error: " << err << std::endl;
+            return 1;
+        }
+    }
+    for (int i = 10; i < 16; i++)
+    {
+        std::cout.precision(12);
+        int n = int((i*256));
+        std::cout << "Shape: " << n << "x" << n << " (float)" << std::endl;
+        Shape shape(n, n);
+        double err = CompareGEMMS<float>(shape);
+        if (err > 0.1)
         {
             std::cout << "Test failed with error: " << err << std::endl;
             return 1;

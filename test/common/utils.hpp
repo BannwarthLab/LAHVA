@@ -22,7 +22,7 @@ bool check(T actual, U expected, const char* msg)
     if (expected == actual) {
         return true;
     }
-    fprintf(stderr, "[Fatal] %s: expected %d, got %d\n", msg, expected, actual);
+    std::cerr << "[Fatal] " << msg << ": expected " << expected << ", got " << actual << std::endl;
     return false;
 }
 
@@ -32,7 +32,7 @@ bool check(T actual, U expected, double tol, const char* msg)
     if (std::abs(expected - actual) < tol) {
         return true;
     }
-    fprintf(stderr, "[Fatal] %s: expected %3.7f, got %3.7f\n", msg, expected, actual);
+    std::cerr << "[Fatal] " << msg << ": expected " << expected << ", got " << actual << std::endl;
     return false;
 }
 template<typename T>
@@ -41,11 +41,9 @@ bool check(std::complex<T> actual, std::complex<T> expected, std::complex<T> tol
     if (std::abs(expected.real() - actual.real()) < tol.real() && std::abs(expected.imag() - actual.imag()) < tol.imag()) {
         return true;
     }
-    std::cerr << "[Fatal] " << msg << ": expected " << expected <<" , got " << actual << std::endl;;
+    std::cerr << "[Fatal] " << msg << ": expected " << expected << ", got " << actual << std::endl;
     return false;
 }
-
-
 
 bool check(double *actual, double *expected, double tol, int ndim, const char *msg);
 
@@ -62,7 +60,6 @@ double sum(int n, float *vec);
 template <typename TYPE>
 constexpr TYPE getTypeMax()
 {
-    // fprintf(OUTPUT, "OzBLAS error: TYPE is not specified in getTypeMax.\n");
     return 0;
 }
 template <>
@@ -76,13 +73,10 @@ constexpr double getTypeMax<double>()
     return DBL_MAX;
 }
 
-// -------------------------------------
 // getTypeMin
-// -------------------------------------
 template <typename TYPE>
 constexpr TYPE getTypeMin()
 {
-    // fprintf(OUTPUT, "OzBLAS error: TYPE is not specified in getTypeMin.\n");
     return 0;
 }
 template <>

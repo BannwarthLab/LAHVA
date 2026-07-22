@@ -314,8 +314,8 @@ namespace lahva
             get_cublas_error(istat);
         };
 
-        void MatrixMatrixProductFP16(const CudaRuntime &cudart, const Matrix_<__half> &a, const Matrix_<__half> &b, Matrix_<float> &c,
-                                     const float alpha, const float beta, const char *Ta, const char *Tb)
+        void MatrixMatrixProductFP16(const CudaRuntime &cudart, const char *Ta, const char *Tb, const float alpha, const Matrix_<__half> &a, const Matrix_<__half> &b,
+                                     const float beta, Matrix_<float> &c)
         {
             cublasOperation_t transa = get_trans(Ta);
             cublasOperation_t transb = get_trans(Tb);
@@ -339,6 +339,12 @@ namespace lahva
             cublasStatus_t istat = cublasGemmEx(cudart.handle, transa, transb, m, n, k, &alpha, a.gpu_data(), half_type, lda, b.gpu_data(),
                                                 half_type, ldb, &beta, c.gpu_data(), sp_type, ldc, computeType, CUBLAS_GEMM_DEFAULT);
             get_cublas_error(istat);
+        };
+
+        void MatrixMatrixProductFP16(const CudaRuntime &cudart, const Matrix_<__half> &a, const Matrix_<__half> &b, Matrix_<float> &c,
+                                     const float alpha, const float beta, const char *Ta, const char *Tb)
+        {
+            MatrixMatrixProductFP16(cudart, Ta, Tb, alpha, a, b, beta, c);
         };
 
     }
