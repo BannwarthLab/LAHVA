@@ -1,5 +1,6 @@
 #ifndef LAHVA_CONST_H
 #define LAHVA_CONST_H
+
 #include <cstdint>
 #include <complex>
 #ifdef _WIN32
@@ -15,8 +16,8 @@ typedef lapack_int LPCK_INT;
 #define ACCELERATE_NEW_LAPACK
 #include <Accelerate/Accelerate.h>
 typedef CBLAS_ORDER CBLAS_LAYOUT;
-typedef int32_t BLAS_INT;
-typedef int32_t LPCK_INT; 
+typedef __LAPACK_int BLAS_INT;
+typedef __LAPACK_int LPCK_INT;
 #else
 #ifdef CBLAS_HEADER
     #include <cblas/cblas.h>
@@ -48,16 +49,19 @@ typedef int32_t LPCK_INT;
 #endif
 
 namespace lahva
-{
+{   
+    // LAHVA uses column-major order and lower triangular parts by default.
     static const CBLAS_LAYOUT major = CblasColMajor;
     static const CBLAS_UPLO tri = CblasLower;
     static const int l_major = CblasColMajor;
-    static char l_uplo = 'L';
-    static char l_nondiag = 'N';
+    [[maybe_unused]] static char l_uplo = 'L';
+    [[maybe_unused]] static char l_nondiag = 'N';
     static const char major_char = 'C';
 
+    /// @brief Type alias for tensor shape representation as (rows, columns) pair.
     using Shape = std::pair<std::uint32_t, std::uint32_t>; 
 
+    /// @brief Runtime abstraction class representing the "left" side operand in BLAS operations.
     class BLASLeft
     {
     public:
@@ -67,6 +71,7 @@ namespace lahva
 #endif
     };
 
+    /// @brief Runtime abstraction class representing the "right" side operand in BLAS operations.
     class BLASRight
     {
     public:
@@ -76,6 +81,7 @@ namespace lahva
 #endif
     };
 
+    /// @brief Runtime abstraction class representing upper triangular matrix specification.
     class BLASUpper
     {
     public:
@@ -85,6 +91,7 @@ namespace lahva
 #endif
     };
 
+    /// @brief Runtime abstraction class representing lower triangular matrix specification.
     class BLASLower
     {
     public:
@@ -94,6 +101,11 @@ namespace lahva
 #endif
     };
 
+    /// @brief Abstract base class for BLAS runtime implementations.
+    ///
+    /// Provides a unified interface for CPU and GPU BLAS operations through member objects
+    /// that represent matrix operation parameters (side, triangular part). Derived classes
+    /// implement specific runtime behaviors for CPU or GPU computation.
     class BLASRuntime
     {
     public:
@@ -104,7 +116,11 @@ namespace lahva
         BLASRuntime(){};
         virtual ~BLASRuntime(){};
     };
-
+    
+    /// @brief CPU-based BLAS runtime implementation.
+    ///
+    /// A placeholder runtime for CPU-only computations that maintains the same API
+    /// as GPU runtimes, allowing code to be written without runtime-specific conditionals.
     class CPURuntime : public BLASRuntime
     {
     };
@@ -113,4 +129,3 @@ namespace lahva
     static const cublasFillMode_t tri_gpu = CUBLAS_FILL_MODE_LOWER;
 #endif
 }
-#endif
