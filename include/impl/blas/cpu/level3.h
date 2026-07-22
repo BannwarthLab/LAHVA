@@ -1,5 +1,12 @@
-#ifndef LAHVA_C_LEVEL_3_H
-#define LAHVA_C_LEVEL_3_H
+/// @file level3.h
+/// @brief C-style BLAS Level-3 operations (matrix-matrix operations).
+///
+// Level-3 BLAS-like operations (matrix * matrix) - C-style declarations
+// These functions are thin wrappers around optimized CPU BLAS kernels. They operate on
+// raw pointers and use simple scalar parameters for flexibility. Each overload is
+// provided for double and float precision; both precisions are documented explicitly.
+
+#pragma once
 #include "const.h"
 
 namespace lahva{
@@ -23,4 +30,3 @@ namespace lahva{
                                 const float alpha = 1.0 , const float beta = 0.0, const CBLAS_SIDE side = CblasLeft);
     }
 }
-#endif

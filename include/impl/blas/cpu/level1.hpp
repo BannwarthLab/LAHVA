@@ -1,5 +1,13 @@
-#ifndef LAHVA_C_LEVEL1_HPP
-#define LAHVA_C_LEVEL1_HPP
+/// @file level1.hpp
+/// @brief C++-style BLAS Level-1 operations (vector-vector operations).
+//
+// Level-1 BLAS-like operations (vector * vector) - C++ template declarations
+// These functions are C++-style wrappers operating on Tensor<> objects
+// They provide convenient overloads for different scalar types and
+// dispatch to optimized CPU BLAS kernels. Each overload is provided for double and float
+// precision; both precisions are documented explicitly.
+
+#pragma once
 #include "const.h"
 #include "linalg.hpp"
 
@@ -69,6 +77,4 @@ namespace lahva{
         return (IndexMaxFromVector(args...));                
     }
     }
-} 
-
-#endif
+}

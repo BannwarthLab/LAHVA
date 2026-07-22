@@ -1,3 +1,9 @@
+/// @file utils.hpp
+/// @brief GPU utility functions for device memory management and BLAS operation validation.
+///
+/// Provides helper functions for managing GPU tensor allocation, validating tensor shapes
+/// for BLAS operations, and managing CUDA operations like stream handling.
+
 #include "utils.hpp"
 #include "runtime.hpp"
 #include <string>

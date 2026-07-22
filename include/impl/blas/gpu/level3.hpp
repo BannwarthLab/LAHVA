@@ -1,5 +1,11 @@
-#ifndef LAHVA_GPU_LEVEL_3_HPP
-#define LAHVA_GPU_LEVEL_3_HPP
+/// @file level3.hpp
+/// @brief GPU-accelerated BLAS Level-3 operations (matrix-matrix operations).
+///
+/// Provides GPU BLAS Level-3 kernel declarations for CUDA acceleration.
+/// Level-3 operations include matrix-matrix multiplication, triangular solves, and rank-k updates.
+/// Each function is provided for double and float precision with GPU runtime management.
+
+#pragma once
 #include "linalg.hpp"
 #include "const.h"
 #include "runtime.hpp"
@@ -40,4 +46,3 @@ namespace lahva{
                              const float alpha = 1.0 , const float beta = 0.0, const char* Ta = "N", const char* Tb = "N");                         
     }
 }
-#endif

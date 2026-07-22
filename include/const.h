@@ -1,5 +1,13 @@
-#ifndef LAHVA_CONST_H
-#define LAHVA_CONST_H
+/// @file const.h
+/// @brief Type definitions, constants, and BLAS/LAPACK runtime abstraction classes.
+///
+/// This header defines platform-specific type aliases for BLAS and LAPACK integer types,
+/// complex number types, and abstract runtime classes (BLASRuntime and its derivatives)
+/// that provide a unified interface for CPU and GPU computation through operator overloads.
+/// It serves as the foundational layer for the LAHVA library's linear algebra operations.
+
+// Linear algebra backend
+#pragma once
 #include <cstdint>
 #include <complex>
 #ifdef _WIN32

@@ -1,5 +1,11 @@
-#ifndef LAHVA_ADD_LEVEL2_GPU_HPP
-#define LAHVA_ADD_LEVEL2_GPU_HPP
+/// @file additional-level2.hpp
+/// @brief GPU-accelerated additional Level-2 operations beyond standard BLAS.
+///
+/// Provides GPU kernel declarations for supplementary matrix-vector operations
+/// operating on GPU matrix and vector objects. These extend standard BLAS Level-2 functionality.
+/// Each function is provided for double and float precision with GPU runtime management.
+
+#pragma once
 #include "linalg.hpp"
 #include "const.h"
 #include "runtime.hpp"
@@ -21,5 +27,4 @@ namespace lahva{
     
     } // namespace gpu
     
-}   
-#endif
+}

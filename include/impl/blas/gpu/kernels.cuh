@@ -1,3 +1,8 @@
+/// @file kernels.cuh
+/// @brief GPU device functors and kernel utilities
+///
+/// Provides template functors that can be invoked on GPU device code for element-wise operations.
+
 #pragma once
 #include "runtime.hpp"
 namespace lahva

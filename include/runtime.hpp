@@ -1,5 +1,12 @@
-#ifndef LAHVA_GPU_RUNTIME_HPP
-#define LAHVA_GPU_RUNTIME_HPP
+/// @file runtime.hpp
+/// @brief CUDA runtime management including memory, streams, and error handling.
+///
+/// This header provides classes and utilities for managing CUDA device resources including
+/// memory allocation, stream creation, and cuBLAS/cuSOLVER handle management. It includes
+/// error reporting macros for convenient debugging and a CudaRuntime class that abstracts
+/// CUDA device state and configuration for use in linear algebra operations.
+
+#pragma once
 #include "const.h"
 
 #include <cuda_runtime.h>
@@ -179,4 +186,3 @@ namespace lahva{
         cusolverDnHandle_t *getHandlePtr() { return &handle; }
     };
 }
-#endif

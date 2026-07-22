@@ -1,5 +1,11 @@
-#pragma once
+/// @file mixed-precision-matrix.hpp
+/// @brief GPU-based mixed-precision matrix tensor implementation.
+///
+/// Provides the MixedPrecisionMatrix class for matrices with dual precision representation.
+/// Supports computation in reduced precision (e.g., float32) while maintaining higher precision
+/// (e.g., float64) for accuracy. Optimizes performance for mixed-precision linear algebra algorithms.
 
+#pragma once
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/gpu/gputensor.hpp"
 #include "impl/tensor/cpu/tensor.hpp"

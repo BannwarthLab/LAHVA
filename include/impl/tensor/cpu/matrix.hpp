@@ -1,5 +1,11 @@
-#pragma once
+/// @file matrix.hpp
+/// @brief CPU-based matrix tensor implementation.
+///
+/// Provides the Matrix_ class for 2-dimensional tensor storage and operations on CPU.
+/// Supports dense matrix operations with BLAS compatibility, column-major storage,
+/// and specialized matrix views. Includes I/O operations and mathematical utilities.
 
+#pragma once
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
 #include "impl/tensor/cpu/vector.hpp"

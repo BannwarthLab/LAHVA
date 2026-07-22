@@ -1,5 +1,12 @@
-#ifndef LAHVA_C_LEVEL2_H
-#define LAHVA_C_LEVEL2_H
+/// @file level2.h
+/// @brief C-style BLAS Level-2 operations (matrix-vector operations).
+///
+// Level-2 BLAS-like operations (matrix * vector) - C-style declarations
+// These functions are thin wrappers around optimized CPU BLAS kernels. They operate on
+// raw pointers and use simple scalar parameters for flexibility. Each overload is
+// provided for double and float precision; both precisions are documented explicitly.
+
+#pragma once
 #include "const.h"
 
 namespace lahva{
@@ -25,6 +32,4 @@ namespace lahva{
     void SymMatrixVectorProduct(const size_t n,  const float* a, const float* x, float* y,
                             const float alpha = 1.0, const float beta = 0.0, const size_t incx = 1, const size_t incy = 1);
     }
-} 
-
-#endif
+}

@@ -1,3 +1,10 @@
+/// @file vector.hpp
+/// @brief CPU-based vector tensor implementation.
+///
+/// Provides the Vector_ class for 1-dimensional tensor storage and operations on CPU.
+/// Supports dense vector operations with BLAS compatibility and column-major storage.
+/// Vectors can be initialized from various sources and support mathematical operations.
+
 #pragma once
 #include <memory>
 #include "impl/tensor/cpu/tensor.hpp"

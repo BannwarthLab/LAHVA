@@ -1,3 +1,8 @@
+/// @file mp-runtime.hpp
+/// @brief Mixed-precision GPU computation runtime configuration and settings.
+///
+/// Provides runtime settings for mixed-precision Ozaki-type computations on GPU
+
 #include "const.h"
 #include "runtime.hpp"
 

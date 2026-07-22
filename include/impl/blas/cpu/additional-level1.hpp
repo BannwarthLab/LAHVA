@@ -1,5 +1,13 @@
-#ifndef LAHVA_ADD_LEVEL1_CPU_HPP
-#define LAHVA_ADD_LEVEL1_CPU_HPP
+/// @file additional-level1.hpp
+/// @brief C++-style additional Level-1 operations beyond standard BLAS.
+///
+// Additional Level-1 BLAS-like operations (vector * vector) - C++ template declarations
+// These functions are C++-style wrappers providing additional linear algebra utilities
+// beyond standard BLAS Level-1 operations. These wrappers operate on Tensor objects and 
+// dispatch to optimized CPU implementations.
+// Each overload is provided for double and float precision; both precisions are documented explicitly.
+
+#pragma once
 #include <memory>
 #include <vector>
 #include <iterator>
@@ -158,4 +166,3 @@ namespace lahva
     } // namespace gpu
 
 }
-#endif

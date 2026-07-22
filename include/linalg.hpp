@@ -1,6 +1,9 @@
-#ifndef LAHVA_LINALG_H
-#define LAHVA_LINALG_H
+/// @file linalg.hpp
+/// @brief Linear algebra tensor abstractions including vectors, matrices, and specialized matrix types.
+///
+/// This header aggregates tensor class declarations for both CPU and GPU computation.
 
+#pragma once
 #include <memory>
 #include <vector>
 #include <iterator>
@@ -20,5 +23,3 @@
 #include "impl/tensor/cpu/matrix.hpp"
 #include "impl/tensor/cpu/lowtrimatrix.hpp"
 #include "impl/tensor/allocators.hpp"
-
-#endif // LAHVA_LINALG_H

@@ -1,3 +1,11 @@
+/// @file lapack.hpp
+/// @brief C++-style LAPACK operations for matrix decompositions and solvers.
+///
+/// Provides template-based wrapper declarations for CPU LAPACK kernels operating on Matrix objects.
+/// LAPACK operations include matrix factorizations (LU, QR, Cholesky), linear system solvers,
+/// and eigenvalue decompositions. Each function is provided for double, float, and complex precision types.
+
+#pragma once
 #include "const.h"
 #include "linalg.hpp"
 

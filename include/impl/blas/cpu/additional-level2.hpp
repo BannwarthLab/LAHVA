@@ -1,5 +1,13 @@
-#ifndef LAHVA_ADD_LEVEL2_CPU_HPP
-#define LAHVA_ADD_LEVEL2_CPU_HPP
+/// @file additional-level2.hpp
+/// @brief C++-style additional Level-2 operations beyond standard BLAS.
+///
+// Additional Level-2 BLAS-like operations (matrix * matrix) - C++ template declarations
+// These functions are C++-style wrappers providing additional matrix operations
+// beyond standard BLAS Level-2 operations. These wrappers operate on Matrix_ objects and
+// dispatch to optimized CPU implementations. Each overload is provided for double and
+// float precision; both precisions are documented explicitly.
+
+#pragma once
 #include "linalg.hpp"
 #include "const.h"
 
@@ -25,4 +33,3 @@ namespace lahva
     } // namespace gpu
 
 }
-#endif

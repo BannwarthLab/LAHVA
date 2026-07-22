@@ -1,5 +1,10 @@
-#ifndef LAHVA_GPUTIMER_HPP
-#define LAHVA_GPUTIMER_HPP
+/// @file timer.hpp
+/// @brief Timing utilities for measuring CPU and GPU computation performance.
+///
+/// This header provides timer implementations for profiling execution time on both
+/// CPU and GPU.
+
+#pragma once
 #ifdef _CUDA
 #include "runtime.hpp"
 #else
