@@ -1,7 +1,7 @@
 /// @file gputensor.hpp
 /// @brief GPU-based abstract tensor class for GPU device memory management.
 ///
-/// Defines the GPUTensor_ abstract class providing GPU-specific tensor functionality.
+/// Defines the Tensor_ abstract class providing GPU-specific tensor functionality.
 /// Handles CUDA device memory allocation, transfers, and synchronization.
 /// Base class for all specialized GPU tensor types (vectors, matrices, etc.).
 
@@ -17,7 +17,7 @@ namespace lahva
     namespace gpu
     {
         template <typename T>
-        class GPUTensor_ : public virtual lahva::Tensor_<T>
+        class Tensor_ : public virtual lahva::Tensor_<T>
         {
         public:
             /// @brief copy data to device, by allocating a pointer and copying over
@@ -35,8 +35,8 @@ namespace lahva
         };
 
         // Forward declaration for CopyTensors
-        template<typename in, typename out>
-        void CopyTensors(const unsigned long size, const in* d_in, out* d_out);
+        template <typename in, typename out>
+        void CopyTensors(const unsigned long size, const in *d_in, out *d_out);
 
         /// @brief GPU-based tensor with dual memory management and CUDA integration
         /// Base class for GPU tensors providing automatic memory management on both CPU and GPU.
@@ -45,7 +45,7 @@ namespace lahva
         /// @tparam Allocator host (CPU) memory allocator type (default: CudaHostAllocator)
         /// @tparam GPUAllocator device (GPU) memory allocator type (default: CudaDeviceAllocator)
         template <typename T, typename Allocator = CudaHostAllocator<T>, typename GPUAllocator = CudaDeviceAllocator<T>>
-        class GPUTensor : public lahva::Tensor<T, Allocator>, virtual public GPUTensor_<T>
+        class Tensor : public lahva::Tensor<T, Allocator>, virtual public Tensor_<T>
         {
             using alloc_ptr = CPUAllocator<T>;
             using gpualloc_t = GPUAllocator;
@@ -55,28 +55,30 @@ namespace lahva
             /// @param[in] count number of elements in the tensor
             /// @param[in] cpualloc host (CPU) memory allocator
             /// @param[in] alloc device (GPU) memory allocator
-            GPUTensor(size_t count, const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator())
-            : lahva::Tensor<T, Allocator>{count, cpualloc}, gpualloc_{alloc} {};
+            Tensor(size_t count, const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator())
+                : lahva::Tensor<T, Allocator>{count, cpualloc}, gpualloc_{alloc} {};
 
             /// @brief Construct GPU tensor without allocating initial memory
             /// @param[in] cpualloc host (CPU) memory allocator
             /// @param[in] alloc device (GPU) memory allocator
-            GPUTensor(const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator())
-            : lahva::Tensor<T, Allocator>{cpualloc}, gpualloc_{alloc} {};
+            Tensor(const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator())
+                : lahva::Tensor<T, Allocator>{cpualloc}, gpualloc_{alloc} {};
 
             /// @brief Construct GPU tensor with GPU allocator for device-only memory
             /// @param[in] alloc device (GPU) memory allocator
-            GPUTensor(const GPUAllocator &alloc) : lahva::Tensor<T, Allocator>{}, gpualloc_{alloc}, gpu_buffer{true}
-            {this->no_alloc= true;};
+            Tensor(const GPUAllocator &alloc) : lahva::Tensor<T, Allocator>{}, gpualloc_{alloc}, gpu_buffer{true}
+            {
+                this->no_alloc = true;
+            };
 
             /// @brief Destructor for GPU tensor, releases GPU memory and CPU memory (via base class)
-            virtual ~GPUTensor() {this->device_ptr_.get_deleter() = this->gpualloc_;};
+            virtual ~Tensor() { this->device_ptr_.get_deleter() = this->gpualloc_; };
 
             /// @brief Copy constructor for GPU tensor
             /// @param[in] other source GPU tensor to copy
-            GPUTensor(const GPUTensor &other) : lahva::Tensor<T, Allocator>{other},
-                                                gpualloc_{other.get_gpuallocator()},
-                                                is_on_device_{other.is_on_device_}
+            Tensor(const Tensor &other) : lahva::Tensor<T, Allocator>{other},
+                                          gpualloc_{other.get_gpuallocator()},
+                                          is_on_device_{other.is_on_device_}
             {
                 if (other.is_on_device_)
                 {
@@ -87,7 +89,7 @@ namespace lahva
 
             /// @brief Move constructor for GPU tensor
             /// @param[in] other source GPU tensor to move from
-            GPUTensor(GPUTensor &&other) : lahva::Tensor<T, Allocator>{std::move(other)}
+            Tensor(Tensor &&other) : lahva::Tensor<T, Allocator>{std::move(other)}
             {
                 this->gpualloc_ = other.get_gpuallocator();
                 if (this->size() == other.size())
@@ -108,7 +110,7 @@ namespace lahva
             /// @brief Copy assignment operator
             /// @param[in] other source GPU tensor
             /// @return reference to this tensor
-            GPUTensor<T, Allocator, GPUAllocator> &operator=(const GPUTensor<T, Allocator, GPUAllocator> &other)
+            Tensor<T, Allocator, GPUAllocator> &operator=(const Tensor<T, Allocator, GPUAllocator> &other)
             {
                 if (this != &other)
                 {
@@ -119,7 +121,7 @@ namespace lahva
                     }
                     this->is_on_device_ = other.is_on_device_;
                     this->gpu_buffer = other.gpu_buffer;
-                    
+
                     if (other.is_on_device_)
                     {
                         this->device_ptr_.reset(gpualloc_.allocate(this->size()));
@@ -132,7 +134,7 @@ namespace lahva
             /// @brief Move assignment operator
             /// @param[in] other source GPU tensor to move from
             /// @return reference to this tensor
-            GPUTensor<T, Allocator, GPUAllocator> &operator=(GPUTensor<T, Allocator, GPUAllocator> &&other)
+            Tensor<T, Allocator, GPUAllocator> &operator=(Tensor<T, Allocator, GPUAllocator> &&other)
             {
                 if (this != &other)
                 {
@@ -239,7 +241,7 @@ namespace lahva
 
         /// @brief Implementation: Allocate GPU device memory with CUDA runtime context
         template <typename T, typename Allocator, typename GPUAllocator>
-        void GPUTensor<T, Allocator, GPUAllocator>::allocateGPU(const CudaRuntime &cudart) const
+        void Tensor<T, Allocator, GPUAllocator>::allocateGPU(const CudaRuntime &cudart) const
         {
             this->gpualloc_.setDevice(cudart.device_id());
             this->gpualloc_.setStream(cudart.getStreamPtr());
@@ -249,7 +251,7 @@ namespace lahva
 
         /// @brief Implementation: Release GPU device memory with CUDA runtime context
         template <typename T, typename Allocator, typename GPUAllocator>
-        void GPUTensor<T, Allocator, GPUAllocator>::deallocateGPU(const CudaRuntime& cudart) const
+        void Tensor<T, Allocator, GPUAllocator>::deallocateGPU(const CudaRuntime &cudart) const
         {
             this->gpualloc_.setDevice(cudart.device_id());
             this->gpualloc_.setStream(cudart.getStreamPtr());
@@ -261,7 +263,7 @@ namespace lahva
 
         /// @brief Implementation: Invalidate GPU copy and transfer from host to device
         template <typename T, typename Allocator, typename GPUAllocator>
-        void GPUTensor<T, Allocator, GPUAllocator>::updateGPUvalues(const CudaRuntime &cudart)
+        void Tensor<T, Allocator, GPUAllocator>::updateGPUvalues(const CudaRuntime &cudart)
         {
             this->is_on_device_ = false;
             this->copy2device(cudart);
@@ -269,7 +271,7 @@ namespace lahva
 
         /// @brief Implementation: Transfer tensor data from host to GPU asynchronously
         template <typename T, typename Allocator, typename GPUAllocator>
-        void GPUTensor<T, Allocator, GPUAllocator>::copy2device(const CudaRuntime &cudart) const
+        void Tensor<T, Allocator, GPUAllocator>::copy2device(const CudaRuntime &cudart) const
         {
             if (!this->is_on_device_)
             {
@@ -285,7 +287,6 @@ namespace lahva
                     this->gpualloc_.setStream(cudart.getStreamPtr());
                     this->gpualloc_.H2DCopy(this->device_ptr_.get(), this->data(), this->size() * sizeof(T));
                 }
-                    
             }
 
             if (!this->device_ptr_)
@@ -296,7 +297,7 @@ namespace lahva
 
         /// @brief Implementation: Transfer tensor data from GPU to host and optionally deallocate
         template <typename T, typename Allocator, typename GPUAllocator>
-        void GPUTensor<T, Allocator, GPUAllocator>::copy2host(const CudaRuntime &cudart)
+        void Tensor<T, Allocator, GPUAllocator>::copy2host(const CudaRuntime &cudart)
         {
             if (this->is_on_device_)
             {

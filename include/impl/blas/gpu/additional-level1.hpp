@@ -38,7 +38,7 @@ namespace lahva
         /// @param vecin First input GPU tensor for element-wise product.
         /// @param vecinout Input and output GPU tensor (result stored here).
         template <typename T>
-        void HadamardProduct(const CudaRuntime &cudart, const GPUTensor_<T> &vecin, GPUTensor_<T> &vecinout);
+        void HadamardProduct(const CudaRuntime &cudart, const Tensor_<T> &vecin, Tensor_<T> &vecinout);
 
         /// @brief Computes element-wise product (Hadamard product) of two GPU tensors.
         ///
@@ -50,7 +50,7 @@ namespace lahva
         /// @param vecin2 Second input GPU tensor for element-wise product.
         /// @param vecout Output GPU tensor to store the result.
         template <typename T>
-        void HadamardProduct(const CudaRuntime &cudart, const GPUTensor_<T> &vecin, const GPUTensor_<T> &vecin2, GPUTensor_<T> &vecout);
+        void HadamardProduct(const CudaRuntime &cudart, const Tensor_<T> &vecin, const Tensor_<T> &vecin2, Tensor_<T> &vecout);
 
         /// @brief GPU kernel for computing trace from diagonal elements.
         ///
@@ -75,7 +75,7 @@ namespace lahva
         /// @param diag Input GPU tensor containing elements to sum.
         /// @return Trace as a double-precision scalar.
         template <typename U, typename V>
-        double ComputeTrace(const CudaRuntime &cudart, const GPUTensor<double, U, V> &diag)
+        double ComputeTrace(const CudaRuntime &cudart, const Tensor<double, U, V> &diag)
         {
             int gridS = cudart.gridSize(diag.size(), 1);
             Vector<double, U, V> v(gridS);
@@ -98,7 +98,7 @@ namespace lahva
         /// @param v Pre-allocated reduction vector for partial sums (reused for efficiency).
         /// @return Trace as a double-precision scalar.
         template <typename U, typename V>
-        double ComputeTrace(const CudaRuntime &cudart, const GPUTensor<double, U, V> &diag, Vector<double, U, V> &v)
+        double ComputeTrace(const CudaRuntime &cudart, const Tensor<double, U, V> &diag, Vector<double, U, V> &v)
         {
             v.copy2device(cudart);
             TraceKernelDiag(cudart, diag.size(), diag.gpu_data(), v.gpu_data());
@@ -151,7 +151,7 @@ namespace lahva
         /// @param mat Input GPU tensor to compute norm of.
         /// @return The Frobenius norm as a scalar of type T.
         template <typename T, typename U, typename V>
-        T FrobeniusNorm(const CudaRuntime &cudart, const GPUTensor<T, U, V> &mat)
+        T FrobeniusNorm(const CudaRuntime &cudart, const Tensor<T, U, V> &mat)
         {
             check_device_alloc(cudart, mat);
             Vector<T, U, V> vec(cudart.gridSize(mat.size(), 1));
@@ -176,7 +176,7 @@ namespace lahva
         /// @param mat2 Second input GPU tensor to compare against.
         /// @return The Frobenius norm of the difference as a scalar of type T.
         template <typename T, typename U, typename V>
-        T FrobeniusNorm(const CudaRuntime &cudart, const GPUTensor<T, U, V> &mat, const GPUTensor<T, U, V> &mat2)
+        T FrobeniusNorm(const CudaRuntime &cudart, const Tensor<T, U, V> &mat, const Tensor<T, U, V> &mat2)
         {
             // check_size_mm(mat, mat2);
             check_device_alloc(cudart, mat);
@@ -204,7 +204,7 @@ namespace lahva
         /// @param vec Pre-allocated reduction vector for partial sums (reused for efficiency).
         /// @return The Frobenius norm of the difference as a scalar of type T.
         template <typename T, typename U, typename V>
-        T FrobeniusNorm(const CudaRuntime &cudart, const GPUTensor<T, U, V> &mat, const GPUTensor<T, U, V> &mat2, Vector<T, U, V> &vec)
+        T FrobeniusNorm(const CudaRuntime &cudart, const Tensor<T, U, V> &mat, const Tensor<T, U, V> &mat2, Vector<T, U, V> &vec)
         {
             // check_size_mm(mat, mat2);
             check_device_alloc(cudart, mat);
@@ -232,7 +232,7 @@ namespace lahva
         /// @param vec Pre-allocated reduction vector for partial sums (reused for efficiency).
         /// @return The Frobenius norm as a scalar of type T.
         template <typename T, typename U, typename V>
-        T FrobeniusNorm(const CudaRuntime &cudart, const GPUTensor<T, U, V> &mat, Vector<T, U, V> &vec)
+        T FrobeniusNorm(const CudaRuntime &cudart, const Tensor<T, U, V> &mat, Vector<T, U, V> &vec)
         {
             check_device_alloc(cudart, mat);
             ScaleVector(cudart, 0.0, vec);
@@ -250,7 +250,7 @@ namespace lahva
         /// @param mat Input GPU matrix to extract diagonal from.
         /// @param vec Output GPU tensor to store diagonal elements.
         template <typename T>
-        void GetDiagonal(const CudaRuntime &cudart, const Matrix_<T> &mat, GPUTensor_<T> &vec);
+        void GetDiagonal(const CudaRuntime &cudart, const Matrix_<T> &mat, Tensor_<T> &vec);
 
         /// @brief Set diagonal elements of a GPU matrix from a vector.
         /// Copies vector elements to the diagonal of the matrix.
@@ -259,7 +259,7 @@ namespace lahva
         /// @param vec Input GPU tensor containing diagonal values.
         /// @param m Output GPU matrix with diagonal set (off-diagonal elements unchanged).
         template <typename T>
-        void SetDiagonal(const CudaRuntime &cudart, const GPUTensor_<T> &vec, Matrix_<T> &m);
+        void SetDiagonal(const CudaRuntime &cudart, const Tensor_<T> &vec, Matrix_<T> &m);
 
         /// @brief GPU kernel for computing trace of a matrix.
         ///
@@ -363,7 +363,7 @@ namespace lahva
         /// @note Both output vectors are allocated on GPU and overwritten with decomposed values.
         /// @pre All input tensors must be allocated on GPU device.
         template <typename inprec, typename outprec>
-        void DecomposeVector2MP(const CudaRuntime &cudart, const GPUTensor_<inprec> &in, GPUTensor_<outprec> &out1, GPUTensor_<outprec> &out2, GPUTensor_<int>& coeff);
+        void DecomposeVector2MP(const CudaRuntime &cudart, const Tensor_<inprec> &in, Tensor_<outprec> &out1, Tensor_<outprec> &out2, Tensor_<int>& coeff);
 
         /// @brief Decompose matrix into multiple lower-precision components using Ozaki algorithm.
         ///
@@ -385,7 +385,7 @@ namespace lahva
         /// @note The input matrix `in` is overwritten with the residual at each level.
         /// @pre All matrices must be allocated on GPU device.
         template <typename inprec, typename outprec, typename Allocator, typename GPUAllocator>
-        void SplitMatrix(const CudaRuntime &cudart, Matrix_<inprec> &in, std::vector<Matrix<outprec, Allocator, GPUAllocator>> &out1, GPUTensor_<int> &split_exponents, int max_split);
+        void SplitMatrix(const CudaRuntime &cudart, Matrix_<inprec> &in, std::vector<Matrix<outprec, Allocator, GPUAllocator>> &out1, Tensor_<int> &split_exponents, int max_split);
 
         /// @brief Decompose tensor into two lower-precision component vectors with auto-allocation.
         ///
@@ -401,7 +401,7 @@ namespace lahva
         /// @param mout1 First output component vector (auto-allocated/resized if needed).
         /// @param mout2 Second output component vector (auto-allocated/resized if needed).
         template <typename T, typename U, typename V, typename Tout>
-        void DecomposeMatrix(const CudaRuntime &cudart, const GPUTensor<T, U, V> &min, Vector<Tout, U, V> &mout1, Vector<Tout, U, V> &mout2)
+        void DecomposeMatrix(const CudaRuntime &cudart, const Tensor<T, U, V> &min, Vector<Tout, U, V> &mout1, Vector<Tout, U, V> &mout2)
         {
             if (min.size() != mout1.size())
                 Vector<Tout, U, V> mout1(min.size(), cudart);
@@ -420,7 +420,7 @@ namespace lahva
         /// @param in GPU tensor to modify in-place.
         /// @param operation Functor instance defining operation (default: op()).
         template <typename T, class op>
-        void ApplyKernel(const CudaRuntime &cudart, GPUTensor_<T> &in, op operation = op());
+        void ApplyKernel(const CudaRuntime &cudart, Tensor_<T> &in, op operation = op());
 
         /// @brief Compute sum of all GPU tensor elements using parallel reduction.
         /// Accumulates all elements into a single scalar via GPU reduction kernel.
@@ -430,7 +430,7 @@ namespace lahva
         /// @param res Temporary reduction vector for partial sums.
         /// @return Sum of all tensor elements.
         template <typename T>
-        T Sum_(const CudaRuntime &cudart, const GPUTensor_<T> &in, GPUTensor_<T> &res);
+        T Sum_(const CudaRuntime &cudart, const Tensor_<T> &in, Tensor_<T> &res);
 
         /// @brief Find maximum element in GPU tensor using parallel reduction.
         /// Locates and returns the largest element in tensor via GPU reduction.
@@ -440,7 +440,7 @@ namespace lahva
         /// @param res Temporary reduction vector for partial maxima.
         /// @return Maximum element value.
         template <typename T>
-        T MaxElement_(const CudaRuntime &cudart, const GPUTensor_<T> &in, GPUTensor_<T> &res);
+        T MaxElement_(const CudaRuntime &cudart, const Tensor_<T> &in, Tensor_<T> &res);
 
         /// @brief Find minimum element in GPU tensor using parallel reduction.
         /// Locates and returns the smallest element in tensor via GPU reduction.
@@ -450,7 +450,7 @@ namespace lahva
         /// @param res Temporary reduction vector for partial minima.
         /// @return Minimum element value.
         template <typename T>
-        T MinElement_(const CudaRuntime &cudart, const GPUTensor_<T> &in, GPUTensor_<T> &res);
+        T MinElement_(const CudaRuntime &cudart, const Tensor_<T> &in, Tensor_<T> &res);
 
         /// @brief Compute sum of all GPU tensor elements (convenience wrapper with auto-allocation).
         ///
@@ -463,7 +463,7 @@ namespace lahva
         /// @param in Input GPU tensor to sum.
         /// @return Sum of all tensor elements.
         template <typename T, typename U, typename V>
-        T Sum(const CudaRuntime &cudart, const GPUTensor<T, U, V> &in)
+        T Sum(const CudaRuntime &cudart, const Tensor<T, U, V> &in)
         {
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();
@@ -484,7 +484,7 @@ namespace lahva
         /// @param v Pre-allocated reduction vector for partial sums.
         /// @return Sum of all tensor elements.
         template <typename T, typename U, typename V>
-        T Sum(const CudaRuntime &cudart, const GPUTensor<T, U, V> &in, Vector<T, U, V> &v)
+        T Sum(const CudaRuntime &cudart, const Tensor<T, U, V> &in, Vector<T, U, V> &v)
         {
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();
@@ -506,7 +506,7 @@ namespace lahva
         /// @param v Pre-allocated reduction vector for partial maxima (resized if necessary).
         /// @return Maximum element value.
         template <typename T, typename U, typename V>
-        T MaxElement(const CudaRuntime &cudart, const GPUTensor<T, U, V> &in, Vector<T, U, V> &v)
+        T MaxElement(const CudaRuntime &cudart, const Tensor<T, U, V> &in, Vector<T, U, V> &v)
         {
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();
@@ -531,7 +531,7 @@ namespace lahva
         /// @param v Pre-allocated reduction vector for partial minima (resized if necessary).
         /// @return Minimum element value.
         template <typename T, typename U, typename V>
-        T MinElement(const CudaRuntime &cudart, const GPUTensor<T, U, V> &in, Vector<T, U, V> &v)
+        T MinElement(const CudaRuntime &cudart, const Tensor<T, U, V> &in, Vector<T, U, V> &v)
         {
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();
@@ -552,7 +552,7 @@ namespace lahva
         /// @param in Input GPU tensor to search.
         /// @return Maximum element value.
         template <typename T, typename U, typename V>
-        T MaxElement(const CudaRuntime &cudart, const GPUTensor<T, U, V> &in)
+        T MaxElement(const CudaRuntime &cudart, const Tensor<T, U, V> &in)
         {
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();
@@ -574,7 +574,7 @@ namespace lahva
         /// @param in Input GPU tensor to search.
         /// @return Minimum element value.
         template <typename T, typename U, typename V>
-        T MinElement(const CudaRuntime &cudart, const GPUTensor<T, U, V> &in)
+        T MinElement(const CudaRuntime &cudart, const Tensor<T, U, V> &in)
         {
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();

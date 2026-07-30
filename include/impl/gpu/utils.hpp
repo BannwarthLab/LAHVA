@@ -21,7 +21,7 @@ namespace lahva
         /// @param cudart CUDA runtime instance.
         /// @param gpu_vec GPU tensor to check and allocate if needed.
         template <typename T>
-        void check_device_alloc(const CudaRuntime &cudart, const GPUTensor_<T> &gpu_vec)
+        void check_device_alloc(const CudaRuntime &cudart, const Tensor_<T> &gpu_vec)
         {
             
             gpu_vec.copy2device(cudart);
@@ -42,7 +42,7 @@ namespace lahva
         /// @param trans Optional transpose operation on matrix (default: CUBLAS_OP_N for no transpose).
         /// @return Tuple of (nrow, ncol) dimensions of the matrix.
         template <typename T>
-        std::tuple<size_t, size_t> check_size_mv(const Matrix_<T> &m, const GPUTensor_<T> &vmult, const GPUTensor_<T> &vres, cublasOperation_t trans = CUBLAS_OP_N)
+        std::tuple<size_t, size_t> check_size_mv(const Matrix_<T> &m, const Tensor_<T> &vmult, const Tensor_<T> &vres, cublasOperation_t trans = CUBLAS_OP_N)
         {
             Shape s = m.shape();
             size_t nrow = s.first;

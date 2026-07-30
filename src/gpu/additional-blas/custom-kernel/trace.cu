@@ -379,7 +379,7 @@ namespace lahva
         /// @param m Input double-precision matrix.
         /// @param diag Output diagonal vector.
         template<>
-        void GetDiagonal<double>(const CudaRuntime& cudart, const Matrix_<double>& m, GPUTensor_<double>& diag)
+        void GetDiagonal<double>(const CudaRuntime& cudart, const Matrix_<double>& m, Tensor_<double>& diag)
         {
             int gridS = cudart.gridSize(diag.size(), 1);
             check_device_alloc(cudart, diag);
@@ -395,7 +395,7 @@ namespace lahva
         /// @param m Input single-precision matrix.
         /// @param diag Output diagonal vector.
         template<>
-        void GetDiagonal<float>(const CudaRuntime& cudart, const Matrix_<float>& m, GPUTensor_<float>& diag)
+        void GetDiagonal<float>(const CudaRuntime& cudart, const Matrix_<float>& m, Tensor_<float>& diag)
         {
             int gridS = cudart.gridSize(diag.size(), 1);
             check_device_alloc(cudart, diag);
@@ -411,7 +411,7 @@ namespace lahva
         /// @param diag Input diagonal vector.
         /// @param m Input/output double-precision matrix (diagonal updated).
         template<>
-        void SetDiagonal<double>(const CudaRuntime& cudart, const GPUTensor_<double>& diag, Matrix_<double>& m)
+        void SetDiagonal<double>(const CudaRuntime& cudart, const Tensor_<double>& diag, Matrix_<double>& m)
         {
             int gridS = cudart.gridSize(diag.size(), 1);
             check_device_alloc(cudart, diag);
@@ -427,7 +427,7 @@ namespace lahva
         /// @param diag Input diagonal vector.
         /// @param m Input/output single-precision matrix (diagonal updated).
         template<>
-        void SetDiagonal<float>(const CudaRuntime& cudart, const GPUTensor_<float>& diag, Matrix_<float>& m)
+        void SetDiagonal<float>(const CudaRuntime& cudart, const Tensor_<float>& diag, Matrix_<float>& m)
         {
             int gridS = cudart.gridSize(diag.size(), 1);
             check_device_alloc(cudart, diag);

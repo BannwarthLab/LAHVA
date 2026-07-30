@@ -79,7 +79,7 @@ namespace lahva
 
             /// @brief Move assignment operator
             Vector &operator=(Vector &&other);
-            
+
             /// @brief Non-const element access operator
             /// @tparam D index type (implicitly converted to size_t)
             /// @param[in] index element index
@@ -141,15 +141,13 @@ namespace lahva
 
         /// @brief Copy constructor implementation
         template <typename T, class Allocator>
-        Vector<T, Allocator>::Vector(const Vector &x) : Tensor<T, Allocator>{x}
-        {
-        };
+        Vector<T, Allocator>::Vector(const Vector &x) : Tensor<T, Allocator>{x} {
+                                                        };
 
         /// @brief Move constructor implementation
         template <typename T, class Allocator>
-        Vector<T, Allocator>::Vector(Vector &&x) noexcept : Tensor<T, Allocator>{std::move(x)}
-        {
-        };
+        Vector<T, Allocator>::Vector(Vector &&x) noexcept : Tensor<T, Allocator>{std::move(x)} {
+                                                            };
 
         /// @brief Implementation: Initialize from initializer list
         template <class T, class Allocator>
@@ -183,7 +181,7 @@ namespace lahva
 
         /// @brief Destructor implementation
         template <typename T, class Allocator>
-        Vector<T, Allocator>::~Vector(){
+        Vector<T, Allocator>::~Vector() {
 
         };
 

@@ -20,7 +20,7 @@ namespace lahva
         /// @param a Scalar factor for vector x.
         /// @param x Input double-precision tensor.
         /// @param y Input/output single-precision tensor.
-        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double a, const GPUTensor_<double>& x, GPUTensor_<float>& y);
+        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double a, const Tensor_<double>& x, Tensor_<float>& y);
 
         /// @brief Adds single-precision vector to double-precision vector: y = a*x + y.
         ///
@@ -31,7 +31,7 @@ namespace lahva
         /// @param a Scalar factor for vector x.
         /// @param x Input single-precision tensor.
         /// @param y Input/output double-precision tensor.
-        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double a, const GPUTensor_<float>& x, GPUTensor_<double>& y);
+        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double a, const Tensor_<float>& x, Tensor_<double>& y);
 
         /// @brief Adds half-precision vector to double-precision vector: y = a*x + y.
         ///
@@ -42,7 +42,7 @@ namespace lahva
         /// @param a Scalar factor for vector x.
         /// @param x Input half-precision tensor.
         /// @param y Input/output double-precision tensor.
-        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double a, const GPUTensor_<__half>& x, GPUTensor_<double>& y);
+        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double a, const Tensor_<__half>& x, Tensor_<double>& y);
     } // namespace gpu
 
 } // namespace lahva

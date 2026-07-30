@@ -22,7 +22,7 @@ namespace lahva{
     /// @param X First double-precision GPU tensor.
     /// @param Y Second double-precision GPU tensor.
     /// @return The inner product of tensors X and Y.
-    double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<double>& X, const GPUTensor_<double>& Y)
+    double InnerVectorProduct(const CudaRuntime& cudart, const Tensor_<double>& X, const Tensor_<double>& Y)
     {   
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
@@ -43,7 +43,7 @@ namespace lahva{
     /// @param X First single-precision GPU tensor.
     /// @param Y Second single-precision GPU tensor.
     /// @return The inner product of tensors X and Y.
-    float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<float>& X, const GPUTensor_<float>& Y)
+    float InnerVectorProduct(const CudaRuntime& cudart, const Tensor_<float>& X, const Tensor_<float>& Y)
     { 
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
@@ -67,7 +67,7 @@ namespace lahva{
     /// @param Y Second double-precision GPU tensor.
     /// @param strideY Memory stride for tensor Y.
     /// @return The inner product of tensors X and Y.
-    double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<double>& X, const size_t strideX, const GPUTensor_<double>& Y, const size_t strideY)
+    double InnerVectorProduct(const CudaRuntime& cudart, const Tensor_<double>& X, const size_t strideX, const Tensor_<double>& Y, const size_t strideY)
     {
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
@@ -91,7 +91,7 @@ namespace lahva{
     /// @param Y Second single-precision GPU tensor.
     /// @param strideY Memory stride for tensor Y.
     /// @return The inner product of tensors X and Y.
-    float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<float>& X, const size_t strideX, const GPUTensor_<float>& Y, const size_t strideY)
+    float InnerVectorProduct(const CudaRuntime& cudart, const Tensor_<float>& X, const size_t strideX, const Tensor_<float>& Y, const size_t strideY)
     {
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
@@ -113,7 +113,7 @@ namespace lahva{
     /// @param a Scalar factor (alpha) for vector x.
     /// @param x Input double-precision GPU tensor.
     /// @param y Input/output double-precision GPU tensor, replaced with result.
-    void AddVectors(const CudaRuntime& cudart, const double a, const GPUTensor_<double>& x, GPUTensor_<double>& y) {
+    void AddVectors(const CudaRuntime& cudart, const double a, const Tensor_<double>& x, Tensor_<double>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -131,7 +131,7 @@ namespace lahva{
     /// @param a Scalar factor (alpha) for vector x.
     /// @param x Input single-precision GPU tensor.
     /// @param y Input/output single-precision GPU tensor, replaced with result.
-    void AddVectors(const CudaRuntime& cudart, const float a, const GPUTensor_<float>& x, GPUTensor_<float>& y) {
+    void AddVectors(const CudaRuntime& cudart, const float a, const Tensor_<float>& x, Tensor_<float>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -152,7 +152,7 @@ namespace lahva{
     /// @param ix Memory stride for tensor x.
     /// @param y Input/output double-precision GPU tensor, replaced with result.
     /// @param iy Memory stride for tensor y.
-    void AddVectors(const CudaRuntime& cudart, const double a, const GPUTensor_<double>& x, size_t ix, GPUTensor_<double>& y, size_t iy) {
+    void AddVectors(const CudaRuntime& cudart, const double a, const Tensor_<double>& x, size_t ix, Tensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -172,7 +172,7 @@ namespace lahva{
     /// @param ix Memory stride for tensor x.
     /// @param y Input/output single-precision GPU tensor, replaced with result.
     /// @param iy Memory stride for tensor y.
-    void AddVectors(const CudaRuntime& cudart, const float a, const GPUTensor_<float>& x, size_t ix, GPUTensor_<float>& y, size_t iy) {
+    void AddVectors(const CudaRuntime& cudart, const float a, const Tensor_<float>& x, size_t ix, Tensor_<float>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -188,7 +188,7 @@ namespace lahva{
     /// @param cudart CUDA runtime instance.
     /// @param x Source double-precision GPU tensor.
     /// @param y Destination double-precision GPU tensor.
-    void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<double>& x, GPUTensor_<double>& y) {
+    void CopyVectors(const CudaRuntime& cudart, const Tensor_<double>& x, Tensor_<double>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -204,7 +204,7 @@ namespace lahva{
     /// @param cudart CUDA runtime instance.
     /// @param x Source single-precision GPU tensor.
     /// @param y Destination single-precision GPU tensor.
-    void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<float>& x, GPUTensor_<float>& y) {
+    void CopyVectors(const CudaRuntime& cudart, const Tensor_<float>& x, Tensor_<float>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y);
@@ -223,7 +223,7 @@ namespace lahva{
     /// @param ix Memory stride for tensor x.
     /// @param y Destination double-precision GPU tensor.
     /// @param iy Memory stride for tensor y.
-    void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<double>& x, size_t ix, GPUTensor_<double>& y, size_t iy) {
+    void CopyVectors(const CudaRuntime& cudart, const Tensor_<double>& x, size_t ix, Tensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -241,7 +241,7 @@ namespace lahva{
     /// @param ix Memory stride for tensor x.
     /// @param y Destination single-precision GPU tensor.
     /// @param iy Memory stride for tensor y.
-    void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<float>& x, size_t ix, GPUTensor_<float>& y, size_t iy) {
+    void CopyVectors(const CudaRuntime& cudart, const Tensor_<float>& x, size_t ix, Tensor_<float>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -257,7 +257,7 @@ namespace lahva{
     /// @param cudart CUDA runtime instance.
     /// @param x First double-precision GPU tensor.
     /// @param y Second double-precision GPU tensor.
-    void SwapVectors(const CudaRuntime& cudart, GPUTensor_<double>& x, GPUTensor_<double>& y) {
+    void SwapVectors(const CudaRuntime& cudart, Tensor_<double>& x, Tensor_<double>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -273,7 +273,7 @@ namespace lahva{
     /// @param cudart CUDA runtime instance.
     /// @param x First single-precision GPU tensor.
     /// @param y Second single-precision GPU tensor.
-    void SwapVectors(const CudaRuntime& cudart, GPUTensor_<float>& x, GPUTensor_<float>& y) {
+    void SwapVectors(const CudaRuntime& cudart, Tensor_<float>& x, Tensor_<float>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -292,7 +292,7 @@ namespace lahva{
     /// @param ix Memory stride for tensor x.
     /// @param y Second double-precision GPU tensor.
     /// @param iy Memory stride for tensor y.
-    void SwapVectors(const CudaRuntime& cudart, GPUTensor_<double>& x, size_t ix, GPUTensor_<double>& y, size_t iy) {
+    void SwapVectors(const CudaRuntime& cudart, Tensor_<double>& x, size_t ix, Tensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -311,7 +311,7 @@ namespace lahva{
     /// @param ix Memory stride for tensor x.
     /// @param y Second single-precision GPU tensor.
     /// @param iy Memory stride for tensor y.
-    void SwapVectors(const CudaRuntime& cudart, GPUTensor_<float>& x, size_t ix, GPUTensor_<float>& y, size_t iy) {
+    void SwapVectors(const CudaRuntime& cudart, Tensor_<float>& x, size_t ix, Tensor_<float>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -328,7 +328,7 @@ namespace lahva{
     /// @param cudart CUDA runtime instance.
     /// @param a Scalar factor for multiplication.
     /// @param x Input/output double-precision GPU tensor.
-    void ScaleVector(const CudaRuntime& cudart, const double a, GPUTensor_<double>& x) {
+    void ScaleVector(const CudaRuntime& cudart, const double a, Tensor_<double>& x) {
         check_device_alloc( cudart, x); 
         
         cudart.cublasSetStream_();
@@ -342,7 +342,7 @@ namespace lahva{
     /// @param cudart CUDA runtime instance.
     /// @param a Scalar factor for multiplication.
     /// @param x Input/output single-precision GPU tensor.
-    void ScaleVector(const CudaRuntime& cudart, const float a, GPUTensor_<float>& x){
+    void ScaleVector(const CudaRuntime& cudart, const float a, Tensor_<float>& x){
         check_device_alloc( cudart, x); 
         
         cudart.cublasSetStream_();
@@ -358,7 +358,7 @@ namespace lahva{
     /// @param a Scalar factor for multiplication.
     /// @param x Input/output double-precision GPU tensor.
     /// @param ix Memory stride for tensor x.
-    void ScaleVector(const CudaRuntime& cudart, const double a, GPUTensor_<double>& x, size_t ix){
+    void ScaleVector(const CudaRuntime& cudart, const double a, Tensor_<double>& x, size_t ix){
         check_device_alloc( cudart, x);
 
         cudart.cublasSetStream_();
@@ -374,7 +374,7 @@ namespace lahva{
     /// @param a Scalar factor for multiplication.
     /// @param x Input/output single-precision GPU tensor.
     /// @param ix Memory stride for tensor x.
-    void ScaleVector(const CudaRuntime& cudart, const float a, GPUTensor_<float>& x, size_t ix){
+    void ScaleVector(const CudaRuntime& cudart, const float a, Tensor_<float>& x, size_t ix){
         check_device_alloc( cudart, x); 
         
         cudart.cublasSetStream_();

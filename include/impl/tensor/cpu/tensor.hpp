@@ -43,22 +43,22 @@ namespace lahva
         T sum() const
         {
             T res = (T)0;
-            #pragma omp parallel shared(res)
+#pragma omp parallel shared(res)
             {
                 T my_part = (T)0.0;
-        
-                #pragma omp for
+
+#pragma omp for
                 for (long i = 0; i < this->size(); i++)
                 {
                     my_part += this->data()[i];
                 }
-        
-                #pragma omp critical
+
+#pragma omp critical
                 {
                     res += my_part;
                 }
             }
-            
+
             return res;
         }
 
@@ -67,17 +67,17 @@ namespace lahva
         T sum()
         {
             T res = (T)0;
-            #pragma omp parallel shared(res)
+#pragma omp parallel shared(res)
             {
                 T my_part = (T)0.0;
 
-                #pragma omp for
+#pragma omp for
                 for (long i = 0; i < static_cast<long>(this->size()); i++)
                 {
                     my_part += this->data()[i];
                 }
 
-                #pragma omp critical
+#pragma omp critical
                 {
                     res += my_part;
                 }
@@ -104,7 +104,6 @@ namespace lahva
         {
             return this->data()[static_cast<size_t>(index)];
         };
-
     };
 
     /// @brief CPU-based tensor with host memory management
@@ -159,14 +158,13 @@ namespace lahva
         Tensor(const alloc_ptr &alloc) : alloc_{alloc} { is_owner_ = false; };
 
         /// @brief Default constructor for CPU tensor
-        Tensor() : count_{0}, data_{nullptr}, no_alloc{true}
-        {
+        Tensor() : count_{0}, data_{nullptr}, no_alloc{true} {
 
-        };
+                   };
 
         /// @brief Copy constructor for CPU tensor
         /// @param[in] other source tensor to copy
-        Tensor(const Tensor &other) :  no_alloc{other.no_alloc}
+        Tensor(const Tensor &other) : no_alloc{other.no_alloc}
         {
             this->count_ = other.count_;
             this->alloc_ = other.get_allocator();
@@ -180,7 +178,6 @@ namespace lahva
             {
                 this->data_ = nullptr;
             }
-            
         };
 
         /// @brief Move constructor for CPU tensor

@@ -265,7 +265,7 @@ namespace lahva
         /// @param X Input tensor.
         /// @param Y Input/output tensor (accumulated).
         template <typename in, typename out>
-        void AddVectors(const CudaRuntime &cudart, const GPUTensor_<in> &X, GPUTensor_<out> &Y)
+        void AddVectors(const CudaRuntime &cudart, const Tensor_<in> &X, Tensor_<out> &Y)
         {
             assert(X.size() == Y.size());
             check_device_alloc(cudart, Y);
@@ -282,7 +282,7 @@ namespace lahva
         /// @param alpha Scalar factor for half-precision input.
         /// @param X Input half-precision tensor.
         /// @param Y Input/output single-precision tensor.
-        void AddVectors(const CudaRuntime &cudart, float alpha, const GPUTensor_<__half> &X, GPUTensor_<float> &Y)
+        void AddVectors(const CudaRuntime &cudart, float alpha, const Tensor_<__half> &X, Tensor_<float> &Y)
         {
             assert(X.size() == Y.size());
             check_device_alloc(cudart, Y);
@@ -299,7 +299,7 @@ namespace lahva
         /// @param alpha Scalar factor for half-precision input.
         /// @param X Input half-precision tensor.
         /// @param Y Input/output double-precision tensor.
-        void AddVectors(const CudaRuntime &cudart, double alpha, const GPUTensor_<__half> &X, GPUTensor_<double> &Y)
+        void AddVectors(const CudaRuntime &cudart, double alpha, const Tensor_<__half> &X, Tensor_<double> &Y)
         {
             assert(X.size() == Y.size());
             check_device_alloc(cudart, Y);
@@ -315,7 +315,7 @@ namespace lahva
         /// @param cudart CUDA runtime instance.
         /// @param X Input double-precision tensor.
         /// @param Y Output single-precision tensor.
-        void CopyVectors(const CudaRuntime &cudart, const GPUTensor_<double> &X, GPUTensor_<float> &Y)
+        void CopyVectors(const CudaRuntime &cudart, const Tensor_<double> &X, Tensor_<float> &Y)
         {
             assert(X.size() == Y.size());
             check_device_alloc(cudart, Y);
@@ -332,7 +332,7 @@ namespace lahva
         /// @param cudart CUDA runtime instance.
         /// @param X Input single-precision tensor.
         /// @param Y Output double-precision tensor.
-        void CopyVectors(const CudaRuntime &cudart, const GPUTensor_<float> &X, GPUTensor_<double> &Y)
+        void CopyVectors(const CudaRuntime &cudart, const Tensor_<float> &X, Tensor_<double> &Y)
         {
             assert(X.size() == Y.size());
             unsigned long long n = X.size();
@@ -355,7 +355,7 @@ namespace lahva
         /// @param out2 Second decomposed component (lower precision).
         /// @param coeff Exponent coefficients used in decomposition (output).
         template <typename inprec, typename outprec>
-        void DecomposeVector2MP(const CudaRuntime &cudart, const GPUTensor_<inprec> &in, GPUTensor_<outprec> &out1, GPUTensor_<outprec> &out2, GPUTensor_<int> &coeff)
+        void DecomposeVector2MP(const CudaRuntime &cudart, const Tensor_<inprec> &in, Tensor_<outprec> &out1, Tensor_<outprec> &out2, Tensor_<int> &coeff)
         {
             assert(in.size() == out1.size());
             assert(in.size() == out2.size());
@@ -409,7 +409,7 @@ namespace lahva
         /// @param coeff Vector of exponent coefficients (one per split component).
         /// @param maxsplit Maximum number of split components to create.
         template <typename inprec, typename outprec, typename Allocator, typename GPUAllocator>
-        void SplitMatrix(const CudaRuntime &cudart, Matrix_<inprec> &in, std::vector<Matrix<outprec, Allocator, GPUAllocator>> &out, GPUTensor_<int> &coeff, int maxsplit)
+        void SplitMatrix(const CudaRuntime &cudart, Matrix_<inprec> &in, std::vector<Matrix<outprec, Allocator, GPUAllocator>> &out, Tensor_<int> &coeff, int maxsplit)
         {
             unsigned long long n = in.size();
             size_t numel = std::sqrt(n);
@@ -482,16 +482,16 @@ namespace lahva
             }
         }
 
-        template void AddVectors<float, double>(const CudaRuntime &cudart, const GPUTensor_<float> &X, GPUTensor_<double> &Y);
-        template void AddVectors<double, float>(const CudaRuntime &cudart, const GPUTensor_<double> &X, GPUTensor_<float> &Y);
-        template void AddVectors<__half, double>(const CudaRuntime &cudart, const GPUTensor_<__half> &X, GPUTensor_<double> &Y);
-        template void AddVectors<__half, float>(const CudaRuntime &cudart, const GPUTensor_<__half> &X, GPUTensor_<float> &Y);
+        template void AddVectors<float, double>(const CudaRuntime &cudart, const Tensor_<float> &X, Tensor_<double> &Y);
+        template void AddVectors<double, float>(const CudaRuntime &cudart, const Tensor_<double> &X, Tensor_<float> &Y);
+        template void AddVectors<__half, double>(const CudaRuntime &cudart, const Tensor_<__half> &X, Tensor_<double> &Y);
+        template void AddVectors<__half, float>(const CudaRuntime &cudart, const Tensor_<__half> &X, Tensor_<float> &Y);
 
-        template void DecomposeVector2MP<float, __half>(const CudaRuntime &cudart, const GPUTensor_<float> &in, GPUTensor_<__half> &out1, GPUTensor_<__half> &out2, GPUTensor_<int> &coeff);
-        template void SplitMatrix<float, __half, CudaHostAllocator<__half>, CudaDeviceAllocator<__half>>(const CudaRuntime &cudart, Matrix_<float> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAllocator<__half>>> &out, GPUTensor_<int> &coeff, int maxsplit);
-        template void SplitMatrix<float, __half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>(const CudaRuntime &cudart, Matrix_<float> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>> &out, GPUTensor_<int> &coeff, int maxsplit);
-        template void SplitMatrix<double, __half, CudaHostAllocator<__half>, CudaDeviceAllocator<__half>>(const CudaRuntime &cudart, Matrix_<double> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAllocator<__half>>> &out, GPUTensor_<int> &coeff, int maxsplit);
-        template void SplitMatrix<double, __half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>(const CudaRuntime &cudart, Matrix_<double> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>> &out, GPUTensor_<int> &coeff, int maxsplit);
+        template void DecomposeVector2MP<float, __half>(const CudaRuntime &cudart, const Tensor_<float> &in, Tensor_<__half> &out1, Tensor_<__half> &out2, Tensor_<int> &coeff);
+        template void SplitMatrix<float, __half, CudaHostAllocator<__half>, CudaDeviceAllocator<__half>>(const CudaRuntime &cudart, Matrix_<float> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAllocator<__half>>> &out, Tensor_<int> &coeff, int maxsplit);
+        template void SplitMatrix<float, __half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>(const CudaRuntime &cudart, Matrix_<float> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>> &out, Tensor_<int> &coeff, int maxsplit);
+        template void SplitMatrix<double, __half, CudaHostAllocator<__half>, CudaDeviceAllocator<__half>>(const CudaRuntime &cudart, Matrix_<double> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAllocator<__half>>> &out, Tensor_<int> &coeff, int maxsplit);
+        template void SplitMatrix<double, __half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>(const CudaRuntime &cudart, Matrix_<double> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>> &out, Tensor_<int> &coeff, int maxsplit);
     
     } // namespace gpu
 } // namespace lahva
