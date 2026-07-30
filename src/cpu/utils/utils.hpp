@@ -20,7 +20,7 @@ namespace lahva{
     /// @param v1 First tensor to check.
     /// @param v2 Second tensor to check.
     template<typename T, typename U>
-    void check_equal_size(const Tensor<T>& v1, const Tensor<U>& v2){
+    void check_equal_size(const Tensor_<T>& v1, const Tensor_<U>& v2){
         assert(v1.size() == v2.size());
     };
     namespace cpu
@@ -41,7 +41,7 @@ namespace lahva{
     /// @param trans Transpose flag for the matrix (default: CblasNoTrans).
     /// @return Tuple of (nrow, ncol) - row and column counts of the matrix.
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const Matrix_<T>& m, const Tensor<T>& vmult, const Tensor<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const Matrix_<T>& m, const Tensor_<T>& vmult, const Tensor_<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
@@ -74,7 +74,7 @@ namespace lahva{
     /// @param trans Transpose flag for the matrix (default: CblasNoTrans).
     /// @return Tuple of (nrow, ncol) - row and column counts of the triangular matrix.
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor<T>& vmult, const Tensor<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor_<T>& vmult, const Tensor_<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
@@ -241,7 +241,7 @@ namespace lahva{
     /// @param vmult Input vector.
     /// @return Tuple of (nrow, ncol) - row and column counts of the triangular matrix.
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor<T>& vmult)
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor_<T>& vmult)
     {
         Shape s = m.shape();
         BLAS_INT nrow = s.first;

@@ -26,7 +26,7 @@ namespace lahva
     
     
     template<typename T>
-    class Matrix_ : public virtual Tensor<T>
+    class Matrix_ : public virtual Tensor_<T>
     {
         public:
             virtual Shape shape() const  = 0;
@@ -49,7 +49,7 @@ namespace lahva
     /// The data is stored in column-major order in a 1D array.
     ///
     template <class T, class Allocator = StdAllocator<T>>
-    class Matrix : virtual public CPUTensor<T, Allocator>, virtual public Matrix_<T>
+    class Matrix : virtual public Tensor<T, Allocator>, virtual public Matrix_<T>
     {
         using alloc_ptr = CPUAllocator<T>;
     protected:
@@ -255,7 +255,7 @@ namespace lahva
     /// @brief Implementation: Allocate matrix storage without initialization
     template <typename T, class Allocator>
     Matrix<T, Allocator>::Matrix(const Shape &shape, const alloc_ptr &alloc) :
-    CPUTensor<T, Allocator>{shape.first*shape.second, alloc}, n_rows_{shape.first}, n_cols_{shape.second}
+    Tensor<T, Allocator>{shape.first*shape.second, alloc}, n_rows_{shape.first}, n_cols_{shape.second}
     {
         check_size_(shape.first, shape.second);
     }
@@ -263,7 +263,7 @@ namespace lahva
     /// @brief Implementation: Wrap existing data pointer with optional ownership
     template <typename T, class Allocator>
     Matrix<T, Allocator>::Matrix(const Shape &shape, T *data, bool take_ownership, const alloc_ptr &alloc) :
-    CPUTensor<T, Allocator>{alloc}, n_rows_{shape.first}, n_cols_{shape.second}
+    Tensor<T, Allocator>{alloc}, n_rows_{shape.first}, n_cols_{shape.second}
     {
         this->data_ = data;
         this->count_ = n_rows_*n_cols_;
@@ -334,7 +334,7 @@ namespace lahva
     /// @brief Copy constructor implementation
     template <typename T, class Allocator>
     Matrix<T, Allocator>::Matrix(const Matrix<T, Allocator> &other) :
-    CPUTensor<T, Allocator>{other},
+    Tensor<T, Allocator>{other},
     n_rows_{other.n_rows_}, n_cols_{other.n_cols_}
     {
 
@@ -346,7 +346,7 @@ namespace lahva
     {
         if (this != &other)
         {
-            CPUTensor<T, Allocator>::operator=(other);
+            Tensor<T, Allocator>::operator=(other);
 
             n_rows_ = other.n_rows_;
             n_cols_ = other.n_cols_;
@@ -358,7 +358,7 @@ namespace lahva
     /// @brief Move constructor implementation
     template <typename T, class Allocator>
     Matrix<T, Allocator>::Matrix(Matrix<T, Allocator> &&other) :
-    CPUTensor<T, Allocator>{other},
+    Tensor<T, Allocator>{other},
     n_rows_{other.n_rows_}, n_cols_{other.n_cols_}
     {
 
@@ -373,7 +373,7 @@ namespace lahva
     {
         if (this != &other)
         {
-            CPUTensor<T, Allocator>::operator=(std::move(other));
+            Tensor<T, Allocator>::operator=(std::move(other));
 
             n_rows_ = other.n_rows_;
             n_cols_ = other.n_cols_;

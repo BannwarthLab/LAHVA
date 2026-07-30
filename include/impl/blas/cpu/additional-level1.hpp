@@ -58,7 +58,7 @@ namespace lahva
         /// @param mat Input tensor/matrix.
         /// @return The Frobenius norm of the matrix.
         template <typename T>
-        T FrobeniusNorm(const Tensor<T> &mat);
+        T FrobeniusNorm(const Tensor_<T> &mat);
 
         /// @brief Compute the Frobenius norm of the difference of two matrices
         ///
@@ -69,7 +69,7 @@ namespace lahva
         /// @param mat2 Second input tensor/matrix.
         /// @return The Frobenius norm of the difference.
         template <typename T>
-        T FrobeniusNorm(const Tensor<T> &mat, const Tensor<T> &mat2);
+        T FrobeniusNorm(const Tensor_<T> &mat, const Tensor_<T> &mat2);
 
         /// @brief Runtime-dispatching overload for Frobenius norm difference (CPURuntime first)
         ///
@@ -82,7 +82,7 @@ namespace lahva
         /// @param mat2 Second input tensor/matrix.
         /// @return The Frobenius norm of the difference.
         template <typename T>
-        T FrobeniusNorm(const CPURuntime &cpurt, const Tensor<T> &mat, const Tensor<T> &mat2)
+        T FrobeniusNorm(const CPURuntime &cpurt, const Tensor_<T> &mat, const Tensor_<T> &mat2)
         {
             return FrobeniusNorm(mat, mat2);
         };
@@ -98,7 +98,7 @@ namespace lahva
         /// @param mat Input tensor/matrix.
         /// @return The Frobenius norm of the matrix.
         template <typename T>
-        T FrobeniusNorm(const CPURuntime &cpurt, const Tensor<T> &mat);
+        T FrobeniusNorm(const CPURuntime &cpurt, const Tensor_<T> &mat);
 
         /// @brief Compute the Frobenius inner product of two matrices
         ///
@@ -167,7 +167,7 @@ namespace lahva
         /// @param funcPtr Function pointer of type T (*)(T) to apply to each element.
         /// @param mat Input tensor (overwritten with transformed values).
         template <typename T>
-        void ApplyKernel(func_t1D<T> funcPtr, Tensor<T> &mat)
+        void ApplyKernel(func_t1D<T> funcPtr, Tensor_<T> &mat)
         {
 #pragma omp parallel for collapse(1)
             for (size_t i = 0; i < mat.size(); i++)
@@ -190,7 +190,7 @@ namespace lahva
         /// @param funcPtr Function pointer of type T (*)(void) to call for each element.
         /// @param mat Input tensor (overwritten with generated values).
         template <typename T>
-        void ApplyKernel(func_t0D<T> funcPtr, Tensor<T> &mat)
+        void ApplyKernel(func_t0D<T> funcPtr, Tensor_<T> &mat)
         {
 #pragma omp parallel for collapse(1)
             for (size_t i = 0; i < mat.size(); i++)
@@ -208,7 +208,7 @@ namespace lahva
         /// @param X First input tensor (read-only).
         /// @param Y Second input tensor, overwritten with the element-wise product.
         template <typename T>
-        void HadamardProduct(const Tensor<T> &X, Tensor<T> &Y);
+        void HadamardProduct(const Tensor_<T> &X, Tensor_<T> &Y);
 
         /// @brief Compute the Hadamard product: Z = X .* Y
         ///
@@ -220,7 +220,7 @@ namespace lahva
         /// @param Y Second input tensor (read-only).
         /// @param Z Output tensor to store the element-wise product (overwritten).
         template <typename T>
-        void HadamardProduct(const Tensor<T> &X, const Tensor<T> &Y, Tensor<T> &Z);
+        void HadamardProduct(const Tensor_<T> &X, const Tensor_<T> &Y, Tensor_<T> &Z);
 
         /// @brief Compute the Hadamard product with raw pointers: Z = X .* Y
         ///

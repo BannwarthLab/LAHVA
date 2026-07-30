@@ -89,7 +89,7 @@ namespace lahva
         /// @param mat Input tensor/matrix.
         /// @return The Frobenius norm of the matrix.
         template <typename T>
-        T FrobeniusNorm(const Tensor<T> &mat)
+        T FrobeniusNorm(const Tensor_<T> &mat)
         {
             T norm = 0;
 #pragma omp parallel for reduction(+ : norm)
@@ -110,7 +110,7 @@ namespace lahva
         /// @param mat2 Second input tensor/matrix.
         /// @return The Frobenius norm of the difference.
         template <typename T>
-        T FrobeniusNorm(const Tensor<T> &mat, const Tensor<T> &mat2)
+        T FrobeniusNorm(const Tensor_<T> &mat, const Tensor_<T> &mat2)
         {
             T norm = 0;
 #pragma omp parallel for reduction(+ : norm)
@@ -128,7 +128,7 @@ namespace lahva
         /// The runtime parameter is ignored for CPU implementations but this overload
         /// mirrors the signatures used for GPU/CUDA dispatching.
         template <typename T>
-        T FrobeniusNorm(const CPURuntime &rt, const Tensor<T> &mat)
+        T FrobeniusNorm(const CPURuntime &rt, const Tensor_<T> &mat)
         {
             return FrobeniusNorm(mat);
         };
@@ -171,7 +171,7 @@ namespace lahva
         /// @param A First input tensor (not modified).
         /// @param B Second input tensor (overwritten with the element-wise product).
         template <typename T>
-        void HadamardProduct(const Tensor<T> &A, Tensor<T> &B)
+        void HadamardProduct(const Tensor_<T> &A, Tensor_<T> &B)
         {
             check_equal_size(A, B);
 #pragma omp parallel for shared(A, B)
@@ -190,7 +190,7 @@ namespace lahva
         /// @param B Second input tensor (not modified).
         /// @param C Output tensor to store the element-wise product (overwritten).
         template <typename T>
-        void HadamardProduct(const Tensor<T> &A, const Tensor<T> &B, Tensor<T> &C)
+        void HadamardProduct(const Tensor_<T> &A, const Tensor_<T> &B, Tensor_<T> &C)
         {
             check_equal_size(A, B);
             check_equal_size(A, C);
@@ -234,22 +234,22 @@ namespace lahva
         }
 
         //// Explicit template instantiations
-        template float FrobeniusNorm<float>(const Tensor<float> &mat);
-        template double FrobeniusNorm<double>(const Tensor<double> &mat);
-        template float FrobeniusNorm<float>(const Tensor<float> &mat, const Tensor<float> &mat2);
-        template double FrobeniusNorm<double>(const Tensor<double> &mat, const Tensor<double> &mat2);
-        template double FrobeniusNorm<double>(const CPURuntime &rt, const Tensor<double> &mat);
-        template float FrobeniusNorm<float>(const CPURuntime &rt, const Tensor<float> &mat);
+        template float FrobeniusNorm<float>(const Tensor_<float> &mat);
+        template double FrobeniusNorm<double>(const Tensor_<double> &mat);
+        template float FrobeniusNorm<float>(const Tensor_<float> &mat, const Tensor_<float> &mat2);
+        template double FrobeniusNorm<double>(const Tensor_<double> &mat, const Tensor_<double> &mat2);
+        template double FrobeniusNorm<double>(const CPURuntime &rt, const Tensor_<double> &mat);
+        template float FrobeniusNorm<float>(const CPURuntime &rt, const Tensor_<float> &mat);
         //
         template float FrobeniusInnerProduct<float>(const Matrix_<float> &mat1, const Matrix_<float> &mat2);
         template double FrobeniusInnerProduct<double>(const Matrix_<double> &mat1, const Matrix_<double> &mat2);
         template double FrobeniusInnerProduct<double>(const CPURuntime &rt, const Matrix_<double> &mat1, const Matrix_<double> &mat2);
         template float FrobeniusInnerProduct<float>(const CPURuntime &rt, const Matrix_<float> &mat1, const Matrix_<float> &mat2);
         //
-        template void HadamardProduct(const Tensor<double> &A, Tensor<double> &B);
-        template void HadamardProduct(const Tensor<float> &A, Tensor<float> &B);
-        template void HadamardProduct(const Tensor<double> &A, const Tensor<double> &B, Tensor<double> &C);
-        template void HadamardProduct(const Tensor<float> &A, const Tensor<float> &B, Tensor<float> &C);
+        template void HadamardProduct(const Tensor_<double> &A, Tensor_<double> &B);
+        template void HadamardProduct(const Tensor_<float> &A, Tensor_<float> &B);
+        template void HadamardProduct(const Tensor_<double> &A, const Tensor_<double> &B, Tensor_<double> &C);
+        template void HadamardProduct(const Tensor_<float> &A, const Tensor_<float> &B, Tensor_<float> &C);
         template void HadamardProduct(const size_t ndim, const double *A, const double *B, double *C, bool increment);
         template void HadamardProduct(const size_t ndim, const float *A, const float *B, float *C, bool increment);
     

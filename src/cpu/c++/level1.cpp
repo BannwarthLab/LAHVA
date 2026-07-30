@@ -25,7 +25,7 @@ namespace lahva
         /// @param Y Second input tensor.
         /// @return The inner product of tensors X and Y.
         template<typename T>
-        T InnerVectorProduct(const Tensor<T> &X, const Tensor<T> &Y)
+        T InnerVectorProduct(const Tensor_<T> &X, const Tensor_<T> &Y)
         {
             check_equal_size(X, Y);
             return InnerVectorProduct(X.size(), X.data(), Y.data());
@@ -42,7 +42,7 @@ namespace lahva
         /// @param strideY Stride between consecutive elements in tensor Y.
         /// @return The inner product of tensors X and Y.
         template<typename T>
-        T InnerVectorProduct(const Tensor<T> &X, const size_t strideX, const Tensor<T> &Y, const size_t strideY)
+        T InnerVectorProduct(const Tensor_<T> &X, const size_t strideX, const Tensor_<T> &Y, const size_t strideY)
         {
             check_equal_size(X, Y);
             return InnerVectorProduct(X.size(), X.data(), strideX, Y.data(), strideY);
@@ -59,7 +59,7 @@ namespace lahva
         /// @param y Input-output tensor y (destination / input-output).
         /// @param iy Stride between consecutive elements in tensor y.
         template<typename T>
-        void AddVectors(const T a, const Tensor<T> &x, const size_t ix, Tensor<T> &y, const size_t iy)
+        void AddVectors(const T a, const Tensor_<T> &x, const size_t ix, Tensor_<T> &y, const size_t iy)
         {
             check_equal_size(x, y);
             AddVectors(x.size(), a, x.data(), ix, y.data(), iy);
@@ -76,7 +76,7 @@ namespace lahva
         /// @param x Input tensor x (not modified).
         /// @param y Input-output tensor y (destination / input-output).
         template<typename T, typename U>
-        void AddVectors(const double a, const Tensor<T> &x, Tensor<U> &y)
+        void AddVectors(const double a, const Tensor_<T> &x, Tensor_<U> &y)
         {
             check_equal_size(x, y);
             if constexpr (std::is_same_v<T, U>)
@@ -104,7 +104,7 @@ namespace lahva
         /// @param x Source tensor (not modified).
         /// @param y Destination tensor (overwritten).
         template<typename T>
-        void CopyVectors(const Tensor<T> &x, Tensor<T> &y)
+        void CopyVectors(const Tensor_<T> &x, Tensor_<T> &y)
         {
             check_equal_size(x, y);
             CopyVectors(x.size(), x.data(), y.data());
@@ -119,7 +119,7 @@ namespace lahva
         /// @param x Source tensor (not modified).
         /// @param y Destination tensor (overwritten).
         template<typename T, typename U>
-        void CopyVectors(const Tensor<T> &x, Tensor<U> &y)
+        void CopyVectors(const Tensor_<T> &x, Tensor_<U> &y)
         {
             if constexpr (std::is_same_v<T, U>)
             {
@@ -147,7 +147,7 @@ namespace lahva
         /// @param y Destination tensor (overwritten).
         /// @param iy Stride between consecutive elements in tensor y.
         template<typename T>
-        void CopyVectors(const Tensor<T> &x, size_t ix, Tensor<T> &y, size_t iy)
+        void CopyVectors(const Tensor_<T> &x, size_t ix, Tensor_<T> &y, size_t iy)
         {
             check_equal_size(x, y);
             CopyVectors(x.size(), x.data(), ix, y.data(), iy);
@@ -162,7 +162,7 @@ namespace lahva
        /// @param x First input-output tensor.
        /// @param y Second input-output tensor.
        template<typename T>
-        void SwapVectors(Tensor<T> &x, Tensor<T> &y)
+        void SwapVectors(Tensor_<T> &x, Tensor_<T> &y)
         {
             check_equal_size(x, y);
             SwapVectors(x.size(), x.data(), y.data());
@@ -179,7 +179,7 @@ namespace lahva
        /// @param y Second input-output tensor.
        /// @param iy Stride between consecutive elements in tensor y.
         template<typename T>
-        void SwapVectors(Tensor<T> &x, size_t ix, Tensor<T> &y, size_t iy)
+        void SwapVectors(Tensor_<T> &x, size_t ix, Tensor_<T> &y, size_t iy)
         {
             check_equal_size(x, y);
             SwapVectors(x.size(), x.data(), ix, y.data(), iy);
@@ -194,7 +194,7 @@ namespace lahva
         /// @param a Scalar multiplier for tensor x.
         /// @param x Input-output tensor to be scaled.
         template<typename T>
-        void ScaleVector(const T a, Tensor<T> &x)
+        void ScaleVector(const T a, Tensor_<T> &x)
         {
             ScaleVector(x.size(), a, x.data());
         }
@@ -208,7 +208,7 @@ namespace lahva
         /// @param x Input-output tensor to be scaled.
         /// @param ix Stride between consecutive elements in tensor x.
         template<typename T>
-        void ScaleVector(const T a, Tensor<T> &x, size_t ix)
+        void ScaleVector(const T a, Tensor_<T> &x, size_t ix)
         {
             ScaleVector(x.size(), a, x.data(), ix);
         };
@@ -222,7 +222,7 @@ namespace lahva
         /// @param x Input tensor.
         /// @return Index (0-based) of the element with the maximum absolute value.
         template<typename T>
-        int IndexMaxFromVector(const Tensor<T> &x)
+        int IndexMaxFromVector(const Tensor_<T> &x)
         {
             return IndexMaxFromVector(x.size(), x.data());
         }
@@ -237,44 +237,44 @@ namespace lahva
         /// @param ix Stride between consecutive elements in tensor x.
         /// @return Index (0-based) of the element with the maximum absolute value.
         template<typename T>
-        int IndexMaxFromVector(const Tensor<T> &x, const size_t ix)
+        int IndexMaxFromVector(const Tensor_<T> &x, const size_t ix)
         {
             return IndexMaxFromVector(x.size(), x.data(), ix);
         }
 
         //// Explicit template instantiations
-        template double InnerVectorProduct<double>(const Tensor<double> &X, const Tensor<double> &Y);
-        template float InnerVectorProduct<float>(const Tensor<float> &X, const Tensor<float> &Y);
-        template double InnerVectorProduct<double>(const Tensor<double> &X, const size_t strideX, const Tensor<double> &Y, const size_t strideY);
-        template float InnerVectorProduct<float>(const Tensor<float> &X, const size_t strideX, const Tensor<float> &Y, const size_t strideY);
+        template double InnerVectorProduct<double>(const Tensor_<double> &X, const Tensor_<double> &Y);
+        template float InnerVectorProduct<float>(const Tensor_<float> &X, const Tensor_<float> &Y);
+        template double InnerVectorProduct<double>(const Tensor_<double> &X, const size_t strideX, const Tensor_<double> &Y, const size_t strideY);
+        template float InnerVectorProduct<float>(const Tensor_<float> &X, const size_t strideX, const Tensor_<float> &Y, const size_t strideY);
         ////
-        template void AddVectors<double>(const double a, const Tensor<double> &x, const size_t ix, Tensor<double> &y, const size_t iy);
-        template void AddVectors<float>(const float a, const Tensor<float> &x, const size_t ix, Tensor<float> &y, const size_t iy);
-        template void AddVectors<double, double>(const double a, const Tensor<double> &x, Tensor<double> &y);
-        template void AddVectors<float, float>(const double a, const Tensor<float> &x, Tensor<float> &y);
-        template void AddVectors<double, float>(const double a, const Tensor<double> &x, Tensor<float> &y);
-        template void AddVectors<float, double>(const double a, const Tensor<float> &x, Tensor<double> &y);
+        template void AddVectors<double>(const double a, const Tensor_<double> &x, const size_t ix, Tensor_<double> &y, const size_t iy);
+        template void AddVectors<float>(const float a, const Tensor_<float> &x, const size_t ix, Tensor_<float> &y, const size_t iy);
+        template void AddVectors<double, double>(const double a, const Tensor_<double> &x, Tensor_<double> &y);
+        template void AddVectors<float, float>(const double a, const Tensor_<float> &x, Tensor_<float> &y);
+        template void AddVectors<double, float>(const double a, const Tensor_<double> &x, Tensor_<float> &y);
+        template void AddVectors<float, double>(const double a, const Tensor_<float> &x, Tensor_<double> &y);
         ////
-        template void CopyVectors<double, double>(const Tensor<double> &x, Tensor<double> &y);
-        template void CopyVectors<float, float>(const Tensor<float> &x, Tensor<float> &y);
-        template void CopyVectors<double, float>(const Tensor<double> &x, Tensor<float> &y);
-        template void CopyVectors<float, double>(const Tensor<float> &x, Tensor<double> &y);
-        template void CopyVectors<double>(const Tensor<double> &x, size_t ix, Tensor<double> &y, size_t iy);
-        template void CopyVectors<float>(const Tensor<float> &x, size_t ix, Tensor<float> &y, size_t iy);
+        template void CopyVectors<double, double>(const Tensor_<double> &x, Tensor_<double> &y);
+        template void CopyVectors<float, float>(const Tensor_<float> &x, Tensor_<float> &y);
+        template void CopyVectors<double, float>(const Tensor_<double> &x, Tensor_<float> &y);
+        template void CopyVectors<float, double>(const Tensor_<float> &x, Tensor_<double> &y);
+        template void CopyVectors<double>(const Tensor_<double> &x, size_t ix, Tensor_<double> &y, size_t iy);
+        template void CopyVectors<float>(const Tensor_<float> &x, size_t ix, Tensor_<float> &y, size_t iy);
         ////
-        template void SwapVectors<double>(Tensor<double> &x, Tensor<double> &y);
-        template void SwapVectors<float>(Tensor<float> &x, Tensor<float> &y);
-        template void SwapVectors<double>(Tensor<double> &x, size_t ix, Tensor<double> &y, size_t iy);
-        template void SwapVectors<float>(Tensor<float> &x, size_t ix, Tensor<float> &y, size_t iy);
+        template void SwapVectors<double>(Tensor_<double> &x, Tensor_<double> &y);
+        template void SwapVectors<float>(Tensor_<float> &x, Tensor_<float> &y);
+        template void SwapVectors<double>(Tensor_<double> &x, size_t ix, Tensor_<double> &y, size_t iy);
+        template void SwapVectors<float>(Tensor_<float> &x, size_t ix, Tensor_<float> &y, size_t iy);
         ////
-        template void ScaleVector<double>(const double a, Tensor<double> &x);
-        template void ScaleVector<float>(const float a, Tensor<float> &x);
-        template void ScaleVector<double>(const double a, Tensor<double> &x, size_t ix);
-        template void ScaleVector<float>(const float a, Tensor<float> &x, size_t ix);
+        template void ScaleVector<double>(const double a, Tensor_<double> &x);
+        template void ScaleVector<float>(const float a, Tensor_<float> &x);
+        template void ScaleVector<double>(const double a, Tensor_<double> &x, size_t ix);
+        template void ScaleVector<float>(const float a, Tensor_<float> &x, size_t ix);
         ////
-        template int IndexMaxFromVector<double>(const Tensor<double> &x);
-        template int IndexMaxFromVector<float>(const Tensor<float> &x);
-        template int IndexMaxFromVector<double>(const Tensor<double> &x, const size_t ix);
-        template int IndexMaxFromVector<float>(const Tensor<float> &x, const size_t ix);
+        template int IndexMaxFromVector<double>(const Tensor_<double> &x);
+        template int IndexMaxFromVector<float>(const Tensor_<float> &x);
+        template int IndexMaxFromVector<double>(const Tensor_<double> &x, const size_t ix);
+        template int IndexMaxFromVector<float>(const Tensor_<float> &x, const size_t ix);
     } // namespace cpu
 } // namespace lahva

@@ -19,7 +19,7 @@ namespace lahva
     /// @brief Abstract base class for tensor
     /// @tparam T type of values to be stored in tensor
     template <typename T>
-    class Tensor
+    class Tensor_
     {
     public:
         /// @brief Get number of elements in tensor
@@ -113,7 +113,7 @@ namespace lahva
     /// @tparam T data type for tensor elements
     /// @tparam Allocator host (CPU) memory allocator type (default: StdAllocator)
     template <typename T, typename Allocator = StdAllocator<T>>
-    class CPUTensor : virtual public Tensor<T>
+    class Tensor : virtual public Tensor_<T>
     {
         using alloc_ptr = CPUAllocator<T>;
 
@@ -140,7 +140,7 @@ namespace lahva
         /// @brief Construct CPU tensor with specified element count
         /// @param[in] count number of elements in the tensor
         /// @param[in] alloc host (CPU) memory allocator
-        CPUTensor(size_t count, const alloc_ptr &alloc = Allocator()) : count_{count}, alloc_{alloc}
+        Tensor(size_t count, const alloc_ptr &alloc = Allocator()) : count_{count}, alloc_{alloc}
         {
             if (count_ > 0)
             {
@@ -156,17 +156,17 @@ namespace lahva
 
         /// @brief Construct CPU tensor without allocating initial memory
         /// @param[in] alloc host (CPU) memory allocator
-        CPUTensor(const alloc_ptr &alloc) : alloc_{alloc} { is_owner_ = false; };
+        Tensor(const alloc_ptr &alloc) : alloc_{alloc} { is_owner_ = false; };
 
         /// @brief Default constructor for CPU tensor
-        CPUTensor() : count_{0}, data_{nullptr}, no_alloc{true}
+        Tensor() : count_{0}, data_{nullptr}, no_alloc{true}
         {
 
         };
 
         /// @brief Copy constructor for CPU tensor
         /// @param[in] other source tensor to copy
-        CPUTensor(const CPUTensor &other) :  no_alloc{other.no_alloc}
+        Tensor(const Tensor &other) :  no_alloc{other.no_alloc}
         {
             this->count_ = other.count_;
             this->alloc_ = other.get_allocator();
@@ -185,7 +185,7 @@ namespace lahva
 
         /// @brief Move constructor for CPU tensor
         /// @param[in] other source tensor to move from
-        CPUTensor(CPUTensor &&other) : count_{other.count_}, alloc_{other.alloc_}
+        Tensor(Tensor &&other) : count_{other.count_}, alloc_{other.alloc_}
         {
 
             this->data_ = other.data_;
@@ -196,7 +196,7 @@ namespace lahva
         };
 
         /// @brief Destructor for CPU tensor, releases memory
-        virtual ~CPUTensor()
+        virtual ~Tensor()
         {
             if (is_owner_)
             {
@@ -223,7 +223,7 @@ namespace lahva
         /// @brief Copy assignment operator
         /// @param[in] other source tensor
         /// @return reference to this tensor
-        CPUTensor<T, Allocator> &operator=(const CPUTensor<T, Allocator> &other)
+        Tensor<T, Allocator> &operator=(const Tensor<T, Allocator> &other)
         {
             if (this != &other)
             {
@@ -241,7 +241,7 @@ namespace lahva
         /// @brief Move assignment operator
         /// @param[in] other source tensor to move from
         /// @return reference to this tensor
-        CPUTensor<T, Allocator> &operator=(CPUTensor &&other)
+        Tensor<T, Allocator> &operator=(Tensor &&other)
         {
             if (this != &other)
             {

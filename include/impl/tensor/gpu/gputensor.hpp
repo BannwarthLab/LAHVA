@@ -40,7 +40,7 @@ namespace lahva
         void CopyTensors(const unsigned long size, const in* d_in, out* d_out);
 #endif
         template <typename T>
-        class GPUTensor_ : public virtual Tensor<T>
+        class GPUTensor_ : public virtual lahva::Tensor_<T>
         {
         public:
             /// @brief copy data to device, by allocating a pointer and copying over
@@ -64,7 +64,7 @@ namespace lahva
         /// @tparam Allocator host (CPU) memory allocator type (default: CudaHostAllocator)
         /// @tparam GPUAllocator device (GPU) memory allocator type (default: CudaDeviceAllocator)
         template <typename T, typename Allocator = CudaHostAllocator<T>, typename GPUAllocator = CudaDeviceAllocator<T>>
-        class GPUTensor : public CPUTensor<T, Allocator>, virtual public GPUTensor_<T>
+        class GPUTensor : public lahva::Tensor<T, Allocator>, virtual public GPUTensor_<T>
         {
             using alloc_ptr = CPUAllocator<T>;
             using gpualloc_t = GPUAllocator;
@@ -75,17 +75,17 @@ namespace lahva
             /// @param[in] cpualloc host (CPU) memory allocator
             /// @param[in] alloc device (GPU) memory allocator
             GPUTensor(size_t count, const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator())
-            : CPUTensor<T, Allocator>{count, cpualloc}, gpualloc_{alloc} {};
+            : lahva::Tensor<T, Allocator>{count, cpualloc}, gpualloc_{alloc} {};
 
             /// @brief Construct GPU tensor without allocating initial memory
             /// @param[in] cpualloc host (CPU) memory allocator
             /// @param[in] alloc device (GPU) memory allocator
             GPUTensor(const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator())
-            : CPUTensor<T, Allocator>{cpualloc}, gpualloc_{alloc} {};
+            : lahva::Tensor<T, Allocator>{cpualloc}, gpualloc_{alloc} {};
 
             /// @brief Construct GPU tensor with GPU allocator for device-only memory
             /// @param[in] alloc device (GPU) memory allocator
-            GPUTensor(const GPUAllocator &alloc) : CPUTensor<T, Allocator>{}, gpualloc_{alloc}, gpu_buffer{true}
+            GPUTensor(const GPUAllocator &alloc) : lahva::Tensor<T, Allocator>{}, gpualloc_{alloc}, gpu_buffer{true}
             {this->no_alloc= true;};
 
             /// @brief Destructor for GPU tensor, releases GPU memory and CPU memory (via base class)
@@ -93,7 +93,7 @@ namespace lahva
 
             /// @brief Copy constructor for GPU tensor
             /// @param[in] other source GPU tensor to copy
-            GPUTensor(const GPUTensor &other) : CPUTensor<T, Allocator>{other},
+            GPUTensor(const GPUTensor &other) : lahva::Tensor<T, Allocator>{other},
                                                 gpualloc_{other.get_gpuallocator()},
                                                 is_on_device_{other.is_on_device_}
             {
@@ -106,7 +106,7 @@ namespace lahva
 
             /// @brief Move constructor for GPU tensor
             /// @param[in] other source GPU tensor to move from
-            GPUTensor(GPUTensor &&other) : CPUTensor<T, Allocator>{std::move(other)}
+            GPUTensor(GPUTensor &&other) : lahva::Tensor<T, Allocator>{std::move(other)}
             {
                 this->gpualloc_ = other.get_gpuallocator();
                 if (this->size() == other.size())
@@ -134,7 +134,7 @@ namespace lahva
                     this->gpualloc_ = other.get_gpuallocator();
                     if (!other.gpu_buffer)
                     {
-                        CPUTensor<T, Allocator>::operator=(other);
+                        lahva::Tensor<T, Allocator>::operator=(other);
                     }
                     this->is_on_device_ = other.is_on_device_;
                     this->gpu_buffer = other.gpu_buffer;
@@ -157,7 +157,7 @@ namespace lahva
                 {
                     if (!other.gpu_buffer)
                     {
-                        CPUTensor<T, Allocator>::operator=(std::move(other));
+                        lahva::Tensor<T, Allocator>::operator=(std::move(other));
                     }
                     else
                     {
