@@ -10,8 +10,10 @@
 #include "linalg.hpp"
 #include "runtime.hpp"
 
-namespace lahva{
-    namespace gpu{
+namespace lahva
+{
+    namespace gpu
+    {
 
     /// @brief Computes the inner product of two double-precision GPU tensors, wrapper to cuBLAS function cublasDdot.
     ///

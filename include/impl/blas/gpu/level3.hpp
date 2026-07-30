@@ -10,8 +10,10 @@
 #include "linalg.hpp"
 #include "runtime.hpp"
 
-namespace lahva{
-    namespace gpu {
+namespace lahva
+{
+    namespace gpu 
+    {
 
     /// @brief Computes matrix-matrix product with double-precision GPU matrices, wrapper to cuBLAS function cublasDgemm.
     ///

@@ -8,7 +8,8 @@
 #include <sstream>
 #include "timer.hpp"
 
-namespace lahva{
+namespace lahva
+{
 
     /// @brief Start timing a labeled operation.
     /// @param label Unique identifier for the timed operation.

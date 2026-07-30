@@ -10,7 +10,6 @@
 
 namespace lahva
 {
-
     namespace cpu
     {
         /// @brief Solve a general system of linear equations A*X = B (double precision)

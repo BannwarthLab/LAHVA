@@ -10,7 +10,8 @@
 #include "linalg.hpp"
 #include "runtime.hpp"
 
-namespace lahva{
+namespace lahva
+{
     namespace gpu
     {
 

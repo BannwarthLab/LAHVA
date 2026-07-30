@@ -64,4 +64,4 @@ class TensorFactory
 };
 #endif
            
-} // namespace Purification
+} // namespace lahva
