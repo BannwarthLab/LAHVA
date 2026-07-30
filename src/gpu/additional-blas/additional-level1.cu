@@ -16,6 +16,24 @@ namespace lahva
 {
     namespace gpu
     {
+        /// @brief GPU kernel for copying tensor data with optional type conversion.
+        template<typename in, typename out>
+        __global__ void CopyTensors_(unsigned long size, const in* d_in, out* d_out)
+        {
+            unsigned long idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if (idx < size)
+                d_out[idx] = d_in[idx];
+        }
+
+        /// @brief Host wrapper for type-converting tensor copy.
+        template<typename in, typename out>
+        void CopyTensors(const unsigned long size, const in* d_in, out* d_out)
+        {
+            unsigned int blockSize = 512;
+            int gridSize = (int)((size + blockSize - 1) / blockSize);
+            CopyTensors_<in, out><<<gridSize, blockSize, 0, 0>>>(size, d_in, d_out);
+        }
+
         /// @brief GPU kernel for scaled vector addition (float to double) with FMA.
         ///
         /// Computes: b[i] += alpha * a[i] with float-to-double conversion.

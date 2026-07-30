@@ -16,29 +16,6 @@ namespace lahva
 {
     namespace gpu
     {
-#ifdef __CUDACC__
-        /// @brief GPU kernel for copying tensor data with optional type conversion.
-        template<typename in, typename out>
-        __global__ void CopyTensors_(unsigned long size, const in* d_in, out* d_out)
-        {
-            unsigned long idx = blockIdx.x * blockDim.x + threadIdx.x;
-            if (idx < size)
-                d_out[idx] = d_in[idx];
-        }
-
-        /// @brief Host wrapper for type-converting tensor copy.
-        template<typename in, typename out>
-        void CopyTensors(const unsigned long size, const in* d_in, out* d_out)
-        {
-            unsigned int blockSize = 512;
-            int gridSize = (int)((size + blockSize - 1) / blockSize);
-            CopyTensors_<in, out><<<gridSize, blockSize, 0, 0>>>(size, d_in, d_out);
-        }
-#else
-        /// @brief Forward declaration for non-CUDA compilation.
-        template<typename in, typename out>
-        void CopyTensors(const unsigned long size, const in* d_in, out* d_out);
-#endif
         template <typename T>
         class GPUTensor_ : public virtual lahva::Tensor_<T>
         {
@@ -56,6 +33,10 @@ namespace lahva
             virtual T *gpu_data() const = 0;
             virtual T *gpu_data() = 0;
         };
+
+        // Forward declaration for CopyTensors
+        template<typename in, typename out>
+        void CopyTensors(const unsigned long size, const in* d_in, out* d_out);
 
         /// @brief GPU-based tensor with dual memory management and CUDA integration
         /// Base class for GPU tensors providing automatic memory management on both CPU and GPU.

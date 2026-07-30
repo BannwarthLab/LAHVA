@@ -16,6 +16,19 @@ namespace lahva
 {
     namespace gpu
     {
+        /// @brief Copy tensor data with optional type conversion on GPU.
+        ///
+        /// Copies data from source to destination GPU memory, with automatic type conversion if needed.
+        /// Implementation defined in additional-level1.cu.
+        ///
+        /// @tparam in Source data type
+        /// @tparam out Destination data type
+        /// @param size Number of elements to copy
+        /// @param d_in Pointer to source data on GPU device
+        /// @param d_out Pointer to destination data on GPU device
+        template<typename in, typename out>
+        void CopyTensors(const unsigned long size, const in* d_in, out* d_out);
+
         /// @brief Computes element-wise product (Hadamard product) of GPU tensor with itself in-place.
         ///
         /// Performs vecinout = vecinout ⊙ vecin (element-wise Hadamard multiplication).
