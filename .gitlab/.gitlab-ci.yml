@@ -50,7 +50,9 @@ stages:
 # General testing
 .test_template: &test_template
   variables:
-    APPTAINER_MODE: "contained"
+    CONTAINER_NAME: "${OS}-${COMPILER}-${GPU}"
+    APPTAINER_RECIPE: "${OS}-${COMPILER}-${GPU}.def"
+    APPTAINER_RECIPE_GENERATE_CMD: "python3 .gitlab/generate_recipe.py ${CONTAINER_NAME}"
   artifacts:
     when: on_failure
     paths:
@@ -63,9 +65,6 @@ build-main-cpu-containers:
   extends: .build_container
   tags:
     - shell
-  artifacts:
-    reports:
-      dotenv: build.env
   <<: *cpu_matrix
 
 build-main-gpu-containers:
@@ -73,9 +72,6 @@ build-main-gpu-containers:
   extends: .build_container
   tags:
     - shell
-  artifacts:
-    reports:
-      dotenv: build.env
   <<: *gpu_matrix
 
 # Main testing
