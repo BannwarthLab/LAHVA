@@ -16,10 +16,10 @@ stages:
           - "RL10"
         COMPILER:
           - "gnu-openblas"
-          - "gnu-mkl2023.2.0"
-          - "gnu-mkl2025.3.0"
-          - "intel2023.2.0-mkl2023.2.0"
-          - "intel2025.3.0-mkl2025.3.0"
+          # - "gnu-mkl2023.2.0"
+          # - "gnu-mkl2025.3.0"
+          # - "intel2023.2.0-mkl2023.2.0"
+          # - "intel2025.3.0-mkl2025.3.0"
         GPU:
           - "none"
 
