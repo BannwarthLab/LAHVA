@@ -2,9 +2,8 @@
   script:
     - export CONTAINER_NAME="${OS}-${COMPILER}-${GPU}"
     - echo $CONTAINER_NAME
-    - mkdir -p containers
     - python3 .gitlab/generate_recipe.py ${CONTAINER_NAME}
-    - /gitlab-runner/build_container.sh ${CONTAINER_NAME}.def containers/${CONTAINER_NAME}.sif
+    - /gitlab-runner/build_container.sh ${CONTAINER_NAME}.def
 
 .compiler_setup:
   script:
