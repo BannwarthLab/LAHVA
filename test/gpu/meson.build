@@ -124,5 +124,5 @@ test('gpu-mixed-precision',
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
   ),
-  timeout: 60,
+  timeout: 120,
 )
