@@ -27,7 +27,7 @@ namespace lahva
             /// @brief Enable fast mode: use only upper triangle of split combinations
             bool fast_mode = true;
 
-            /// @brief Enable batch mode: use batched GPU kernels for MP computations
+            /// @brief Enable batch mode: allocate result matrices on-demand instead of pre-allocating
             bool batch_mode = false;
 
         protected:

@@ -91,7 +91,6 @@ namespace lahva
                 AddVectors(cudart, alphas[i], this->getSplitMatrix<float>(i), *this);    
             }
             
-            
         }
 
         /// @brief Merges split lower-precision components with equal weight.
@@ -106,11 +105,8 @@ namespace lahva
         template <typename high, typename Allocator, typename GPUAllocator>
         void MixedPrecisionMatrix<high, Allocator, GPUAllocator>::merge(const CudaRuntime &cudart)
         {
-
-            for (size_t i = 0; i < max_split_ ; ++i)
-            {
-                AddVectors(cudart, 1.0, this->getSplitMatrix<float>(i), *this);
-            }
+            std::vector<high> alphas(max_split_, static_cast<high>(1.0));
+            merge(cudart, alphas.data(), static_cast<high>(0.0));
         }
 
 
