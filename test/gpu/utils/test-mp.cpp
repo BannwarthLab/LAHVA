@@ -32,29 +32,21 @@ double CompareGEMMS(Shape& shape)
     MPRuntime mp_rt;
     mp_rt.fast_mode = true;
     mp_rt.batch_mode = true;
-    //cudart.setblockSize(1024);
-    CPUTimer timer;
-    timer.push("Total");
-    timer.push("Setup");
+   
     MixedPrecisionMatrix<T> A(shape);
     MixedPrecisionMatrix<T> B(shape);
     Matrix<T> C(shape);
-    timer.pop();
-    timer.push("FillData");
+    
     fill_with_rd_values(A);
     fill_with_rd_values(B);
-    timer.pop();
-    timer.push("Copy2Device");
+   
     A.copy2device(cudart);
     B.copy2device(cudart);
     C.copy2device(cudart);
-    timer.pop();
-
-    timer.push("GEMM");
+   
     MatrixMatrixProduct(cudart, A, B, C, (T)1.0, (T)0.0);
     cudart.synchronize();
-    timer.pop();
-
+    
     C.copy2host(cudart);
     cudart.synchronize();
     std::cout << "C(0,0)\t" << C(0,0) << std::endl;
@@ -63,47 +55,34 @@ double CompareGEMMS(Shape& shape)
     MixedPrecisionMatrix<T> C2(shape);
     C2.copy2device(cudart);
 
-    timer.push("Markidis");
     MatrixMatrixProduct(cudart, mp_rt, A, B, C2, (T)1.0, (T)0.0);
     cudart.synchronize();
-    timer.pop();
 
-    cudart.synchronize();
-    std::cout << "Markidis: Forb. Norm " << FrobeniusNorm(cudart, C, C2) << std::endl;
-    timer.pop();
-    std::cout << timer.print_entries() << std::endl;
+    std::cout << "Ozaki: Forb. Norm " << FrobeniusNorm(cudart, C, C2) << std::endl;
     return FrobeniusNorm(cudart, C, C2);
-
 }
 
 
 int main()
 {
-    for (int i = 10; i < 16; i++)
+    std::cout.precision(12);
+
+    Shape shape(2560, 2560);
+    std::cout << "Shape: 2560x2560 (double)" << std::endl;
+    double err = CompareGEMMS<double>(shape);
+    if (err > 1e-5)
     {
-        std::cout.precision(12);
-        int n = int((i*256));
-        std::cout << "Shape: " << n << "x" << n << " (double)" << std::endl;
-        Shape shape(n, n);
-        double err = CompareGEMMS<double>(shape);
-        if (err > 1e-5)
-        {
-            std::cout << "Test failed with error: " << err << std::endl;
-            return 1;
-        }
+        std::cout << "Test failed with error: " << err << std::endl;
+        return 1;
     }
-    for (int i = 10; i < 16; i++)
+
+    std::cout << "Shape: 2560x2560 (float)" << std::endl;
+    double err_float = CompareGEMMS<float>(shape);
+    if (err_float > 0.1)
     {
-        std::cout.precision(12);
-        int n = int((i*256));
-        std::cout << "Shape: " << n << "x" << n << " (float)" << std::endl;
-        Shape shape(n, n);
-        double err = CompareGEMMS<float>(shape);
-        if (err > 0.1)
-        {
-            std::cout << "Test failed with error: " << err << std::endl;
-            return 1;
-        }
+        std::cout << "Test failed with error: " << err_float << std::endl;
+        return 1;
     }
+
     return 0;
 };
