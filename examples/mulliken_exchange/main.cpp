@@ -73,10 +73,12 @@ int main(int argc, char* argv[]) {
     std::cout << "Mulliken: single precision, CPU" << std::endl;
     run_exchange<float, cpuBLAS::cpu_BLAS>(nao);
 
+#ifdef _CUDA
     std::cout << "Mulliken: double precision, GPU" << std::endl;
     run_exchange<double, gpuBLAS::gpu_BLAS>(nao);
     std::cout << "Mulliken: single precision, GPU" << std::endl;
     run_exchange<float, gpuBLAS::gpu_BLAS>(nao);
+#endif
 
     return 0;
 }
