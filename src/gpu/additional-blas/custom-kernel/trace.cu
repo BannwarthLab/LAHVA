@@ -17,7 +17,7 @@ namespace lahva
         /// Output trace must be zero-initialized; partial sums are written per-block.
         /// Block size must be a power of 2 for the reduction algorithm.
         ///
-        /// @param vecin Input matrix in row-major order.
+        /// @param vecin Input matrix
         /// @param ndim Matrix dimension (square matrix).
         /// @param trace Output vector of partial sums (one per block).
         __global__ static void MatrixTrace(const double *vecin, const unsigned long long ndim, double *trace)
@@ -61,7 +61,7 @@ namespace lahva
         /// Output trace must be zero-initialized; partial sums are written per-block.
         /// Block size must be a power of 2 for the reduction algorithm.
         ///
-        /// @param vecin Input matrix in row-major order.
+        /// @param vecin Input matrix
         /// @param ndim Matrix dimension (square matrix).
         /// @param trace Output vector of partial sums (one per block).
         __global__ static void MatrixTrace(const float *vecin, const unsigned long long ndim, float *trace)
@@ -178,7 +178,7 @@ namespace lahva
         /// Uses 2D grid for better thread-to-element mapping.
         ///
         /// @param ndim Matrix dimension (square matrix).
-        /// @param matrix Input/output single-precision matrix in row-major order.
+        /// @param matrix Input/output single-precision matrix in column-major order.
         __global__ static void SymmetrizeMatrix(unsigned long long ndim, float *matrix)
         {
             unsigned long long id = blockIdx.y * blockDim.y + threadIdx.y;
@@ -186,9 +186,11 @@ namespace lahva
 
             if (id < ndim && jd < ndim)
             {
-                float avg = 0.5 * (matrix[id * ndim + jd] + matrix[jd * ndim + id]);
-                matrix[id * ndim + jd] = avg;
-                matrix[jd * ndim + id] = avg;
+                float avg = 0.5 * (matrix[id + jd * ndim] + matrix[jd + id * ndim]);
+                if (id <= jd) {
+                    matrix[id + jd * ndim] = avg;
+                    matrix[jd + id * ndim] = avg;
+                }
             }
         }
         
@@ -200,16 +202,18 @@ namespace lahva
         /// Uses 2D grid for better thread-to-element mapping.
         ///
         /// @param ndim Matrix dimension (square matrix).
-        /// @param matrix Input/output double-precision matrix in row-major order.
+        /// @param matrix Input/output double-precision matrix in column-major order.
         __global__ static void SymmetrizeMatrix(unsigned long long ndim, double *matrix)
         {
             unsigned long long id = blockIdx.y * blockDim.y + threadIdx.y;
             unsigned long long jd = threadIdx.x + blockIdx.x * blockDim.x;
             if (id < ndim && jd < ndim)
             {
-                double  avg = 0.5 * (matrix[id * ndim + jd] + matrix[jd * ndim + id]);
-                matrix[id * ndim + jd] = avg;
-                matrix[jd * ndim + id] = avg;
+                double  avg = 0.5 * (matrix[id + jd * ndim] + matrix[jd + id * ndim]);
+                if (id <= jd) {
+                    matrix[id + jd * ndim] = avg;
+                    matrix[jd + id * ndim] = avg;
+                }
             }
         }
 
@@ -218,7 +222,7 @@ namespace lahva
         /// Copies diagonal elements to a separate vector: diag[i] = matrix[i,i].
         ///
         /// @param ndim Matrix dimension.
-        /// @param matrix Input double-precision matrix in row-major order.
+        /// @param matrix Input double-precision matrix
         /// @param diag Output diagonal vector.
         __global__ static void dGetDiagonal(unsigned long long ndim, const double *matrix, double* diag)
         {
@@ -234,7 +238,7 @@ namespace lahva
         /// Copies diagonal elements to a separate vector: diag[i] = matrix[i,i].
         ///
         /// @param ndim Matrix dimension.
-        /// @param matrix Input single-precision matrix in row-major order.
+        /// @param matrix Input single-precision matrix
         /// @param diag Output diagonal vector.
         __global__ static void sGetDiagonal(unsigned long long ndim, const float *matrix, float* diag)
         {
@@ -251,7 +255,7 @@ namespace lahva
         ///
         /// @param ndim Matrix dimension.
         /// @param diag Input diagonal vector.
-        /// @param matrix Input/output double-precision matrix in row-major order.
+        /// @param matrix Input/output double-precision matrix in
         __global__ static void dSetDiagonal(unsigned long long ndim, const double* diag, double *matrix)
         {
             unsigned long long id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -267,7 +271,7 @@ namespace lahva
         ///
         /// @param ndim Matrix dimension.
         /// @param diag Input diagonal vector.
-        /// @param matrix Input/output single-precision matrix in row-major order.
+        /// @param matrix Input/output single-precision matrix.
         __global__ static void sSetDiagonal(unsigned long long ndim, const float* diag, float *matrix)
         {
             unsigned long long id = threadIdx.x + blockIdx.x * blockDim.x;
