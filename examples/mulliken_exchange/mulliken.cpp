@@ -22,6 +22,7 @@ MullikenExchange<T, blas_impl>::SQMBoxKFockSym(Matrix<T> S, Matrix<T> D, Matrix<
         S.copy2device(*runtime_);
         D.copy2device(*runtime_);
         gamma.copy2device(*runtime_);
+        runtime_->synchronize();
     }
 #endif
     timer_->pop();

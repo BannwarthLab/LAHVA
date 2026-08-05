@@ -21,6 +21,7 @@ protected:
     std::shared_ptr<RunTime> runtime_;
     std::shared_ptr<Timer> timer_;
 
+private:
     const int nao_;
     Matrix<T> A_ = Matrix<T>(Shape(nao_, nao_));
     Matrix<T> B_ = Matrix<T>(Shape(nao_, nao_));
