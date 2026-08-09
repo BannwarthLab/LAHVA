@@ -23,9 +23,11 @@ constexpr const char* get_type_name() {
     if constexpr (std::is_same_v<T, double>) return "double";
     else if constexpr (std::is_same_v<T, float>) return "float";
     else if constexpr (std::is_same_v<T, int>) return "int";
-    else if constexpr (std::is_same_v<T, __half>) return "__half";
     else if constexpr (std::is_same_v<T, complex_float>) return "complex_float";
     else if constexpr (std::is_same_v<T, complex_double>) return "complex_double";
+#ifdef _CUDA
+    else if constexpr (std::is_same_v<T, __half>) return "__half";
+#endif
     else return "unknown";
 }
 
