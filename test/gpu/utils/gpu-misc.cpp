@@ -1,10 +1,10 @@
-#include "runtime.hpp"
 #include "test_common.h"
-#include <vector>
-#include "timer.hpp"
+#include "array_utils.hpp"
 
+using lahva::CudaRuntime;
+using lahva::GPUTimer;
 template <typename T>
-using Vector = gpu::Vector<T, CudaHostAllocator<T>, CudaDeviceAsyncAllocator<T>>;
+using Vector = lahva::gpu::Vector<T, lahva::CudaHostAllocator<T>, lahva::CudaDeviceAsyncAllocator<T>>;
 
 template <typename T>
 int test_std_vector_async(CudaRuntime& cudart)
@@ -128,44 +128,40 @@ int test_GPUTimer_stream_no_pop(CudaRuntime& cudart)
     return 0;
 };
 
+// ============================================================================
+// Main
+// ============================================================================
+
 int main()
 {
-    int stat = 0;
+    int total_failures = 0;
     CudaRuntime cudart = CudaRuntime();
-    std::cout << "std_vector_async (double)" << std::endl;
-    stat += test_std_vector_async<double>(cudart);
-    std::cout << "std_vector_async (float)" << std::endl;
-    stat += test_std_vector_async<float>(cudart);
-    std::cout << "GPUTimer_stdConst (double)" << std::endl;
-    stat += test_GPUTimer_stdConst<double>(cudart);
-    std::cout << "GPUTimer_stdConst (float)" << std::endl;
-    stat += test_GPUTimer_stdConst<float>(cudart);
-    std::cout << "GPUTimer (double)" << std::endl;
-    stat += test_GPUTimer<double>(cudart);
-    std::cout << "GPUTimer (float)" << std::endl;
-    stat += test_GPUTimer<float>(cudart);
-    std::cout << "cuda create stream" << std::endl;
-    cudart.createStream();
-    std::cout << "std_vector_async (double)" << std::endl;
-    stat += test_std_vector_async<double>(cudart);
-    std::cout << "std_vector_async (float)" << std::endl;
-    stat += test_std_vector_async<float>(cudart);
-    std::cout << "GPUTimer (double)" << std::endl;
-    stat += test_GPUTimer<double>(cudart);
-    std::cout << "GPUTimer (float)" << std::endl;
-    stat += test_GPUTimer<float>(cudart);
-    std::cout << "GPUTimer_stream (double)" << std::endl;
-    stat += test_GPUTimer_stream<double>(cudart);
-    std::cout << "GPUTimer_stream (float)" << std::endl;
-    stat += test_GPUTimer_stream<float>(cudart);
-    std::cout << "GPUTimer_stream_no_pop (double)" << std::endl;
-    stat += test_GPUTimer_stream_no_pop<double>(cudart);
-    std::cout << "GPUTimer_stream_no_pop (float)" << std::endl;
-    stat += test_GPUTimer_stream_no_pop<float>(cudart);
-    std::cout << "std_vector_push_GPU_values (double)" << std::endl;
-    stat += test_std_vector_push_GPU_values<double>(cudart);
-    std::cout << "std_vector_push_GPU_values (float)" << std::endl;
-    stat += test_std_vector_push_GPU_values<float>(cudart);
 
-    return stat;
+    total_failures += test_std_vector_async<double>(cudart);
+    total_failures += test_std_vector_async<float>(cudart);
+    total_failures += test_GPUTimer_stdConst<double>(cudart);
+    total_failures += test_GPUTimer_stdConst<float>(cudart);
+    total_failures += test_GPUTimer<double>(cudart);
+    total_failures += test_GPUTimer<float>(cudart);
+
+    cudart.createStream();
+
+    total_failures += test_std_vector_async<double>(cudart);
+    total_failures += test_std_vector_async<float>(cudart);
+    total_failures += test_GPUTimer<double>(cudart);
+    total_failures += test_GPUTimer<float>(cudart);
+    total_failures += test_GPUTimer_stream<double>(cudart);
+    total_failures += test_GPUTimer_stream<float>(cudart);
+    total_failures += test_GPUTimer_stream_no_pop<double>(cudart);
+    total_failures += test_GPUTimer_stream_no_pop<float>(cudart);
+    total_failures += test_std_vector_push_GPU_values<double>(cudart);
+    total_failures += test_std_vector_push_GPU_values<float>(cudart);
+
+    if (total_failures > 0) {
+        std::cerr << "gpu/utils/gpu-misc tests: " << total_failures << " failures" << std::endl;
+        return TEST_FAIL;
+    }
+
+    std::cout << "All gpu/utils/gpu-misc tests passed!" << std::endl;
+    return TEST_PASS;
 };

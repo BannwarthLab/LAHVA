@@ -1,32 +1,8 @@
 #include "test_common.h"
-#include "impl/blas/cpu/lapack.hpp"
-#include "impl/blas/cpu/lapack.h"
-#include <cmath>
-#include <random>
+#include "array_utils.hpp"
 
 using namespace lahva::cpu;
-
-// Fill matrix with random values
-template<typename T>
-void fill_random(Matrix<T>& m) {
-    std::random_device rd;
-    std::minstd_rand eng(rd());
-    std::uniform_real_distribution<> distr(0.1, 1.0);
-    for (size_t i = 0; i < m.size(); i++) {
-        m.data()[i] = (T)distr(eng);
-    }
-}
-
-// Overload for LowTriMatrix
-template<typename T>
-void fill_random(LowTriMatrix<T>& m) {
-    std::random_device rd;
-    std::minstd_rand eng(rd());
-    std::uniform_real_distribution<> distr(0.1, 1.0);
-    for (size_t i = 0; i < m.size(); i++) {
-        m.data()[i] = (T)distr(eng);
-    }
-}
+using lahva::Shape;
 
 // Create a positive definite matrix
 template<typename T>
@@ -34,7 +10,7 @@ void make_positive_definite(Matrix<T>& m) {
     // m = A * A^T which is always positive definite
     size_t n = m.shape().first;
     Matrix<T> temp(Shape(n, n));
-    fill_random(temp);
+    fill_with_rd_values(temp);
 
     // Simple approach: m(i,j) = sum_k temp(i,k)*temp(j,k)
     for (size_t i = 0; i < n; i++) {
@@ -53,7 +29,6 @@ void make_positive_definite(Matrix<T>& m) {
 
 template <typename T>
 int test_solve_pos_sys() {
-    int failures = 0;
 
     Shape sa(4, 4);
     Shape sb(4, 2);
@@ -62,16 +37,15 @@ int test_solve_pos_sys() {
     Matrix<T> B(sb);
 
     make_positive_definite(A);
-    fill_random(B);
+    fill_with_rd_values(B);
 
     try {
         SolvePosSysLinEquations(A, B);
-        // If solving succeeded, B now contains the solution
     } catch (...) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -80,7 +54,6 @@ int test_solve_pos_sys() {
 
 template <typename T>
 int test_solve_gen_sys() {
-    int failures = 0;
 
     Shape sa(4, 4);
     Shape sb(4, 2);
@@ -88,21 +61,20 @@ int test_solve_gen_sys() {
     Matrix<T> A(sa);
     Matrix<T> B(sb);
 
-    fill_random(A);
-    fill_random(B);
+    fill_with_rd_values(A);
+    fill_with_rd_values(B);
 
     try {
         SolveGenSysLinEquations("N", A, B);
     } catch (...) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_solve_gen_sys_transpose() {
-    int failures = 0;
 
     Shape sa(4, 4);
     Shape sb(4, 2);
@@ -110,22 +82,21 @@ int test_solve_gen_sys_transpose() {
     Matrix<T> A(sa);
     Matrix<T> B(sb);
 
-    fill_random(A);
-    fill_random(B);
+    fill_with_rd_values(A);
+    fill_with_rd_values(B);
 
     try {
         // Solve with transposed A
         SolveGenSysLinEquations("T", A, B);
     } catch (...) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_solve_gen_sys_alt_order() {
-    int failures = 0;
 
     Shape sa(4, 4);
     Shape sb(4, 2);
@@ -133,16 +104,16 @@ int test_solve_gen_sys_alt_order() {
     Matrix<T> A(sa);
     Matrix<T> B(sb);
 
-    fill_random(A);
-    fill_random(B);
+    fill_with_rd_values(A);
+    fill_with_rd_values(B);
 
     try {
         SolveGenSysLinEquations(A, B, "N");
     } catch (...) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -151,44 +122,42 @@ int test_solve_gen_sys_alt_order() {
 
 template <typename T>
 int test_solve_lower_tri() {
-    int failures = 0;
 
     Shape sb(4, 2);
 
     LowTriMatrix<T> A(4);
     Matrix<T> B(sb);
 
-    fill_random(A);
-    fill_random(B);
+    fill_with_rd_values(A);
+    fill_with_rd_values(B);
 
     try {
         SolveGenSysLinEquations("N", A, B);
     } catch (...) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_solve_lower_tri_transpose() {
-    int failures = 0;
 
     Shape sb(4, 2);
 
     LowTriMatrix<T> A(4);
     Matrix<T> B(sb);
 
-    fill_random(A);
-    fill_random(B);
+    fill_with_rd_values(A);
+    fill_with_rd_values(B);
 
     try {
         SolveGenSysLinEquations("T", A, B);
     } catch (...) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -197,23 +166,22 @@ int test_solve_lower_tri_transpose() {
 
 template <typename T>
 int test_solve_sym_sys() {
-    int failures = 0;
 
     Shape sb(4, 2);
 
     LowTriMatrix<T> A(4);
     Matrix<T> B(sb);
 
-    fill_random(A);
-    fill_random(B);
+    fill_with_rd_values(A);
+    fill_with_rd_values(B);
 
     try {
         SolveSymSysLinEquations(A, B);
     } catch (...) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -222,12 +190,11 @@ int test_solve_sym_sys() {
 
 template <typename T>
 int test_invert_tri_matrix() {
-    int failures = 0;
 
     Shape s(4, 4);
     Matrix<T> A(s);
 
-    fill_random(A);
+    fill_with_rd_values(A);
     // Make it lower triangular
     for (size_t i = 0; i < A.shape().first; i++) {
         for (size_t j = i + 1; j < A.shape().second; j++) {
@@ -237,12 +204,11 @@ int test_invert_tri_matrix() {
 
     try {
         InvertTriMatrix(A);
-        // Inversion succeeded
     } catch (...) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -251,7 +217,6 @@ int test_invert_tri_matrix() {
 
 template <typename T>
 int test_sym_eigenvalue_decomp() {
-    int failures = 0;
 
     Shape s(4, 4);
     Matrix<T> A(s);
@@ -272,18 +237,17 @@ int test_sym_eigenvalue_decomp() {
         }
 
         if (!valid) {
-            failures += 1;
+            return TEST_FAIL;
         }
     } catch (...) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_sym_eigenvalue_no_vectors() {
-    int failures = 0;
 
     Shape s(4, 4);
     Matrix<T> A(s);
@@ -295,10 +259,10 @@ int test_sym_eigenvalue_no_vectors() {
         // Only compute eigenvalues, not eigenvectors
         SymEigenvalueDecomposition(A, eigenvalues, 'N');
     } catch (...) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 // Create a diagonal dominant matrix (guaranteed non-singular)
@@ -320,7 +284,6 @@ void create_diagonal_dominant_matrix(T* A, int n) {
 
 template <typename T>
 int test_c_solve_gen_sys() {
-    int failures = 0;
 
     const int n = 4;
     const int nrhs = 2;
@@ -337,16 +300,14 @@ int test_c_solve_gen_sys() {
     try {
         lahva::cpu::SolveGenSysLinEquations("N", n, A, nrhs, B);
     } catch (...) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_c_solve_gen_sys_default() {
-    int failures = 0;
-
     const int n = 4;
     const int nrhs = 2;
 
@@ -362,15 +323,14 @@ int test_c_solve_gen_sys_default() {
     try {
         lahva::cpu::SolveGenSysLinEquations(n, A, nrhs, B, "N");
     } catch (...) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_c_solve_gen_sys_transpose() {
-    int failures = 0;
 
     const int n = 4;
     const int nrhs = 2;
@@ -387,10 +347,10 @@ int test_c_solve_gen_sys_transpose() {
     try {
         lahva::cpu::SolveGenSysLinEquations("T", n, A, nrhs, B);
     } catch (...) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -440,11 +400,11 @@ int main() {
     total_failures += test_sym_eigenvalue_no_vectors<double>();
     total_failures += test_sym_eigenvalue_no_vectors<float>();
 
-    if (total_failures == 0) {
-        std::cout << "All CPU LAPACK tests passed!" << std::endl;
-    } else {
-        std::cout << "CPU LAPACK tests: " << total_failures << " failures" << std::endl;
+    if (total_failures > 0) {
+        std::cerr << "cpu/blas/lapack tests: " << total_failures << " failures" << std::endl;
+        return TEST_FAIL;
     }
 
-    return total_failures;
+    std::cout << "All cpu/blas/lapack tests passed!" << std::endl;
+    return TEST_PASS;
 }

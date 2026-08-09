@@ -2,38 +2,41 @@
 #include "linalg.hpp"
 #include "lahva.hpp"
 #include "lahva.h"
-#include "utils.hpp"
 #ifdef _CUDA
 #include "runtime.hpp"
 #endif
 #include <iostream>
 #include <numeric>
-
-using namespace lahva;
+#include <algorithm>
+#include <cmath>
+#include <complex>
+#include <limits>
+#include "comparators.hpp"
 
 // Test result codes
 #define TEST_PASS 0
 #define TEST_FAIL 1
 
-// Default tolerance values
-const double DEFAULT_DOUBLE_TOLERANCE = 5.0e-7;
-const double DEFAULT_STRICT_DOUBLE_TOLERANCE = 5.0e-15;
-const float DEFAULT_FLOAT_TOLERANCE = 5.0e-7f;
-
-// Tolerance selector for templated tests
+// Helper to get type name as string
 template <typename T>
-inline double get_tolerance() {
-    if (std::is_same_v<T, float>) {
-        return DEFAULT_FLOAT_TOLERANCE;
-    }
-    return DEFAULT_DOUBLE_TOLERANCE;
+constexpr const char* get_type_name() {
+    if constexpr (std::is_same_v<T, double>) return "double";
+    else if constexpr (std::is_same_v<T, float>) return "float";
+    else if constexpr (std::is_same_v<T, int>) return "int";
+    else if constexpr (std::is_same_v<T, __half>) return "__half";
+    else if constexpr (std::is_same_v<T, complex_float>) return "complex_float";
+    else if constexpr (std::is_same_v<T, complex_double>) return "complex_double";
+    else return "unknown";
 }
 
-// Strict tolerance selector for high-precision tests
-template <typename T>
-inline double get_strict_tolerance() {
-    if (std::is_same_v<T, float>) {
-        return 1.0e-6;  // Strict tolerance for float
-    }
-    return DEFAULT_STRICT_DOUBLE_TOLERANCE;
+// Overload for std::string description
+inline const char* make_check_msg(const char* func_name, const char* type_name, const std::string& description) {
+    static std::string msg;
+    msg = "[";
+    msg += func_name;
+    msg += " (";
+    msg += type_name;
+    msg += ")] ";
+    msg += description;
+    return msg.c_str();
 }
