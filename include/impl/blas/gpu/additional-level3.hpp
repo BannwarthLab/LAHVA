@@ -264,6 +264,7 @@ namespace lahva
                                  const MixedPrecisionMatrix<high, Allocator, GPUAllocator> &B, MixedPrecisionMatrix<high, Allocator, GPUAllocator> &C,
                                  const high alpha = 1.0, const high beta = 0.0, const char *Ta = "N", const char *Tb = "N")
         {
+            C.ensure_runtime(cudart);
 
             bool fast = mp_rt.fast_mode;
             bool batch = mp_rt.batch_mode;
@@ -434,7 +435,6 @@ namespace lahva
                     MatrixMatrixProductBatchFP16(cudart, A.template getSplitMatrices<__half>(), B.template getSplitMatrices<__half>(),
                     C.template getSplitMatrices<float>(), 1.0, 0.0, Ta, Tb, fast);
                     C.merge(cudart, alpha_arr, beta);
-
                 }
 
                 delete[] alpha_arr;

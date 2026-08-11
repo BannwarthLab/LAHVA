@@ -1,11 +1,12 @@
 #include "test_common.h"
 #include <random>
 #include <omp.h>
+#include "timer.hpp"
 
 using namespace lahva::gpu;
 using lahva::Shape;
 using lahva::CudaRuntime;
-using lahva::CPUTimer;
+using lahva::Timer;
 
 
 template <typename T>

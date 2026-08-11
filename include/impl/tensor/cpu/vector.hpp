@@ -141,12 +141,12 @@ namespace lahva
 
         /// @brief Copy constructor implementation
         template <typename T, class Allocator>
-        Vector<T, Allocator>::Vector(const Vector &x) : CPUTensor<T, Allocator>{x}
+        Vector<T, Allocator>::Vector(const Vector &x) : Tensor<T, Allocator>{x}
         {
         };
 
         template <typename T, class Allocator>
-        Vector<T, Allocator>::Vector(Vector &&x) noexcept : CPUTensor<T, Allocator>{std::move(x)}
+        Vector<T, Allocator>::Vector(Vector &&x) noexcept : Tensor<T, Allocator>{std::move(x)}
         {
         };
 

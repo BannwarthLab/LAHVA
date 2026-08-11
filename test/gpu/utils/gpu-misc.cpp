@@ -1,5 +1,6 @@
 #include "test_common.h"
 #include "array_utils.hpp"
+#include "timer.hpp"
 
 using lahva::CudaRuntime;
 using lahva::GPUTimer;
