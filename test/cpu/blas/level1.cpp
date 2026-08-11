@@ -15,13 +15,13 @@ int test_v_addition_c(){
 
     auto sum_ = sum(5, s);
 
-    if (!check(sum_, 3.0*5, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_, 3.0*5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     AddVectors(5, 1.0, p, 1, s, 1);
 
     auto sum__ = sum(5, s);
 
-    if (!check(sum__, 5.0*5, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum__, 5.0*5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -38,13 +38,13 @@ int test_v_addition_and_scale_c(){
 
     auto sum_ = sum(5, s);
 
-    if (!check(sum_, 5.0*5, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_, 5.0*5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     AddVectors(5, 1.0, p, 1, s, 1);
 
     auto sum__ = sum(5, s);
 
-    if (!check(sum__, 7.0*5, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum__, 7.0*5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -61,13 +61,13 @@ int test_copy_v_c(){
     auto sum_ = sum(5, s);
     auto sum_p = sum(5, p);
 
-    if (!check(sum_, sum_p, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_, sum_p, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     CopyVectors(5, p, 1, s, 1);
 
     auto sum__ = sum(5, s);
 
-    if (!check(sum__, sum_p, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum__, sum_p, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -84,16 +84,16 @@ int test_swap_v_c(){
     auto sum_s = sum(5, s);
     auto sum_p = sum(5, p);
 
-    if (!check(sum_s, 2.0*5, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
-    if (!check(sum_p, 1.0*5, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum_s, 2.0*5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_p, 1.0*5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     SwapVectors(5, p, 1, s, 1);
 
     auto sum_s_ = sum(5, s);
     auto sum_p_ = sum(5, p);
 
-    if (!check(sum_s_, 1.0*5, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
-    if (!check(sum_p_, 2.0*5, make_check_msg(__func__, get_type_name<T>(), "check 4"))) return TEST_FAIL;
+    if (!check(sum_s_, 1.0*5, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(sum_p_, 2.0*5, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -107,13 +107,13 @@ int test_scale_v_c(){
 
     auto sum_p = sum(5, p);
 
-    if (!check(sum_p, 4.0*5, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_p, 4.0*5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     ScaleVector(5, 0.5, p);
 
     auto sum_p_ = sum(5, p);
 
-    if (!check(sum_p_, 2.0*5, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum_p_, 2.0*5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -127,13 +127,13 @@ int test_v_addition_cpp(){
 
     auto sum = std::accumulate(s.begin(), s.end(), 0.0);
 
-    if (!check(sum, 3.0*p.size(), make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum, 3.0*p.size(), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     AddVectors(1.0, p, 1, s, 1);
 
     auto sum_ = std::accumulate(s.begin(), s.end(), 0.0);
 
-    if (!check(sum_, 5.0*p.size(), make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum_, 5.0*p.size(), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -147,12 +147,12 @@ int test_v_addition_and_scale_cpp(){
 
     auto sum = std::accumulate(s.begin(), s.end(), 0.0);
 
-    if (!check(sum, 5.0*p.size(), make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum, 5.0*p.size(), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     AddVectors(2.0, p, 1, s, 1);
 
     auto sum_ = std::accumulate(s.begin(), s.end(), 0.0);
-    if (!check(sum_, 9.0*p.size(), make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum_, 9.0*p.size(), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -166,11 +166,11 @@ int test_inner_v_prod_c(){
 
     auto prod = InnerVectorProduct(5, p, s);
 
-    if (!check(prod, 2.0*5, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(prod, 2.0*5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     auto prod_ = InnerVectorProduct(5, p, 1, s, 1);
 
-    if (!check(prod_, prod, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(prod_, prod, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 };

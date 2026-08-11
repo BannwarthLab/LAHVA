@@ -28,7 +28,7 @@ int test_gemm_zero_v_gpu(){
 
     Matrix<T> Mres(sres, (T)0.0);
 
-    if (!check(C.data(), Mres.data(), 50, make_check_msg(__func__, get_type_name<T>(), "")))
+    if (!check(C.data(), Mres.data(), 50, check_msg(get_type_name<T>(), "")))
         return TEST_FAIL;
 
     return TEST_PASS;
@@ -53,7 +53,7 @@ int test_gemm_identity_v_gpu(){
     C.copy2host(gpu_runtime);
 
     for (int i = 0; i < 25; i++) {
-        if (!check(C.data()[i], (T)1.0, make_check_msg(__func__, get_type_name<T>(), "")))
+        if (!check(C.data()[i], (T)1.0, check_msg(get_type_name<T>(), "")))
             return TEST_FAIL;
     }
 
@@ -76,7 +76,7 @@ int test_gemm_beta_nonzero(){
 
     for (int i = 0; i < 9; i++) {
         T expected = ((T)2.0 * (T)0.5 * (T)3) + ((T)0.5 * (T)10.0);
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<T>(), "")))
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), "")))
             return TEST_FAIL;
     }
 
@@ -111,7 +111,7 @@ int test_symm_left_side(){
 
     for (int i = 0; i < 20; i++) {
         T expected = (T)1.0 * (T)4.0 * (T)2.0;
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<T>(), "")))
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), "")))
             return TEST_FAIL;
     }
 
@@ -142,7 +142,7 @@ int test_gemm_alt_param_order(){
 
     Matrix<T> Mres(sres, (T)0.0);
 
-    if (!check(C.data(), Mres.data(), 50, make_check_msg(__func__, get_type_name<T>(), "")))
+    if (!check(C.data(), Mres.data(), 50, check_msg(get_type_name<T>(), "")))
         return TEST_FAIL;
 
     return TEST_PASS;
@@ -165,7 +165,7 @@ int test_gemm_alt_with_alpha(){
 
     for (int i = 0; i < 16; i++) {
         T expected = (T)2.5 * (T)4.0;
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<T>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -191,7 +191,7 @@ int test_gemm_alt_with_beta(){
 
     for (int i = 0; i < 9; i++) {
         T expected = ((T)2.0 * (T)0.5 * (T)3) + ((T)0.5 * (T)10.0);
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<T>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -227,7 +227,7 @@ int test_symm_right_side(){
 
     for (int i = 0; i < 25; i++) {
         T expected = (T)2.0 * (T)5.0 * (T)1.5;  // B * A: (5x5) * (5x5) = each element = 2.0 * 5 * 1.5
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<T>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -259,7 +259,7 @@ int test_gemm_large_sizes(){
 
     for (int i = 0; i < 1024; i++) {
         T expected = (T)0.75 * (T)16.0 * (T)1.5;
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<T>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -287,7 +287,7 @@ int test_gemm_alt_large(){
 
     for (int i = 0; i < 1024; i++) {
         T expected = (T)0.75 * (T)16.0 * (T)1.5;
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<T>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -312,7 +312,7 @@ int test_gemm_alpha_scale(){
 
     for (int i = 0; i < 16; i++) {
         T expected = (T)2.5 * (T)4.0;
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<T>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -348,7 +348,7 @@ int test_symm_alt_order(){
 
     for (int i = 0; i < 20; i++) {
         T expected = (T)1.0 * (T)4.0 * (T)2.0;
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<T>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -377,7 +377,7 @@ int test_symm_alt_order_right(){
 
     for (int i = 0; i < 25; i++) {
         T expected = (T)2.0 * (T)5.0 * (T)1.5;
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<T>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -408,7 +408,7 @@ int test_dgemm_tf32_zero(){
 
     Matrix<float> Mres(sres, 0.0f);
 
-    if (!check(C.data(), Mres.data(), 50, make_check_msg(__func__, get_type_name<float>(), ""))) {
+    if (!check(C.data(), Mres.data(), 50, check_msg(get_type_name<float>(), ""))) {
         return TEST_FAIL;
     }
 
@@ -433,7 +433,7 @@ int test_dgemm_tf32_identity(){
     C.copy2host(gpu_runtime);
 
     for (int i = 0; i < 25; i++) {
-        if (!check(C.data()[i], 1.0f, make_check_msg(__func__, get_type_name<float>(), ""))) {
+        if (!check(C.data()[i], 1.0f, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -461,7 +461,7 @@ int test_dgemm_tf32_alt_param(){
 
     Matrix<float> Mres(sres, 0.0f);
 
-    if (!check(C.data(), Mres.data(), 50, make_check_msg(__func__, get_type_name<float>(), ""))) {
+    if (!check(C.data(), Mres.data(), 50, check_msg(get_type_name<float>(), ""))) {
         return TEST_FAIL;
     }
 
@@ -483,7 +483,7 @@ int test_dgemm_tf32_with_alpha(){
 
     for (int i = 0; i < 16; i++) {
         float expected = 2.5f * 4.0f;
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<float>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -507,7 +507,7 @@ int test_tf32_alt_with_beta(){
 
     for (int i = 0; i < 9; i++) {
         float expected = (2.0f * 0.5f * 3) + (0.5f * 10.0f);
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<float>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -534,7 +534,7 @@ int test_tf32_large_matrices(){
 
     for (int i = 0; i < 1024; i++) {
         float expected = 0.75f * 16.0f * 1.5f;
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<float>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -567,8 +567,8 @@ int test_complex_gemm_basic(){
 
     for (int i = 0; i < 4; i++) {
         T expected(2.0, 0.0);
-        if (!check(C.data()[i].real(), expected.real(), make_check_msg(__func__, get_type_name<T>(), "check 1")) ||
-            !check(C.data()[i].imag(), expected.imag(), make_check_msg(__func__, get_type_name<T>(), "check 2"))) {
+        if (!check(C.data()[i].real(), expected.real(), check_msg(get_type_name<T>(), "check 1")) ||
+            !check(C.data()[i].imag(), expected.imag(), check_msg(get_type_name<T>(), "check 2"))) {
             return TEST_FAIL;
             break;
         }
@@ -597,8 +597,8 @@ int test_complex_gemm_alt_order(){
 
     for (int i = 0; i < 4; i++) {
         T expected(2.0, 0.0);
-        if (!check(C.data()[i].real(), expected.real(), make_check_msg(__func__, get_type_name<T>(), "check 1")) ||
-            !check(C.data()[i].imag(), expected.imag(), make_check_msg(__func__, get_type_name<T>(), "check 2"))) {
+        if (!check(C.data()[i].real(), expected.real(), check_msg(get_type_name<T>(), "check 1")) ||
+            !check(C.data()[i].imag(), expected.imag(), check_msg(get_type_name<T>(), "check 2"))) {
             return TEST_FAIL;
             break;
         }
@@ -627,8 +627,8 @@ int test_complex_gemm_with_beta(){
 
     for (int i = 0; i < 4; i++) {
         T expected(2.0 + 0.5 * 2.0, 0.0);
-        if (!check(C.data()[i].real(), expected.real(), make_check_msg(__func__, get_type_name<T>(), "check 1")) ||
-            !check(C.data()[i].imag(), expected.imag(), make_check_msg(__func__, get_type_name<T>(), "check 2"))) {
+        if (!check(C.data()[i].real(), expected.real(), check_msg(get_type_name<T>(), "check 1")) ||
+            !check(C.data()[i].imag(), expected.imag(), check_msg(get_type_name<T>(), "check 2"))) {
             return TEST_FAIL;
             break;
         }
@@ -660,7 +660,7 @@ int test_fp16_basic(){
 
     for (int i = 0; i < 4; i++) {
         float expected = 2.0f;
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<float>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -688,7 +688,7 @@ int test_fp16_alt_order(){
 
     for (int i = 0; i < 4; i++) {
         float expected = 2.0f;
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<float>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -716,7 +716,7 @@ int test_fp16_with_alpha(){
 
     for (int i = 0; i < 9; i++) {
         float expected = 2.5f * 3.0f;
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<float>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -744,7 +744,7 @@ int test_fp16_with_beta(){
 
     for (int i = 0; i < 4; i++) {
         float expected = 2.0f + 0.5f * 5.0f;
-        if (!check(C.data()[i], expected, make_check_msg(__func__, get_type_name<float>(), ""))) {
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -832,7 +832,7 @@ int test_mp_matrix_copy_to_device() {
     cudart.synchronize();
 
 
-    if (!check(m.data()[0], (T)2.5, make_check_msg(__func__, get_type_name<T>(), ""))) {
+    if (!check(m.data()[0], (T)2.5, check_msg(get_type_name<T>(), ""))) {
         failures += 1;
     }
 

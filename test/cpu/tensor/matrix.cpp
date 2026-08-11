@@ -13,9 +13,9 @@ int test_matrix_size_constructor() {
     Matrix<T> m(shape);
 
     Shape s = m.shape();
-    if (!check((int)s.first, 5, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)s.first, 5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)s.second, 10, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((int)s.second, 10, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     if (m.data() == nullptr) return TEST_FAIL;
 
@@ -28,9 +28,9 @@ int test_matrix_shape_constructor() {
     Matrix<T> m(shape);
 
     Shape s = m.shape();
-    if (!check((int)s.first, 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)s.first, 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)s.second, 7, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((int)s.second, 7, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -41,13 +41,13 @@ int test_matrix_size_value_constructor() {
     Matrix<T> m(shape, (T)2.5);
 
     Shape s = m.shape();
-    if (!check((int)s.first, 4, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)s.first, 4, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)s.second, 6, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((int)s.second, 6, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     // Verify all elements are initialized
     for (int i = 0; i < 4 * 6; i++) {
-        if (!check((double)m.data()[i], 2.5, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+        if (!check((double)m.data()[i], 2.5, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
     }
 
     return TEST_PASS;
@@ -62,18 +62,18 @@ int test_matrix_copy_constructor() {
     Shape s1 = m1.shape();
     Shape s2 = m2.shape();
 
-    if (!check((int)s2.first, (int)s1.first, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)s2.first, (int)s1.first, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)s2.second, (int)s1.second, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((int)s2.second, (int)s1.second, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     // Verify data is copied
     for (int i = 0; i < 9; i++) {
-        if (!check((double)m2.data()[i], 5.0, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+        if (!check((double)m2.data()[i], 5.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
     }
 
     // Modify original - copy should not change
     m1.data()[0] = (T)99.0;
-    if (!check((double)m2.data()[0], 5.0, make_check_msg(__func__, get_type_name<T>(), "check 4"))) return TEST_FAIL;
+    if (!check((double)m2.data()[0], 5.0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -86,13 +86,13 @@ int test_matrix_move_constructor() {
     Matrix<T> m2 = std::move(m1);  // Move constructor
 
     Shape s2 = m2.shape();
-    if (!check((int)s2.first, 2, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)s2.first, 2, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)s2.second, 3, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((int)s2.second, 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     // Original should be empty
     Shape s1 = m1.shape();
-    if (!check((int)s1.first, 0, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check((int)s1.first, 0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -108,9 +108,9 @@ int test_matrix_shape_attribute() {
 
     Shape s = m.shape();
 
-    if (!check((int)s.first, 7, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)s.first, 7, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)s.second, 5, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((int)s.second, 5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -124,7 +124,7 @@ int test_matrix_size_attribute() {
     Shape s = m.shape();
     int total_size = s.first * s.second;
 
-    if (!check(total_size, 35, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check(total_size, 35, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -138,7 +138,7 @@ int test_matrix_data_access() {
 
     // Write and read
     m.data()[0] = (T)5.5;
-    if (!check((double)m.data()[0], 5.5, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)m.data()[0], 5.5, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -172,9 +172,9 @@ int test_matrix_copy_assignment() {
     m2 = m1;  // Copy assignment
 
     Shape s2 = m2.shape();
-    if (!check((int)s2.first, 2, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)s2.first, 2, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)s2.second, 3, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((int)s2.second, 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -188,13 +188,13 @@ int test_matrix_move_assignment() {
     m2 = std::move(m1);  // Move assignment
 
     Shape s2 = m2.shape();
-    if (!check((int)s2.first, 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)s2.first, 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)s2.second, 4, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((int)s2.second, 4, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     // Original should be empty
     Shape s1 = m1.shape();
-    if (!check((int)s1.first, 0, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check((int)s1.first, 0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -214,9 +214,9 @@ int test_matrix_memory_allocation() {
     m.data()[0] = (T)1.5;
     m.data()[9999] = (T)9999.5;
 
-    if (!check((double)m.data()[0], 1.5, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((double)m.data()[0], 1.5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((double)m.data()[9999], 9999.5, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((double)m.data()[9999], 9999.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -242,9 +242,9 @@ int test_matrix_float_type() {
     Matrix<float> m(shape, 2.5f);
 
     Shape s = m.shape();
-    if (!check((int)s.first, 3, make_check_msg(__func__, get_type_name<float>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)s.first, 3, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
 
-    if (!check(m.data()[0], 2.5f, make_check_msg(__func__, get_type_name<float>(), "check 2"))) return TEST_FAIL;
+    if (!check(m.data()[0], 2.5f, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -258,9 +258,9 @@ int test_matrix_int_type() {
     m.data()[3] = 40;
 
     Shape s = m.shape();
-    if (!check((int)s.first, 2, make_check_msg(__func__, get_type_name<int>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)s.first, 2, check_msg(get_type_name<int>(), "check 1"))) return TEST_FAIL;
 
-    if (!check(m.data()[0], 10, make_check_msg(__func__, get_type_name<int>(), "check 2"))) return TEST_FAIL;
+    if (!check(m.data()[0], 10, check_msg(get_type_name<int>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -280,7 +280,7 @@ int test_matrix_symmetrize() {
 
     m.symmetrize();
 
-    if (!check((double)m.data()[1], (double)m.data()[3], make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)m.data()[1], (double)m.data()[3], check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -297,11 +297,11 @@ int test_matrix_get_diagonal() {
 
     Vector<T> diag = m.get_diagonal();
 
-    if (!check((int)diag.size(), 4, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)diag.size(), 4, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     T expected[] = {(T)1.0, (T)2.0, (T)3.0, (T)4.0};
     for (int i = 0; i < 4; i++) {
-        if (!check((double)diag.data()[i], (double)expected[i], make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+        if (!check((double)diag.data()[i], (double)expected[i], check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
     }
 
     return TEST_PASS;

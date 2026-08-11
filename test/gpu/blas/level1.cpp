@@ -16,7 +16,7 @@ int test_v_addition_cpp(CudaRuntime& cudart){
 
     auto sum = std::accumulate(s.begin(), s.end(), (double)0.0);
 
-    if (!check<T>(sum, 3.0*p.size(), make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check<T>(sum, 3.0*p.size(), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     AddVectors(cudart, (T)1.0, p, 1, s, 1);
     p.copy2host(cudart);
@@ -24,7 +24,7 @@ int test_v_addition_cpp(CudaRuntime& cudart){
 
     auto sum_ = std::accumulate(s.begin(), s.end(), (double)0.0);
 
-    if (!check<T>(sum_, 5.0*p.size(), make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check<T>(sum_, 5.0*p.size(), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 
@@ -41,14 +41,14 @@ int test_v_addition_and_scale_cpp(CudaRuntime& cudart){
 
     auto sum = std::accumulate(s.begin(), s.end(), (double)0.0);
 
-    if (!check<T>(sum, 5.0*p.size(), make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check<T>(sum, 5.0*p.size(), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     AddVectors(cudart, (T)2.0, p, 1, s, 1);
     p.copy2host(cudart);
     s.copy2host(cudart);
 
     auto sum_ = std::accumulate(s.begin(), s.end(), (double)0.0);
-    if (!check<T>(sum_, 9.0*p.size(), make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check<T>(sum_, 9.0*p.size(), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
 
     return TEST_PASS;
@@ -69,7 +69,7 @@ int test_copy_v_cpp(CudaRuntime& cudart){
     auto sum_s = std::accumulate(s.begin(), s.end(), (double)0.0);
     auto sum_p = std::accumulate(p.begin(), p.end(), (double)0.0);
 
-    if (!check<T>(sum_s, sum_p, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check<T>(sum_s, sum_p, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     CopyVectors(cudart, p, 1, s, 1);
     p.copy2host(cudart);
@@ -78,7 +78,7 @@ int test_copy_v_cpp(CudaRuntime& cudart){
     auto sum_s_ = std::accumulate(s.begin(), s.end(), (double)0.0);
     auto sum_p_ = std::accumulate(p.begin(), p.end(), (double)0.0);
 
-    if (!check<T>(sum_s_, sum_p_, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check<T>(sum_s_, sum_p_, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -97,8 +97,8 @@ int test_swap_v_cpp(CudaRuntime& cudart){
     auto sum_s = std::accumulate(s.begin(), s.end(), (double)0.0);
     auto sum_p = std::accumulate(p.begin(), p.end(), (double)0.0);
 
-    if (!check<T>(sum_s, 2.0*5, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
-    if (!check<T>(sum_p, 1.0*5, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check<T>(sum_s, 2.0*5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check<T>(sum_p, 1.0*5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
     SwapVectors(cudart, p, 1, s, 1);
     p.copy2host(cudart);
     s.copy2host(cudart);
@@ -106,8 +106,8 @@ int test_swap_v_cpp(CudaRuntime& cudart){
     auto sum_s_ = std::accumulate(s.begin(), s.end(), (double)0.0);
     auto sum_p_ = std::accumulate(p.begin(), p.end(), (double)0.0);
 
-    if (!check<T>(sum_s_, 1.0*5, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
-    if (!check<T>(sum_p_, 2.0*5, make_check_msg(__func__, get_type_name<T>(), "check 4"))) return TEST_FAIL;
+    if (!check<T>(sum_s_, 1.0*5, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check<T>(sum_p_, 2.0*5, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -123,12 +123,12 @@ int test_scale_v_cpp(CudaRuntime& cudart){
 
     auto sum_p = std::accumulate(p.begin(), p.end(), (double)0.0);
 
-    if (!check<T>(sum_p, 4.0*5, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check<T>(sum_p, 4.0*5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
     ScaleVector(cudart, (T)0.5, p, 1);
     p.copy2host(cudart);
     auto sum_p_ = std::accumulate(p.begin(), p.end(), (double)0.0);
 
-    if (!check<T>(sum_p_, 2.0*5, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check<T>(sum_p_, 2.0*5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -144,12 +144,12 @@ int test_inner_v_prod_cpp(CudaRuntime& cudart){
     p.copy2host(cudart);
     s.copy2host(cudart);
 
-    if (!check<T>(prod, 2.0*5, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check<T>(prod, 2.0*5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
     auto prod_ = InnerVectorProduct(cudart, p, 1, s, 1);
     p.copy2host(cudart);
     s.copy2host(cudart);
 
-    if (!check<T>(prod_, prod, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check<T>(prod_, prod, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 };

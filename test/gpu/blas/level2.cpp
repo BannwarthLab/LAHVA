@@ -32,7 +32,7 @@ int test_gemv_zero_v_cpp(CudaRuntime& cudart){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_, 0.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(M, (T)1.0);
 
@@ -41,7 +41,7 @@ int test_gemv_zero_v_cpp(CudaRuntime& cudart){
     cudart.synchronize();
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     MatrixVectorProduct(cudart, A, x, y, "N", (T)1.0, (T)1.0);
     y.copy2host(cudart);
@@ -50,7 +50,7 @@ int test_gemv_zero_v_cpp(CudaRuntime& cudart){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     A = Matrix<T>(Shape(N,M), (T)1.0);
 
@@ -59,7 +59,7 @@ int test_gemv_zero_v_cpp(CudaRuntime& cudart){
     cudart.synchronize();
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0, make_check_msg(__func__, get_type_name<T>(), "check 4"))) return TEST_FAIL;
+    if (!check(sum_, 0.0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -74,7 +74,7 @@ int test_complex_gemv_zero_v_cpp(CudaRuntime& cudart){
     y.copy2host(cudart);
     cudart.synchronize();
     auto sum_ = y.sum();
-    if (!check(sum_, T(0.0, 0.0), make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_, T(0.0, 0.0), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(M, T{0.0,1.0});
 
@@ -83,14 +83,14 @@ int test_complex_gemv_zero_v_cpp(CudaRuntime& cudart){
     cudart.synchronize();
     sum_ = y.sum();
 
-    if (!check(sum_, T(M*1.0, 0.0), make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum_, T(M*1.0, 0.0), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
     y = Vector<T>(M, T{0.0,1.0});
     MatrixVectorProduct(A, x, y, "N", 1.0, T{0.0, -1.0});
     y.copy2host(cudart);
     cudart.synchronize();
     sum_ = y.sum();
 
-    if (!check(sum_, T(M*1.0,0.0), make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(sum_, T(M*1.0,0.0), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     A = Matrix<T>(Shape(N,M), T(0.0, 1.0));
     x = Vector<T>(N, T(1.0, 0.0));
@@ -100,7 +100,7 @@ int test_complex_gemv_zero_v_cpp(CudaRuntime& cudart){
     y.copy2host(cudart);
     sum_ = y.sum();
 
-    if (!check(sum_, T(N*M*1.0, 0.0), make_check_msg(__func__, get_type_name<T>(), "check 4"))) return TEST_FAIL;
+    if (!check(sum_, T(N*M*1.0, 0.0), check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -118,7 +118,7 @@ int test_symv_zero_v_cpp(CudaRuntime& cudart){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_, 0.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(M, (T)1.0);
 
@@ -126,7 +126,7 @@ int test_symv_zero_v_cpp(CudaRuntime& cudart){
     y.copy2host(cudart);
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     SymMatrixVectorProduct(cudart, A, x, y, (T)1.0, (T)1.0);
     y.copy2host(cudart);
@@ -134,7 +134,7 @@ int test_symv_zero_v_cpp(CudaRuntime& cudart){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -151,7 +151,7 @@ int test_symv_v_cpp(CudaRuntime& cudart){
     cudart.synchronize();
     Vector<T> vres({(T)24.0, (T)26.0, (T)26.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(3, (T)1.0);
 
@@ -160,14 +160,14 @@ int test_symv_v_cpp(CudaRuntime& cudart){
     cudart.synchronize();
     vres = Vector<T>({(T)25.0, (T)27.0, (T)27.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     SymMatrixVectorProduct(cudart, A, x, y, (T)2.0, (T)0.0);
     y.copy2host(cudart);
     cudart.synchronize();
     vres = Vector<T>({(T)48.0, (T)52.0, (T)52.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -184,7 +184,7 @@ int test_gemv_v_cpp(CudaRuntime& cudart){
     cudart.synchronize();
     Vector<T> vres({(T)1.0, (T)8.0, (T)26.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(3, (T)1.0);
 
@@ -193,14 +193,14 @@ int test_gemv_v_cpp(CudaRuntime& cudart){
     cudart.synchronize();
     vres = Vector<T>({(T)2.0, (T)9.0, (T)27.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     MatrixVectorProduct(cudart, A, x, y, "N", (T)2.0, (T)0.0);
     y.copy2host(cudart);
     cudart.synchronize();
     vres = Vector<T>({(T)2.0, (T)16.0, (T)52.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -217,7 +217,7 @@ int test_spmv_v_cpp(CudaRuntime& cudart){
     cudart.synchronize();
     Vector<T> vres({(T)24.0, (T)26.0, (T)26.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(3, (T)1.0);
 
@@ -226,14 +226,14 @@ int test_spmv_v_cpp(CudaRuntime& cudart){
     cudart.synchronize();
     vres = Vector<T>({(T)25.0, (T)27.0, (T)27.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     SymMatrixVectorProduct(cudart, A, x, y, (T)2.0, (T)0.0);
     y.copy2host(cudart);
     cudart.synchronize();
     vres = Vector<T>({(T)48.0, (T)52.0, (T)52.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -250,7 +250,7 @@ int test_outer_product(CudaRuntime& cudart){
 
     Vector<T> vres({(T)2.0, (T)4.0, (T)6.0, (T)3.0, (T)6.0, (T)9.0});
 
-    if (!check(A.data(), vres.data(), 6, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(A.data(), vres.data(), 6, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     // Test with alpha = 2.0
     A = Matrix<T>(Shape(3, 2), (T)0.0);
@@ -260,7 +260,7 @@ int test_outer_product(CudaRuntime& cudart){
 
     vres = Vector<T>({(T)4.0, (T)8.0, (T)12.0, (T)6.0, (T)12.0, (T)18.0});
 
-    if (!check(A.data(), vres.data(), 6, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(A.data(), vres.data(), 6, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     try {
         Matrix<T> A(Shape(4,2),0.0);

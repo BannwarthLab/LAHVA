@@ -19,26 +19,30 @@
 
 // Helper to get type name as string
 template <typename T>
-constexpr const char* get_type_name() {
-    if constexpr (std::is_same_v<T, double>) return "double";
-    else if constexpr (std::is_same_v<T, float>) return "float";
-    else if constexpr (std::is_same_v<T, int>) return "int";
-    else if constexpr (std::is_same_v<T, complex_float>) return "complex_float";
-    else if constexpr (std::is_same_v<T, complex_double>) return "complex_double";
+std::string get_type_name() {
+    if constexpr (std::is_same_v<T, double>) return std::string("double");
+    else if constexpr (std::is_same_v<T, float>) return std::string("float");
+    else if constexpr (std::is_same_v<T, int>) return std::string("int");
+    else if constexpr (std::is_same_v<T, complex_float>) return std::string("complex_float");
+    else if constexpr (std::is_same_v<T, complex_double>) return std::string("complex_double");
 #ifdef _CUDA
-    else if constexpr (std::is_same_v<T, __half>) return "__half";
+    else if constexpr (std::is_same_v<T, __half>) return std::string("__half");
 #endif
-    else return "unknown";
+    else return std::string("unknown");
 }
 
-// Overload for std::string description
-inline const char* make_check_msg(const char* func_name, const char* type_name, const std::string& description) {
-    static std::string msg;
-    msg = "[";
+// Helper to create a check message
+inline std::string make_check_msg(std::string_view func_name, std::string_view type_name, std::string_view description) {
+    std::string msg;
+    msg.reserve(func_name.size() + type_name.size() + description.size() + 6);
+    msg += '[';
     msg += func_name;
     msg += " (";
     msg += type_name;
     msg += ")] ";
     msg += description;
-    return msg.c_str();
+    return msg;
 }
+
+// Macro to automatically capture __func__
+#define check_msg(type_name, desc) make_check_msg(__func__, type_name, desc)

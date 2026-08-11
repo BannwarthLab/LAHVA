@@ -205,7 +205,7 @@ int test_solve_pos_sys() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               make_check_msg(__func__, get_type_name<T>(), "A*X verification"))) {
+               check_msg(get_type_name<T>(), "A*X verification"))) {
         return TEST_FAIL;
     }
 
@@ -240,7 +240,7 @@ int test_solve_gen_sys() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               make_check_msg(__func__, get_type_name<T>(), "A*X verification"))) {
+               check_msg(get_type_name<T>(), "A*X verification"))) {
         return TEST_FAIL;
     }
 
@@ -271,7 +271,7 @@ int test_solve_gen_sys_transpose() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               make_check_msg(__func__, get_type_name<T>(), "A^T*X verification"))) {
+               check_msg(get_type_name<T>(), "A^T*X verification"))) {
         return TEST_FAIL;
     }
 
@@ -302,7 +302,7 @@ int test_solve_gen_sys_alt_order() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               make_check_msg(__func__, get_type_name<T>(), "A*X verification"))) {
+               check_msg(get_type_name<T>(), "A*X verification"))) {
         return TEST_FAIL;
     }
 
@@ -336,7 +336,7 @@ int test_solve_lower_tri() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               make_check_msg(__func__, get_type_name<T>(), "L*X verification"))) {
+               check_msg(get_type_name<T>(), "L*X verification"))) {
         return TEST_FAIL;
     }
 
@@ -366,7 +366,7 @@ int test_solve_lower_tri_transpose() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               make_check_msg(__func__, get_type_name<T>(), "L^T*X verification"))) {
+               check_msg(get_type_name<T>(), "L^T*X verification"))) {
         return TEST_FAIL;
     }
 
@@ -400,7 +400,7 @@ int test_solve_sym_sys() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               make_check_msg(__func__, get_type_name<T>(), "A*X verification"))) {
+               check_msg(get_type_name<T>(), "A*X verification"))) {
         return TEST_FAIL;
     }
 
@@ -442,7 +442,7 @@ int test_invert_tri_matrix() {
 
     // Verify A_original * A = identity
     if (!check<T, ToleranceType::LAPACK>(product.data(), identity.data(), n*n,
-               make_check_msg(__func__, get_type_name<T>(), "A*A_inv = I verification"))) {
+               check_msg(get_type_name<T>(), "A*A_inv = I verification"))) {
         return TEST_FAIL;
     }
 
@@ -477,7 +477,7 @@ int test_sym_eigenvalue_decomp() {
     Matrix<T> expected = multiply_matrices(A, lambda_diag, false);
 
     if (!check<T, ToleranceType::LAPACK>(product.data(), expected.data(), M*M,
-               make_check_msg(__func__, get_type_name<T>(), "A*V = V*Lambda verification"))) {
+               check_msg(get_type_name<T>(), "A*V = V*Lambda verification"))) {
         return TEST_FAIL;
     }
 
@@ -500,7 +500,7 @@ int test_sym_eigenvalue_no_vectors() {
         if (eigenvalues[i] <= 0) {
             std::cerr << "[" << get_type_name<T>() << "] [Eigenvalue Error] Negative eigenvalue found at index " << i
                       << ": " << std::setprecision(15) << eigenvalues[i] << std::endl;
-            make_check_msg(__func__, get_type_name<T>(), "Negative eigenvalue found");
+            check_msg(get_type_name<T>(), "Negative eigenvalue found");
             return TEST_FAIL;
         }
     }
@@ -537,7 +537,7 @@ int test_c_solve_gen_sys() {
     // Verify: A_copy * B = B_original
     T* product = c_multiply_matrices(A_copy, B, n, nrhs, false);
     if (!check<T, ToleranceType::LAPACK>(product, B_original, n*nrhs,
-               make_check_msg(__func__, get_type_name<T>(), "A*X verification"))) {
+               check_msg(get_type_name<T>(), "A*X verification"))) {
         delete[] product;
         return TEST_FAIL;
     }
@@ -570,7 +570,7 @@ int test_c_solve_gen_sys_default() {
     // Verify: A_copy * B = B_original
     T* product = c_multiply_matrices(A_copy, B, n, nrhs, false);
     if (!check<T, ToleranceType::LAPACK>(product, B_original, n*nrhs,
-               make_check_msg(__func__, get_type_name<T>(), "A*X verification"))) {
+               check_msg(get_type_name<T>(), "A*X verification"))) {
         delete[] product;
         return TEST_FAIL;
     }
@@ -604,7 +604,7 @@ int test_c_solve_gen_sys_transpose() {
     // Verify: A_copy^T * B = B_original
     T* product = c_multiply_matrices(A_copy, B, n, nrhs, true);
     if (!check<T, ToleranceType::LAPACK>(product, B_original, n*nrhs,
-               make_check_msg(__func__, get_type_name<T>(), "A^T*X verification"))) {
+               check_msg(get_type_name<T>(), "A^T*X verification"))) {
         delete[] product;
         return TEST_FAIL;
     }

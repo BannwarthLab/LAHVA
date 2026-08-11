@@ -65,7 +65,7 @@ inline bool compareNumbers<ToleranceType::BLAS, int>(int a, int b)
 }
 
 template <typename T, ToleranceType TType = ToleranceType::BLAS>
-bool check(T* a, T* b, int ndim, const char* msg)
+bool check(T* a, T* b, int ndim, std::string_view msg)
 {
     for (int i = 0; i != ndim; i++) {
         if (!compareNumbers<TType>(a[i], b[i])) {
@@ -79,7 +79,7 @@ bool check(T* a, T* b, int ndim, const char* msg)
 }
 
 template <typename T, typename U, ToleranceType TType = ToleranceType::BLAS>
-bool check(T* a, U* b, int ndim, const char* msg)
+bool check(T* a, U* b, int ndim, std::string_view msg)
 {
     for (int i = 0; i != ndim; i++) {
         if (!compareNumbers<TType>(a[i], b[i])) {
@@ -93,7 +93,7 @@ bool check(T* a, U* b, int ndim, const char* msg)
 }
 
 template <typename T, typename U, ToleranceType TType = ToleranceType::BLAS>
-bool check(T* a, U* b, const char* msg)
+bool check(T* a, U* b, std::string_view msg)
 {
     if (!compareNumbers<TType>(a, b)) {
         std::cerr << "[Fatal] " << msg << " (expected: " << std::setprecision(15) << *b
@@ -104,7 +104,7 @@ bool check(T* a, U* b, const char* msg)
 }
 
 template <typename T, typename U, ToleranceType TType = ToleranceType::BLAS>
-bool check(T a, U b, const char* msg)
+bool check(T a, U b, std::string_view msg)
 {
     if (!compareNumbers<TType>(a, b)) {
         std::cerr << "[Fatal] " << msg << " (expected: " << std::setprecision(15) << b

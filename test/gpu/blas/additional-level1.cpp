@@ -19,7 +19,7 @@ int test_Frobenius_norm(const CudaRuntime& cudart)
     T res_cpu = 0.0;
     res_cpu = FrobeniusNorm(A);
 
-    if (!check(res_gpu, res_cpu, make_check_msg(__func__, get_type_name<T>(), "")))
+    if (!check(res_gpu, res_cpu, check_msg(get_type_name<T>(), "")))
     {
         std::cout << "Test failed: FrobeniusNorm" << std::endl;
         std::cout << "Frobenius norm on the GPU: " << res_gpu << std::endl;
@@ -46,7 +46,7 @@ int test_Frobenius_norm2(const CudaRuntime& cudart)
     T res_cpu = 0.0;
     res_cpu = FrobeniusNorm(A, B);
 
-    if (!check(res_gpu, res_cpu, make_check_msg(__func__, get_type_name<T>(), "")))
+    if (!check(res_gpu, res_cpu, check_msg(get_type_name<T>(), "")))
     {
         std::cout << "Test failed: FrobeniusNorm2" << std::endl;
         std::cout << "Frobenius norm2 on the GPU: " << res_gpu << std::endl;
@@ -74,7 +74,7 @@ int test_Frobenius_norm2_diff(const CudaRuntime& cudart)
     AddVectors(cudart, (T)-1.0, A, B);
     res_gpu_diff = FrobeniusNorm(cudart, B);
 
-    if (!check(res_gpu, res_gpu_diff, make_check_msg(__func__, get_type_name<T>(), "")))
+    if (!check(res_gpu, res_gpu_diff, check_msg(get_type_name<T>(), "")))
     {
         std::cout << "Test failed: FrobeniusNorm2, take the differenc first" << std::endl;
         std::cout << "GPU: " << res_gpu << " GPU first difference then Frob: " << res_gpu_diff << std::endl;
@@ -119,7 +119,7 @@ int test_HadamardProduct(const CudaRuntime& cudart)
     lahva::cpu::HadamardProduct(A_cpu, B_cpu, C_cpu);
     
     // Comparison
-    if (!(check(C_gpu.data(), C_cpu.data(), C_cpu.size(), make_check_msg(__func__, get_type_name<T>(), ""))))
+    if (!(check(C_gpu.data(), C_cpu.data(), C_cpu.size(), check_msg(get_type_name<T>(), ""))))
     {
         std::cout << "Test failed: HadamardProduct" << std::endl;
         return 1;

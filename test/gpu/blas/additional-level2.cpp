@@ -15,7 +15,7 @@ int test_add_matrices(CudaRuntime& cudart)
     C.copy2host(cudart);
     cudart.synchronize();
     Matrix<T> res(A.shape(), {8.0, 10.0, 12.0, 14.0, 16.0, 18.0});
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 1"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 1"))))
     {
         std::cout << "Test failed: AddMatrices" << std::endl;
         return 1;
@@ -24,7 +24,7 @@ int test_add_matrices(CudaRuntime& cudart)
     AddMatrices(cudart, "N", "N", (T)1.0, A, B, (T)1.0, C);
     C.copy2host(cudart);
     cudart.synchronize();
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 2"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 2"))))
     {
         std::cout << "Test failed: AddMatrices" << std::endl;
         return 1;
@@ -46,7 +46,7 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
     cudart.synchronize();
     Matrix<T> res(A.shape(), {8.0, 12.0, 11.0, 15.0, 14.0, 18.0});
 
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 1"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 1"))))
     {
         std::cout << "Test1 failed: AddMatrices" << std::endl;
         return 1;
@@ -55,7 +55,7 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
     AddMatrices(cudart, "N", "T", (T) 1.0, A, B, (T) 1.0, C);
     C.copy2host(cudart);
     cudart.synchronize();
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 2"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 2"))))
     {
         std::cout << "Test2 failed: AddMatrices" << std::endl;
         return 1;
@@ -67,7 +67,7 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
     AddMatrices(cudart, A, B, C, (T) 1.0, (T) 1.0, "T", "N");
     C.copy2host(cudart);
     cudart.synchronize();
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 3"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 3"))))
     {
         std::cout << "Test3 failed: AddMatrices" << std::endl;
         return 1;
@@ -76,7 +76,7 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
     AddMatrices(cudart, "T", "N", (T) 1.0, A, B, (T) 1.0, C);
     C.copy2host(cudart);
     cudart.synchronize();
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 4"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 4"))))
     {
         std::cout << "Test4 failed: AddMatrices" << std::endl;
         return 1;
@@ -89,7 +89,7 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
     AddMatrices(cudart, A, B, C, (T) 1.0, (T) 1.0, "T", "T");
     C.copy2host(cudart);
     cudart.synchronize();
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 5"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 5"))))
     {
         std::cout << "Test5 failed: AddMatrices" << std::endl;
         return 1;
@@ -98,7 +98,7 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
     AddMatrices(cudart, "T", "T", (T) 1.0, A, B, (T) 1.0, C);
     C.copy2host(cudart);
     cudart.synchronize();
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 6"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 6"))))
     {
         std::cout << "Test6 failed: AddMatrices" << std::endl;
         return 1;

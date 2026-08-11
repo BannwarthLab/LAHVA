@@ -12,7 +12,7 @@ int test_gputensor_constructor_with_count() {
 
     Vector<double> v(10);
 
-    if (!check((int)v.size(), 10, make_check_msg(__func__, get_type_name<double>(), ""))) return TEST_FAIL;
+    if (!check((int)v.size(), 10, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -21,7 +21,7 @@ int test_gputensor_constructor_no_args() {
 
     Vector<double> v;
 
-    if (!check((int)v.size(), 0, make_check_msg(__func__, get_type_name<double>(), ""))) return TEST_FAIL;
+    if (!check((int)v.size(), 0, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -31,7 +31,7 @@ int test_gputensor_constructor_with_cudart() {
 
     Vector<double> v(5, cudart);
 
-    if (!check((int)v.size(), 5, make_check_msg(__func__, get_type_name<double>(), ""))) return TEST_FAIL;
+    if (!check((int)v.size(), 5, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -45,10 +45,10 @@ int test_gputensor_copy_constructor() {
     Matrix<T> m1(Shape(3, 3), (T)2.5);
     Matrix<T> m2 = m1;
 
-    if (!check((int)m2.size(), 9, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)m2.size(), 9, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     for (int i = 0; i < 9; i++) {
-        if (!check((double)m2.data()[i], 2.5, make_check_msg(__func__, get_type_name<T>(), "check 2"))) {
+        if (!check((double)m2.data()[i], 2.5, check_msg(get_type_name<T>(), "check 2"))) {
             return TEST_FAIL;
             break;
         }
@@ -66,7 +66,7 @@ int test_gputensor_copy_constructor_device_allocated(CudaRuntime& cudart) {
     // Copy a device-allocated matrix (exercises line 100-104)
     Matrix<double> m2 = m1;
 
-    if (!check((int)m2.size(), 4, make_check_msg(__func__, get_type_name<double>(), ""))) return TEST_FAIL;
+    if (!check((int)m2.size(), 4, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -75,9 +75,9 @@ int test_gputensor_copy_constructor_int() {
     Matrix<int> m1(Shape(2, 2), 5);
     Matrix<int> m2 = m1;
 
-    if (!check((int)m2.size(), 4, make_check_msg(__func__, get_type_name<int>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)m2.size(), 4, check_msg(get_type_name<int>(), "check 1"))) return TEST_FAIL;
 
-    if (!check(m2.data()[0], 5, make_check_msg(__func__, get_type_name<int>(), "check 2"))) return TEST_FAIL;
+    if (!check(m2.data()[0], 5, check_msg(get_type_name<int>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -89,10 +89,10 @@ int test_gputensor_move_constructor() {
 
     Matrix<T> m2 = std::move(m1);
 
-    if (!check((int)m2.size(), 9, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)m2.size(), 9, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     // Move constructor may not clear the source, just verify it was moved
-    if (!check((int)m2.size(), m1_size_before, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((int)m2.size(), m1_size_before, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -108,7 +108,7 @@ int test_gputensor_copy_assignment() {
 
     m2 = m1;
 
-    if (!check((int)m2.size(), 9, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((int)m2.size(), 9, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -120,7 +120,7 @@ int test_gputensor_move_assignment() {
 
     m2 = std::move(m1);
 
-    if (!check((int)m2.size(), 9, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((int)m2.size(), 9, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -132,7 +132,7 @@ int test_gputensor_copy_assignment_different_size() {
     // Assignment with different sizes (exercises line 130-145)
     m2 = m1;
 
-    if (!check((int)m2.size(), 9, make_check_msg(__func__, get_type_name<double>(), ""))) return TEST_FAIL;
+    if (!check((int)m2.size(), 9, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -143,7 +143,7 @@ int test_gputensor_copy_assignment_self() {
     // Self-assignment (exercises line 132 check)
     m = m;
 
-    if (!check((int)m.size(), 4, make_check_msg(__func__, get_type_name<double>(), ""))) return TEST_FAIL;
+    if (!check((int)m.size(), 4, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -164,7 +164,7 @@ int test_gputensor_device_copy(CudaRuntime& cudart) {
     m.copy2host(cudart);
     cudart.synchronize();
 
-    if (!check((double)m.data()[0], 2.5, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)m.data()[0], 2.5, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -178,7 +178,7 @@ int test_gputensor_device_copy_int(CudaRuntime& cudart) {
     m.copy2host(cudart);
     cudart.synchronize();
 
-    if (!check(m.data()[0], 5, make_check_msg(__func__, get_type_name<int>(), ""))) return TEST_FAIL;
+    if (!check(m.data()[0], 5, check_msg(get_type_name<int>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -191,7 +191,7 @@ int test_gputensor_vector_copy_constructor() {
     Vector<double> v1(5, 2.5);
     Vector<double> v2 = v1;
 
-    if (!check((int)v2.size(), 5, make_check_msg(__func__, get_type_name<double>(), ""))) return TEST_FAIL;
+    if (!check((int)v2.size(), 5, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -201,10 +201,10 @@ int test_gputensor_vector_move_constructor() {
 
     Vector<double> v2 = std::move(v1);
 
-    if (!check((int)v2.size(), 5, make_check_msg(__func__, get_type_name<double>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)v2.size(), 5, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
 
     // Verify the data was transferred
-    if (!check(v2.data()[0], 3.5, make_check_msg(__func__, get_type_name<double>(), "check 2"))) return TEST_FAIL;
+    if (!check(v2.data()[0], 3.5, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -220,7 +220,7 @@ int test_gputensor_vector_device_copy(CudaRuntime& cudart) {
     v.copy2host(cudart);
     cudart.synchronize();
 
-    if (!check(v.data()[0], 1.5, make_check_msg(__func__, get_type_name<double>(), ""))) return TEST_FAIL;
+    if (!check(v.data()[0], 1.5, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -233,7 +233,7 @@ int test_gputensor_lowtrimatrix_copy_constructor() {
     LowTriMatrix<double> m1(4, 2.5);
     LowTriMatrix<double> m2 = m1;
 
-    if (!check((int)m2.size(), 10, make_check_msg(__func__, get_type_name<double>(), ""))) return TEST_FAIL;
+    if (!check((int)m2.size(), 10, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -242,10 +242,10 @@ int test_gputensor_lowtrimatrix_move_constructor() {
     LowTriMatrix<double> m1(3, 1.5);
     LowTriMatrix<double> m2 = std::move(m1);
 
-    if (!check((int)m2.size(), 6, make_check_msg(__func__, get_type_name<double>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)m2.size(), 6, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
 
     // Verify the data was transferred
-    if (!check(m2.data()[0], 1.5, make_check_msg(__func__, get_type_name<double>(), "check 2"))) return TEST_FAIL;
+    if (!check(m2.data()[0], 1.5, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -259,7 +259,7 @@ int test_gputensor_lowtrimatrix_device_copy(CudaRuntime& cudart) {
     m.copy2host(cudart);
     cudart.synchronize();
 
-    if (!check(m.data()[0], 2.5, make_check_msg(__func__, get_type_name<double>(), ""))) return TEST_FAIL;
+    if (!check(m.data()[0], 2.5, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }

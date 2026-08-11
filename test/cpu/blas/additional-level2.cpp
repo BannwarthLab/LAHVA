@@ -17,14 +17,14 @@ int test_add_matrices()
     AddMatrices(A, B, C, (T) 1.0, (T) 1.0);
 
     Matrix<T> res(A.shape(),{8.0, 10.0, 12.0, 14.0, 16.0, 18.0});
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 1"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 1"))))
     {
         return TEST_FAIL;
     }
 
     AddMatrices("N", "N", (T)1.0, A, (T)1.0, B, C);
 
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 2"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 2"))))
     {
         return TEST_FAIL;
     }
@@ -44,14 +44,14 @@ int test_add_matrices_transposed()
 
     Matrix<T> res(A.shape(), {8.0, 12.0, 11.0, 15.0, 14.0, 18.0});
 
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 1"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 1"))))
     {
         return TEST_FAIL;
     }
 
     AddMatrices("N", "T", (T) 1.0, A, (T) 1.0, B, C);
 
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 2"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 2"))))
     {
         return TEST_FAIL;
     }
@@ -61,14 +61,14 @@ int test_add_matrices_transposed()
 
     AddMatrices(A, B, C, (T) 1.0, (T) 1.0, "T", "N");
 
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 3"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 3"))))
     {
         return TEST_FAIL;
     }
 
     AddMatrices("T", "N", (T) 1.0, A, (T) 1.0, B, C);
 
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 4"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 4"))))
     {
         return TEST_FAIL;
     }
@@ -79,14 +79,14 @@ int test_add_matrices_transposed()
 
     AddMatrices(A, B, C, (T) 1.0, (T) 1.0, "T", "T");
 
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 5"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 5"))))
     {
         return TEST_FAIL;
     }
 
     AddMatrices("T", "T", (T) 1.0, A, (T) 1.0, B, C);
 
-    if (!(check(C.data(), res.data(), res.size(), make_check_msg(__func__, get_type_name<T>(), "check 6"))))
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 6"))))
     {
         return TEST_FAIL;
     }

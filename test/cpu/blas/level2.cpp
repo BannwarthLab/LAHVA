@@ -27,7 +27,7 @@ int test_gemv_zero_v_cpp(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_, 0.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(M, 1.0);
 
@@ -35,13 +35,13 @@ int test_gemv_zero_v_cpp(){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     MatrixVectorProduct(A, x, y, "N", 1.0, 1.0);
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     A = Matrix<T>(Shape(N,M), 1.0);
 
@@ -49,7 +49,7 @@ int test_gemv_zero_v_cpp(){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0, make_check_msg(__func__, get_type_name<T>(), "check 4"))) return TEST_FAIL;
+    if (!check(sum_, 0.0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -61,7 +61,7 @@ int test_complex_gemv_zero_v_cpp(){
     Vector<T> y(M, 1.0);
     MatrixVectorProduct("N", 1.0, A, x, 1, 0.0, y, 1);
     auto sum_ = y.sum();
-    if (!check(sum_, T(0.0, 0.0), make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_, T(0.0, 0.0), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(M, T{0.0,1.0});
     std::cout << y.sum() << std::endl;
@@ -70,13 +70,13 @@ int test_complex_gemv_zero_v_cpp(){
 
     sum_ = y.sum();
 
-    if (!check(sum_, T(M*1.0, 0.0), make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum_, T(M*1.0, 0.0), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
     y = Vector<T>(M, T{0.0,1.0});
     MatrixVectorProduct(A, x, y, "N", 1.0, T{0.0, -1.0});
 
     sum_ = y.sum();
     std::cout << y.sum() << std::endl;
-    if (!check(sum_, T(M*1.0,0.0), make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(sum_, T(M*1.0,0.0), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     A = Matrix<T>(Shape(N,M), T(0.0, 1.0));
     x = Vector<T>(N, 1.0);
@@ -84,7 +84,7 @@ int test_complex_gemv_zero_v_cpp(){
 
     sum_ = y.sum();
 
-    if (!check(sum_, T(N*M*1.0, 0.0), make_check_msg(__func__, get_type_name<T>(), "check 4"))) return TEST_FAIL;
+    if (!check(sum_, T(N*M*1.0, 0.0), check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -101,7 +101,7 @@ int test_gemv_v_cpp(){
 
     Vector<T> vres({1.0, 8.0, 26.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(3, 1.0);
 
@@ -109,13 +109,13 @@ int test_gemv_v_cpp(){
 
     vres = Vector<T>({2.0, 9.0, 27.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     MatrixVectorProduct(A, x, y, "N", 2.0, 0.0);
 
     vres = Vector<T>({2.0, 16.0, 52.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -131,20 +131,20 @@ int test_symv_zero_v_cpp(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_, 0.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(M, 1.0);
 
     SymMatrixVectorProduct(1.0, A, x, 1, 1.0, y, 1);
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     SymMatrixVectorProduct(A, x, y, 1.0, 1.0);
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -160,7 +160,7 @@ int test_symv_v_cpp(){
 
     Vector<T> vres({24.0, 26.0, 26.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(3, 1.0);
 
@@ -168,13 +168,13 @@ int test_symv_v_cpp(){
 
     vres = Vector<T>({25.0, 27.0, 27.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     SymMatrixVectorProduct(A, x, y, 2.0, 0.0);
 
     vres = Vector<T>({48.0, 52.0, 52.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -190,20 +190,20 @@ int test_symv_zero_lowtri_cpp(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_, 0.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(M, 1.0);
 
     SymMatrixVectorProduct(1.0, A, x, 1, 1.0, y, 1);
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     SymMatrixVectorProduct(A, x, y, 1.0, 1.0);
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -218,20 +218,20 @@ int test_symv_lowtri_cpp(){
     SymMatrixVectorProduct(1.0, A, x, 1, 0.0, y, 1);
 
     Vector<T> vres({24.0, 26.0, 26.0});
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
     y = Vector<T>(3, 1.0);
 
     SymMatrixVectorProduct(1.0, A, x, 1, 1.0, y, 1);
 
     vres = Vector<T>({25.0, 27.0, 27.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     SymMatrixVectorProduct(A, x, y, 2.0, 0.0);
 
     vres = Vector<T>({48.0, 52.0, 52.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -246,19 +246,19 @@ int test_tpmv_cpp(){
 
     Vector<T> vres({1.0, 8.0, 26.0});
 
-    if (!check(x.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(x.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     x = Vector<T>({1.0, 2.0, 3.0});
     LowTriMatrixVectorProduct("N", CblasNonUnit, A, x, 1);
 
-    if (!check(x.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(x.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     x = Vector<T>({1.0, 2.0, 3.0});
     LowTriMatrixVectorProduct("T", CblasNonUnit, A, x, 1);
 
     vres = Vector<T>({24.0, 22.0, 9.0});
 
-    if (!check(x.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(x.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -276,7 +276,7 @@ int test_gemv_zero_v_c(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_, 0.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(M, 1.0);
 
@@ -284,13 +284,13 @@ int test_gemv_zero_v_c(){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     MatrixVectorProduct(M, N, A.data(), x.data(), y.data(), "N", 1.0, 1.0);
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     A = Matrix<T>(Shape(N,M), 1.0);
 
@@ -298,7 +298,7 @@ int test_gemv_zero_v_c(){
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0, make_check_msg(__func__, get_type_name<T>(), "check 4"))) return TEST_FAIL;
+    if (!check(sum_, 0.0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -314,7 +314,7 @@ int test_gemv_v_c(){
 
     Vector<T> vres({1.0, 8.0, 26.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
     return TEST_PASS;
 
     y = Vector<T>(M, 1.0);
@@ -323,13 +323,13 @@ int test_gemv_v_c(){
 
     vres = Vector<T>({2.0, 9.0, 27.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     MatrixVectorProduct(3, 3, A.data(), x.data(), y.data(), "N", 2.0, 0.0);
 
     vres = Vector<T>({2.0, 16.0, 52.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -345,20 +345,20 @@ int test_symv_zero_v_c(){
 
     auto sum_ = sum(M, y.data());
 
-    if (!check(sum_, 0.0, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(sum_, 0.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     y = Vector<T>(M, 1.0);
 
     SymMatrixVectorProduct(M, 1.0, A.data(), x.data(), 1, 1.0, y.data(), 1);
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     SymMatrixVectorProduct(M, A.data(), x.data(), y.data(), 1.0, 1.0);
 
     sum_ = sum(M, y.data());
 
-    if (!check(sum_, M*1.0, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(sum_, M*1.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -374,7 +374,7 @@ int test_symv_v_c(){
 
     Vector<T> vres({24.0, 26.0, 26.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
     return TEST_PASS;
 
     y = Vector<T>(M, 1.0);
@@ -383,13 +383,13 @@ int test_symv_v_c(){
 
     vres = Vector<T>({25.0, 27.0, 27.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     SymMatrixVectorProduct(3, A.data(), x.data(), y.data(), 2.0, 0.0);
 
     vres = Vector<T>({48.0, 52.0, 52.0});
 
-    if (!check(y.data(), vres.data(), 3, make_check_msg(__func__, get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -404,7 +404,7 @@ int test_ger(){
 
     Vector<T> vres({2.0, 4.0, 6.0, 3.0, 6.0, 9.0});
 
-    if (!check(A.data(), vres.data(), 6, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(A.data(), vres.data(), 6, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     // Test with alpha = 2.0
     A = Matrix<T>(Shape(3, 2), 0.0);
@@ -412,7 +412,7 @@ int test_ger(){
 
     vres = Vector<T>({4.0, 8.0, 12.0, 6.0, 12.0, 18.0});
 
-    if (!check(A.data(), vres.data(), 6, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(A.data(), vres.data(), 6, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     try {
         Matrix<T> A(Shape(4,2),0.0);

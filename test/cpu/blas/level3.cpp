@@ -21,7 +21,7 @@ int test_gemm_zero_v_cpp() {
 
     Matrix<T> Mres(sres, 0.0);
 
-    if (!check(C.data(), Mres.data(), M*N, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check(C.data(), Mres.data(), M*N, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -43,7 +43,7 @@ int test_gemm_with_scaling() {
     MatrixMatrixProduct("N", "N", (T)0.0, A, B, (T)1.0, C);
 
     // Result = 0.0*(A*B) + 1.0*C_old = 5.0
-    if (!check((double)C(0,0), 5.0, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C(0,0), 5.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -61,7 +61,7 @@ int test_gemm_negative_alpha() {
     MatrixMatrixProduct("N", "N", (T)(-1.0), A, B, (T)1.0, C);
 
     // Result = -1.0*(A*B) + 1.0*C = -(2*K) + 1 = 1 - 2*K
-    if (!check((double)C(0,0), 1.0 - 2.0*K, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C(0,0), 1.0 - 2.0*K, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -79,7 +79,7 @@ int test_gemm_with_beta() {
     MatrixMatrixProduct("N", "N", (T)1.0, A, B, (T)2.0, C);
 
     // Result = A*B + 2*C = (2*K + 6)
-    if (!check((double)C(0,0), 2.0*K + 6.0, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C(0,0), 2.0*K + 6.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -97,7 +97,7 @@ int test_gemm_with_alpha_beta() {
     MatrixMatrixProduct("N", "N", (T)0.5, A, B, (T)2.0, C);
 
     // Result = 0.5*(A*B) + 2*C = 0.5*(2*K) + 6 = K + 6
-    if (!check((double)C(0,0), 0.5*2.0*K + 6.0, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C(0,0), 0.5*2.0*K + 6.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -119,7 +119,7 @@ int test_symm_left() {
     SymMatrixMatrixProduct(CblasLeft, (T)1.0, A, B, (T)0.0, C);
 
     // C = A*B where A is symmetric
-    if (!check((double)C(0,0), 2.0 * 5, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C(0,0), 2.0 * 5, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -140,7 +140,7 @@ int test_symm_right() {
 
     // C = B*A where both are 3x3, result is 3x3
     // C[0,0] = sum(B[0,k] * A[k,0]) = 2*1 + 2*1 + 2*1 = 6
-    if (!check((double)C(0,0), 2.0 * 3, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C(0,0), 2.0 * 3, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -158,7 +158,7 @@ int test_symm_with_beta() {
     SymMatrixMatrixProduct(CblasLeft, (T)1.0, A, B, (T)2.0, C);
 
     // C = A*B + 2*C_old = (2*5) + 2*(3) = 16
-    if (!check((double)C(0,0), 10.0 + 6.0, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C(0,0), 10.0 + 6.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -181,7 +181,7 @@ int test_c_gemm_pointer() {
 
     MatrixMatrixProduct("N", "N", m, n, k, (T)1.0, A, B, (T)0.0, C);
 
-    if (!check((double)C[0], 2.0 * k, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C[0], 2.0 * k, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -201,7 +201,7 @@ int test_c_gemm_negative_alpha() {
     MatrixMatrixProduct("N", "N", m, n, k, (T)(-1.0), A, B, (T)1.0, C);
 
     // Result = -1.0*(A*B) + 1.0*C_old = -(2*k) + 5 = 5 - 8 = -3
-    if (!check((double)C[0], 5.0 - 2.0*k, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C[0], 5.0 - 2.0*k, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -221,7 +221,7 @@ int test_c_gemm_with_scaling() {
     MatrixMatrixProduct("N", "N", m, n, k, (T)0.5, A, B, (T)2.0, C);
 
     // Result = 0.5*(A*B) + 2*C_old = 0.5*(2*k) + 2*3 = k + 6
-    if (!check((double)C[0], 0.5*2.0*k + 6.0, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C[0], 0.5*2.0*k + 6.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -241,7 +241,7 @@ int test_c_gemm_with_beta() {
     MatrixMatrixProduct("N", "N", m, n, k, (T)1.0, A, B, (T)3.0, C);
 
     // Result = A*B + 3*C_old = (2*k) + 3*5 = 2*4 + 15 = 23
-    if (!check((double)C[0], 2.0*k + 15.0, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C[0], 2.0*k + 15.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -265,7 +265,7 @@ int test_c_symm_left() {
     SymMatrixMatrixProduct(CblasLeft, m, n, (T)1.0, A, B, (T)0.0, C);
 
     // C = A*B where A is m x m
-    if (!check((double)C[0], 2.0 * m, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C[0], 2.0 * m, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -285,7 +285,7 @@ int test_c_symm_right() {
     SymMatrixMatrixProduct(CblasRight, m, n, (T)1.0, A, B, (T)0.0, C);
 
     // C = B*A where A is n x n
-    if (!check((double)C[0], 2.0 * n, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C[0], 2.0 * n, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -305,7 +305,7 @@ int test_c_symm_with_beta_left() {
     SymMatrixMatrixProduct(CblasLeft, m, n, (T)1.0, A, B, (T)2.0, C);
 
     // C = A*B + 2*C_old = (2*m) + 2*(4) = 10 + 8 = 18
-    if (!check((double)C[0], 2.0*m + 8.0, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C[0], 2.0*m + 8.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -325,7 +325,7 @@ int test_c_symm_with_beta_right() {
     SymMatrixMatrixProduct(CblasRight, m, n, (T)1.0, A, B, (T)2.0, C);
 
     // C = B*A + 2*C_old = (2*n) + 2*(4) = 6 + 8 = 14
-    if (!check((double)C[0], 2.0*n + 8.0, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)C[0], 2.0*n + 8.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }

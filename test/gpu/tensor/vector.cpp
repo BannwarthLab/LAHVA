@@ -11,7 +11,7 @@ int test_gpu_vector_default_constructor() {
 
     Vector<T> v;
 
-    if (!check((int)v.size(), 0, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((int)v.size(), 0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -21,7 +21,7 @@ int test_gpu_vector_size_constructor() {
 
     Vector<T> v(10);
 
-    if (!check((int)v.size(), 10, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((int)v.size(), 10, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     // Should allocate both host and device memory
     if (v.data() == nullptr) {  // Host data
@@ -36,11 +36,11 @@ int test_gpu_vector_size_value_constructor() {
 
     Vector<T> v(5, (T)3.5);
 
-    if (!check((int)v.size(), 5, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)v.size(), 5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     // Verify all elements are initialized on host
     for (int i = 0; i < 5; i++) {
-        if (!check(v.data()[i], (T)3.5, make_check_msg(__func__, get_type_name<T>(), "check 2"))) {
+        if (!check(v.data()[i], (T)3.5, check_msg(get_type_name<T>(), "check 2"))) {
             return TEST_FAIL;
         }
     }
@@ -54,11 +54,11 @@ int test_gpu_vector_copy_constructor() {
     Vector<T> v1({(T)1.0, (T)2.0, (T)3.0});
     Vector<T> v2 = v1;  // Copy constructor
 
-    if (!check((int)v2.size(), (int)v1.size(), make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)v2.size(), (int)v1.size(), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     // Verify data is copied
     T expected[] = {(T)1.0, (T)2.0, (T)3.0};
-    if (!check(v2.data(), expected, 3, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(v2.data(), expected, 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -70,10 +70,10 @@ int test_gpu_vector_move_constructor() {
 
     Vector<T> v2 = std::move(v1);  // Move constructor
 
-    if (!check((int)v2.size(), 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)v2.size(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     // Original should be empty after move
-    if (!check((int)v1.size(), 0, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((int)v1.size(), 0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -94,7 +94,7 @@ int test_gpu_vector_host_device_memory() {
 
     // Verify host data
     for (int i = 0; i < 10; i++) {
-        if (!check(v.data()[i], (T)2.5, make_check_msg(__func__, get_type_name<T>(), ""))) {
+        if (!check(v.data()[i], (T)2.5, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
             break;
         }
@@ -116,7 +116,7 @@ int test_gpu_vector_data_host_sync() {
     T* host_data = v.data();
     if (host_data == nullptr) return TEST_FAIL;
 
-    if (!check(host_data[0], (T)5.0, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check(host_data[0], (T)5.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -130,7 +130,7 @@ int test_gpu_vector_synchronization() {
     // (assuming sync() method exists)
     // This is a placeholder test
 
-    if (!check((int)v.size(), 5, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((int)v.size(), 5, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -144,7 +144,7 @@ int test_gpu_vector_size_attribute() {
 
     Vector<T> v(25);
 
-    if (!check((int)v.size(), 25, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((int)v.size(), 25, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -157,7 +157,7 @@ int test_gpu_vector_data_access() {
     T* data = v.data();
     if (data == nullptr) return TEST_FAIL;
 
-    if (!check(data[0], (T)5.0, make_check_msg(__func__, get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check(data[0], (T)5.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -166,10 +166,10 @@ int test_gpu_vector_type_float() {
 
     Vector<float> v(5, 3.14f);
 
-    if (!check((int)v.size(), 5, make_check_msg(__func__, get_type_name<float>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)v.size(), 5, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
 
     for (int i = 0; i < 5; i++) {
-        if (!check(v.data()[i], 3.14f, make_check_msg(__func__, get_type_name<float>(), "check 2"))) {
+        if (!check(v.data()[i], 3.14f, check_msg(get_type_name<float>(), "check 2"))) {
             return TEST_FAIL;
             break;
         }
@@ -182,12 +182,12 @@ int test_gpu_vector_type_int() {
 
     Vector<int> v({1, 2, 3, 4, 5});
 
-    if (!check((int)v.size(), 5, make_check_msg(__func__, get_type_name<int>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)v.size(), 5, check_msg(get_type_name<int>(), "check 1"))) return TEST_FAIL;
 
     int expected[] = {1, 2, 3, 4, 5};
     // Verify individual int values due to ambiguous check overload
     for (int i = 0; i < 5; i++) {
-        if (!check(v.data()[i], expected[i], make_check_msg(__func__, get_type_name<int>(), "check 2"))) {
+        if (!check(v.data()[i], expected[i], check_msg(get_type_name<int>(), "check 2"))) {
             return TEST_FAIL;
             break;
         }
@@ -208,10 +208,10 @@ int test_gpu_vector_copy_assignment() {
 
     v2 = v1;  // Copy assignment
 
-    if (!check((int)v2.size(), 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)v2.size(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     T expected[] = {(T)1.0, (T)2.0, (T)3.0};
-    if (!check(v2.data(), expected, 3, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(v2.data(), expected, 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -224,9 +224,9 @@ int test_gpu_vector_move_assignment() {
 
     v2 = std::move(v1);
 
-    if (!check((int)v2.size(), 3, make_check_msg(__func__, get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)v2.size(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)v1.size(), 0, make_check_msg(__func__, get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((int)v1.size(), 0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
