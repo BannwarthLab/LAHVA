@@ -1,6 +1,3 @@
-# New comprehensive test suite
-# Organized structure: cpu/, gpu/, common/
-
 subdir('common')
 subdir('cpu')
 if has_gpu == true

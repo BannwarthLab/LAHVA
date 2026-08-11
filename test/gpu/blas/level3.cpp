@@ -1,9 +1,9 @@
 #include "test_common.h"
-#include "utils.hpp"
-#include <random>
-#ifdef _CUDA
+#include "array_utils.hpp"
 
 using namespace lahva::gpu;
+using lahva::Shape;
+using lahva::CudaRuntime;
 
 // ============================================================================
 // GPU Level 3 BLAS - Matrix-Matrix Product Tests
@@ -11,9 +11,7 @@ using namespace lahva::gpu;
 
 template <typename T>
 int test_gemm_zero_v_gpu(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<T>();
+    CudaRuntime gpu_runtime;
 
     Shape sres(10, 5);
     Shape sa(10, 3);
@@ -30,18 +28,15 @@ int test_gemm_zero_v_gpu(){
 
     Matrix<T> Mres(sres, (T)0.0);
 
-    if (!check(C.data(), Mres.data(), thr, 50, "GEMM with zero matrix")) {
-        stat_ += 1;
-    }
+    if (!check(C.data(), Mres.data(), 50, check_msg(get_type_name<T>(), "")))
+        return TEST_FAIL;
 
-    return stat_;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gemm_identity_v_gpu(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<T>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(5, 5);
     Matrix<T> A(sq, (T)1.0);
@@ -58,20 +53,16 @@ int test_gemm_identity_v_gpu(){
     C.copy2host(gpu_runtime);
 
     for (int i = 0; i < 25; i++) {
-        if (!check(C.data()[i], (T)1.0, thr, "GEMM with identity matrix")) {
-            stat_ += 1;
-            break;
-        }
+        if (!check(C.data()[i], (T)1.0, check_msg(get_type_name<T>(), "")))
+            return TEST_FAIL;
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gemm_beta_nonzero(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<T>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(3, 3);
     Matrix<T> A(sq, (T)2.0);
@@ -85,13 +76,11 @@ int test_gemm_beta_nonzero(){
 
     for (int i = 0; i < 9; i++) {
         T expected = ((T)2.0 * (T)0.5 * (T)3) + ((T)0.5 * (T)10.0);
-        if (!check(C.data()[i], expected, thr, "GEMM with non-zero beta")) {
-            stat_ += 1;
-            break;
-        }
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), "")))
+            return TEST_FAIL;
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -100,9 +89,7 @@ int test_gemm_beta_nonzero(){
 
 template <typename T>
 int test_symm_left_side(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<T>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(4, 4);
     Shape sb(4, 5);
@@ -124,13 +111,11 @@ int test_symm_left_side(){
 
     for (int i = 0; i < 20; i++) {
         T expected = (T)1.0 * (T)4.0 * (T)2.0;
-        if (!check(C.data()[i], expected, thr, "SYMM left side")) {
-            stat_ += 1;
-            break;
-        }
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), "")))
+            return TEST_FAIL;
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -139,9 +124,7 @@ int test_symm_left_side(){
 
 template <typename T>
 int test_gemm_alt_param_order(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<T>();
+    CudaRuntime gpu_runtime;
 
     Shape sres(10, 5);
     Shape sa(10, 3);
@@ -159,18 +142,15 @@ int test_gemm_alt_param_order(){
 
     Matrix<T> Mres(sres, (T)0.0);
 
-    if (!check(C.data(), Mres.data(), thr, 50, "GEMM alternate parameter order")) {
-        stat_ += 1;
-    }
+    if (!check(C.data(), Mres.data(), 50, check_msg(get_type_name<T>(), "")))
+        return TEST_FAIL;
 
-    return stat_;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gemm_alt_with_alpha(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<T>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(4, 4);
     Matrix<T> A(sq, (T)1.0);
@@ -185,20 +165,18 @@ int test_gemm_alt_with_alpha(){
 
     for (int i = 0; i < 16; i++) {
         T expected = (T)2.5 * (T)4.0;
-        if (!check(C.data()[i], expected, thr, "GEMM alt param with alpha")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gemm_alt_with_beta(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<T>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(3, 3);
     Matrix<T> A(sq, (T)2.0);
@@ -213,13 +191,13 @@ int test_gemm_alt_with_beta(){
 
     for (int i = 0; i < 9; i++) {
         T expected = ((T)2.0 * (T)0.5 * (T)3) + ((T)0.5 * (T)10.0);
-        if (!check(C.data()[i], expected, thr, "GEMM alt param with beta")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -228,9 +206,7 @@ int test_gemm_alt_with_beta(){
 
 template <typename T>
 int test_symm_right_side(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<T>();
+    CudaRuntime gpu_runtime;
 
     // For SIDE_RIGHT with check_size_mm compatibility: use square matrices
     // A is symmetric (n x n), B is (n x n), C is (n x n)
@@ -251,13 +227,13 @@ int test_symm_right_side(){
 
     for (int i = 0; i < 25; i++) {
         T expected = (T)2.0 * (T)5.0 * (T)1.5;  // B * A: (5x5) * (5x5) = each element = 2.0 * 5 * 1.5
-        if (!check(C.data()[i], expected, thr, "SYMM right side")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -266,9 +242,7 @@ int test_symm_right_side(){
 
 template <typename T>
 int test_gemm_large_sizes(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<T>();
+    CudaRuntime gpu_runtime;
 
     Shape sres(32, 32);
     Shape sa(32, 16);
@@ -285,20 +259,18 @@ int test_gemm_large_sizes(){
 
     for (int i = 0; i < 1024; i++) {
         T expected = (T)0.75 * (T)16.0 * (T)1.5;
-        if (!check(C.data()[i], expected, thr, "GEMM large sizes")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gemm_alt_large(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<T>();
+    CudaRuntime gpu_runtime;
 
     Shape sres(32, 32);
     Shape sa(32, 16);
@@ -315,20 +287,18 @@ int test_gemm_alt_large(){
 
     for (int i = 0; i < 1024; i++) {
         T expected = (T)0.75 * (T)16.0 * (T)1.5;
-        if (!check(C.data()[i], expected, thr, "GEMM alt large")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gemm_alpha_scale(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<T>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(4, 4);
     Matrix<T> A(sq, (T)1.0);
@@ -342,13 +312,13 @@ int test_gemm_alpha_scale(){
 
     for (int i = 0; i < 16; i++) {
         T expected = (T)2.5 * (T)4.0;
-        if (!check(C.data()[i], expected, thr, "GEMM with alpha scaling")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -357,9 +327,7 @@ int test_gemm_alpha_scale(){
 
 template <typename T>
 int test_symm_alt_order(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<T>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(4, 4);
     Shape sb(4, 5);
@@ -380,20 +348,18 @@ int test_symm_alt_order(){
 
     for (int i = 0; i < 20; i++) {
         T expected = (T)1.0 * (T)4.0 * (T)2.0;
-        if (!check(C.data()[i], expected, thr, "SYMM alt order")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_symm_alt_order_right(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<T>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(5, 5);
     Matrix<T> A(sq, (T)1.5);
@@ -411,13 +377,13 @@ int test_symm_alt_order_right(){
 
     for (int i = 0; i < 25; i++) {
         T expected = (T)2.0 * (T)5.0 * (T)1.5;
-        if (!check(C.data()[i], expected, thr, "SYMM alt order right")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -425,9 +391,7 @@ int test_symm_alt_order_right(){
 // ============================================================================
 
 int test_dgemm_tf32_zero(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<float>();
+    CudaRuntime gpu_runtime;
 
     Shape sres(10, 5);
     Shape sa(10, 3);
@@ -444,17 +408,15 @@ int test_dgemm_tf32_zero(){
 
     Matrix<float> Mres(sres, 0.0f);
 
-    if (!check(C.data(), Mres.data(), thr, 50, "TF32 with zero matrix")) {
-        stat_ += 1;
+    if (!check(C.data(), Mres.data(), 50, check_msg(get_type_name<float>(), ""))) {
+        return TEST_FAIL;
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 int test_dgemm_tf32_identity(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<float>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(5, 5);
     Matrix<float> A(sq, 1.0f);
@@ -471,19 +433,17 @@ int test_dgemm_tf32_identity(){
     C.copy2host(gpu_runtime);
 
     for (int i = 0; i < 25; i++) {
-        if (!check(C.data()[i], 1.0f, thr, "TF32 with identity matrix")) {
-            stat_ += 1;
+        if (!check(C.data()[i], 1.0f, check_msg(get_type_name<float>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 int test_dgemm_tf32_alt_param(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<float>();
+    CudaRuntime gpu_runtime;
 
     Shape sres(10, 5);
     Shape sa(10, 3);
@@ -501,17 +461,15 @@ int test_dgemm_tf32_alt_param(){
 
     Matrix<float> Mres(sres, 0.0f);
 
-    if (!check(C.data(), Mres.data(), thr, 50, "TF32 alt param order")) {
-        stat_ += 1;
+    if (!check(C.data(), Mres.data(), 50, check_msg(get_type_name<float>(), ""))) {
+        return TEST_FAIL;
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 int test_dgemm_tf32_with_alpha(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<float>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(4, 4);
     Matrix<float> A(sq, 1.0f);
@@ -525,19 +483,17 @@ int test_dgemm_tf32_with_alpha(){
 
     for (int i = 0; i < 16; i++) {
         float expected = 2.5f * 4.0f;
-        if (!check(C.data()[i], expected, thr, "TF32 with alpha scaling")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 int test_tf32_alt_with_beta(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<float>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(3, 3);
     Matrix<float> A(sq, 2.0f);
@@ -551,19 +507,17 @@ int test_tf32_alt_with_beta(){
 
     for (int i = 0; i < 9; i++) {
         float expected = (2.0f * 0.5f * 3) + (0.5f * 10.0f);
-        if (!check(C.data()[i], expected, thr, "TF32 with beta")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 int test_tf32_large_matrices(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_strict_tolerance<float>();
+    CudaRuntime gpu_runtime;
 
     Shape sres(32, 32);
     Shape sa(32, 16);
@@ -580,13 +534,13 @@ int test_tf32_large_matrices(){
 
     for (int i = 0; i < 1024; i++) {
         float expected = 0.75f * 16.0f * 1.5f;
-        if (!check(C.data()[i], expected, thr, "TF32 large matrices")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -595,8 +549,7 @@ int test_tf32_large_matrices(){
 
 template <typename T>
 int test_complex_gemm_basic(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
+    CudaRuntime gpu_runtime;
 
     Shape sq(2, 2);
     Matrix<T> A(sq, T(1.0, 0.0));
@@ -614,20 +567,19 @@ int test_complex_gemm_basic(){
 
     for (int i = 0; i < 4; i++) {
         T expected(2.0, 0.0);
-        if (!check(C.data()[i].real(), expected.real(), get_tolerance<typename T::value_type>(), "GEMM real part") ||
-            !check(C.data()[i].imag(), expected.imag(), get_tolerance<typename T::value_type>(), "GEMM imag part")) {
-            stat_ += 1;
+        if (!check(C.data()[i].real(), expected.real(), check_msg(get_type_name<T>(), "check 1")) ||
+            !check(C.data()[i].imag(), expected.imag(), check_msg(get_type_name<T>(), "check 2"))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_complex_gemm_alt_order(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
+    CudaRuntime gpu_runtime;
 
     Shape sq(2, 2);
     Matrix<T> A(sq, T(1.0, 0.0));
@@ -645,20 +597,19 @@ int test_complex_gemm_alt_order(){
 
     for (int i = 0; i < 4; i++) {
         T expected(2.0, 0.0);
-        if (!check(C.data()[i].real(), expected.real(), get_tolerance<typename T::value_type>(), "GEMM alt order real") ||
-            !check(C.data()[i].imag(), expected.imag(), get_tolerance<typename T::value_type>(), "GEMM alt order imag")) {
-            stat_ += 1;
+        if (!check(C.data()[i].real(), expected.real(), check_msg(get_type_name<T>(), "check 1")) ||
+            !check(C.data()[i].imag(), expected.imag(), check_msg(get_type_name<T>(), "check 2"))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_complex_gemm_with_beta(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
+    CudaRuntime gpu_runtime;
 
     Shape sq(2, 2);
     Matrix<T> A(sq, T(1.0, 0.0));
@@ -676,14 +627,14 @@ int test_complex_gemm_with_beta(){
 
     for (int i = 0; i < 4; i++) {
         T expected(2.0 + 0.5 * 2.0, 0.0);
-        if (!check(C.data()[i].real(), expected.real(), get_tolerance<typename T::value_type>(), "GEMM with beta real") ||
-            !check(C.data()[i].imag(), expected.imag(), get_tolerance<typename T::value_type>(), "GEMM with beta imag")) {
-            stat_ += 1;
+        if (!check(C.data()[i].real(), expected.real(), check_msg(get_type_name<T>(), "check 1")) ||
+            !check(C.data()[i].imag(), expected.imag(), check_msg(get_type_name<T>(), "check 2"))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -691,9 +642,7 @@ int test_complex_gemm_with_beta(){
 // ============================================================================
 
 int test_fp16_basic(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_tolerance<float>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(2, 2);
     Matrix<__half> A(sq, __half(1.0f));
@@ -711,19 +660,17 @@ int test_fp16_basic(){
 
     for (int i = 0; i < 4; i++) {
         float expected = 2.0f;
-        if (!check(C.data()[i], expected, thr, "FP16 basic")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 int test_fp16_alt_order(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_tolerance<float>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(2, 2);
     Matrix<__half> A(sq, __half(1.0f));
@@ -741,19 +688,17 @@ int test_fp16_alt_order(){
 
     for (int i = 0; i < 4; i++) {
         float expected = 2.0f;
-        if (!check(C.data()[i], expected, thr, "FP16 alt order")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 int test_fp16_with_alpha(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_tolerance<float>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(3, 3);
     Matrix<__half> A(sq, __half(1.0f));
@@ -771,19 +716,17 @@ int test_fp16_with_alpha(){
 
     for (int i = 0; i < 9; i++) {
         float expected = 2.5f * 3.0f;
-        if (!check(C.data()[i], expected, thr, "FP16 with alpha")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 int test_fp16_with_beta(){
-    int stat_ = 0;
-    lahva::CudaRuntime gpu_runtime;
-    double thr = get_tolerance<float>();
+    CudaRuntime gpu_runtime;
 
     Shape sq(2, 2);
     Matrix<__half> A(sq, __half(1.0f));
@@ -801,13 +744,13 @@ int test_fp16_with_beta(){
 
     for (int i = 0; i < 4; i++) {
         float expected = 2.0f + 0.5f * 5.0f;
-        if (!check(C.data()[i], expected, thr, "FP16 with beta")) {
-            stat_ += 1;
+        if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return stat_;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -888,8 +831,8 @@ int test_mp_matrix_copy_to_device() {
     m.copy2host(cudart);
     cudart.synchronize();
 
-    double thr = get_strict_tolerance<T>();
-    if (!check(m.data()[0], (T)2.5, thr, "MP matrix device copy")) {
+
+    if (!check(m.data()[0], (T)2.5, check_msg(get_type_name<T>(), ""))) {
         failures += 1;
     }
 
@@ -1073,95 +1016,92 @@ int test_mp_matrix_transpose_consistency() {
     return failures;
 }
 
+// ============================================================================
+// Main
+// ============================================================================
+
 int main(){
-    int stat = 0;
+    int total_failures = 0;
 
     // General matrix-matrix product tests
-    stat += test_gemm_zero_v_gpu<double>();
-    stat += test_gemm_zero_v_gpu<float>();
-    stat += test_gemm_identity_v_gpu<double>();
-    stat += test_gemm_identity_v_gpu<float>();
-    stat += test_gemm_beta_nonzero<double>();
-    stat += test_gemm_beta_nonzero<float>();
-    stat += test_gemm_alpha_scale<double>();
-    stat += test_gemm_alpha_scale<float>();
+    total_failures += test_gemm_zero_v_gpu<double>();
+    total_failures += test_gemm_zero_v_gpu<float>();
+    total_failures += test_gemm_identity_v_gpu<double>();
+    total_failures += test_gemm_identity_v_gpu<float>();
+    total_failures += test_gemm_beta_nonzero<double>();
+    total_failures += test_gemm_beta_nonzero<float>();
+    total_failures += test_gemm_alpha_scale<double>();
+    total_failures += test_gemm_alpha_scale<float>();
 
     // Symmetric matrix product tests - LEFT side
-    stat += test_symm_left_side<double>();
-    stat += test_symm_left_side<float>();
+    total_failures += test_symm_left_side<double>();
+    total_failures += test_symm_left_side<float>();
 
     // Symmetric matrix product tests - RIGHT side
-    stat += test_symm_right_side<double>();
-    stat += test_symm_right_side<float>();
+    total_failures += test_symm_right_side<double>();
+    total_failures += test_symm_right_side<float>();
 
     // Alternative parameter order tests for general matrix product
-    stat += test_gemm_alt_param_order<double>();
-    stat += test_gemm_alt_param_order<float>();
-    stat += test_gemm_alt_with_alpha<double>();
-    stat += test_gemm_alt_with_alpha<float>();
-    stat += test_gemm_alt_with_beta<double>();
-    stat += test_gemm_alt_with_beta<float>();
+    total_failures += test_gemm_alt_param_order<double>();
+    total_failures += test_gemm_alt_param_order<float>();
+    total_failures += test_gemm_alt_with_alpha<double>();
+    total_failures += test_gemm_alt_with_alpha<float>();
+    total_failures += test_gemm_alt_with_beta<double>();
+    total_failures += test_gemm_alt_with_beta<float>();
 
     // Symmetric matrix product tests - alternative parameter order
-    stat += test_symm_alt_order<double>();
-    stat += test_symm_alt_order<float>();
-    stat += test_symm_alt_order_right<double>();
-    stat += test_symm_alt_order_right<float>();
+    total_failures += test_symm_alt_order<double>();
+    total_failures += test_symm_alt_order<float>();
+    total_failures += test_symm_alt_order_right<double>();
+    total_failures += test_symm_alt_order_right<float>();
 
     // TF32 precision tests (single precision only)
-    stat += test_dgemm_tf32_zero();
-    stat += test_dgemm_tf32_identity();
-    stat += test_dgemm_tf32_alt_param();
-    stat += test_dgemm_tf32_with_alpha();
-    stat += test_tf32_alt_with_beta();
-    stat += test_tf32_large_matrices();
+    total_failures += test_dgemm_tf32_zero();
+    total_failures += test_dgemm_tf32_identity();
+    total_failures += test_dgemm_tf32_alt_param();
+    total_failures += test_dgemm_tf32_with_alpha();
+    total_failures += test_tf32_alt_with_beta();
+    total_failures += test_tf32_large_matrices();
 
     // Extended coverage tests - larger matrices
-    stat += test_gemm_large_sizes<double>();
-    stat += test_gemm_large_sizes<float>();
-    stat += test_gemm_alt_large<double>();
-    stat += test_gemm_alt_large<float>();
+    total_failures += test_gemm_large_sizes<double>();
+    total_failures += test_gemm_large_sizes<float>();
+    total_failures += test_gemm_alt_large<double>();
+    total_failures += test_gemm_alt_large<float>();
 
     // Complex number tests
-    stat += test_complex_gemm_basic<complex_double>();
-    stat += test_complex_gemm_alt_order<complex_double>();
-    stat += test_complex_gemm_basic<complex_float>();
-    stat += test_complex_gemm_alt_order<complex_float>();
-    stat += test_complex_gemm_with_beta<complex_double>();
-    stat += test_complex_gemm_with_beta<complex_float>();
+    total_failures += test_complex_gemm_basic<complex_double>();
+    total_failures += test_complex_gemm_alt_order<complex_double>();
+    total_failures += test_complex_gemm_basic<complex_float>();
+    total_failures += test_complex_gemm_alt_order<complex_float>();
+    total_failures += test_complex_gemm_with_beta<complex_double>();
+    total_failures += test_complex_gemm_with_beta<complex_float>();
 
     // FP16 mixed precision tests
-    stat += test_fp16_basic();
-    stat += test_fp16_alt_order();
-    stat += test_fp16_with_alpha();
-    stat += test_fp16_with_beta();
+    total_failures += test_fp16_basic();
+    total_failures += test_fp16_alt_order();
+    total_failures += test_fp16_with_alpha();
+    total_failures += test_fp16_with_beta();
 
     // MixedPrecisionMatrix operational tests (GEMM-based)
-    stat += test_mp_matrix_gemm_basic<double>();
-    stat += test_mp_matrix_gemm_basic<float>();
-    stat += test_mp_matrix_copy_to_device<double>();
-    stat += test_mp_matrix_copy_to_device<float>();
-    stat += test_mp_matrix_scaling_operation<double>();
-    stat += test_mp_matrix_scaling_operation<float>();
-    stat += test_mp_matrix_accumulation<double>();
-    stat += test_mp_matrix_accumulation<float>();
-    stat += test_mp_matrix_identity_multiplication<double>();
-    stat += test_mp_matrix_identity_multiplication<float>();
-    stat += test_mp_matrix_transpose_consistency<double>();
-    stat += test_mp_matrix_transpose_consistency<float>();
+    total_failures += test_mp_matrix_gemm_basic<double>();
+    total_failures += test_mp_matrix_gemm_basic<float>();
+    total_failures += test_mp_matrix_copy_to_device<double>();
+    total_failures += test_mp_matrix_copy_to_device<float>();
+    total_failures += test_mp_matrix_scaling_operation<double>();
+    total_failures += test_mp_matrix_scaling_operation<float>();
+    total_failures += test_mp_matrix_accumulation<double>();
+    total_failures += test_mp_matrix_accumulation<float>();
+    total_failures += test_mp_matrix_identity_multiplication<double>();
+    total_failures += test_mp_matrix_identity_multiplication<float>();
+    total_failures += test_mp_matrix_transpose_consistency<double>();
+    total_failures += test_mp_matrix_transpose_consistency<float>();
 
-    if (stat == 0) {
-        std::cout << "All GPU Level-3 tests passed!" << std::endl;
-    } else {
-        std::cout << "GPU Level-3 tests: " << stat << " failures" << std::endl;
+    if (total_failures > 0) {
+        std::cerr << "gpu/blas/level3 tests: " << total_failures << " failures" << std::endl;
+        return TEST_FAIL;
     }
 
-    return stat;
+    std::cout << "All gpu/blas/level3 tests passed!" << std::endl;
+    return TEST_PASS;
 }
-
-#else
-int main() {
-    std::cerr << "CUDA support not enabled" << std::endl;
-    return 1;
-}
-#endif

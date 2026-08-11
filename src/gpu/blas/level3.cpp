@@ -575,5 +575,11 @@ namespace lahva
             get_cublas_error(istat);
         };
 
-    } // namespace gpu
+        void MatrixMatrixProductFP16(const CudaRuntime &cudart, const Matrix_<__half> &a, const Matrix_<__half> &b, Matrix_<float> &c,
+                                     const float alpha, const float beta, const char *Ta, const char *Tb)
+        {
+            MatrixMatrixProductFP16(cudart, Ta, Tb, alpha, a, b, beta, c);
+        };
+
+    }
 } // namespace lahva

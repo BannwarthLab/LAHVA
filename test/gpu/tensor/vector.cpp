@@ -1,5 +1,4 @@
 #include "test_common.h"
-#ifdef _CUDA
 
 using namespace lahva::gpu;
 
@@ -9,96 +8,74 @@ using namespace lahva::gpu;
 
 template <typename T>
 int test_gpu_vector_default_constructor() {
-    int failures = 0;
 
     Vector<T> v;
 
-    if (!check((int)v.size(), 0, "GPU default constructor should create empty vector")) {
-        failures += 1;
-    }
+    if (!check((int)v.size(), 0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gpu_vector_size_constructor() {
-    int failures = 0;
 
     Vector<T> v(10);
 
-    if (!check((int)v.size(), 10, "GPU size constructor should set correct size")) {
-        failures += 1;
-    }
+    if (!check((int)v.size(), 10, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     // Should allocate both host and device memory
     if (v.data() == nullptr) {  // Host data
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gpu_vector_size_value_constructor() {
-    int failures = 0;
 
     Vector<T> v(5, (T)3.5);
 
-    if (!check((int)v.size(), 5, "GPU size+value constructor should set correct size")) {
-        failures += 1;
-    }
+    if (!check((int)v.size(), 5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     // Verify all elements are initialized on host
-    double tol = get_tolerance<T>();
     for (int i = 0; i < 5; i++) {
-        if (!check(v.data()[i], (T)3.5, tol, "GPU elements should be initialized")) {
-            failures += 1;
-            break;
+        if (!check(v.data()[i], (T)3.5, check_msg(get_type_name<T>(), "check 2"))) {
+            return TEST_FAIL;
         }
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gpu_vector_copy_constructor() {
-    int failures = 0;
 
     Vector<T> v1({(T)1.0, (T)2.0, (T)3.0});
     Vector<T> v2 = v1;  // Copy constructor
 
-    if (!check((int)v2.size(), (int)v1.size(), "GPU copy constructor should copy size")) {
-        failures += 1;
-    }
+    if (!check((int)v2.size(), (int)v1.size(), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     // Verify data is copied
     T expected[] = {(T)1.0, (T)2.0, (T)3.0};
-    double tol = get_tolerance<T>();
-    if (!check(v2.data(), expected, tol, 3, "GPU copy constructor should copy data")) {
-        failures += 1;
-    }
+    if (!check(v2.data(), expected, 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gpu_vector_move_constructor() {
-    int failures = 0;
 
     Vector<T> v1({(T)1.0, (T)2.0, (T)3.0});
 
     Vector<T> v2 = std::move(v1);  // Move constructor
 
-    if (!check((int)v2.size(), 3, "GPU move constructor should transfer size")) {
-        failures += 1;
-    }
+    if (!check((int)v2.size(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     // Original should be empty after move
-    if (!check((int)v1.size(), 0, "Original should be empty after move")) {
-        failures += 1;
-    }
+    if (!check((int)v1.size(), 0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
-    return failures;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -107,30 +84,27 @@ int test_gpu_vector_move_constructor() {
 
 template <typename T>
 int test_gpu_vector_host_device_memory() {
-    int failures = 0;
 
     Vector<T> v(10, (T)2.5);
 
     // Should have both host and device memory
     if (v.data() == nullptr) {  // Host pointer
-        failures += 1;
+        return TEST_FAIL;
     }
 
     // Verify host data
-    double tol = get_tolerance<T>();
     for (int i = 0; i < 10; i++) {
-        if (!check(v.data()[i], (T)2.5, tol, "Host memory should be initialized")) {
-            failures += 1;
+        if (!check(v.data()[i], (T)2.5, check_msg(get_type_name<T>(), ""))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gpu_vector_data_host_sync() {
-    int failures = 0;
 
     lahva::CudaRuntime runtime;
     Vector<T> v(5, (T)1.0);
@@ -140,21 +114,15 @@ int test_gpu_vector_data_host_sync() {
 
     // Access host data pointer
     T* host_data = v.data();
-    if (host_data == nullptr) {
-        failures += 1;
-    }
+    if (host_data == nullptr) return TEST_FAIL;
 
-    double tol = get_tolerance<T>();
-    if (!check(host_data[0], (T)5.0, tol, "data_host() should return current host data")) {
-        failures += 1;
-    }
+    if (!check(host_data[0], (T)5.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gpu_vector_synchronization() {
-    int failures = 0;
 
     Vector<T> v(5, (T)3.0);
 
@@ -162,11 +130,9 @@ int test_gpu_vector_synchronization() {
     // (assuming sync() method exists)
     // This is a placeholder test
 
-    if (!check((int)v.size(), 5, "GPU vector should maintain size after operations")) {
-        failures += 1;
-    }
+    if (!check((int)v.size(), 5, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
-    return failures;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -175,74 +141,59 @@ int test_gpu_vector_synchronization() {
 
 template <typename T>
 int test_gpu_vector_size_attribute() {
-    int failures = 0;
 
     Vector<T> v(25);
 
-    if (!check((int)v.size(), 25, "GPU vector size should return correct value")) {
-        failures += 1;
-    }
+    if (!check((int)v.size(), 25, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gpu_vector_data_access() {
-    int failures = 0;
 
     Vector<T> v({(T)5.0, (T)10.0, (T)15.0});
 
     T* data = v.data();
-    if (data == nullptr) {
-        failures += 1;
-    }
+    if (data == nullptr) return TEST_FAIL;
 
-    double tol = get_tolerance<T>();
-    if (!check(data[0], (T)5.0, tol, "GPU vector data access should work")) {
-        failures += 1;
-    }
+    if (!check(data[0], (T)5.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
-    return failures;
+    return TEST_PASS;
 }
 
 int test_gpu_vector_type_float() {
-    int failures = 0;
 
     Vector<float> v(5, 3.14f);
 
-    if (!check((int)v.size(), 5, "GPU float vector should have correct size")) {
-        failures += 1;
-    }
+    if (!check((int)v.size(), 5, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
 
     for (int i = 0; i < 5; i++) {
-        if (!check(v.data()[i], 3.14f, 1e-6f, "GPU float vector should store float values")) {
-            failures += 1;
+        if (!check(v.data()[i], 3.14f, check_msg(get_type_name<float>(), "check 2"))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 int test_gpu_vector_type_int() {
-    int failures = 0;
 
     Vector<int> v({1, 2, 3, 4, 5});
 
-    if (!check((int)v.size(), 5, "GPU int vector should have correct size")) {
-        failures += 1;
-    }
+    if (!check((int)v.size(), 5, check_msg(get_type_name<int>(), "check 1"))) return TEST_FAIL;
 
     int expected[] = {1, 2, 3, 4, 5};
     // Verify individual int values due to ambiguous check overload
     for (int i = 0; i < 5; i++) {
-        if (!check(v.data()[i], expected[i], "GPU int vector should store int values")) {
-            failures += 1;
+        if (!check(v.data()[i], expected[i], check_msg(get_type_name<int>(), "check 2"))) {
+            return TEST_FAIL;
             break;
         }
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -251,44 +202,33 @@ int test_gpu_vector_type_int() {
 
 template <typename T>
 int test_gpu_vector_copy_assignment() {
-    int failures = 0;
 
     Vector<T> v1({(T)1.0, (T)2.0, (T)3.0});
     Vector<T> v2;
 
     v2 = v1;  // Copy assignment
 
-    if (!check((int)v2.size(), 3, "GPU copy assignment should copy size")) {
-        failures += 1;
-    }
+    if (!check((int)v2.size(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     T expected[] = {(T)1.0, (T)2.0, (T)3.0};
-    double tol = get_tolerance<T>();
-    if (!check(v2.data(), expected, tol, 3, "GPU copy assignment should copy data")) {
-        failures += 1;
-    }
+    if (!check(v2.data(), expected, 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
 int test_gpu_vector_move_assignment() {
-    int failures = 0;
 
     Vector<T> v1({(T)1.0, (T)2.0, (T)3.0});
     Vector<T> v2;
 
     v2 = std::move(v1);
 
-    if (!check((int)v2.size(), 3, "GPU move assignment should transfer size")) {
-        failures += 1;
-    }
+    if (!check((int)v2.size(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)v1.size(), 0, "GPU original should be empty after move assignment")) {
-        failures += 1;
-    }
+    if (!check((int)v1.size(), 0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
-    return failures;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -297,21 +237,19 @@ int test_gpu_vector_move_assignment() {
 
 template <typename T>
 int test_gpu_vector_destructor() {
-    int failures = 0;
 
     {
         Vector<T> v(100);
         if (v.data() == nullptr) {
-            failures += 1;
+            return TEST_FAIL;
         }
     }
-    // Destructor should deallocate both host and device memory
 
-    return failures;
+    return TEST_PASS;
 }
 
 // ============================================================================
-// Main Test Runner
+// Main
 // ============================================================================
 
 int main() {
@@ -357,18 +295,11 @@ int main() {
     total_failures += test_gpu_vector_destructor<double>();
     total_failures += test_gpu_vector_destructor<float>();
 
-    if (total_failures == 0) {
-        std::cout << "All GPU Vector type tests passed!" << std::endl;
-    } else {
-        std::cout << "GPU Vector type tests: " << total_failures << " failures" << std::endl;
+    if (total_failures > 0) {
+        std::cerr << "gpu/tensor/vector tests: " << total_failures << " failures" << std::endl;
+        return TEST_FAIL;
     }
 
-    return total_failures;
+    std::cout << "All gpu/tensor/vector tests passed!" << std::endl;
+    return TEST_PASS;
 }
-
-#else
-int main() {
-    std::cerr << "CUDA support not enabled" << std::endl;
-    return 1;
-}
-#endif

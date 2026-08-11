@@ -146,7 +146,7 @@ documentation-build:
 documentation-deploy:
   stage: documentation-deploy
   script:
-  - mv doxygen/documentation/html/ public/
+  - mv doxygen/html/ public/
   artifacts:
     paths:
     - public

@@ -5,7 +5,7 @@
 /// factorization, Cholesky decomposition, eigenvalue solvers, and matrix inversions.
 /// Functions accept Matrix<T> and Vector<T> types and forward to Fortran LAPACK routines.
 
-#include <stdexcept>
+#include "linalg.hpp"
 #include "impl/blas/cpu/lapack.hpp"
 #include "lapack_wrap.hpp"
 #include "linalg.hpp"

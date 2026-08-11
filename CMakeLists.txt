@@ -68,7 +68,6 @@ if(GPU)
     if (TARGET CUDA::nvJitLink)
       list(APPEND CUDA_LINK_LIBS CUDA::nvJitLink)
     else()
-      # Fallback: try to find nvJITLink-like libraries in the toolkit lib dir
       message(STATUS ${CUDAToolkit_LIBRARY_DIR})
       find_library(NVJITLINK_LIB NAMES nvJITLink nvjitlink nvJitLink HINTS ${CUDAToolkit_LIBRARY_DIR} PATH_SUFFIXES lib lib64)
       if (NVJITLINK_LIB)
