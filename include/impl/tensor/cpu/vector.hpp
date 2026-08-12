@@ -23,6 +23,7 @@ namespace lahva
             Vector() { this->no_alloc = true; };
             Vector(size_type count, const alloc_ptr &alloc = Allocator());
             Vector(const Vector &x);
+            Vector(Vector &&x) noexcept;
             Vector(size_type count, const T &value, const alloc_ptr &alloc = Allocator());
 
             Vector(size_type count, T *ptr, bool take_onwership = true, const alloc_ptr &alloc = Allocator());
@@ -75,9 +76,15 @@ namespace lahva
         };
 
         template <typename T, class Allocator>
-        Vector<T, Allocator>::Vector(const Vector &x) : CPUTensor<T, Allocator>{x} 
+        Vector<T, Allocator>::Vector(const Vector &x) : CPUTensor<T, Allocator>{x}
         {
         };
+
+        template <typename T, class Allocator>
+        Vector<T, Allocator>::Vector(Vector &&x) noexcept : CPUTensor<T, Allocator>{std::move(x)}
+        {
+        };
+
         template <class T, class Allocator>
         Vector<T, Allocator>::Vector(std::initializer_list<T> init, const alloc_ptr &alloc)
             : Vector_<T>(), CPUTensor<T, Allocator>(init.size(), alloc)

@@ -82,7 +82,7 @@ namespace lahva
         //! @param n number of columns/rows of the matrix
         LowTriMatrix(size_t n, T *data, bool take_ownership = true,const alloc_ptr &cpualloc = Allocator());
         LowTriMatrix(const LowTriMatrix &);
-        LowTriMatrix(LowTriMatrix &&);
+        LowTriMatrix(LowTriMatrix &&) noexcept;
         LowTriMatrix &operator=(const LowTriMatrix &);
         LowTriMatrix &operator=(LowTriMatrix &&);
         virtual ~LowTriMatrix();
@@ -210,10 +210,10 @@ namespace lahva
 
     // move operations
     template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(LowTriMatrix<T, Allocator> &&other) : 
-    n_{other.n_}, CPUTensor<T, Allocator>{other}
+    LowTriMatrix<T, Allocator>::LowTriMatrix(LowTriMatrix<T, Allocator> &&other) noexcept :
+    CPUTensor<T, Allocator>{std::move(other)}, n_{other.n_}
     {
-  
+
     }
 
     template <typename T, class Allocator>

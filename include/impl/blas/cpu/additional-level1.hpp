@@ -32,6 +32,12 @@ namespace lahva
         /// @return The trace of the matrix
         double ComputeTrace(const CPURuntime &cpurt, const Vector_<double> &diag);
 
+        /// @brief Compute the trace of a matrix
+        /// @param cpurt CPU Runtime instance
+        /// @param diag Vector containing the diagonal of the matrix
+        /// @return The trace of the matrix
+        float ComputeTrace(const CPURuntime &cpurt, const Vector_<float> &diag);
+
         /// @brief Compute the Frobenius norm of a matrix
         /// @tparam T Numerical type of the matrix
         /// @param mat Matrix to compute the Frobenius norm of
