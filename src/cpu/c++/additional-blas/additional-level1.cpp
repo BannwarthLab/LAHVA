@@ -43,6 +43,16 @@ namespace lahva
             return trace;
         };
 
+        float ComputeTrace(const CPURuntime &cudart, const Vector_<float> &diag)
+        {
+            float trace = 0;
+
+#pragma omp parallel for shared(diag) reduction(+ : trace)
+            for (int i = 0; i < diag.size(); i++)
+                trace += (float)diag[i];
+            return trace;
+        };
+
         template <typename T>
         T FrobeniusNorm(const Tensor<T> &mat)
         {

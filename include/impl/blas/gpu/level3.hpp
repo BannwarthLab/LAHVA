@@ -36,8 +36,10 @@ namespace lahva{
     void MatrixMatrixProductTF32(const CudaRuntime& cudart, const Matrix_<float>& a, const Matrix_<float>& b, Matrix_<float>& c,
                              const float alpha = 1.0 , const float beta = 0.0, const char* Ta = "N", const char* Tb = "N");
 
+    void MatrixMatrixProductFP16(const CudaRuntime& cudart, const char* Ta, const char* Tb, const float alpha, const Matrix_<__half>& a, const Matrix_<__half>& b,
+                             const float beta, Matrix_<float>& c);
     void MatrixMatrixProductFP16(const CudaRuntime& cudart, const Matrix_<__half>& a, const Matrix_<__half>& b, Matrix_<float>& c,
-                             const float alpha = 1.0 , const float beta = 0.0, const char* Ta = "N", const char* Tb = "N");                         
+                             const float alpha = 1.0 , const float beta = 0.0, const char* Ta = "N", const char* Tb = "N");
     }
 }
 #endif

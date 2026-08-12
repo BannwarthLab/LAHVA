@@ -1,38 +1,12 @@
-#include "common.h"
-#include "utils.hpp"
-#include <random>
-#include <limits>
+#include "test_common.h"
+#include "array_utils.hpp"
 
 using namespace lahva::gpu;
+using lahva::Shape;
+using lahva::CudaRuntime;
 
 template<typename T>
-using MyMatrix = Matrix<T, CudaHostAllocator<T>, CudaDeviceAsyncAllocator<T>>;
-
-template <typename T>
-void fill_with_rd_values(Matrix_<T>& m)
-{
-    std::random_device rd;  // Obtain a random number from hardware
-    std::minstd_rand eng(rd());
-
-    std::normal_distribution<> distr(0.0, 1.0e+3);    
-    for (size_t i = 0; i < m.shape().first; i++)
-    {
-        for (size_t j = 0; j < m.shape().second; j++)
-        {
-            m(i, j) = distr(eng);
-        }
-    }
-}
-
-template <class T>
-bool IsEqual(T rhs, T lhs)
-{
-    T diff = std::abs(lhs - rhs);
-
-    T epsilon = std::numeric_limits<T>::epsilon( ) * std::max(std::abs(rhs), std::abs(lhs));
-    std::cout << "Epsilon: " << epsilon << std::endl;
-    return diff <= epsilon ;
-}
+using MyMatrix = Matrix<T, lahva::CudaHostAllocator<T>, lahva::CudaDeviceAsyncAllocator<T>>;
 
 template <typename T>
 int test_Frobenius_norm(const CudaRuntime& cudart)
@@ -44,17 +18,13 @@ int test_Frobenius_norm(const CudaRuntime& cudart)
 
     T res_cpu = 0.0;
     res_cpu = FrobeniusNorm(A);
-    
-    T eps = std::abs( std::nextafter(res_gpu, +INFINITY) -res_gpu);
-    std::cout <<eps * 10<< std::endl;
 
-    if (!check(res_gpu, res_cpu, eps*100, "FrobeniusNorm"))
+    if (!check(res_gpu, res_cpu, check_msg(get_type_name<T>(), "")))
     {
         std::cout << "Test failed: FrobeniusNorm" << std::endl;
         std::cout << "Frobenius norm on the GPU: " << res_gpu << std::endl;
         std::cout << "Frobenius norm on the CPU: " << res_cpu << std::endl;
         std::cout << "Diff: " << std::abs(res_gpu - res_cpu) << std::endl;
-        std::cout << "Threshold: " << eps*100 << std::endl;
         return 1;
     }
     
@@ -75,15 +45,13 @@ int test_Frobenius_norm2(const CudaRuntime& cudart)
 
     T res_cpu = 0.0;
     res_cpu = FrobeniusNorm(A, B);
-    T eps = std::abs( std::nextafter(res_cpu, +INFINITY) -res_cpu);
-    
-    if (!check(res_gpu, res_cpu, eps*100, "FrobeniusNorm2"))
+
+    if (!check(res_gpu, res_cpu, check_msg(get_type_name<T>(), "")))
     {
         std::cout << "Test failed: FrobeniusNorm2" << std::endl;
         std::cout << "Frobenius norm2 on the GPU: " << res_gpu << std::endl;
         std::cout << "Frobenius norm2 on the CPU: " << res_cpu << std::endl;
         std::cout << "Diff: " << std::abs(res_gpu - res_cpu) << std::endl;
-        std::cout << "Threshold: " << eps*100 << std::endl;
         return 1;
     }
     
@@ -105,11 +73,8 @@ int test_Frobenius_norm2_diff(const CudaRuntime& cudart)
     T res_gpu_diff = 0.0;
     AddVectors(cudart, (T)-1.0, A, B);
     res_gpu_diff = FrobeniusNorm(cudart, B);
-    
-    T eps = std::abs( std::nextafter(res_gpu, +INFINITY) -res_gpu);
-    
-    
-    if (!check(res_gpu, res_gpu_diff, eps*10, "FrobeniusNorm2 Differnce then FrobeniusNorm"))
+
+    if (!check(res_gpu, res_gpu_diff, check_msg(get_type_name<T>(), "")))
     {
         std::cout << "Test failed: FrobeniusNorm2, take the differenc first" << std::endl;
         std::cout << "GPU: " << res_gpu << " GPU first difference then Frob: " << res_gpu_diff << std::endl;
@@ -144,18 +109,17 @@ int test_HadamardProduct(const CudaRuntime& cudart)
     cudart.synchronize();
     
     // CPU Hadamard product
-    using CPUMatrix = cpu::Matrix<T, StdAllocator<T>>;
+    using CPUMatrix = lahva::cpu::Matrix<T, lahva::StdAllocator<T>>;
     CPUMatrix A_cpu(Shape(n,n),0.0);
     CPUMatrix B_cpu(Shape(n,n),0.0);
     CPUMatrix C_cpu(Shape(n,n),0.0);
 
-    cpu::CopyVectors(A, A_cpu);
-    cpu::CopyVectors(B, B_cpu);
-    cpu::HadamardProduct(A_cpu, B_cpu, C_cpu);
+    lahva::cpu::CopyVectors(A, A_cpu);
+    lahva::cpu::CopyVectors(B, B_cpu);
+    lahva::cpu::HadamardProduct(A_cpu, B_cpu, C_cpu);
     
     // Comparison
-    T eps = std::abs( std::nextafter(C_cpu.data()[0], +INFINITY) -C_cpu.data()[0]);
-    if (!(check(C_gpu.data(), C_cpu.data(), eps, C_cpu.size(), "HadamardProduct")))
+    if (!(check(C_gpu.data(), C_cpu.data(), C_cpu.size(), check_msg(get_type_name<T>(), ""))))
     {
         std::cout << "Test failed: HadamardProduct" << std::endl;
         return 1;
@@ -164,33 +128,27 @@ int test_HadamardProduct(const CudaRuntime& cudart)
     return 0;
 };
 
+// ============================================================================
+// Main
+// ============================================================================
 
 int main(){
-    int exit = 0;
+    int total_failures = 0;
     CudaRuntime cudart;
-    std::cout << "Starting test_Frobenius_norm (double)" << std::endl;
-    exit += test_Frobenius_norm<double>(cudart);
+    total_failures += test_Frobenius_norm<double>(cudart);
+    total_failures += test_Frobenius_norm<float>(cudart);
+    total_failures += test_Frobenius_norm2<double>(cudart);
+    total_failures += test_Frobenius_norm2<float>(cudart);
+    total_failures += test_Frobenius_norm2_diff<double>(cudart);
+    total_failures += test_Frobenius_norm2_diff<float>(cudart);
+    total_failures += test_HadamardProduct<double>(cudart);
+    total_failures += test_HadamardProduct<float>(cudart);
 
-    std::cout << "Starting test_Frobenius_norm (float)" << std::endl;
-    exit += test_Frobenius_norm<float>(cudart);
+    if (total_failures > 0) {
+        std::cerr << "gpu/blas/additional-level1 tests: " << total_failures << " failures" << std::endl;
+        return TEST_FAIL;
+    }
 
-    std::cout << "Starting test_Frobenius_norm2 (double)" << std::endl;
-    exit += test_Frobenius_norm2<double>(cudart);
-
-    std::cout << "Starting test_Frobenius_norm2 (float)" << std::endl;
-    exit += test_Frobenius_norm2<float>(cudart);
-
-    std::cout << "Starting test_Frobenius_norm2_diff (double)" << std::endl;
-    exit += test_Frobenius_norm2_diff<double>(cudart);
-
-    std::cout << "Starting test_Frobenius_norm2_diff (float)" << std::endl;
-    exit += test_Frobenius_norm2_diff<float>(cudart);
-
-    std::cout << "Starting test_HadamardProduct (double)" << std::endl;
-    exit += test_HadamardProduct<double>(cudart);
-
-    std::cout << "Starting test_HadamardProduct (float)" << std::endl;
-    exit += test_HadamardProduct<float>(cudart);
-
-    return exit;
+    std::cout << "All gpu/blas/additional-level1 tests passed!" << std::endl;
+    return TEST_PASS;
 };
