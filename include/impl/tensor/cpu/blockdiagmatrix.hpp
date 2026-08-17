@@ -21,7 +21,7 @@ namespace lahva
             BlockDiagMatrix_(const BlockDiagMatrix_ &) = default;
             BlockDiagMatrix_ &operator=(const BlockDiagMatrix_ &) = default;
             BlockDiagMatrix_(BlockDiagMatrix_ &&) noexcept = default;
-            BlockDiagMatrix_ &operator=(BlockDiagMatrix_ &&) noexcept = default;
+            BlockDiagMatrix_ &operator=(BlockDiagMatrix_ &&) noexcept { return *this; }
             virtual ~BlockDiagMatrix_() = default;
 
             //! @brief Get the shape of the block diagonal matrix.

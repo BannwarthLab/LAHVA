@@ -46,7 +46,7 @@ namespace lahva
             BlockMatrix_(const BlockMatrix_ &) = default;
             BlockMatrix_ &operator=(const BlockMatrix_ &) = default;
             BlockMatrix_(BlockMatrix_ &&) noexcept = default;
-            BlockMatrix_ &operator=(BlockMatrix_ &&) noexcept = default;
+            BlockMatrix_ &operator=(BlockMatrix_ &&) noexcept { return *this; }
             virtual ~BlockMatrix_() = default;
 
             /// @brief Get total shape (rows, columns) of the block-diagonal matrix
