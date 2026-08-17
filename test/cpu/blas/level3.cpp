@@ -347,11 +347,11 @@ int test_blockdiag_gemm_simple() {
 
     MatrixMatrixProduct(A, B, C);
 
-    if (!check(C(0, 0), static_cast<T>(5), check_msg(get_type_name<T>(), "C(0,0) should be 5"))) return TEST_FAIL;
-    if (!check(C(0, 1), static_cast<T>(17), check_msg(get_type_name<T>(), "C(0,1) should be 17"))) return TEST_FAIL;
-    if (!check(C(0, 2), static_cast<T>(29), check_msg(get_type_name<T>(), "C(0,2) should be 29"))) return TEST_FAIL;
-    if (!check(C(2, 0), static_cast<T>(39), check_msg(get_type_name<T>(), "C(2,0) should be 39"))) return TEST_FAIL;
-    if (!check(C(3, 2), static_cast<T>(173), check_msg(get_type_name<T>(), "C(3,2) should be 173"))) return TEST_FAIL;
+    if (!check(C(0, 0), static_cast<T>(5), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), static_cast<T>(17), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(0, 2), static_cast<T>(29), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(C(2, 0), static_cast<T>(39), check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+    if (!check(C(3, 2), static_cast<T>(173), check_msg(get_type_name<T>(), "check 5"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -368,8 +368,8 @@ int test_blockdiag_gemm_with_beta() {
 
     MatrixMatrixProduct(A, B, C, static_cast<T>(1), static_cast<T>(2));
 
-    if (!check(C(0, 0), static_cast<T>(8), check_msg(get_type_name<T>(), "C(0,0) should be 8"))) return TEST_FAIL;
-    if (!check(C(1, 1), static_cast<T>(10), check_msg(get_type_name<T>(), "C(1,1) should be 10"))) return TEST_FAIL;
+    if (!check(C(0, 0), static_cast<T>(8), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), static_cast<T>(10), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -386,8 +386,8 @@ int test_blockdiag_gemm_scaling() {
 
     MatrixMatrixProduct(A, B, C, static_cast<T>(2), static_cast<T>(0));
 
-    if (!check(C(0, 0), static_cast<T>(8), check_msg(get_type_name<T>(), "C(0,0) should be 8"))) return TEST_FAIL;
-    if (!check(C(1, 1), static_cast<T>(12), check_msg(get_type_name<T>(), "C(1,1) should be 12"))) return TEST_FAIL;
+    if (!check(C(0, 0), static_cast<T>(8), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), static_cast<T>(12), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -409,9 +409,9 @@ int test_blockdiag_gemm_varying_blocks() {
 
     MatrixMatrixProduct(A, B, C);
 
-    if (!check(C(0, 0), static_cast<T>(2), check_msg(get_type_name<T>(), "C(0,0) should be 2"))) return TEST_FAIL;
-    if (!check(C(1, 0), static_cast<T>(11), check_msg(get_type_name<T>(), "C(1,0) should be 11"))) return TEST_FAIL;
-    if (!check(C(2, 1), static_cast<T>(34), check_msg(get_type_name<T>(), "C(2,1) should be 34"))) return TEST_FAIL;
+    if (!check(C(0, 0), static_cast<T>(2), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 0), static_cast<T>(11), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(2, 1), static_cast<T>(34), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -431,9 +431,9 @@ int test_blockdiag_gemm_transpose_a() {
 
     MatrixMatrixProduct(A, B, C, static_cast<T>(1), static_cast<T>(0), "T", "N");
 
-    if (!check(C(0, 0), static_cast<T>(13), check_msg(get_type_name<T>(), "C(0,0) should be 13"))) return TEST_FAIL;
-    if (!check(C(1, 0), static_cast<T>(17), check_msg(get_type_name<T>(), "C(1,0) should be 17"))) return TEST_FAIL;
-    if (!check(C(2, 1), static_cast<T>(30), check_msg(get_type_name<T>(), "C(2,1) should be 30"))) return TEST_FAIL;
+    if (!check(C(0, 0), static_cast<T>(13), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 0), static_cast<T>(17), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(2, 1), static_cast<T>(30), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -454,9 +454,9 @@ int test_blockdiag_gemm_transpose_b() {
 
     MatrixMatrixProduct(A, B, C, static_cast<T>(1), static_cast<T>(0), "N", "T");
 
-    if (!check(C(0, 0), static_cast<T>(5), check_msg(get_type_name<T>(), "C(0,0) should be 5"))) return TEST_FAIL;
-    if (!check(C(0, 1), static_cast<T>(11), check_msg(get_type_name<T>(), "C(0,1) should be 11"))) return TEST_FAIL;
-    if (!check(C(1, 2), static_cast<T>(39), check_msg(get_type_name<T>(), "C(1,2) should be 39"))) return TEST_FAIL;
+    if (!check(C(0, 0), static_cast<T>(5), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), static_cast<T>(11), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(1, 2), static_cast<T>(39), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -479,16 +479,14 @@ int test_blockdiag_gemm_both_transpose() {
 
     MatrixMatrixProduct(A, B, C, static_cast<T>(1), static_cast<T>(0), "T", "T");
 
-    for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 3; j++) {
-            T val = C(i, j);
-            if (std::isnan(val) || std::isinf(val)) {
-                std::cout << "C(" << i << "," << j << ") is NaN or Inf!" << std::endl;
-                std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
-                return TEST_FAIL;
-            }
-        }
-    }
+    Matrix<T> expected(Shape{2, 3}, {22, 28, 49, 64, 76, 100});
+
+    if (!check(C(0, 0), static_cast<T>(22), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), static_cast<T>(49), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(0, 2), static_cast<T>(76), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(C(1, 0), static_cast<T>(28), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), static_cast<T>(64), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(1, 2), static_cast<T>(100), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -509,9 +507,9 @@ int test_dense_times_blockdiag_gemm_simple() {
 
     MatrixMatrixProduct(A, B, C);
 
-    if (!check(C(0, 0), static_cast<T>(9), check_msg(get_type_name<T>(), "C(0,0) should be 9"))) return TEST_FAIL;
-    if (!check(C(1, 1), static_cast<T>(26), check_msg(get_type_name<T>(), "C(1,1) should be 26"))) return TEST_FAIL;
-    if (!check(C(2, 2), static_cast<T>(51), check_msg(get_type_name<T>(), "C(2,2) should be 51"))) return TEST_FAIL;
+    if (!check(C(0, 0), static_cast<T>(9), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), static_cast<T>(26), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(2, 2), static_cast<T>(51), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -531,8 +529,8 @@ int test_dense_times_blockdiag_gemm_with_alpha_beta() {
 
     MatrixMatrixProduct(A, B, C, static_cast<T>(0.5), static_cast<T>(2));
 
-    if (!check(C(0, 0), static_cast<T>(5.5), check_msg(get_type_name<T>(), "C(0,0) should be 5.5"))) return TEST_FAIL;
-    if (!check(C(1, 1), static_cast<T>(13), check_msg(get_type_name<T>(), "C(1,1) should be 13"))) return TEST_FAIL;
+    if (!check(C(0, 0), static_cast<T>(5.5), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), static_cast<T>(13), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -552,9 +550,9 @@ int test_dense_times_blockdiag_gemm_transpose() {
 
     MatrixMatrixProduct(A, B, C, static_cast<T>(1), static_cast<T>(0), "T", "N");
 
-    if (!check(C(0, 0), static_cast<T>(13), check_msg(get_type_name<T>(), "C(0,0) should be 13"))) return TEST_FAIL;
-    if (!check(C(1, 0), static_cast<T>(17), check_msg(get_type_name<T>(), "C(1,0) should be 17"))) return TEST_FAIL;
-    if (!check(C(2, 1), static_cast<T>(30), check_msg(get_type_name<T>(), "C(2,1) should be 30"))) return TEST_FAIL;
+    if (!check(C(0, 0), static_cast<T>(13), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 0), static_cast<T>(17), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(2, 1), static_cast<T>(30), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
