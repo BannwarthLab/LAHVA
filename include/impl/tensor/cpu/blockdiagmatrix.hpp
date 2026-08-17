@@ -121,6 +121,8 @@ namespace lahva
         {
             if (this != &other)
             {
+                Tensor<T, Allocator>::operator=(std::move(other));
+                BlockDiagMatrix_<T>::operator=(std::move(other));
                 n_rows_ = other.n_rows_;
                 n_cols_ = other.n_cols_;
                 matrices = std::move(other.matrices);

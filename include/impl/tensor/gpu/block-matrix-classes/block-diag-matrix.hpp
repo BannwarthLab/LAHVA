@@ -149,6 +149,8 @@ namespace lahva
             {
                 if (this != &other)
                 {
+                    Tensor<T, Allocator, GPUAllocator>::operator=(std::move(other));
+                    BlockMatrix_<T>::operator=(std::move(other));
                     free_gpu_cache();
                     n_rows_ = other.n_rows_;
                     n_cols_ = other.n_cols_;
