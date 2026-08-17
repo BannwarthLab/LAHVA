@@ -324,6 +324,129 @@ namespace lahva
                                          inx, reinterpret_cast<const cuComplex*>(&beta), reinterpret_cast<cuComplex*>(y.gpu_data()), iny));
         };
 
+        /// @brief Computes batched matrix-vector product for block-diagonal matrices \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ (double precision).
+        ///
+        /// Performs batched matrix-vector multiplication on block-diagonal matrices supporting optional transposition.
+        /// Computes \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$, \f$\vec{y}=alpha*\mathbf{A}^T*\vec{x}+beta*\vec{y}\f$, or \f$\vec{y}=alpha*conj(\mathbf{A}^T)*\vec{x}+beta*\vec{y}\f$.
+        /// The operation is performed using CUDA's strided batch GEMV on GPU-resident blocks.
+        ///
+        /// @param cudart CUDA runtime instance.
+        /// @param ta Transposition character: 'N' (no transpose), 'T' (transpose), 'C' (conjugate transpose).
+        /// @param alpha Scalar factor for the matrix-vector product.
+        /// @param a Input block-diagonal matrix with double-precision blocks.
+        /// @param x Input double-precision vector matching the column structure of a.
+        /// @param beta Scalar factor for vector y.
+        /// @param y Input/output double-precision vector, replaced with result.
+        void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const double alpha, const BlockDiagMatrix<double>& a,
+                                const Vector<double>& x, const double beta, Vector<double>& y)
+        {
+            cublasOperation_t transa = get_trans(ta);
+            int num_blocks = a.num_blocks();
+
+            // Ensure block-diagonal matrix A is on GPU
+            const auto& gpu_a_data = a.ensure_on_gpu(cudart);
+
+            size_t max_m = gpu_a_data.max_m;
+            size_t max_k = gpu_a_data.max_k;
+            long long padded_stride_a = gpu_a_data.padded_stride;
+            double *d_a = gpu_a_data.d_data;
+
+            size_t lda = max_m;
+            size_t incx = 1;
+            size_t incy = 1;
+
+            // Pack X vector blocks and copy to GPU
+            Vector<double> x_packed(max_k * num_blocks, 0.0);
+            a.pack_vector_to_gpu(cudart, x, x_packed, a.get_row_offsets(), a.get_block_cols());
+            double *d_x = x_packed.gpu_data();
+
+            // Pack Y vector blocks and copy to GPU
+            Vector<double> y_packed(max_m * num_blocks, 0.0);
+            a.pack_vector_to_gpu(cudart, y, y_packed, a.get_row_offsets(), a.get_block_rows());
+            double *d_y = y_packed.gpu_data();
+
+            // Perform batched GEMV: Y = alpha * op(A) * X + beta * Y
+            cudart.cublasSetStream_();
+            cublasStatus_t istat = cublasDgemvStridedBatched(
+                cudart.handle,
+                transa,
+                max_m, max_k,
+                &alpha,
+                d_a, lda, padded_stride_a,
+                d_x, incx, max_k,
+                &beta,
+                d_y, incy, max_m,
+                num_blocks
+            );
+            get_cublas_error(istat);
+
+            // Copy result back to CPU and unpack
+            cudart.synchronize();
+            y_packed.copy2host(cudart);
+            a.unpack_vector_from_gpu(cudart, y_packed, y, a.get_row_offsets(), a.get_block_rows());
+        }
+
+        /// @brief Computes batched matrix-vector product for block-diagonal matrices \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ (single precision).
+        ///
+        /// Performs batched matrix-vector multiplication on block-diagonal matrices supporting optional transposition.
+        /// Computes \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$, \f$\vec{y}=alpha*\mathbf{A}^T*\vec{x}+beta*\vec{y}\f$, or \f$\vec{y}=alpha*conj(\mathbf{A}^T)*\vec{x}+beta*\vec{y}\f$.
+        /// The operation is performed using CUDA's strided batch GEMV on GPU-resident blocks.
+        ///
+        /// @param cudart CUDA runtime instance.
+        /// @param ta Transposition character: 'N' (no transpose), 'T' (transpose), 'C' (conjugate transpose).
+        /// @param alpha Scalar factor for the matrix-vector product.
+        /// @param a Input block-diagonal matrix with single-precision blocks.
+        /// @param x Input single-precision vector matching the column structure of a.
+        /// @param beta Scalar factor for vector y.
+        /// @param y Input/output single-precision vector, replaced with result.
+        void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const float alpha, const BlockDiagMatrix<float>& a,
+                                const Vector<float>& x, const float beta, Vector<float>& y)
+        {
+            cublasOperation_t transa = get_trans(ta);
+            int num_blocks = a.num_blocks();
+
+            // Ensure block-diagonal matrix A is on GPU
+            const auto& gpu_a_data = a.ensure_on_gpu(cudart);
+            size_t max_m = gpu_a_data.max_m;
+            size_t max_k = gpu_a_data.max_k;
+            long long padded_stride_a = gpu_a_data.padded_stride;
+            float *d_a = reinterpret_cast<float*>(gpu_a_data.d_data);
+
+            size_t lda = max_m;
+            size_t incx = 1;
+            size_t incy = 1;
+
+            // Pack X vector blocks and copy to GPU
+            Vector<float> x_packed(max_k * num_blocks, 0.0f);
+            a.pack_vector_to_gpu(cudart, x, x_packed, a.get_row_offsets(), a.get_block_cols());
+            float *d_x = x_packed.gpu_data();
+
+            // Pack Y vector blocks and copy to GPU
+            Vector<float> y_packed(max_m * num_blocks, 0.0f);
+            a.pack_vector_to_gpu(cudart, y, y_packed, a.get_row_offsets(), a.get_block_rows());
+            float *d_y = y_packed.gpu_data();
+
+            // Perform batched GEMV: Y = alpha * op(A) * X + beta * Y
+            cudart.cublasSetStream_();
+            cublasStatus_t istat = cublasSgemvStridedBatched(
+                cudart.handle,
+                transa,
+                max_m, max_k,
+                &alpha,
+                d_a, lda, padded_stride_a,
+                d_x, incx, max_k,
+                &beta,
+                d_y, incy, max_m,
+                num_blocks
+            );
+            get_cublas_error(istat);
+
+            // Copy result back to CPU and unpack
+            cudart.synchronize();
+            y_packed.copy2host(cudart);
+            a.unpack_vector_from_gpu(cudart, y_packed, y, a.get_row_offsets(), a.get_block_rows());
+        }
+
         /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
         for specified stride
             @param[in] alpha double value by which A*x is scaled

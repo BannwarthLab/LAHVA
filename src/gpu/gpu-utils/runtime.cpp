@@ -5,6 +5,7 @@
 /// for GPU-accelerated linear algebra operations.
 
 #include <cublas_v2.h>
+#include <cusparse.h>
 #include <cuda_runtime.h>
 #include <iostream>
 #include <omp.h>
@@ -38,6 +39,21 @@ void get_cuda_ERROR(cudaError_t stat, const char* file, int line) {
             throw std::runtime_error("CUBLAS Error");
         }
     }
+    
+    /// @brief Checks cuSPARSE error status and throws on failure.
+    ///
+    /// Validates cuSPARSE API return codes and throws an exception with file/line information on error.
+    ///
+    /// @param stat cuSPARSE status code to check.
+    /// @param file Source file where error check occurred.
+    /// @param line Line number where error check occurred.
+    void get_cusparse_ERROR(cusparseStatus_t stat, const char* file, int line) {
+        if (stat != CUSPARSE_STATUS_SUCCESS) {
+            std::cerr << "CUSPARSE Error: " << cusparseGetErrorString(stat) << std::endl << "In File: "<< file << " at line: " << std::to_string(line)<< std::endl;
+            throw std::runtime_error("CUSPARSE Error");
+        }
+    }
+
 namespace lahva
 {
     /// @brief Initializes CUDA runtime with device and cuBLAS setup.

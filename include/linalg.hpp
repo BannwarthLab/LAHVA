@@ -15,6 +15,7 @@
 #include "impl/tensor/cpu/matrix.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
 #include "impl/tensor/cpu/vector.hpp"
+#include "impl/tensor/cpu/blockdiagmatrix.hpp"
 
 #ifdef _CUDA
 #include <cuda_fp16.h>
@@ -23,4 +24,7 @@
 #include "impl/tensor/gpu/matrix.hpp"
 #include "impl/tensor/gpu/vector.hpp"
 #include "impl/tensor/gpu/mixed-precision-classes/mixed-precision-matrix.hpp"
+#include "impl/tensor/gpu/block-matrix-classes/sparse-matrix.hpp"
+#include "impl/tensor/gpu/block-matrix-classes/block-matrix.hpp"
+#include "impl/tensor/gpu/block-matrix-classes/block-diag-matrix.hpp"
 #endif

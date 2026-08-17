@@ -29,6 +29,10 @@ void fill_diagonally_dominant(Matrix<T>& m)
     }
 }
 
+// ============================================================================
+// GEMM Comparison Tests
+// ============================================================================
+
 template <typename T>
 int CompareGEMMS(Shape& shape)
 {
@@ -71,6 +75,10 @@ int CompareGEMMS(Shape& shape)
 
 }
 
+// ============================================================================
+// Mixed Precision GEMM Tests
+// ============================================================================
+
 template <typename T>
 int mp_gemms()
 {
@@ -78,15 +86,24 @@ int mp_gemms()
     {
         int n = int((i*256));
         Shape shape(n, n);
-        if (CompareGEMMS<double>(shape)) return TEST_FAIL;
+        if (CompareGEMMS<double>(shape)) {
+            std::cerr << check_msg(get_type_name<T>(), "") << std::endl;
+            return TEST_FAIL;
+        }
     }
 
     return TEST_PASS;
 }
 
+// ============================================================================
+// Main
+// ============================================================================
+
 int main()
-{   
+{
     int total_failures = 0;
+
+    // Mixed precision GEMM tests
     total_failures += mp_gemms<double>();
     total_failures += mp_gemms<float>();
 

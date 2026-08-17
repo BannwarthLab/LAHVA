@@ -8,6 +8,7 @@
 
 #pragma once
 #include <cuda_runtime.h>
+#include <cusparse.h>
 #include <cusolverDn.h>
 #include <iostream>
 #include <limits>
@@ -30,6 +31,10 @@
 /// @param arg cuSOLVER error status to check.
 #define get_cusolv_error(arg) get_cusolv_ERROR(arg, __FILE__, __LINE__);
 
+/// @brief Macro to capture cuSPARSE error with file and line information.
+/// @param arg cuSPARSE error status to check.
+#define get_cusparse_error(arg) get_cusparse_ERROR(arg, __FILE__, __LINE__);
+
 /// @brief Print CUDA runtime error message with file and line information.
 /// @param stat CUDA error status from a runtime call.
 /// @param file Source file where the error occurred.
@@ -47,6 +52,12 @@ void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line);
 /// @param file Source file where the error occurred.
 /// @param line Line number in the source file where the error occurred.
 void get_cusolv_ERROR(cusolverStatus_t stat, const char *file, int line);
+
+/// @brief Print cuSPARSE error message with file and line information.
+/// @param stat cuSPARSE error status from a sparse operation.
+/// @param file Source file where the error occurred.
+/// @param line Line number in the source file where the error occurred.
+void get_cusparse_ERROR(cusparseStatus_t stat, const char* file, int line);
 
 namespace lahva{
     

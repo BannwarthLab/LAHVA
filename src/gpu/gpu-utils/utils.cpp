@@ -24,7 +24,6 @@ namespace lahva {
             }
 
         };
-
         /// Implementation of get_trans - see utils.hpp for documentation.
         cublasOperation_t get_trans(const char* T){
         if (std::strcmp(T,"T") == 0 or std::strcmp(T,"t") == 0)
@@ -38,6 +37,18 @@ namespace lahva {
         else 
         {
             return CUBLAS_OP_N;
+        }
+    };
+
+        /// Implementation of get_cusparse_trans - see utils.hpp for documentation.
+        cusparseOperation_t get_cusparse_trans(const char* T){
+        if (std::strcmp(T,"T") == 0 or std::strcmp(T,"t") == 0)
+        {
+            return CUSPARSE_OPERATION_TRANSPOSE;
+        }
+        else
+        {
+            return CUSPARSE_OPERATION_NON_TRANSPOSE;
         }
     };
 

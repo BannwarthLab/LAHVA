@@ -112,6 +112,16 @@ namespace lahva
         /// @return cuBLAS operation type (CUBLAS_OP_N, CUBLAS_OP_T, or CUBLAS_OP_C).
         cublasOperation_t get_trans(const char *T);
 
+
+        /// @brief Converts character transposition flag to cuSPARSE operation type.
+        ///
+        /// Translates string transposition indicators ('N', 'T') to corresponding
+        /// cuSPARSE operation types for use in sparse matrix operations.
+        ///
+        /// @param T Transposition character: 'N' (no transpose), 'T' (transpose).
+        /// @return cuSPARSE operation type (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
+        cusparseOperation_t get_cusparse_trans(const char *T);
+
         /// @brief Validates tensor shapes for matrix-matrix multiplication operation.
         ///
         /// Checks that matrix dimensions are compatible for C = alpha*A*B + beta*C operation.

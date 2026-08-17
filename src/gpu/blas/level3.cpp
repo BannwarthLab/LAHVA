@@ -541,5 +541,275 @@ namespace lahva
             MatrixMatrixProductFP16(cudart, Ta, Tb, alpha, a, b, beta, c);
         };
 
+                void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                                 const double alpha, const BlockMatrix_<double> &a,
+                                 const Matrix_<double> &b, const double beta, Matrix_<double> &c)
+        {
+
+            check_device_alloc(cudart, b);
+            check_device_alloc(cudart, c);
+
+            cusparseOperation_t opA = get_cusparse_trans(Ta);
+            cusparseOperation_t opB = get_cusparse_trans(Tb);
+
+            size_t num_blocks = a.num_blocks();
+            if (num_blocks == 0)
+            {
+                return;
+            }
+
+            SparseFormat format = a.get_sparse_format();
+            SparseMatrix<double> sparse(cudart, a, format);
+            if (!sparse.is_initialized())
+            {
+                return;
+            }
+            const auto &sparse_data = sparse.get_sparse_data();
+
+            // Get matrix dimensions for later use
+            Shape a_shape = a.shape();
+            int64_t m = static_cast<int64_t>(a_shape.first);
+            int64_t k = static_cast<int64_t>(a_shape.second);
+
+            int64_t blockDim_m = 1, blockDim_n = 1;
+            if (format == SparseFormat::BSR && num_blocks > 0)
+            {
+                Shape first_block_shape = a.get_block_shape(0);
+                blockDim_m = static_cast<int64_t>(first_block_shape.first);
+                blockDim_n = static_cast<int64_t>(first_block_shape.second);
+            }
+
+            sparse.allocate_gpu_memory();
+            sparse.transfer_to_device(cudart);
+
+            int64_t n = (opB == CUSPARSE_OPERATION_NON_TRANSPOSE)
+                            ? static_cast<int64_t>(b.shape().second)
+                            : static_cast<int64_t>(b.shape().first);
+
+            int64_t b_rows_required = (opA == CUSPARSE_OPERATION_NON_TRANSPOSE) ? k : m;
+            int64_t b_rows_stored = (opB == CUSPARSE_OPERATION_NON_TRANSPOSE) ? b_rows_required : n;
+            int64_t b_cols_stored = (opB == CUSPARSE_OPERATION_NON_TRANSPOSE) ? n : b_rows_required;
+
+            int64_t c_m = (opA == CUSPARSE_OPERATION_NON_TRANSPOSE) ? m : k;
+            int64_t c_n = n;
+
+            cusparseHandle_t handle = nullptr;
+            get_cusparse_error(cusparseCreate(&handle));
+
+            cusparseSpMatDescr_t mat_descr = nullptr;
+            if (sparse_data.format == SparseFormat::BSR)
+            {
+                int64_t num_block_rows = (m + blockDim_m - 1) / blockDim_m;
+                int64_t num_block_cols = (k + blockDim_n - 1) / blockDim_n;
+                int64_t nnz_blocks = static_cast<int64_t>(num_blocks);
+
+                get_cusparse_error(cusparseCreateBsr(&mat_descr,
+                                                     num_block_rows,
+                                                     num_block_cols,
+                                                     nnz_blocks,
+                                                     blockDim_m,
+                                                     blockDim_n,
+                                                     sparse_data.d_row_offsets,
+                                                     sparse_data.d_col_indices,
+                                                     sparse_data.d_values,
+                                                     CUSPARSE_INDEX_32I,
+                                                     CUSPARSE_INDEX_32I,
+                                                     CUSPARSE_INDEX_BASE_ZERO,
+                                                     CUDA_R_64F,
+                                                     CUSPARSE_ORDER_ROW));
+            }
+            else
+            {
+                get_cusparse_error(cusparseCreateCsr(&mat_descr,
+                                                     m, k, sparse.nnz(),
+                                                     sparse_data.d_row_offsets,
+                                                     sparse_data.d_col_indices,
+                                                     sparse_data.d_values,
+                                                     CUSPARSE_INDEX_32I,
+                                                     CUSPARSE_INDEX_32I,
+                                                     CUSPARSE_INDEX_BASE_ZERO,
+                                                     CUDA_R_64F));
+            }
+
+            cusparseDnMatDescr_t descr_b = nullptr;
+            cusparseDnMatDescr_t descr_c = nullptr;
+
+            get_cusparse_error(cusparseCreateDnMat(&descr_b, b_rows_stored, b_cols_stored, b_rows_stored, (void *)b.gpu_data(),
+                                                   CUDA_R_64F, CUSPARSE_ORDER_COL));
+            get_cusparse_error(cusparseCreateDnMat(&descr_c, c_m, c_n, c_m, (void *)c.gpu_data(),
+                                                   CUDA_R_64F, CUSPARSE_ORDER_COL));
+
+            // Allocate workspace if needed
+            size_t workspace_size = 0;
+            get_cusparse_error(cusparseSpMM_bufferSize(handle, opA, opB,
+                                                       &alpha, mat_descr, descr_b,
+                                                       &beta, descr_c,
+                                                       CUDA_R_64F, CUSPARSE_SPMM_ALG_DEFAULT, &workspace_size));
+
+            void *workspace = nullptr;
+            if (workspace_size > 0)
+            {
+                get_cuda_error(cudaMalloc(&workspace, workspace_size));
+            }
+
+            get_cusparse_error(cusparseSpMM(handle, opA, opB,
+                                            &alpha, mat_descr, descr_b,
+                                            &beta, descr_c,
+                                            CUDA_R_64F, CUSPARSE_SPMM_ALG_DEFAULT, workspace));
+
+            cudart.synchronize();
+
+            get_cuda_error(cudaMemcpy(c.data(), c.gpu_data(), c.shape().first * c.shape().second * sizeof(double), cudaMemcpyDeviceToHost));
+
+            if (workspace)
+            {
+                get_cuda_error(cudaFree(workspace));
+            }
+
+            get_cusparse_error(cusparseDestroySpMat(mat_descr));
+            get_cusparse_error(cusparseDestroyDnMat(descr_b));
+            get_cusparse_error(cusparseDestroyDnMat(descr_c));
+            get_cusparse_error(cusparseDestroy(handle));
+
+            sparse.release_gpu_memory();
+        }
+
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                                 const float alpha, const BlockMatrix_<float> &a,
+                                 const Matrix_<float> &b, const float beta, Matrix_<float> &c)
+        {
+
+            check_device_alloc(cudart, b);
+            check_device_alloc(cudart, c);
+
+            cusparseOperation_t opA = get_cusparse_trans(Ta);
+            cusparseOperation_t opB = get_cusparse_trans(Tb);
+
+            size_t num_blocks = a.num_blocks();
+            if (num_blocks == 0)
+            {
+                return;
+            }
+
+            SparseFormat format = a.get_sparse_format();
+            SparseMatrix<float> sparse(cudart, a, format);
+            if (!sparse.is_initialized())
+            {
+                return;
+            }
+            const auto &sparse_data = sparse.get_sparse_data();
+
+            Shape a_shape = a.shape();
+            int64_t m = static_cast<int64_t>(a_shape.first);
+            int64_t k = static_cast<int64_t>(a_shape.second);
+
+            int64_t blockDim_m = 1, blockDim_n = 1;
+            if (format == SparseFormat::BSR && num_blocks > 0)
+            {
+                Shape first_block_shape = a.get_block_shape(0);
+                blockDim_m = static_cast<int64_t>(first_block_shape.first);
+                blockDim_n = static_cast<int64_t>(first_block_shape.second);
+            }
+
+            sparse.allocate_gpu_memory();
+            sparse.transfer_to_device(cudart);
+
+            int64_t n = (opB == CUSPARSE_OPERATION_NON_TRANSPOSE)
+                            ? static_cast<int64_t>(b.shape().second)
+                            : static_cast<int64_t>(b.shape().first);
+
+            int64_t b_rows_required = (opA == CUSPARSE_OPERATION_NON_TRANSPOSE) ? k : m;
+            int64_t b_rows_stored = (opB == CUSPARSE_OPERATION_NON_TRANSPOSE) ? b_rows_required : n;
+            int64_t b_cols_stored = (opB == CUSPARSE_OPERATION_NON_TRANSPOSE) ? n : b_rows_required;
+
+            int64_t c_m = (opA == CUSPARSE_OPERATION_NON_TRANSPOSE) ? m : k;
+            int64_t c_n = n;
+
+            cusparseHandle_t handle = nullptr;
+            cusparseStatus_t status = cusparseCreate(&handle);
+            if (status != CUSPARSE_STATUS_SUCCESS)
+            {
+                throw std::runtime_error("Failed to create cusparse handle");
+            }
+
+            cusparseSpMatDescr_t mat_descr = nullptr;
+            if (sparse_data.format == SparseFormat::BSR)
+            {
+                int64_t num_block_rows = (m + blockDim_m - 1) / blockDim_m;
+                int64_t num_block_cols = (k + blockDim_n - 1) / blockDim_n;
+                int64_t nnz_blocks = static_cast<int64_t>(num_blocks);
+
+                get_cusparse_error(cusparseCreateBsr(&mat_descr,
+                                                     num_block_rows,
+                                                     num_block_cols,
+                                                     nnz_blocks,
+                                                     blockDim_m,
+                                                     blockDim_n,
+                                                     sparse_data.d_row_offsets,
+                                                     sparse_data.d_col_indices,
+                                                     sparse_data.d_values,
+                                                     CUSPARSE_INDEX_32I,
+                                                     CUSPARSE_INDEX_32I,
+                                                     CUSPARSE_INDEX_BASE_ZERO,
+                                                     CUDA_R_32F,
+                                                     CUSPARSE_ORDER_ROW));
+            }
+            else
+            {
+                get_cusparse_error(cusparseCreateCsr(&mat_descr,
+                                                     m, k, sparse.nnz(),
+                                                     sparse_data.d_row_offsets,
+                                                     sparse_data.d_col_indices,
+                                                     sparse_data.d_values,
+                                                     CUSPARSE_INDEX_32I,
+                                                     CUSPARSE_INDEX_32I,
+                                                     CUSPARSE_INDEX_BASE_ZERO,
+                                                     CUDA_R_32F));
+            }
+
+            cusparseDnMatDescr_t descr_b = nullptr;
+            cusparseDnMatDescr_t descr_c = nullptr;
+
+            get_cusparse_error(cusparseCreateDnMat(&descr_b, b_rows_stored, b_cols_stored, b_rows_stored, (void *)b.gpu_data(),
+                                                   CUDA_R_32F, CUSPARSE_ORDER_COL));
+            get_cusparse_error(cusparseCreateDnMat(&descr_c, c_m, c_n, c_m, (void *)c.gpu_data(),
+                                                   CUDA_R_32F, CUSPARSE_ORDER_COL));
+
+            // Allocate workspace if needed
+            size_t workspace_size = 0;
+            get_cusparse_error(cusparseSpMM_bufferSize(handle, opA, opB,
+                                                       &alpha, mat_descr, descr_b,
+                                                       &beta, descr_c,
+                                                       CUDA_R_32F, CUSPARSE_SPMM_ALG_DEFAULT, &workspace_size));
+
+            void *workspace = nullptr;
+            if (workspace_size > 0)
+            {
+                get_cuda_error(cudaMalloc(&workspace, workspace_size));
+            }
+
+            get_cusparse_error(cusparseSpMM(handle, opA, opB,
+                                            &alpha, mat_descr, descr_b,
+                                            &beta, descr_c,
+                                            CUDA_R_32F, CUSPARSE_SPMM_ALG_DEFAULT, workspace));
+
+            cudart.synchronize();
+
+            get_cuda_error(cudaMemcpy(c.data(), c.gpu_data(), c.shape().first * c.shape().second * sizeof(float), cudaMemcpyDeviceToHost));
+
+            // Cleanup
+            if (workspace)
+            {
+                get_cuda_error(cudaFree(workspace));
+            }
+
+            get_cusparse_error(cusparseDestroySpMat(mat_descr));
+            get_cusparse_error(cusparseDestroyDnMat(descr_b));
+            get_cusparse_error(cusparseDestroyDnMat(descr_c));
+            get_cusparse_error(cusparseDestroy(handle));
+
+            sparse.release_gpu_memory();
+        }
+
     }
 } // namespace lahva

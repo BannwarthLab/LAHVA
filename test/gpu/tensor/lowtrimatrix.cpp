@@ -14,9 +14,10 @@ int test_gpu_lowtrimatrix_size_constructor() {
 
     LowTriMatrix<T> m(5);
 
-    if (!check((int)m.size(), 15, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((int)m.size(), 15, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     if (m.data() == nullptr) {
+        std::cerr << check_msg(get_type_name<T>(), "check 2") << std::endl;
         return TEST_FAIL;
     }
 
@@ -34,10 +35,7 @@ int test_gpu_lowtrimatrix_size_value_constructor() {
     int packed_size = 4 * 5 / 2;
 
     for (int i = 0; i < packed_size; i++) {
-        if (!check(m.data()[i], (T)3.5, check_msg(get_type_name<T>(), "check 2"))) {
-            return TEST_FAIL;
-            break;
-        }
+        if (!check(m.data()[i], (T)3.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
     }
 
     return TEST_PASS;
@@ -55,10 +53,7 @@ int test_gpu_lowtrimatrix_copy_constructor() {
     int packed_size = 3 * 4 / 2;
 
     for (int i = 0; i < packed_size; i++) {
-        if (!check(m2.data()[i], (T)2.5, check_msg(get_type_name<T>(), "check 2"))) {
-            return TEST_FAIL;
-            break;
-        }
+        if (!check(m2.data()[i], (T)2.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
     }
 
     m1.data()[0] = (T)99.0;
@@ -76,18 +71,13 @@ int test_gpu_lowtrimatrix_move_constructor() {
 
     LowTriMatrix<T> m2 = std::move(m1);  // Move constructor
 
-    if (!check((int)m2.size(), 6, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((int)m2.size(), 6, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     // Check if pointer was transferred
     if (m2.data() != original_data) {
-        std::cerr << "[Fatal] GPU move constructor did NOT transfer pointer\n";
-        std::cerr << "  Expected: " << (void*)original_data << "\n";
-        std::cerr << "  Got:      " << (void*)m2.data() << "\n";
+        std::cerr << check_msg(get_type_name<T>(), "check 2") << std::endl;
         return TEST_FAIL;
     }
-
-    // Note: Move constructor doesn't clear source in this implementation
-    // and may not transfer the pointer either - allocator determines behavior
 
     return TEST_PASS;
 }
@@ -114,11 +104,12 @@ int test_gpu_lowtrimatrix_data_access() {
     LowTriMatrix<T> m(3);
 
     if (m.data() == nullptr) {
+        std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
         return TEST_FAIL;
     }
 
     m.data()[0] = (T)5.5;
-    if (!check(m.data()[0], (T)5.5, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check(m.data()[0], (T)5.5, check_msg(get_type_name<T>(), "check 23"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -133,7 +124,6 @@ int test_gpu_lowtrimatrix_float_type() {
     LowTriMatrix<float> m(3, 2.5f);
 
     if (!check((int)m.size(), 6, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m.data()[0], 2.5f, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -148,7 +138,6 @@ int test_gpu_lowtrimatrix_int_type() {
     m.data()[2] = 30;
 
     if (!check((int)m.size(), 3, check_msg(get_type_name<int>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m.data()[0], 10, check_msg(get_type_name<int>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -170,7 +159,14 @@ int test_gpu_lowtrimatrix_copy_assignment() {
     if (!check((int)m2.size(), 6, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     // Self-assignment should be safe
+    #if defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wself-assign-overloaded"
+    #endif
     m1 = m1;
+    #if defined(__clang__)
+    #pragma GCC diagnostic pop
+    #endif
     if (!check((int)m1.size(), 6, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -187,8 +183,6 @@ int test_gpu_lowtrimatrix_move_assignment() {
 
     if (!check((int)m2.size(), 10, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
-    // Note: Move assignment doesn't clear source in this implementation
-
     return TEST_PASS;
 }
 
@@ -203,6 +197,7 @@ int test_gpu_lowtrimatrix_memory_allocation() {
     LowTriMatrix<T> m(10);
 
     if (m.data() == nullptr) {
+        std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
         return TEST_FAIL;
     }
 
@@ -211,9 +206,8 @@ int test_gpu_lowtrimatrix_memory_allocation() {
     m.data()[0] = (T)1.5;
     m.data()[packed_size - 1] = (T)55.5;
 
-    if (!check(m.data()[0], (T)1.5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
-
-    if (!check(m.data()[packed_size - 1], (T)55.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(m.data()[0], (T)1.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(m.data()[packed_size - 1], (T)55.5, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -225,10 +219,10 @@ int test_gpu_lowtrimatrix_destructor() {
     {
         LowTriMatrix<T> m(50);
         if (m.data() == nullptr) {
+            std::cerr << check_msg(get_type_name<T>(), "") << std::endl;
             return TEST_FAIL;
         }
     }
-    // Destructor should deallocate
 
     return TEST_PASS;
 }
@@ -243,7 +237,6 @@ int test_gpu_lowtrimatrix_shape_constructor() {
     LowTriMatrix<double> m(s);
 
     if (!check((int)m.shape().first, 5, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m.shape().second, 5, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -257,10 +250,7 @@ int test_gpu_lowtrimatrix_shape_value_constructor() {
     if (!check((int)m.size(), 10, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
 
     for (int i = 0; i < 10; i++) {
-        if (!check(m.data()[i], 2.75, check_msg(get_type_name<double>(), "check 2"))) {
-            return TEST_FAIL;
-            break;
-        }
+        if (!check(m.data()[i], 2.75, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
     }
 
     return TEST_PASS;
@@ -275,7 +265,6 @@ int test_gpu_lowtrimatrix_assign_after_construct() {
     m2 = m1;
 
     if (!check((int)m2.size(), 6, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m2.data()[0], 1.5, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -284,19 +273,14 @@ int test_gpu_lowtrimatrix_assign_after_construct() {
 int test_gpu_lowtrimatrix_element_access() {
 
     LowTriMatrix<double> m(3, 0.0);
-
-    // Set diagonal elements
     m(0, 0) = 1.5;
     m(1, 1) = 2.5;
     m(2, 2) = 3.5;
-
-    // Set lower triangular elements
     m(1, 0) = 1.0;
     m(2, 0) = 2.0;
     m(2, 1) = 2.5;
 
     if (!check(m(0, 0), 1.5, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m(2, 1), 2.5, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -309,7 +293,6 @@ int test_gpu_lowtrimatrix_const_element_access() {
     const LowTriMatrix<double>& const_m = m;
 
     if (!check(const_m(0, 0), 1.5, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(const_m(2, 1), 1.5, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -320,9 +303,7 @@ int test_gpu_lowtrimatrix_complex_double() {
     LowTriMatrix<complex_double> m(3, complex_double(1.0, 2.0));
 
     if (!check((int)m.size(), 6, check_msg(get_type_name<complex_double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m.data()[0].real(), 1.0, check_msg(get_type_name<complex_double>(), "check 2"))) return TEST_FAIL;
-
     if (!check(m.data()[0].imag(), 2.0, check_msg(get_type_name<complex_double>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -355,8 +336,8 @@ int test_gpu_lowtrimatrix_large_matrix() {
     LowTriMatrix<double> m(50);
 
     int expected_size = 50 * 51 / 2;
-    if (!check((int)m.size(), expected_size, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
 
+    if (!check((int)m.size(), expected_size, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
     if (!check((int)m.shape().first, 50, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -371,7 +352,6 @@ int test_gpu_lowtrimatrix_float_element_access() {
     m(2, 2) = 3.5f;
 
     if (!check(m(0, 0), 1.5f, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m(2, 2), 3.5f, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -388,11 +368,8 @@ int test_gpu_lowtrimatrix_full_lower_access() {
         }
     }
 
-    // Verify some elements
     if (!check(m(0, 0), 0.0, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m(2, 1), 2.1, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
-
     if (!check(m(3, 2), 3.2, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -404,7 +381,6 @@ int test_gpu_lowtrimatrix_shape_accessors() {
 
     Shape s = m.shape();
     if (!check((int)s.first, 6, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)s.second, 6, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -413,7 +389,6 @@ int test_gpu_lowtrimatrix_shape_accessors() {
 int test_gpu_lowtrimatrix_int_type_access() {
 
     LowTriMatrix<int> m(3, 0);
-
     m(0, 0) = 10;
     m(1, 0) = 20;
     m(1, 1) = 30;
@@ -422,7 +397,6 @@ int test_gpu_lowtrimatrix_int_type_access() {
     m(2, 2) = 60;
 
     if (!check(m(1, 0), 20, check_msg(get_type_name<int>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m(2, 2), 60, check_msg(get_type_name<int>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -431,11 +405,9 @@ int test_gpu_lowtrimatrix_int_type_access() {
 int test_gpu_lowtrimatrix_const_access_full() {
 
     LowTriMatrix<double> m(3, 5.5);
-
     const LowTriMatrix<double>& const_m = m;
 
     if (!check(const_m(0, 0), 5.5, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(const_m(2, 1), 5.5, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;

@@ -4,6 +4,7 @@
 using namespace lahva::gpu;
 using lahva::Shape;
 using lahva::CudaRuntime;
+using lahva::CudaHostAllocator;
 #define M 10
 #define N 5
 
@@ -265,18 +266,154 @@ int test_outer_product(CudaRuntime& cudart){
     try {
         Matrix<T> A(Shape(4,2),0.0);
         OuterVectorProduct(cudart, x, y, A);
+        std::cerr << check_msg(get_type_name<T>(), "check 3") << std::endl;
         return TEST_FAIL; // Should not reach here
-        std::cerr << "Error: No exception thrown for dimension mismatch in outer product test." << std::endl;
     }
     catch (std::invalid_argument& e) {
         // Expected exception caught
     }
     catch (const std::exception& e) {
+        std::cerr << check_msg(get_type_name<T>(), "check 4") << std::endl;
         return TEST_FAIL; // Unexpected exception type
-        std::cerr << "Error: Unexpected exception type caught in outer product dimension mismatch test: " << e.what() << std::endl;
     }
 
 
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemv_simple(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T, CudaHostAllocator<T>> x(4);
+    x[0] = 1.0;
+    x[1] = 2.0;
+    x[2] = 3.0;
+    x[3] = 4.0;
+
+    Vector<T, CudaHostAllocator<T>> y(4, 0.0);
+
+    MatrixVectorProduct(cudart, "N", static_cast<T>(1.0), A, x, static_cast<T>(0.0), y);
+
+    if (!check(y[0], static_cast<T>(5.0), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(11.0), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y[2], static_cast<T>(39.0), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(y[3], static_cast<T>(53.0), check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemv_with_beta(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T, CudaHostAllocator<T>> x(2, static_cast<T>(1.0));
+    Vector<T, CudaHostAllocator<T>> y(2, static_cast<T>(2.0));
+
+    MatrixVectorProduct(cudart, "N", static_cast<T>(1.0), A, x, static_cast<T>(2.0), y);
+
+    if (!check(y[0], static_cast<T>(8.0), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(10.0), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemv_varying_blocks(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{1, 1}, {2}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{1, 1}, {3}));
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T, CudaHostAllocator<T>> x(4);
+    x[0] = 1.0;
+    x[1] = 2.0;
+    x[2] = 3.0;
+    x[3] = 4.0;
+
+    Vector<T, CudaHostAllocator<T>> y(4, static_cast<T>(0.0));
+
+    MatrixVectorProduct(cudart, "N", static_cast<T>(1.0), A, x, static_cast<T>(0.0), y);
+
+    if (!check(y[0], static_cast<T>(2.0), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(11.0), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y[2], static_cast<T>(16.0), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(y[3], static_cast<T>(12.0), check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemv_transpose(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T, CudaHostAllocator<T>> x(2);
+    x[0] = 1.0;
+    x[1] = 2.0;
+
+    Vector<T, CudaHostAllocator<T>> y(2, static_cast<T>(0.0));
+
+    MatrixVectorProduct(cudart, "T", static_cast<T>(1.0), A, x, static_cast<T>(0.0), y);
+
+    if (!check(y[0], static_cast<T>(7.0), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(10.0), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemv_transpose_with_beta(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T, CudaHostAllocator<T>> x(2, static_cast<T>(1.0));
+    Vector<T, CudaHostAllocator<T>> y(2, static_cast<T>(2.0));
+
+    MatrixVectorProduct(cudart, "T", static_cast<T>(1.0), A, x, static_cast<T>(2.0), y);
+
+    if (!check(y[0], static_cast<T>(7.0), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(11.0), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemv_transpose_multiple_blocks(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T, CudaHostAllocator<T>> x(4);
+    x[0] = 1.0;
+    x[1] = 2.0;
+    x[2] = 3.0;
+    x[3] = 4.0;
+
+    Vector<T, CudaHostAllocator<T>> y(4, static_cast<T>(0.0));
+
+    MatrixVectorProduct(cudart, "T", static_cast<T>(1.0), A, x, static_cast<T>(0.0), y);
+
+    if (!check(y[0], static_cast<T>(7.0), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(10.0), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y[2], static_cast<T>(43.0), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(y[3], static_cast<T>(50.0), check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -289,26 +426,41 @@ int main(){
     int total_failures = 0;
     CudaRuntime cudart;
 
+    // Basic GEMV tests
     total_failures += test_gemv_zero_v_cpp<double>(cudart);
     total_failures += test_gemv_zero_v_cpp<float>(cudart);
 
+    // SymV tests
     total_failures += test_symv_zero_v_cpp<double>(cudart);
     total_failures += test_symv_zero_v_cpp<float>(cudart);
-
     total_failures += test_gemv_v_cpp<double>(cudart);
     total_failures += test_gemv_v_cpp<float>(cudart);
-
     total_failures += test_symv_v_cpp<double>(cudart);
     total_failures += test_symv_v_cpp<float>(cudart);
-
     total_failures += test_spmv_v_cpp<double>(cudart);
     total_failures += test_spmv_v_cpp<float>(cudart);
 
+    // Complex GEMV tests
     total_failures += test_complex_gemv_zero_v_cpp<complex_double>(cudart);
     total_failures += test_complex_gemv_zero_v_cpp<complex_float>(cudart);
 
+    // Outer product tests
     total_failures += test_outer_product<double>(cudart);
     total_failures += test_outer_product<float>(cudart);
+
+    // BlockDiagMatrix GEMV tests
+    total_failures += test_gpu_blockdiag_gemv_simple<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_with_beta<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_varying_blocks<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_transpose<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_transpose_with_beta<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_transpose_multiple_blocks<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_simple<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_with_beta<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_varying_blocks<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_transpose<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_transpose_with_beta<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_transpose_multiple_blocks<float>(cudart);
 
     if (total_failures > 0) {
         std::cerr << "gpu/blas/level2 tests: " << total_failures << " failures" << std::endl;

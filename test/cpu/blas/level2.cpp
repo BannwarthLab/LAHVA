@@ -16,6 +16,10 @@ template<typename T> T* get_test_data();
 template<> double* get_test_data<double>() { return pd; }
 template<> float* get_test_data<float>() { return pf; }
 
+// ============================================================================
+// Basic GEMV Tests
+// ============================================================================
+
 template<typename T>
 int test_gemv_zero_v_cpp(){
     Shape s(M,N);
@@ -53,6 +57,11 @@ int test_gemv_zero_v_cpp(){
 
     return TEST_PASS;
 }
+
+// ============================================================================
+// Complex GEMV Tests
+// ============================================================================
+
 template<typename T>
 int test_complex_gemv_zero_v_cpp(){
     Shape s(M,N);
@@ -119,6 +128,10 @@ int test_gemv_v_cpp(){
 
     return TEST_PASS;
 }
+
+// ============================================================================
+// Symmetric Matrix Vector Product Tests
+// ============================================================================
 
 template<typename T>
 int test_symv_zero_v_cpp(){
@@ -263,7 +276,9 @@ int test_tpmv_cpp(){
     return TEST_PASS;
 }
 
-
+// ============================================================================
+// C-Level GEMV Tests
+// ============================================================================
 
 template<typename T>
 int test_gemv_zero_v_c(){
@@ -334,6 +349,10 @@ int test_gemv_v_c(){
     return TEST_PASS;
 }
 
+// ============================================================================
+// C-Level Symmetric Matrix Vector Product Tests
+// ============================================================================
+
 template<typename T>
 int test_symv_zero_v_c(){
     Shape s(M,M);
@@ -394,6 +413,10 @@ int test_symv_v_c(){
     return TEST_PASS;
 }
 
+// ============================================================================
+// Outer Product Tests
+// ============================================================================
+
 template <typename T>
 int test_ger(){
     Vector<T> x({1.0, 2.0, 3.0});
@@ -417,16 +440,154 @@ int test_ger(){
     try {
         Matrix<T> A(Shape(4,2),0.0);
         OuterVectorProduct(x, y, A);
+        std::cerr << check_msg(get_type_name<T>(), "check 3") << std::endl;
         return TEST_FAIL; // Should not reach here
-        std::cerr << "Error: No exception thrown for dimension mismatch in outer product test." << std::endl;
     }
     catch (std::invalid_argument& e) {
         // Expected exception caught
     }
     catch (const std::exception& e) {
+        std::cerr << check_msg(get_type_name<T>(), "check 4") << std::endl;
         return TEST_FAIL; // Unexpected exception type
-        std::cerr << "Error: Unexpected exception type caught in outer product dimension mismatch test: " << e.what() << std::endl;
     }
+
+    return TEST_PASS;
+}
+
+// ============================================================================
+// BlockDiagMatrix GEMV Tests
+// ============================================================================
+
+template<typename T>
+int test_blockdiag_gemv_simple() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {5, 7, 6, 8}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T> x(4);
+    x[0] = static_cast<T>(1);
+    x[1] = static_cast<T>(2);
+    x[2] = static_cast<T>(3);
+    x[3] = static_cast<T>(4);
+
+    Vector<T> y(4, static_cast<T>(0));
+
+    MatrixVectorProduct(static_cast<T>(1), A, x, static_cast<T>(0), y);
+
+    if (!check(y[0], static_cast<T>(5), check_msg(get_type_name<T>(), "y[0] should be 5"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(11), check_msg(get_type_name<T>(), "y[1] should be 11"))) return TEST_FAIL;
+    if (!check(y[2], static_cast<T>(39), check_msg(get_type_name<T>(), "y[2] should be 39"))) return TEST_FAIL;
+    if (!check(y[3], static_cast<T>(53), check_msg(get_type_name<T>(), "y[3] should be 53"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template<typename T>
+int test_blockdiag_gemv_with_beta() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {1, 2, 3, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T> x(2, static_cast<T>(1));
+    Vector<T> y(2, static_cast<T>(2));
+
+    MatrixVectorProduct(static_cast<T>(1), A, x, static_cast<T>(2), y);
+
+    if (!check(y[0], static_cast<T>(8), check_msg(get_type_name<T>(), "y[0] should be 8"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(10), check_msg(get_type_name<T>(), "y[1] should be 10"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template<typename T>
+int test_blockdiag_gemv_varying_blocks() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{1, 1}, {2}));
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {1, 2, 3, 4}));
+    blocks.push_back(Matrix<T>(Shape{1, 1}, {3}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T> x(4);
+    x[0] = static_cast<T>(1);
+    x[1] = static_cast<T>(2);
+    x[2] = static_cast<T>(3);
+    x[3] = static_cast<T>(4);
+
+    Vector<T> y(4, static_cast<T>(0));
+
+    MatrixVectorProduct(static_cast<T>(1), A, x, static_cast<T>(0), y);
+
+    if (!check(y[0], static_cast<T>(2), check_msg(get_type_name<T>(), "y[0] should be 2"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(11), check_msg(get_type_name<T>(), "y[1] should be 11"))) return TEST_FAIL;
+    if (!check(y[2], static_cast<T>(16), check_msg(get_type_name<T>(), "y[2] should be 16"))) return TEST_FAIL;
+    if (!check(y[3], static_cast<T>(12), check_msg(get_type_name<T>(), "y[3] should be 12"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template<typename T>
+int test_blockdiag_gemv_transpose() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {1, 3, 2, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T> x(2);
+    x[0] = static_cast<T>(1);
+    x[1] = static_cast<T>(2);
+
+    Vector<T> y(2, static_cast<T>(0));
+
+    MatrixVectorProduct(A, x, y, "T");
+
+    if (!check(y[0], static_cast<T>(7), check_msg(get_type_name<T>(), "y[0] should be 7"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(10), check_msg(get_type_name<T>(), "y[1] should be 10"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template<typename T>
+int test_blockdiag_gemv_transpose_with_alpha_beta() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {2, 6, 4, 8}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T> x(2);
+    x[0] = static_cast<T>(1);
+    x[1] = static_cast<T>(2);
+
+    Vector<T> y(2, static_cast<T>(1));
+
+    MatrixVectorProduct(A, x, y, "T", static_cast<T>(0.5), static_cast<T>(2));
+
+    if (!check(y[0], static_cast<T>(9), check_msg(get_type_name<T>(), "y[0] should be 9"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(12), check_msg(get_type_name<T>(), "y[1] should be 12"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template<typename T>
+int test_blockdiag_gemv_no_transpose() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {1, 3, 2, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T> x(2);
+    x[0] = static_cast<T>(1);
+    x[1] = static_cast<T>(2);
+
+    Vector<T> y(2, static_cast<T>(0));
+
+    MatrixVectorProduct(A, x, y, "N");
+
+    if (!check(y[0], static_cast<T>(5), check_msg(get_type_name<T>(), "y[0] should be 5"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(11), check_msg(get_type_name<T>(), "y[1] should be 11"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -437,32 +598,62 @@ int test_ger(){
 
 int main(){
     int total_failures = 0;
+
+    // Basic GEMV tests
     total_failures += test_gemv_zero_v_cpp<double>();
     total_failures += test_gemv_zero_v_cpp<float>();
     total_failures += test_complex_gemv_zero_v_cpp<complex_double>();
     total_failures += test_complex_gemv_zero_v_cpp<complex_float>();
+
+    // GEMV with data tests
     total_failures += test_gemv_v_cpp<double>();
     total_failures += test_gemv_v_cpp<float>();
+
+    // Symmetric matrix vector product tests
     total_failures += test_symv_zero_v_cpp<double>();
     total_failures += test_symv_zero_v_cpp<float>();
     total_failures += test_symv_v_cpp<double>();
     total_failures += test_symv_v_cpp<float>();
+
+    // Lower triangular matrix tests
     total_failures += test_symv_zero_lowtri_cpp<double>();
     total_failures += test_symv_zero_lowtri_cpp<float>();
     total_failures += test_symv_lowtri_cpp<double>();
     total_failures += test_symv_lowtri_cpp<float>();
+
+    // Triangular packed matrix vector product tests
     total_failures += test_tpmv_cpp<double>();
     total_failures += test_tpmv_cpp<float>();
+
+    // C-level GEMV tests
     total_failures += test_gemv_zero_v_c<double>();
     total_failures += test_gemv_zero_v_c<float>();
     total_failures += test_gemv_v_c<double>();
     total_failures += test_gemv_v_c<float>();
+
+    // C-level symmetric matrix tests
     total_failures += test_symv_zero_v_c<double>();
     total_failures += test_symv_zero_v_c<float>();
     total_failures += test_symv_v_c<double>();
     total_failures += test_symv_v_c<float>();
+
+    // Outer product tests
     total_failures += test_ger<double>();
     total_failures += test_ger<float>();
+
+    // BlockDiagMatrix GEMV tests
+    total_failures += test_blockdiag_gemv_simple<double>();
+    total_failures += test_blockdiag_gemv_simple<float>();
+    total_failures += test_blockdiag_gemv_with_beta<double>();
+    total_failures += test_blockdiag_gemv_with_beta<float>();
+    total_failures += test_blockdiag_gemv_varying_blocks<double>();
+    total_failures += test_blockdiag_gemv_varying_blocks<float>();
+    total_failures += test_blockdiag_gemv_transpose<double>();
+    total_failures += test_blockdiag_gemv_transpose<float>();
+    total_failures += test_blockdiag_gemv_transpose_with_alpha_beta<double>();
+    total_failures += test_blockdiag_gemv_transpose_with_alpha_beta<float>();
+    total_failures += test_blockdiag_gemv_no_transpose<double>();
+    total_failures += test_blockdiag_gemv_no_transpose<float>();
 
     if (total_failures > 0) {
         std::cerr << "cpu/blas/level2 tests: " << total_failures << " failures" << std::endl;

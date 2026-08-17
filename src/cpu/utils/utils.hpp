@@ -23,6 +23,7 @@ namespace lahva{
     void check_equal_size(const Tensor_<T>& v1, const Tensor_<U>& v2){
         assert(v1.size() == v2.size());
     };
+
     namespace cpu
     {
     
@@ -35,13 +36,14 @@ namespace lahva{
     /// the matrix row count must equal x size and column count must equal result size.
     ///
     /// @tparam T Element type of matrix and vectors.
-    /// @param m Matrix operand (Matrix_<T>).
+    /// @param m Matrix operand (MatrixType).
     /// @param vmult Input vector x that is multiplied by the matrix.
     /// @param vres Output/result vector y.
     /// @param trans Transpose flag for the matrix (default: CblasNoTrans).
     /// @return Tuple of (nrow, ncol) - row and column counts of the matrix.
-    template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const Matrix_<T>& m, const Tensor_<T>& vmult, const Tensor_<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
+    /// @note MatrixType is either a Matrix_<T> or a BlockDiagMatrix_<T> type, which are compatible with the BLAS interface.
+    template<typename MatrixType, typename VectorType>
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const MatrixType& m, const VectorType& vmult, const VectorType& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
@@ -101,15 +103,16 @@ namespace lahva{
     /// of op(B), and all assertions will fail if dimensions are incompatible.
     ///
     /// @tparam T Element type of all matrices.
-    /// @param a Left-hand matrix operand (Matrix_<T>).
-    /// @param b Right-hand matrix operand (Matrix_<T>).
-    /// @param c Output matrix (Matrix_<T>) to store the result.
+    /// @param a Left-hand matrix operand (MatrixTypeA).
+    /// @param b Right-hand matrix operand (MatrixTypeB).
+    /// @param c Output matrix (MatrixTypeC) to store the result.
     /// @param transa Transpose flag for matrix A (default: CblasNoTrans).
     /// @param transb Transpose flag for matrix B (default: CblasNoTrans).
     /// @return Tuple of (m, n, k) where m and n are dimensions of C, and k is the inner dimension.
-    template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT, BLAS_INT> check_size_mm(const Matrix_<T>& a, const Matrix_<T>& b, 
-        const Matrix_<T>& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
+    /// @note MatrixType is either a Matrix_<T> or a BlockDiagMatrix_<T> type, which are compatible with the BLAS interface.
+    template<typename MatrixTypeA, typename MatrixTypeB, typename MatrixTypeC>
+    std::tuple<BLAS_INT, BLAS_INT, BLAS_INT> check_size_mm(const MatrixTypeA& a, const MatrixTypeB& b, 
+        const MatrixTypeC& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
         
         Shape sa = a.shape();
         BLAS_INT nrowa = sa.first;
@@ -177,9 +180,9 @@ namespace lahva{
     /// @param transa Transpose flag for matrix A (default: CblasNoTrans).
     /// @param transb Transpose flag for matrix B (default: CblasNoTrans).
     /// @return Tuple of (nrow, ncol) - dimensions of the output matrix.
-    template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_same_shape_mm(const Matrix_<T>& a, const Matrix_<T>& b, 
-        const Matrix_<T>& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
+    template<typename MatrixTypeA, typename MatrixTypeB, typename MatrixTypeC>
+    std::tuple<BLAS_INT, BLAS_INT> check_same_shape_mm(const MatrixTypeA& a, const MatrixTypeB& b, 
+        const MatrixTypeC& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
         
         Shape sa = a.shape();
         BLAS_INT nrowa = sa.first;
@@ -272,5 +275,6 @@ namespace lahva{
     /// @param T Character string "N" (no transpose), "T" (transpose), or "C" (conjugate transpose).
     /// @return Corresponding CBLAS_TRANSPOSE enumeration value.
     CBLAS_TRANSPOSE get_trans(const char* T);
-    } // namespace cpu
-}
+
+} // namespace cpu
+} // namespace lahva

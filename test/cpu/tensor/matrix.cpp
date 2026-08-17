@@ -17,7 +17,10 @@ int test_matrix_size_constructor() {
 
     if (!check((int)s.second, 10, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
-    if (m.data() == nullptr) return TEST_FAIL;
+    if (m.data() == nullptr) {
+        std::cerr << check_msg(get_type_name<T>(), "check 3") << std::endl;
+        return TEST_FAIL;
+    }
 
     return TEST_PASS;
 }
@@ -134,11 +137,14 @@ int test_matrix_data_access() {
     Shape shape = Shape{3, 3};
     Matrix<T> m(shape);
 
-    if (m.data() == nullptr) return TEST_FAIL;
+    if (m.data() == nullptr) {
+        std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
+        return TEST_FAIL;
+    }
 
     // Write and read
     m.data()[0] = (T)5.5;
-    if (!check((double)m.data()[0], 5.5, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check((double)m.data()[0], 5.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -152,9 +158,8 @@ int test_matrix_operator_access() {
     m(1, 1) = (T)2.0;
     m(2, 2) = (T)3.0;
 
-    if (!check((double)m(0, 0), 1.0, "Operator() access should work")) return TEST_FAIL;
-
-    if (!check((double)m(1, 1), 2.0, "Operator() [1,1]")) return TEST_FAIL;
+    if (!check((double)m(0, 0), 1.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((double)m(1, 1), 2.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -208,15 +213,18 @@ int test_matrix_memory_allocation() {
     Shape shape = Shape{100, 100};
     Matrix<T> m(shape);
 
-    if (m.data() == nullptr) return TEST_FAIL;
+    if (m.data() == nullptr) {
+        std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
+        return TEST_FAIL;
+    }
 
     // Write to first and last elements
     m.data()[0] = (T)1.5;
     m.data()[9999] = (T)9999.5;
 
-    if (!check((double)m.data()[0], 1.5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((double)m.data()[0], 1.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
-    if (!check((double)m.data()[9999], 9999.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((double)m.data()[9999], 9999.5, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -226,7 +234,10 @@ int test_matrix_destructor() {
     {
         Shape shape = Shape{50, 50};
         Matrix<T> m(shape);
-        if (m.data() == nullptr) return TEST_FAIL;
+        if (m.data() == nullptr) {
+            std::cerr << check_msg(get_type_name<T>(), "") << std::endl;
+            return TEST_FAIL;
+        }
     }
     // Destructor should deallocate
 
@@ -316,10 +327,16 @@ int test_matrix_is_square() {
     Matrix<T> rect(s_rect);
 
     Shape sq_shape = square.shape();
-    if (sq_shape.first != sq_shape.second) return TEST_FAIL;
+    if (sq_shape.first != sq_shape.second) {
+        std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
+        return TEST_FAIL;
+    }
 
     Shape r_shape = rect.shape();
-    if (r_shape.first == r_shape.second) return TEST_FAIL;
+    if (r_shape.first == r_shape.second) {
+        std::cerr << check_msg(get_type_name<T>(), "check 2") << std::endl;
+        return TEST_FAIL;
+    }
 
     return TEST_PASS;
 }

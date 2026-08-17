@@ -34,6 +34,16 @@ test('cpu-tensor-lowtrimatrix',
   ),
 )
 
+# BlockDiagMatrix type tests
+test('cpu-tensor-blockdiagmatrix',
+  executable(
+    'lahva-cpu-blockdiagmatrix-tensor',
+    sources: files('tensor/blockdiagmatrix.cpp'),
+    dependencies: [lahva_dep, cpu_test_utils_dep],
+    link_language: 'cpp',
+  ),
+)
+
 # BLAS Level 1 tests
 test('cpu-blas-level1',
   executable(
