@@ -389,8 +389,9 @@ namespace lahva
             {
                 free_gpu_cache();
                 size_t offset = 0;
-                for (auto &[pos, block] : blocks_)
+                for (std::pair<const std::pair<size_t, size_t>, Matrix<T, Allocator>> &entry : blocks_)
                 {
+                    Matrix<T, Allocator> &block = entry.second;
                     Shape s = block.shape();
                     size_t min_dim = std::min(s.first, s.second);
 #pragma omp for

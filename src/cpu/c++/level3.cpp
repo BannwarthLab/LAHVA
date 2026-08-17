@@ -81,7 +81,7 @@ namespace lahva
             std::vector<double*> c_array;
 
             // Reserve maximum number of elements to avoid reallocations
-            int max_blocks = static_cast<int>(a.num_blocks());
+            size_t max_blocks = static_cast<size_t>(a.num_blocks());
             a_array.reserve(max_blocks);
             b_array.reserve(max_blocks);
             c_array.reserve(max_blocks);
