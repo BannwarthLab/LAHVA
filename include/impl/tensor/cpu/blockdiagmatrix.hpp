@@ -17,6 +17,13 @@ namespace lahva
     class BlockDiagMatrix_ : public virtual Tensor<T>
     {
         public:
+            BlockDiagMatrix_() = default;
+            BlockDiagMatrix_(const BlockDiagMatrix_ &) = default;
+            BlockDiagMatrix_ &operator=(const BlockDiagMatrix_ &) = default;
+            BlockDiagMatrix_(BlockDiagMatrix_ &&) noexcept = default;
+            BlockDiagMatrix_ &operator=(BlockDiagMatrix_ &&) noexcept = default;
+            virtual ~BlockDiagMatrix_() = default;
+
             //! @brief Get the shape of the block diagonal matrix.
             //! @return Shape object with (n_rows, n_cols) representing total matrix dimensions
             virtual Shape shape() const  = 0;
