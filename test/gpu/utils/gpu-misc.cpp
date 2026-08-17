@@ -16,13 +16,10 @@ int test_std_vector_async(CudaRuntime& cudart)
 {
     std::vector<Vector<T>> vecs;
     Vector<T> vec = Vector<T>(10, (T)1.0);
-    // we create empty vectors without streams
-    //vecs.resize(10);
     Vector<T> vec_tot(10, (T)0.0);
     for (int i = 0; i < 50; i++)
     {
         vecs.push_back(vec);
-
     }
     for (int i = 0; i < 50; i++)
     {
@@ -30,8 +27,10 @@ int test_std_vector_async(CudaRuntime& cudart)
     }
     vec_tot.copy2host(cudart);
     cudart.synchronize();
-    if (vec_tot.sum() != (50*10)) return 1;
-    return 0;
+
+    T expected = (T)(50*10);
+    if (!check(vec_tot.sum(), expected, check_msg(get_type_name<T>(), "async vector sum"))) return TEST_FAIL;
+    return TEST_PASS;
 };
 
 template <typename T>
@@ -43,7 +42,6 @@ int test_std_vector_push_GPU_values(CudaRuntime& cudart)
     Vector<T> vec_tot(10, (T)1.0);
     for (int i = 0; i < 50; i++)
     {
-
         lahva::gpu::AddVectors(cudart, (T)1.0, vec_tot, vec);
         cudart.synchronize();
         vecs.push_back(vec);
@@ -58,9 +56,10 @@ int test_std_vector_push_GPU_values(CudaRuntime& cudart)
     }
     vec_tot.copy2host(cudart);
     cudart.synchronize();
-    if (vec_tot.sum() != (50*10)) return 1;
 
-    return 0;
+    T expected = (T)(50*10);
+    if (!check(vec_tot.sum(), expected, check_msg(get_type_name<T>(), "GPU push values sum"))) return TEST_FAIL;
+    return TEST_PASS;
 };
 
 template <typename T>
@@ -75,8 +74,14 @@ int test_GPUTimer_stdConst(CudaRuntime& cudart)
        lahva::gpu::AddVectors(cudart, (T)1.0, vec, vec2);
     }
     timer.pop();
-    timer.print_entries();
-    return 0;
+    cudart.synchronize();
+
+    auto entries = timer.print_entries();
+    if (entries.empty()) {
+        std::cerr << check_msg(get_type_name<T>(), "");
+        return TEST_FAIL;
+    }
+    return TEST_PASS;
 };
 
 template <typename T>
@@ -91,8 +96,14 @@ int test_GPUTimer(CudaRuntime& cudart)
        lahva::gpu::AddVectors(cudart, (T)1.0, vec, vec2);
     }
     timer.pop();
-    timer.print_entries();
-    return 0;
+    cudart.synchronize();
+
+    auto entries = timer.print_entries();
+    if (entries.empty()) {
+        std::cerr << check_msg(get_type_name<T>(), "");
+        return TEST_FAIL;
+    }
+    return TEST_PASS;
 };
 
 template <typename T>
@@ -107,8 +118,14 @@ int test_GPUTimer_stream(CudaRuntime& cudart)
        lahva::gpu::AddVectors(cudart, (T)1.0, vec, vec2);
     }
     timer.pop(cudart.getStream());
-    timer.print_entries();
-    return 0;
+    cudart.synchronize();
+
+    auto entries = timer.print_entries();
+    if (entries.empty()) {
+        std::cerr << check_msg(get_type_name<T>(), "");
+        return TEST_FAIL;
+    }
+    return TEST_PASS;
 };
 
 template <typename T>
@@ -123,8 +140,14 @@ int test_GPUTimer_stream_no_pop(CudaRuntime& cudart)
        lahva::gpu::AddVectors(cudart, (T)1.0, vec, vec2);
     }
     timer.pop(cudart.getStream());
-    timer.print_entries();
-    return 0;
+    cudart.synchronize();
+
+    auto entries = timer.print_entries();
+    if (entries.empty()) {
+        std::cerr << check_msg(get_type_name<T>(), "");
+        return TEST_FAIL;
+    }
+    return TEST_PASS;
 };
 
 // ============================================================================

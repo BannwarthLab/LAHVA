@@ -124,6 +124,15 @@ namespace lahva
             {
             }
 
+            //! @brief Copy constructor
+            BlockMatrix(const BlockMatrix &other) = default;
+
+            //! @brief Move constructor
+            BlockMatrix(BlockMatrix &&other) noexcept = default;
+
+            //! @brief Copy assignment operator
+            BlockMatrix &operator=(const BlockMatrix &other) = default;
+
             //! @brief Move assignment operator
             BlockMatrix &operator=(BlockMatrix &&other) noexcept {
                 Tensor<T, Allocator, GPUAllocator>::operator=(std::move(other));
