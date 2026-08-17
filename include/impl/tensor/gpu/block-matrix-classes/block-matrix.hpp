@@ -124,6 +124,24 @@ namespace lahva
             {
             }
 
+            //! @brief Move assignment operator
+            BlockMatrix &operator=(BlockMatrix &&other) noexcept {
+                Tensor<T, Allocator, GPUAllocator>::operator=(std::move(other));
+                BlockMatrix_<T>::operator=(std::move(other));
+                n_rows_ = other.n_rows_;
+                n_cols_ = other.n_cols_;
+                blocks_ = std::move(other.blocks_);
+                row_offsets_ = std::move(other.row_offsets_);
+                col_offsets_ = std::move(other.col_offsets_);
+                row_offsets_valid_ = other.row_offsets_valid_;
+                col_offsets_valid_ = other.col_offsets_valid_;
+                other.n_rows_ = 0;
+                other.n_cols_ = 0;
+                other.row_offsets_valid_ = false;
+                other.col_offsets_valid_ = false;
+                return *this;
+            }
+
             //! @brief Get total shape (rows, columns) of the block matrix
             Shape shape() const override { return Shape(n_rows_, n_cols_); }
 

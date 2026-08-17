@@ -342,7 +342,7 @@ namespace lahva
             //! @brief Helper function to convert GPU BlockMatrix to BSR format
             void convert_to_bsr_gpu(const CudaRuntime& cudart, const gpu::BlockMatrix_<T>& block_matrix)
             {
-                int num_blocks_bsr = block_matrix.num_blocks();
+                size_t num_blocks_bsr = block_matrix.num_blocks();
                 bsr_num_block_rows_ = num_blocks_bsr;
                 bsr_block_rows_.clear();
                 bsr_block_cols_.clear();
