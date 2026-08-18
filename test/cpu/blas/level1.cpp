@@ -194,14 +194,14 @@ int test_copy_v_cpp(){
     auto sum_s = std::accumulate(s.begin(), s.end(), 0.0);
     auto sum_p = std::accumulate(p.begin(), p.end(), 0.0);
 
-    if (!check(sum_s, sum_p, "Error when adding up two Vectors without scaling.")) return TEST_FAIL;
+    if (!check(sum_s, sum_p, "check 1")) return TEST_FAIL;
 
     CopyVectors(p, 1, s, 1);
 
     auto sum_s_ = std::accumulate(s.begin(), s.end(), 0.0);
     auto sum_p_ = std::accumulate(p.begin(), p.end(), 0.0);
 
-    if (!check(sum_s_, sum_p_, "Error when adding up two Vectors without scaling.")) return TEST_FAIL;
+    if (!check(sum_s_, sum_p_, "check 2")) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -216,15 +216,15 @@ int test_swap_v_cpp(){
     auto sum_s = std::accumulate(s.begin(), s.end(), 0.0);
     auto sum_p = std::accumulate(p.begin(), p.end(), 0.0);
 
-    if (!check(sum_s, 2.0*5, "Error when swapping two Vectors.")) return TEST_FAIL;
-    if (!check(sum_p, 1.0*5, "Error when swapping two Vectors.")) return TEST_FAIL;
+    if (!check(sum_s, 2.0*5, "check 1")) return TEST_FAIL;
+    if (!check(sum_p, 1.0*5, "check 2")) return TEST_FAIL;
     SwapVectors(p, 1, s, 1);
 
     auto sum_s_ = std::accumulate(s.begin(), s.end(), 0.0);
     auto sum_p_ = std::accumulate(p.begin(), p.end(), 0.0);
 
-    if (!check(sum_s_, 1.0*5, "Error when swapping up two Vectors.")) return TEST_FAIL;
-    if (!check(sum_p_, 2.0*5, "Error when swapping up two Vectors.")) return TEST_FAIL;
+    if (!check(sum_s_, 1.0*5, "check 3")) return TEST_FAIL;
+    if (!check(sum_p_, 2.0*5, "check 4")) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -237,12 +237,12 @@ int test_scale_v_cpp(){
 
     auto sum_p = std::accumulate(p.begin(), p.end(), 0.0);
 
-    if (!check(sum_p, 4.0*5, "Error when scaling a Vector.")) return TEST_FAIL;
+    if (!check(sum_p, 4.0*5, "check 1")) return TEST_FAIL;
     ScaleVector(0.5, p, 1);
 
     auto sum_p_ = std::accumulate(p.begin(), p.end(), 0.0);
 
-    if (!check(sum_p_, 2.0*5, "Error when scaling a Vector.")) return TEST_FAIL;
+    if (!check(sum_p_, 2.0*5, "check 2")) return TEST_FAIL;
 
     return TEST_PASS;
 };
@@ -254,10 +254,10 @@ int test_inner_v_prod_cpp(){
 
     auto prod = InnerVectorProduct(p, s);
 
-    if (!check(prod, 2.0*5, "Error when swapping two Vectors.")) return TEST_FAIL;
+    if (!check(prod, 2.0*5, "check 1")) return TEST_FAIL;
     auto prod_ = InnerVectorProduct(p, 1, s, 1);
 
-    if (!check(prod_, prod, "Error when swapping up two Vectors.")) return TEST_FAIL;
+    if (!check(prod_, prod, "check 2")) return TEST_FAIL;
 
     return TEST_PASS;
 };
