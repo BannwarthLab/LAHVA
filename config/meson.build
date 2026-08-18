@@ -16,16 +16,6 @@ if has_nvcc == true
   if not cc.has_header('cusolverDn.h')
     has_nvcc = false
   endif
-  
-  # Disable hardening assertions for CUDA compilation
-  # These assertions are incompatible with nvcc when using certain host compilers (e.g., Intel icpx)
-  # and cause "__builtin_printf" to be undefined
-  add_project_arguments([
-    '-U_GLIBCXX_ASSERTIONS',
-    '-U_LIBCPP_HARDENING_MODE_EXTENSIVE',
-    '-Xcompiler=-U_GLIBCXX_ASSERTIONS',
-    '-Xcompiler=-U_LIBCPP_HARDENING_MODE_EXTENSIVE',
-  ], language: 'cuda')
 endif
 
 # Silence warnings when built as a subproject

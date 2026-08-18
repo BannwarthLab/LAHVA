@@ -5,5 +5,6 @@ subdir('blas')
 subdir('mixed-precision-instantion')
 
 srcs += files(
+    #'lapack.cpp',
 )
 

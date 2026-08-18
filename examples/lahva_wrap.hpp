@@ -1,7 +1,7 @@
 #pragma once
-#include <lahva.h>
-#include <lahva.hpp>
 #include <linalg.hpp>
+#include <lahva.hpp>
+#include <lahva.h>
 #include <timer.hpp>
 #ifdef _CUDA
 #include <runtime.hpp>
