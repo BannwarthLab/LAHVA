@@ -1,51 +1,21 @@
-/// @file mp-matrix-instantion.cpp
-/// @brief Mixed-precision matrix template instantiation for GPU computation.
-///
-/// Provides template implementations for MixedPrecisionMatrix operations including
-/// matrix decomposition (split) and composition (merge) to enable iterative refinement
-/// using lower-precision arithmetic with higher-precision residual correction.
-
+#include "impl/tensor/gpu/mixed-precision-classes/mixed-precision-matrix.hpp"
+#include "impl/tensor/allocators.hpp"
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/level1.hpp"
-#include "impl/tensor/allocators.hpp"
 #include "impl/tensor/gpu/matrix.hpp"
-#include "impl/tensor/gpu/mixed-precision-classes/mixed-precision-matrix.hpp"
 #include "impl/tensor/gpu/vector.hpp"
 #include "runtime.hpp"
-
+#include "timer.hpp"
 namespace lahva
 {
     namespace gpu
     {
-        /// @brief Constructs a mixed-precision matrix with specified shape and allocators.
-        ///
-        /// Initializes a matrix that supports both high-precision and lower-precision representations
-        /// for memory-efficient iterative refinement computations.
-        ///
-        /// @tparam high High-precision floating-point type (e.g., double).
-        /// @tparam Allocator Host memory allocator type.
-        /// @tparam GPUAllocator Device memory allocator type.
-        /// @param shape Matrix dimensions (rows, columns).
-        /// @param alloc Host memory allocator instance.
-        /// @param gpualloc Device memory allocator instance.
         template <typename high, typename Allocator, typename GPUAllocator>
         MixedPrecisionMatrix<high, Allocator, GPUAllocator>::MixedPrecisionMatrix(const Shape &shape, const Allocator &alloc, const GPUAllocator &gpualloc)
             : Matrix<high, Allocator, GPUAllocator>(shape, alloc, gpualloc)
         {
         }
-
-        /// @brief Splits matrix into lower-precision components for iterative refinement.
-        ///
-        /// Decomposes the high-precision matrix into split_type lower-precision matrices
-        /// with extracted exponents, enabling efficient computation while maintaining accuracy.
-        ///
-        /// @tparam high High-precision floating-point type.
-        /// @tparam Allocator Host memory allocator type.
-        /// @tparam GPUAllocator Device memory allocator type.
-        /// @tparam split_type Lower-precision type (e.g., __half for float16).
-        /// @param cudart CUDA runtime instance.
-        /// @param maxsplit Maximum number of split components.
-        /// @param buffer Temporary buffer for matrix conversion during split operation.
+        
         template <typename high, typename Allocator, typename GPUAllocator>
         template <typename split_type>
         void MixedPrecisionMatrix<high, Allocator, GPUAllocator>::split(const CudaRuntime& cudart, int maxsplit, Matrix_<high>& buffer) const 
@@ -69,17 +39,6 @@ namespace lahva
             }
         }
 
-        /// @brief Merges split lower-precision components back into high-precision matrix.
-        ///
-        /// Combines the split components using provided coefficients in an iterative refinement step:
-        /// result = ini_beta * original + sum(alphas[i] * split_component[i]).
-        ///
-        /// @tparam high High-precision floating-point type.
-        /// @tparam Allocator Host memory allocator type.
-        /// @tparam GPUAllocator Device memory allocator type.
-        /// @param cudart CUDA runtime instance.
-        /// @param alphas Coefficients for each split component (refinement step coefficients).
-        /// @param ini_beta Coefficient for the original high-precision matrix value.
         template <typename high, typename Allocator, typename GPUAllocator>
         void MixedPrecisionMatrix<high, Allocator, GPUAllocator>::merge(const CudaRuntime &cudart, const high* alphas, high ini_beta)
         {
@@ -94,19 +53,10 @@ namespace lahva
             
         }
 
-        /// @brief Merges split lower-precision components with equal weight.
-        ///
-        /// Convenience overload that sums all split components with coefficient 1.0,
-        /// useful for cases where equal contribution from each component is desired.
-        ///
-        /// @tparam high High-precision floating-point type.
-        /// @tparam Allocator Host memory allocator type.
-        /// @tparam GPUAllocator Device memory allocator type.
-        /// @param cudart CUDA runtime instance.
         template <typename high, typename Allocator, typename GPUAllocator>
         void MixedPrecisionMatrix<high, Allocator, GPUAllocator>::merge(const CudaRuntime &cudart)
         {
-
+            
             for (size_t i = 0; i < max_split_ ; ++i)
             {
                 AddVectors(cudart, 1.0, this->getSplitMatrix<float>(i), *this);

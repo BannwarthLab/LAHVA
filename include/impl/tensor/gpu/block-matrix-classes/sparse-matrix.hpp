@@ -15,12 +15,6 @@ namespace lahva
 {
     namespace gpu
     {
-        /// @brief Enumeration for sparse matrix format selection
-        enum class SparseFormat
-        {
-            CSR,        ///< Compressed Sparse Row format
-            BSR         ///< Block Sparse Row format
-        };
 
         /// @brief Helper struct for GPU sparse block-diagonal matrix data
         template<typename T>
@@ -41,10 +35,10 @@ namespace lahva
         //!
         //! Stores a block diagonal matrix directly on the GPU in either Compressed Sparse Row (CSR)
         //! or Block Sparse Row (BSR) format, enabling efficient sparse matrix operations without
-        //! CPU-GPU transfers during computation. Inherits from GPUTensor_ to provide consistent
+        //! CPU-GPU transfers during computation. Inherits from Tensor_ to provide consistent
         //! GPU tensor semantics and memory management.
         template <typename T>
-        class SparseMatrix : public virtual GPUTensor_<T>
+        class SparseMatrix : public virtual GPUTensor<T>
         {
         public:
             //! @brief Default constructor
@@ -141,6 +135,9 @@ namespace lahva
 
             //! @brief Get reference to sparse matrix data (host + device pointers)
             const GPUSparseBlockDiagData<T>& get_sparse_data() const { return sparse_data_; }
+
+            //! @brief Get cusparse sparse matrix descriptor
+            cusparseSpMatDescr_t get_descriptor() const { return mat_descr_; }
 
             //! @brief Allocate GPU memory for sparse matrix data
             void allocate_gpu_memory() {
@@ -345,7 +342,7 @@ namespace lahva
             //! @brief Helper function to convert GPU BlockMatrix to BSR format
             void convert_to_bsr_gpu(const CudaRuntime& cudart, const gpu::BlockMatrix_<T>& block_matrix)
             {
-                int num_blocks_bsr = block_matrix.num_blocks();
+                size_t num_blocks_bsr = block_matrix.num_blocks();
                 bsr_num_block_rows_ = num_blocks_bsr;
                 bsr_block_rows_.clear();
                 bsr_block_cols_.clear();

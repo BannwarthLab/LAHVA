@@ -1,27 +1,16 @@
-/// @file level1.cpp
-/// @brief GPU-accelerated Level-1 BLAS operations implementation.
-///
-/// Implements GPU versions of Level-1 BLAS operations (vector-vector operations)
-/// using NVIDIA's cuBLAS library for GPU acceleration. Supports operations like
-/// inner products, vector addition, and scalar multiplication on GPU tensors.
-
-#include "../../cpu/utils/utils.hpp"
-#include "impl/gpu/utils.hpp"
-#include "impl/blas/gpu/level1.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
+#include "../../cpu/utils/utils.hpp"
+#include "impl/blas/gpu/level1.hpp"
+#include "../gpu-utils/utils.hpp"
 
 namespace lahva{
     namespace gpu{
-    /// @brief Computes the inner product of two double-precision GPU tensors.
-    ///
-    /// Performs result = X^T * Y where X and Y are GPU tensors with unit stride.
-    /// Uses cuBLAS Ddot function for efficient GPU computation.
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param X First double-precision GPU tensor.
-    /// @param Y Second double-precision GPU tensor.
-    /// @return The inner product of tensors X and Y.
+    /*! @brief Take inner product of two Vectors of doubles
+        \param[in] nelemXY number of elements in Vectors X and Y
+        \param[in] X Vector
+        \param[in] Y Vector
+    */ 
     double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<double>& X, const GPUTensor_<double>& Y)
     {   
         check_equal_size(X,Y);
@@ -34,15 +23,10 @@ namespace lahva{
         get_cublas_error(istat);
         return result;}
 
-    /// @brief Computes the inner product of two single-precision GPU tensors.
-    ///
-    /// Performs result = X^T * Y where X and Y are GPU tensors with unit stride.
-    /// Uses cuBLAS Sdot function for efficient GPU computation.
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param X First single-precision GPU tensor.
-    /// @param Y Second single-precision GPU tensor.
-    /// @return The inner product of tensors X and Y.
+    /*! @brief Take inner product of two Vectors of float
+        \param[in] X Vector
+        \param[in] Y Vector
+    */ 
     float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<float>& X, const GPUTensor_<float>& Y)
     { 
         check_equal_size(X,Y);
@@ -56,17 +40,7 @@ namespace lahva{
         return result;
     }
 
-    /// @brief Computes the inner product of two double-precision GPU tensors with custom strides.
-    ///
-    /// Performs result = X^T * Y where X and Y are GPU tensors with specified element strides.
-    /// Uses cuBLAS Ddot function for efficient GPU computation with stride support.
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param X First double-precision GPU tensor.
-    /// @param strideX Memory stride for tensor X.
-    /// @param Y Second double-precision GPU tensor.
-    /// @param strideY Memory stride for tensor Y.
-    /// @return The inner product of tensors X and Y.
+    // strided Vector product
     double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<double>& X, const size_t strideX, const GPUTensor_<double>& Y, const size_t strideY)
     {
         check_equal_size(X,Y);
@@ -80,23 +54,12 @@ namespace lahva{
         return result;
     }
 
-    /// @brief Computes the inner product of two single-precision GPU tensors with custom strides.
-    ///
-    /// Performs result = X^T * Y where X and Y are GPU tensors with specified element strides.
-    /// Uses cuBLAS Sdot function for efficient GPU computation with stride support.
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param X First single-precision GPU tensor.
-    /// @param strideX Memory stride for tensor X.
-    /// @param Y Second single-precision GPU tensor.
-    /// @param strideY Memory stride for tensor Y.
-    /// @return The inner product of tensors X and Y.
     float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<float>& X, const size_t strideX, const GPUTensor_<float>& Y, const size_t strideY)
     {
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
         check_device_alloc( cudart, Y);
-
+        
         float result;
         cudart.cublasSetStream_();
         cublasStatus_t istat = cublasSdot(cudart.handle, X.size(), X.gpu_data(), strideX, Y.gpu_data(), strideY, &result);
@@ -104,15 +67,12 @@ namespace lahva{
         return result;
     }
 
-    /// @brief Computes scaled vector addition y = alpha * x + y for double-precision tensors (DAXPY).
-    ///
-    /// Performs in-place scaled vector addition where each element of y is updated by
-    /// adding alpha times the corresponding element of x.
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param a Scalar factor (alpha) for vector x.
-    /// @param x Input double-precision GPU tensor.
-    /// @param y Input/output double-precision GPU tensor, replaced with result.
+
+    /*! Simple interface to DAXPY \f$\vec{y}=\alpha\vec{x}+\vec{y}\f$ assuming unit stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] a \f$\alpha\f$
+    */
     void AddVectors(const CudaRuntime& cudart, const double a, const GPUTensor_<double>& x, GPUTensor_<double>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
@@ -122,15 +82,11 @@ namespace lahva{
         get_cublas_error(istat);
     }
 
-    /// @brief Computes scaled vector addition y = alpha * x + y for single-precision tensors (SAXPY).
-    ///
-    /// Performs in-place scaled vector addition where each element of y is updated by
-    /// adding alpha times the corresponding element of x.
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param a Scalar factor (alpha) for vector x.
-    /// @param x Input single-precision GPU tensor.
-    /// @param y Input/output single-precision GPU tensor, replaced with result.
+    /*! Simple interface to SAXPY \f$\vec{y}=\alpha\vec{x}+\vec{y}\f$ assuming unit stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] a \f$\alpha\f$
+    */
     void AddVectors(const CudaRuntime& cudart, const float a, const GPUTensor_<float>& x, GPUTensor_<float>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
@@ -141,17 +97,13 @@ namespace lahva{
     }
 
 
-    /// @brief Computes scaled vector addition y = a * x + y with custom strides for double-precision tensors (DAXPY).
-    ///
-    /// Performs in-place scaled vector addition with element strides where y[i*iy] is updated by
-    /// adding a times x[i*ix].
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param a Scalar factor (alpha) for vector x.
-    /// @param x Input double-precision GPU tensor.
-    /// @param ix Memory stride for tensor x.
-    /// @param y Input/output double-precision GPU tensor, replaced with result.
-    /// @param iy Memory stride for tensor y.
+    /*! Simple interface to DAXPY \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] a \f$\alpha\f$
+        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
+    */
     void AddVectors(const CudaRuntime& cudart, const double a, const GPUTensor_<double>& x, size_t ix, GPUTensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
@@ -161,17 +113,13 @@ namespace lahva{
         get_cublas_error(istat);
     }
 
-    /// @brief Computes scaled vector addition y = a * x + y with custom strides for single-precision tensors (SAXPY).
-    ///
-    /// Performs in-place scaled vector addition with element strides where y[i*iy] is updated by
-    /// adding a times x[i*ix].
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param a Scalar factor (alpha) for vector x.
-    /// @param x Input single-precision GPU tensor.
-    /// @param ix Memory stride for tensor x.
-    /// @param y Input/output single-precision GPU tensor, replaced with result.
-    /// @param iy Memory stride for tensor y.
+    /*! Simple interface to sAXPY \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] a \f$\alpha\f$
+        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
+    */
     void AddVectors(const CudaRuntime& cudart, const float a, const GPUTensor_<float>& x, size_t ix, GPUTensor_<float>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
@@ -181,13 +129,12 @@ namespace lahva{
         get_cublas_error(istat);
     }
 
-    /// @brief Copies double-precision GPU tensor with unit stride (DCOPY).
-    ///
-    /// Copies all elements from tensor x to tensor y: y = x.
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param x Source double-precision GPU tensor.
-    /// @param y Destination double-precision GPU tensor.
+    //Copy routines////////////////////////////////////////////////////////////////////
+
+    /*! Simple interface to DCOPY \f$\vec{y}=\vec{x}\f$ assuming unit stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+    */
     void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<double>& x, GPUTensor_<double>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
@@ -197,13 +144,10 @@ namespace lahva{
         get_cublas_error(istat); 
     }
 
-    /// @brief Copies single-precision GPU tensor with unit stride (SCOPY).
-    ///
-    /// Copies all elements from tensor x to tensor y: y = x.
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param x Source single-precision GPU tensor.
-    /// @param y Destination single-precision GPU tensor.
+    /*! Simple interface to SCOPY \f$\vec{y}=\vec{x}\f$ assuming unit stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+    */
     void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<float>& x, GPUTensor_<float>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
@@ -214,15 +158,12 @@ namespace lahva{
     }
 
 
-    /// @brief Copies double-precision GPU tensor with custom strides (DCOPY).
-    ///
-    /// Copies elements from tensor x to tensor y with specified element strides: y[i*iy] = x[i*ix].
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param x Source double-precision GPU tensor.
-    /// @param ix Memory stride for tensor x.
-    /// @param y Destination double-precision GPU tensor.
-    /// @param iy Memory stride for tensor y.
+    /*! Simple interface to DCOPY \f$\vec{y}=\vec{x}\f$ for specified stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
+    */
     void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<double>& x, size_t ix, GPUTensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
@@ -232,15 +173,12 @@ namespace lahva{
         get_cublas_error(istat);
     }
 
-    /// @brief Copies single-precision GPU tensor with custom strides (SCOPY).
-    ///
-    /// Copies elements from tensor x to tensor y with specified element strides: y[i*iy] = x[i*ix].
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param x Source single-precision GPU tensor.
-    /// @param ix Memory stride for tensor x.
-    /// @param y Destination single-precision GPU tensor.
-    /// @param iy Memory stride for tensor y.
+    /*! Simple interface to SCOPY \f$\vec{y}=\vec{x}\f$ for specified stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
+    */
     void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<float>& x, size_t ix, GPUTensor_<float>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
@@ -250,13 +188,12 @@ namespace lahva{
         get_cublas_error(istat);
     }
 
-    /// @brief Swaps double-precision GPU tensors with unit stride (DSWAP).
-    ///
-    /// Exchanges elements between tensors x and y in-place.
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param x First double-precision GPU tensor.
-    /// @param y Second double-precision GPU tensor.
+    ////Swap routines////////////////////////////////////////////////////////////////////
+
+    /*! Simple interface to DSWAP \f$\vec{y}<=>\vec{x}\f$ assuming unit stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+    */
     void SwapVectors(const CudaRuntime& cudart, GPUTensor_<double>& x, GPUTensor_<double>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
@@ -266,13 +203,10 @@ namespace lahva{
         get_cublas_error(istat);
     }
 
-    /// @brief Swaps single-precision GPU tensors with unit stride (SSWAP).
-    ///
-    /// Exchanges elements between tensors x and y in-place.
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param x First single-precision GPU tensor.
-    /// @param y Second single-precision GPU tensor.
+    /*! Simple interface to SSWAP \f$\vec{y}<=>\vec{x}\f$ assuming unit stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+    */
     void SwapVectors(const CudaRuntime& cudart, GPUTensor_<float>& x, GPUTensor_<float>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
@@ -283,15 +217,12 @@ namespace lahva{
         get_cublas_error(istat);
     }
 
-    /// @brief Swaps double-precision GPU tensors with custom strides (DSWAP).
-    ///
-    /// Exchanges elements between tensors x and y with specified strides in-place: swaps x[i*ix] with y[i*iy].
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param x First double-precision GPU tensor.
-    /// @param ix Memory stride for tensor x.
-    /// @param y Second double-precision GPU tensor.
-    /// @param iy Memory stride for tensor y.
+    /*! Simple interface to DSWAP \f$\vec{y}<=>\vec{x}\f$ for specified stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
+    */
     void SwapVectors(const CudaRuntime& cudart, GPUTensor_<double>& x, size_t ix, GPUTensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
@@ -302,15 +233,12 @@ namespace lahva{
         get_cublas_error(istat);
     }
 
-    /// @brief Swaps single-precision GPU tensors with custom strides (SSWAP).
-    ///
-    /// Exchanges elements between tensors x and y with specified strides in-place: swaps x[i*ix] with y[i*iy].
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param x First single-precision GPU tensor.
-    /// @param ix Memory stride for tensor x.
-    /// @param y Second single-precision GPU tensor.
-    /// @param iy Memory stride for tensor y.
+    /*! Simple interface to SSWAP \f$\vec{y}<=>\vec{x}\f$ for specified stride
+        \param[in] x \f$\vec{x}\f$
+        \param[in,out] y \f$\vec{y}\f$
+        \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+        \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
+    */
     void SwapVectors(const CudaRuntime& cudart, GPUTensor_<float>& x, size_t ix, GPUTensor_<float>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
@@ -321,13 +249,12 @@ namespace lahva{
         get_cublas_error(istat);
     } 
 
-    /// @brief Scales double-precision GPU tensor by scalar factor with unit stride (DSCAL).
-    ///
-    /// Multiplies all elements of tensor x by scalar a in-place: x = a * x.
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param a Scalar factor for multiplication.
-    /// @param x Input/output double-precision GPU tensor.
+    ////Scale routines////////////////////////////////////////////////////////////////////
+
+    /*! Simple interface to DSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
+        \param[in, out] x \f$\vec{x}\f$
+        \param[in,out] a \f$\alpha\f$
+    */
     void ScaleVector(const CudaRuntime& cudart, const double a, GPUTensor_<double>& x) {
         check_device_alloc( cudart, x); 
         
@@ -335,13 +262,10 @@ namespace lahva{
         cublasStatus_t istat = cublasDscal(cudart.handle, x.size(), &a, x.gpu_data(), 1);
         get_cublas_error(istat);
     }
-    /// @brief Scales single-precision GPU tensor by scalar factor with unit stride (SSCAL).
-    ///
-    /// Multiplies all elements of tensor x by scalar a in-place: x = a * x.
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param a Scalar factor for multiplication.
-    /// @param x Input/output single-precision GPU tensor.
+     /*! Simple interface to SSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
+        \param[in, out] x \f$\vec{x}\f$
+        \param[in,out] a \f$\alpha\f$
+    */
     void ScaleVector(const CudaRuntime& cudart, const float a, GPUTensor_<float>& x){
         check_device_alloc( cudart, x); 
         
@@ -350,30 +274,19 @@ namespace lahva{
         get_cublas_error(istat);
     }
 
-    /// @brief Scales double-precision GPU tensor by scalar factor with custom stride (DSCAL).
-    ///
-    /// Multiplies tensor elements by scalar a in-place with stride: x[i*ix] = a * x[i*ix].
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param a Scalar factor for multiplication.
-    /// @param x Input/output double-precision GPU tensor.
-    /// @param ix Memory stride for tensor x.
     void ScaleVector(const CudaRuntime& cudart, const double a, GPUTensor_<double>& x, size_t ix){
-        check_device_alloc( cudart, x);
-
+        check_device_alloc( cudart, x); 
+        
         cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDscal(cudart.handle, x.size(), &a, x.gpu_data(), ix);
         get_cublas_error(istat);
     }
-
-    /// @brief Scales single-precision GPU tensor by scalar factor with custom stride (SSCAL).
-    ///
-    /// Multiplies tensor elements by scalar a in-place with stride: x[i*ix] = a * x[i*ix].
-    ///
-    /// @param cudart CUDA runtime instance.
-    /// @param a Scalar factor for multiplication.
-    /// @param x Input/output single-precision GPU tensor.
-    /// @param ix Memory stride for tensor x.
+     /*! Simple interface to SSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
+        \param[in] n size of Vectors \f$x\f$ and \f$y\f$
+        \param[in, out] x \f$\vec{x}\f$
+        \param[in,out] a \f$\alpha\f$
+        stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
+    */
     void ScaleVector(const CudaRuntime& cudart, const float a, GPUTensor_<float>& x, size_t ix){
         check_device_alloc( cudart, x); 
         
@@ -381,5 +294,5 @@ namespace lahva{
         cublasStatus_t istat = cublasSscal(cudart.handle, x.size(), &a, x.gpu_data(), ix);
         get_cublas_error(istat);
     }
-    } // namespace gpu
-} // namespace lahva
+    }
+}

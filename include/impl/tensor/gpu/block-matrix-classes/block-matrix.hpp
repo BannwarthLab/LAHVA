@@ -11,11 +11,20 @@
 #include <vector>
 #include <map>
 #include <cstddef>
+#include <iostream>
+#include <iomanip>
 
 namespace lahva
 {
     namespace gpu
     {
+        /// @brief Enumeration for sparse matrix format selection
+        enum class SparseFormat
+        {
+            CSR,        ///< Compressed Sparse Row format
+            BSR         ///< Block Sparse Row format
+        };
+
         /// @brief Helper struct for GPU block diagonal matrix data packing
         template<typename T>
         struct GPUBlockDiagData {
@@ -30,9 +39,16 @@ namespace lahva
         /// @brief Abstract base class for GPU block-diagonal matrices
         /// @tparam T data type for matrix elements
         template<typename T>
-        class BlockMatrix_ : public virtual GPUTensor_<T>
+        class BlockMatrix_ : public virtual Tensor<T>
         {
         public:
+            BlockMatrix_() = default;
+            BlockMatrix_(const BlockMatrix_ &) = default;
+            BlockMatrix_ &operator=(const BlockMatrix_ &) = default;
+            BlockMatrix_(BlockMatrix_ &&) noexcept = default;
+            BlockMatrix_ &operator=(BlockMatrix_ &&) noexcept { return *this; }
+            virtual ~BlockMatrix_() = default;
+
             /// @brief Get total shape (rows, columns) of the block-diagonal matrix
             /// @return Shape object with total dimensions
             virtual Shape shape() const = 0;
@@ -80,6 +96,12 @@ namespace lahva
             /// @param[in] idx Block linear index
             /// @return Grid column index
             virtual size_t get_block_col(size_t idx) const = 0;
+
+            /// @brief Get preferred sparse format for GPU operations (CSR or BSR)
+            /// @return SparseFormat enum value (default: CSR)
+            virtual SparseFormat get_sparse_format() const {
+                return SparseFormat::CSR;
+            }
         };
 
         //! @brief GPU-accelerated block matrix with blocks at arbitrary positions
@@ -100,6 +122,33 @@ namespace lahva
             BlockMatrix()
                 : n_rows_(0), n_cols_(0)
             {
+            }
+
+            //! @brief Copy constructor
+            BlockMatrix(const BlockMatrix &other) = default;
+
+            //! @brief Move constructor
+            BlockMatrix(BlockMatrix &&other) noexcept = default;
+
+            //! @brief Copy assignment operator
+            BlockMatrix &operator=(const BlockMatrix &other) = default;
+
+            //! @brief Move assignment operator
+            BlockMatrix &operator=(BlockMatrix &&other) noexcept {
+                GPUTensor<T, Allocator, GPUAllocator>::operator=(std::move(other));
+                BlockMatrix_<T>::operator=(std::move(other));
+                n_rows_ = other.n_rows_;
+                n_cols_ = other.n_cols_;
+                blocks_ = std::move(other.blocks_);
+                row_offsets_ = std::move(other.row_offsets_);
+                col_offsets_ = std::move(other.col_offsets_);
+                row_offsets_valid_ = other.row_offsets_valid_;
+                col_offsets_valid_ = other.col_offsets_valid_;
+                other.n_rows_ = 0;
+                other.n_cols_ = 0;
+                other.row_offsets_valid_ = false;
+                other.col_offsets_valid_ = false;
+                return *this;
             }
 
             //! @brief Get total shape (rows, columns) of the block matrix
@@ -297,6 +346,21 @@ namespace lahva
                     throw std::out_of_range("Block at (" + std::to_string(i) + "," + std::to_string(j) + ") does not exist");
                 }
                 return it->second;
+            }
+
+            //! @brief Print the block matrix structure
+            void print() const {
+                std::cout << "BlockMatrix (" << n_rows_ << " x " << n_cols_ << ")" << std::endl;
+                for (const auto& [pos, block] : blocks_) {
+                    std::cout << "Block at (" << pos.first << ", " << pos.second << ") size "
+                              << block.shape().first << " x " << block.shape().second << ":" << std::endl;
+                    for (size_t i = 0; i < block.shape().first; i++) {
+                        for (size_t j = 0; j < block.shape().second; j++) {
+                            std::cout << std::setw(5) << (int)block(i, j) << " ";
+                        }
+                        std::cout << std::endl;
+                    }
+                }
             }
 
         private:

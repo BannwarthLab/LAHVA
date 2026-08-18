@@ -1,29 +1,12 @@
-/// @file lapack.cpp
-/// @brief CPU C-level LAPACK function implementations.
-///
-/// Low-level C implementations of LAPACK routines for solving linear systems, computing
-/// matrix factorizations (LU, QR, Cholesky), and other linear algebra operations.
-
-#include <stdexcept>
-#include "impl/blas/cpu/lapack.h"
 #include "lapack_wrap.hpp"
-
+#include "impl/blas/cpu/lapack.h"
+#include <stdexcept>
 namespace lahva
 {
 
     namespace cpu
     {
-        /// @brief Solve a general system of linear equations A*X = B (double precision)
-        ///
-        /// Solves the general linear system A*X = B using LU factorization with partial pivoting (dgetrf)
-        /// followed by triangular solve (dgetrs). Matrix A is overwritten with its LU factorization.
-        ///
-        /// @param Ta Transpose option for matrix A: "N" (no transpose, A*X = B), "T" (transpose, A^T*X = B).
-        /// @param n Dimension of the square matrix A (n x n).
-        /// @param a Pointer to matrix A (double precision, n x n, column-major, overwritten with LU factorization).
-        /// @param nrhs Number of right-hand sides (number of columns in B).
-        /// @param b Pointer to matrix B (double precision, n x nrhs, column-major, overwritten with solution X).
-        void SolveGenSysLinEquations(const char *Ta, const LPCK_INT n, double *a, const LPCK_INT nrhs, double *b)
+        void SolveGenSysLinEquations(const char *T, const LPCK_INT n, double *a, const LPCK_INT nrhs, double *b)
         {
             LPCK_INT info = 0;
             LPCK_INT *ipiv = new LPCK_INT[n];
@@ -39,11 +22,11 @@ namespace lahva
                 throw std::runtime_error("Failure in DGETRF");
             }
 #ifdef _APPLE
-            dgetrs_(Ta, &n, &nrhs, a, &n, ipiv, b, &n, &info);
+            dgetrs_(T, &n, &nrhs, a, &n, ipiv, b, &n, &info);
 #elif  defined(W_MKL)
-            info = LAPACKE_dgetrs(l_major, *Ta, n, nrhs, a, n, ipiv, b, n);
+            info = LAPACKE_dgetrs(l_major, *T, n, nrhs, a, n, ipiv, b, n);
 #else
-            LAPACK_dgetrs(Ta, &n, &nrhs, a, &n, ipiv, b, &n, &info);
+            LAPACK_dgetrs(T, &n, &nrhs, a, &n, ipiv, b, &n, &info);
 #endif
             if (info != 0)
             {
@@ -52,17 +35,7 @@ namespace lahva
             delete[] ipiv;
         };
 
-        /// @brief Solve a general system of linear equations A*X = B with default transpose (double precision)
-        ///
-        /// Convenience overload with default transpose option.
-        /// Solves the general linear system A*X = B using LU factorization (dgetrf) and triangular solve (dgetrs).
-        ///
-        /// @param n Dimension of the square matrix A (n x n).
-        /// @param a Pointer to matrix A (double precision, n x n, column-major, overwritten with LU factorization).
-        /// @param nrhs Number of right-hand sides (number of columns in B).
-        /// @param b Pointer to matrix B (double precision, n x nrhs, column-major, overwritten with solution X).
-        /// @param Ta Transpose option for matrix A: "N" (no transpose, A*X = B), "T" (transpose, A^T*X = B). Default: "N".
-        void SolveGenSysLinEquations(const LPCK_INT n, double *a, const LPCK_INT nrhs, double *b, const char *Ta="N")
+        void SolveGenSysLinEquations(const LPCK_INT n, double *a, const LPCK_INT nrhs, double *b, const char *T="N")
         {
             LPCK_INT info = 0;
             LPCK_INT *ipiv = new LPCK_INT[n];
@@ -79,11 +52,11 @@ namespace lahva
                 throw std::runtime_error("Failure in DGETRF");
             }
 #ifdef _APPLE
-            dgetrs_(Ta, &n, &nrhs, a, &n, ipiv, b, &n, &info);
+            dgetrs_(T, &n, &nrhs, a, &n, ipiv, b, &n, &info);
 #elif  defined(W_MKL)
-            info = LAPACKE_dgetrs(l_major, *Ta, n, nrhs, a, n, ipiv, b, n);
+            info = LAPACKE_dgetrs(l_major, *T, n, nrhs, a, n, ipiv, b, n);
 #else
-            LAPACK_dgetrs(Ta, &n, &nrhs, a, &n, ipiv, b, &n, &info);
+            LAPACK_dgetrs(T, &n, &nrhs, a, &n, ipiv, b, &n, &info);
 #endif
             if (info != 0)
             {
@@ -92,17 +65,7 @@ namespace lahva
             delete[] ipiv;
         };
 
-        /// @brief Solve a general system of linear equations A*X = B (single precision)
-        ///
-        /// Solves the general linear system A*X = B using LU factorization with partial pivoting (sgetrf)
-        /// followed by triangular solve (sgetrs). Matrix A is overwritten with its LU factorization.
-        ///
-        /// @param Ta Transpose option for matrix A: "N" (no transpose, A*X = B), "T" (transpose, A^T*X = B).
-        /// @param n Dimension of the square matrix A (n x n).
-        /// @param a Pointer to matrix A (single precision, n x n, column-major, overwritten with LU factorization).
-        /// @param nrhs Number of right-hand sides (number of columns in B).
-        /// @param b Pointer to matrix B (single precision, n x nrhs, column-major, overwritten with solution X).
-        void SolveGenSysLinEquations(const char *Ta, const LPCK_INT n, float *a, const LPCK_INT nrhs, float *b)
+        void SolveGenSysLinEquations(const char *T, const LPCK_INT n, float *a, const LPCK_INT nrhs, float *b)
         {
             LPCK_INT info = 0;
             LPCK_INT *ipiv = new LPCK_INT[n];
@@ -118,11 +81,11 @@ namespace lahva
                 throw std::runtime_error("Failure in SGETRF");
             }
 #ifdef _APPLE
-            sgetrs_(Ta, &n, &nrhs, a, &n, ipiv, b, &n, &info);
+            sgetrs_(T, &n, &nrhs, a, &n, ipiv, b, &n, &info);
 #elif defined(W_MKL)
-            info = LAPACKE_sgetrs(l_major, *Ta, n, nrhs, a, n, ipiv, b, n);
+            info = LAPACKE_sgetrs(l_major, *T, n, nrhs, a, n, ipiv, b, n);
 #else
-            LAPACK_sgetrs(Ta, &n, &nrhs, a, &n, ipiv, b, &n, &info);
+            LAPACK_sgetrs(T, &n, &nrhs, a, &n, ipiv, b, &n, &info);
 #endif
 
             if (info != 0)
@@ -132,16 +95,7 @@ namespace lahva
             delete[] ipiv;
         };
 
-        /// @brief Solve a general system of linear equations with default transpose (single precision)
-        ///
-        /// Convenience overload with default transpose option.
-        /// Solves the general linear system A*X = B using LU factorization (sgetrf) and triangular solve (sgetrs).
-        ///
-        /// @param n Dimension of the square matrix A (n x n).
-        /// @param a Pointer to matrix A (single precision, n x n, column-major, overwritten with LU factorization).
-        /// @param nrhs Number of right-hand sides (number of columns in B).
-        /// @param b Pointer to matrix B (single precision, n x nrhs, column-major, overwritten with solution X).
-        void SolveGenSysLinEquations(const LPCK_INT n, float *a, const LPCK_INT nrhs, float *b, const char *Ta="N")
+        void SolveGenSysLinEquations(const LPCK_INT n, float *a, const LPCK_INT nrhs, float *b, const char *T="N")
         {
             LPCK_INT info = 0;
             LPCK_INT *ipiv = new LPCK_INT[n];
@@ -157,11 +111,11 @@ namespace lahva
                 throw std::runtime_error("Failure in SGETRF");
             }
 #ifdef _APPLE
-            sgetrs_(Ta, &n, &nrhs, a, &n, ipiv, b, &n, &info);
+            sgetrs_(T, &n, &nrhs, a, &n, ipiv, b, &n, &info);
 #elif defined(W_MKL)
-            info = LAPACKE_sgetrs(l_major, *Ta, n, nrhs, a, n, ipiv, b, n);
+            info = LAPACKE_sgetrs(l_major, *T, n, nrhs, a, n, ipiv, b, n);
 #else
-            LAPACK_sgetrs(Ta, &n, &nrhs, a, &n, ipiv, b, &n, &info);
+            LAPACK_sgetrs(T, &n, &nrhs, a, &n, ipiv, b, &n, &info);
 #endif
             if (info != 0)
             {
@@ -169,6 +123,6 @@ namespace lahva
             }
             delete[] ipiv;
         };
-    
     } // namespace cpu
-} // namespace lahva
+
+}

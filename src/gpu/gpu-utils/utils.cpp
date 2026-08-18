@@ -1,17 +1,10 @@
-/// @file utils.cpp
-/// @brief Implementation of GPU utility functions for BLAS operations.
-///
-/// Implements helper functions for managing GPU memory, BLAS operation parameters,
-/// and tensor dimension validation.
-
-#include <string>
+#include "utils.hpp"
 #include "runtime.hpp"
-#include "impl/gpu/utils.hpp"
+#include <string>
 
 namespace lahva {
     namespace gpu
     {
-        /// Implementation of get_leading - see utils.hpp for documentation.
         size_t get_leading(size_t nrow, size_t ncol, cublasOperation_t transa){ 
 
             if (transa == CUBLAS_OP_N)
@@ -25,7 +18,6 @@ namespace lahva {
 
         };
 
-        /// Implementation of get_trans - see utils.hpp for documentation.
         cublasOperation_t get_trans(const char* T){
         if (std::strcmp(T,"T") == 0 or std::strcmp(T,"t") == 0)
         {
@@ -41,5 +33,18 @@ namespace lahva {
         }
     };
 
+
+        /// Implementation of get_cusparse_trans - see utils.hpp for documentation.
+        cusparseOperation_t get_cusparse_trans(const char* T){
+        if (std::strcmp(T,"T") == 0 or std::strcmp(T,"t") == 0)
+        {
+            return CUSPARSE_OPERATION_TRANSPOSE;
+        }
+        else
+        {
+            return CUSPARSE_OPERATION_NON_TRANSPOSE;
+        }
+    };
     } // namespace gpu
-} // namespace lahva
+    
+}

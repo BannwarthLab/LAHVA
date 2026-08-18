@@ -1,18 +1,11 @@
-/// @file timer.cpp
-/// @brief CPU timing and performance measurement utilities implementation.
-///
-/// Provides CPUTimer class implementation for tracking and recording high-resolution
-/// timing measurements of CPU operations, useful for performance profiling and benchmarking.
-
-#include <iostream>
-#include <sstream>
 #include "timer.hpp"
+#include <string>
+#include <iostream>
+#include <chrono>
+#include <sstream>
 
 namespace lahva{
-
-    /// @brief Start timing a labeled operation.
-    /// @param label Unique identifier for the timed operation.
-    void CPUTimer::push(std::string label) {
+void CPUTimer::push(std::string label) {
         int it;
         it = find(label);
 
@@ -27,7 +20,6 @@ namespace lahva{
         record[it].running = !record[it].running;
     }
 
-    /// @brief Stop timing the currently active operation.
     void CPUTimer::pop() {
         int it;
         float time;
@@ -42,9 +34,6 @@ namespace lahva{
         if (!last.empty()) last.clear();
     }
 
-    /// @brief Retrieve accumulated time for a labeled operation.
-    /// @param label Unique identifier of the operation.
-    /// @return Accumulated time in milliseconds, or -1.0 if label not found.
     float CPUTimer::get(std::string label) {
         float time = -1.0;
         int it;
@@ -64,9 +53,6 @@ namespace lahva{
         return time;
     }
 
-    /// @brief Find the index of a timer record by label.
-    /// @param label Unique identifier to search for.
-    /// @return Index of the record if found, -1 otherwise.
     int Timer::find(std::string label) {
         int pos = -1;
 
@@ -79,14 +65,10 @@ namespace lahva{
         return pos;
     }
 
-    /// @brief Resize the timer records vector.
-    /// @param n New size for the records collection.
     void Timer::resize(int n) {
         record.resize(n);
     }
 
-    /// @brief Generate a formatted string representation of all timing records.
-    /// @return Formatted string with all timer entries and total time.
     std::string Timer::print_entries()
     {
         std::ostringstream oss;
@@ -106,12 +88,9 @@ namespace lahva{
 
     }
 
-    /// @brief Format milliseconds into a human-readable time string.
-    /// @param time Time in milliseconds.
-    /// @return Formatted string (e.g., "2 d, 3 h, 15 min, 30.5 sec").
-    std::string format_time(double time) {
-        int days, hours, mins;
-        double secs;
+std::string format_time(double time) {
+    int days, hours, mins;
+    double secs;
     std::string str;
 
     time = time / 1000; 
@@ -129,14 +108,10 @@ namespace lahva{
     if (mins > 0) str += std::to_string(mins) + " min, ";
     str += std::to_string(secs) + " sec";
 
-        return str;
-    }
+    return str;
+}
 
-    /// @brief Format milliseconds into a human-readable time string (float overload).
-    /// @param time Time in milliseconds.
-    /// @return Formatted string (e.g., "2 d, 3 h, 15 min, 30.5 sec").
-    std::string format_time(float time) {
-        return format_time((double)time);
-    }
-
-} // namespace lahva
+std::string format_time(float time) {
+    return format_time((double)time);
+}
+}

@@ -17,6 +17,13 @@ namespace lahva
     class BlockDiagMatrix_ : public virtual Tensor<T>
     {
         public:
+            BlockDiagMatrix_() = default;
+            BlockDiagMatrix_(const BlockDiagMatrix_ &) = default;
+            BlockDiagMatrix_ &operator=(const BlockDiagMatrix_ &) = default;
+            BlockDiagMatrix_(BlockDiagMatrix_ &&) noexcept = default;
+            BlockDiagMatrix_ &operator=(BlockDiagMatrix_ &&) noexcept { return *this; }
+            virtual ~BlockDiagMatrix_() = default;
+
             //! @brief Get the shape of the block diagonal matrix.
             //! @return Shape object with (n_rows, n_cols) representing total matrix dimensions
             virtual Shape shape() const  = 0;
@@ -121,6 +128,8 @@ namespace lahva
         {
             if (this != &other)
             {
+                CPUTensor<T, Allocator>::operator=(std::move(other));
+                BlockDiagMatrix_<T>::operator=(std::move(other));
                 n_rows_ = other.n_rows_;
                 n_cols_ = other.n_cols_;
                 matrices = std::move(other.matrices);

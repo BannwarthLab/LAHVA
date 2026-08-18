@@ -1,7 +1,6 @@
 # CPU tests
 
 cpu_test_utils_dep = declare_dependency(
-  link_with: test_utils_lib,
   include_directories: include_directories('../common'),
 )
 

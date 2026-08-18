@@ -1,23 +1,11 @@
-/// @file timer.cpp
-/// @brief GPU timer implementation for CUDA event-based profiling.
-///
-/// Provides GPU-based timing functionality using CUDA events for accurate
-/// measurement of GPU kernel and operation execution times.
-
 #include <cstddef>
-#include <cuda_runtime.h>
 #include <string>
+#include <cuda_runtime.h>
 #include "runtime.hpp"
 #include "timer.hpp"
 
 namespace lahva
 {
-    /// @brief Starts timing a named operation on the GPU.
-    ///
-    /// Creates CUDA events and records the start time for a named operation.
-    /// If a label already exists, resumes timing; otherwise creates a new timing record.
-    ///
-    /// @param label Unique identifier for the timed operation.
     void GPUTimer::push(std::string label)
     {
         int it;
@@ -44,13 +32,6 @@ namespace lahva
         record[it].running = !record[it].running;
     }
 
-    /// @brief Starts timing a named operation on a specific CUDA stream.
-    ///
-    /// Creates CUDA events and records the start time for a named operation on the specified stream.
-    /// If a label already exists, resumes timing; otherwise creates a new timing record.
-    ///
-    /// @param label Unique identifier for the timed operation.
-    /// @param stream CUDA stream on which to record timing events.
     void GPUTimer::push(std::string label, const cudaStream_t& stream)
     {
         int it;
@@ -71,10 +52,6 @@ namespace lahva
         record[it].running = !record[it].running;
     }
 
-    /// @brief Stops timing the most recently started operation.
-    ///
-    /// Records the stop time for the most recent operation started with push()
-    /// and accumulates the elapsed time. Blocks until GPU operations are complete.
     void GPUTimer::pop()
     {
         float time;
@@ -100,12 +77,6 @@ namespace lahva
             last.clear();
     }
 
-    /// @brief Stops timing the most recently started operation on a specific CUDA stream.
-    ///
-    /// Records the stop time for the most recent operation started with push(stream)
-    /// and accumulates the elapsed time on the specified stream. Blocks until GPU operations are complete.
-    ///
-    /// @param stream CUDA stream on which to record timing events.
     void GPUTimer::pop(const cudaStream_t& stream)
     {
         float time;
@@ -125,13 +96,6 @@ namespace lahva
             last.clear();
     }
 
-    /// @brief Retrieves accumulated elapsed time for a named operation.
-    ///
-    /// Returns the total elapsed time in milliseconds for a named operation.
-    /// If the operation is currently running, includes time from start to current moment.
-    ///
-    /// @param label Identifier for the timed operation.
-    /// @return Elapsed time in milliseconds, or -1.0 if label not found.
     float GPUTimer::get(std::string label)
     {
         float time = -1.0;
@@ -163,4 +127,4 @@ namespace lahva
         return time;
     }
 
-} // namespace lahva
+}

@@ -1,12 +1,5 @@
-/// @file lapack_wrap.hpp
-/// @brief LAPACK library wrapper with platform-specific type definitions and includes.
-///
-/// This header provides a unified interface to different LAPACK implementations
-/// (MKL, Accelerate, OpenBLAS, Netlib) by conditionally including the appropriate
-/// headers and defining consistent integer type aliases (LPCK_INT) used throughout
-/// the library for LAPACK function calls.
-
-#pragma once
+#ifndef LAHVA_LAPACK_WRAP_HPP
+#define LAHVA_LAPACK_WRAP_HPP
 
 #include <complex>
 #ifdef _WIN32
@@ -28,7 +21,10 @@
 #endif
 #ifdef _APPLE
 #define ACCELERATE_NEW_LAPACK
+typedef int64_t BLAS_INT;
 #include <Accelerate/Accelerate.h>
+
+typedef __LAPACK_int LPCK_INT;
 
 typedef CBLAS_ORDER CBLAS_LAYOUT;
 #endif
@@ -36,3 +32,5 @@ typedef CBLAS_ORDER CBLAS_LAYOUT;
 #include <mkl.h>
 typedef lapack_int LPCK_INT;
 #endif
+
+#endif // LAHVA_LAPACK_WRAP_HPP

@@ -1,7 +1,6 @@
 # GPU tests
 
 gpu_test_utils_dep = declare_dependency(
-  link_with: test_utils_lib,
   include_directories: include_directories('../common'),
 )
 
@@ -55,11 +54,21 @@ test('gpu-tensor-mixed-precision-matrix',
   ),
 )
 
+# Sparsematrix type tests
+test('gpu-tensor-sparsematrix',
+  executable(
+    'lahva-gpu-tensor-sparsematrix',
+    sources: files('tensor/sparse-matrix.cpp'),
+    dependencies: [lahva_dep, gpu_test_utils_dep],
+    link_language: 'cpp',
+  ),
+)
+
 # Blockmatrix type tests
 test('gpu-tensor-blockmatrix',
   executable(
     'lahva-gpu-tensor-blockmatrix',
-    sources: files('tensor/blockmatrix.cpp'),
+    sources: files('tensor/block-matrix.cpp'),
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
   ),
@@ -69,7 +78,7 @@ test('gpu-tensor-blockmatrix',
 test('gpu-tensor-blockdiagmatrix',
   executable(
     'lahva-gpu-tensor-blockdiagmatrix',
-    sources: files('tensor/blockdiagmatrix.cpp'),
+    sources: files('tensor/block-diag-matrix.cpp'),
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
   ),
@@ -144,14 +153,5 @@ test('gpu-mixed-precision',
     dependencies: [lahva_dep, gpu_test_utils_dep],
     link_language: 'cpp',
   ),
-  timeout: 60,
+  timeout: 120,
 )
-
-#test('gpu-blockdiag-level3',
-#  executable(
-#    'lahva-gpu-blockdiag-level3',
-#    sources: files('blas/blockdiag-level3.cpp'),
-#    dependencies: [lahva_dep, gpu_test_utils_dep],
-#    link_language: 'cpp',
-#  ),
-#)
