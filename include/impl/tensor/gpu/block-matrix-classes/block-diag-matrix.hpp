@@ -47,8 +47,8 @@ namespace lahva
             /// @brief Total number of columns (max column position + 1)
             size_t n_cols_ = 0;
 
-            /// @brief Preferred sparse format for GPU operations (default: CSR)
-            SparseFormat sparse_format_ = SparseFormat::CSR;
+            /// @brief Preferred sparse format for GPU operations (default: BSR)
+            SparseFormat sparse_format_ = SparseFormat::BSR;
 
             /// @brief Blocks stored as map indexed by element-space position (row, col)
             /// Positions are element-space (i,j) where block's top-left corner is placed
@@ -230,12 +230,27 @@ namespace lahva
             explicit BlockDiagMatrix(const std::vector<Matrix<T, Allocator>> &blocks)
             {
                 size_t row_pos = 0, col_pos = 0;
-                for (const auto &block : blocks) {
+                Shape first_shape;
+                bool all_same_size = true;
+
+                for (size_t i = 0; i < blocks.size(); ++i) {
+                    const auto &block = blocks[i];
+                    if (i == 0) {
+                        first_shape = block.shape();
+                    } else if (block.shape() != first_shape) {
+                        all_same_size = false;
+                    }
+
                     blocks_[{row_pos, col_pos}] = block;
                     Shape s = block.shape();
                     row_pos += s.first;
                     col_pos += s.second;
                 }
+
+                if (!all_same_size) {
+                    sparse_format_ = SparseFormat::CSR;
+                }
+
                 update_dimensions();
             }
 
@@ -245,12 +260,27 @@ namespace lahva
             explicit BlockDiagMatrix(std::vector<Matrix<T, Allocator>> &&blocks)
             {
                 size_t row_pos = 0, col_pos = 0;
-                for (auto &block : blocks) {
+                Shape first_shape;
+                bool all_same_size = true;
+
+                for (size_t i = 0; i < blocks.size(); ++i) {
+                    auto &block = blocks[i];
+                    if (i == 0) {
+                        first_shape = block.shape();
+                    } else if (block.shape() != first_shape) {
+                        all_same_size = false;
+                    }
+
                     blocks_[{row_pos, col_pos}] = std::move(block);
                     Shape s = blocks_[{row_pos, col_pos}].shape();
                     row_pos += s.first;
                     col_pos += s.second;
                 }
+
+                if (!all_same_size) {
+                    sparse_format_ = SparseFormat::CSR;
+                }
+
                 update_dimensions();
             }
 
@@ -331,13 +361,25 @@ namespace lahva
             /// @brief Get raw data pointer for a specific block
             /// @param[in] idx block index
             /// @return const void pointer to block data in column-major format
-            virtual const void* get_block_data(size_t idx) const override {
+            const void* get_block_data(size_t idx) const {
                 if (idx >= blocks_.size()) {
                     throw std::out_of_range("Block index out of range");
                 }
                 auto it = blocks_.begin();
                 std::advance(it, idx);
                 return static_cast<const void*>(it->second.data());
+            }
+
+            /// @brief Get block data by element-space row and column position
+            /// @param[in] block_row Element-space row position of block
+            /// @param[in] block_col Element-space column position of block
+            /// @return Pointer to block data, or nullptr if block doesn't exist at that position
+            virtual const void* get_block_data_at(size_t block_row, size_t block_col) const override {
+                auto it = blocks_.find({block_row, block_col});
+                if (it != blocks_.end()) {
+                    return static_cast<const void*>(it->second.data());
+                }
+                return nullptr;
             }
 
             /// @brief Get row dimensions of all blocks
@@ -506,6 +548,16 @@ namespace lahva
 
                 Shape new_shape = block.shape();
                 size_t insert_row_pos, insert_col_pos;
+
+                // Check if block size is compatible with current sparse format
+                if (!blocks_.empty() && get_sparse_format() == SparseFormat::BSR)
+                {
+                    auto first_block_shape = blocks_.begin()->second.shape();
+                    if (new_shape.first != first_block_shape.first || new_shape.second != first_block_shape.second)
+                    {
+                        set_sparse_format(SparseFormat::CSR);
+                    }
+                }
 
                 // Find insertion position by iterating to index-th block
                 if (index == 0) {

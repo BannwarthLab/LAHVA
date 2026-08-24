@@ -290,7 +290,7 @@ namespace lahva
             cblas_dsymv(major, tri, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
         };
 
-                /// @brief Block-diagonal matrix-vector multiply with full transpose support (double precision).
+        /// @brief Block-diagonal matrix-vector multiply with full transpose support (double precision).
         ///
         /// Performs y := alpha * op(A) * x + beta * y where A is a block-diagonal matrix and op(A) is A, A^T, or A^H
         /// depending on the transpose flag `Ta`. Each diagonal block is multiplied independently with corresponding

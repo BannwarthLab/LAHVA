@@ -122,6 +122,17 @@ namespace lahva
         /// @return cuSPARSE operation type (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
         cusparseOperation_t get_cusparse_trans(const char *T);
 
+        /// @brief Flips the transposition flag for cuSPARSE operations.
+        ///
+        /// Converts between transpose and non-transpose operations for use in sparse matrix operations.
+        ///
+        /// @param op cuSPARSE operation type to flip.
+        /// @return Flipped cuSPARSE operation type.
+        cusparseOperation_t flip_cusparse_trans(cusparseOperation_t op);
+
+        /// @return cuSPARSE operation type (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
+        cusparseOperation_t get_cusparse_trans(const char *T);
+
         /// @brief Validates tensor shapes for matrix-matrix multiplication operation.
         ///
         /// Checks that matrix dimensions are compatible for C = alpha*A*B + beta*C operation.

@@ -142,7 +142,7 @@ namespace lahva
             MatrixVectorProduct(Ta, static_cast<T>(alpha), a, x, incx, static_cast<T>(beta), y, incy);
         };
 
-               /// @brief Block-diagonal matrix-vector multiply with full parameters: y = alpha * op(A) * x + beta * y
+        /// @brief Block-diagonal matrix-vector multiply with full parameters: y = alpha * op(A) * x + beta * y
         ///
         /// Performs block-wise matrix-vector multiplication where A is a block-diagonal matrix.
         /// Supports transpose operations on each diagonal block.

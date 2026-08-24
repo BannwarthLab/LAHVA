@@ -21,8 +21,8 @@ namespace lahva
         /// @brief Enumeration for sparse matrix format selection
         enum class SparseFormat
         {
-            CSR,        ///< Compressed Sparse Row format
-            BSR         ///< Block Sparse Row format
+            CSR,  ///< Compressed Sparse Row format
+            BSR   ///< Block Sparse Row format
         };
 
         /// @brief Helper struct for GPU block diagonal matrix data packing
@@ -62,11 +62,6 @@ namespace lahva
             /// @return Shape object with block dimensions
             virtual Shape get_block_shape(size_t idx) const = 0;
 
-            /// @brief Get raw data pointer for a specific diagonal block
-            /// @param[in] idx Block index
-            /// @return Const void pointer to block data in column-major format
-            virtual const void* get_block_data(size_t idx) const = 0;
-
             /// @brief Get row offset array for all blocks
             /// @return Const reference to vector of cumulative row offsets
             virtual const std::vector<int>& get_row_offsets() const = 0;
@@ -98,10 +93,16 @@ namespace lahva
             virtual size_t get_block_col(size_t idx) const = 0;
 
             /// @brief Get preferred sparse format for GPU operations (CSR or BSR)
-            /// @return SparseFormat enum value (default: CSR)
+            /// @return SparseFormat enum value (default: BSR for structured block matrices)
             virtual SparseFormat get_sparse_format() const {
-                return SparseFormat::CSR;
+                return SparseFormat::BSR;
             }
+
+            /// @brief Get a pointer to block data by element-space row and column position
+            /// @param[in] block_row Element-space row position of block
+            /// @param[in] block_col Element-space column position of block
+            /// @return Pointer to block data, or nullptr if block doesn't exist at that position
+            virtual const void* get_block_data_at(size_t block_row, size_t block_col) const = 0;
         };
 
         //! @brief GPU-accelerated block matrix with blocks at arbitrary positions
@@ -120,7 +121,16 @@ namespace lahva
         public:
             //! @brief Default constructor
             BlockMatrix()
-                : n_rows_(0), n_cols_(0)
+                : Tensor<T, Allocator, GPUAllocator>(), Tensor_<T>(), BlockMatrix_<T>(),
+                  n_rows_(0), n_cols_(0), uniform_block_size_(true), cached_block_shape_(0, 0)
+            {
+            }
+
+            //! @brief Constructor from shape - creates zero-initialized matrix with given dimensions
+            explicit BlockMatrix(const Shape &shape, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator())
+                : Tensor<T, Allocator, GPUAllocator>(shape.first * shape.second, alloc, gpualloc),
+                  Tensor_<T>(), BlockMatrix_<T>(),
+                  n_rows_(shape.first), n_cols_(shape.second), uniform_block_size_(true), cached_block_shape_(0, 0)
             {
             }
 
@@ -144,10 +154,14 @@ namespace lahva
                 col_offsets_ = std::move(other.col_offsets_);
                 row_offsets_valid_ = other.row_offsets_valid_;
                 col_offsets_valid_ = other.col_offsets_valid_;
+                uniform_block_size_ = other.uniform_block_size_;
+                cached_block_shape_ = other.cached_block_shape_;
                 other.n_rows_ = 0;
                 other.n_cols_ = 0;
                 other.row_offsets_valid_ = false;
                 other.col_offsets_valid_ = false;
+                other.uniform_block_size_ = true;
+                other.cached_block_shape_ = Shape(0, 0);
                 return *this;
             }
 
@@ -165,16 +179,6 @@ namespace lahva
                 auto it = blocks_.begin();
                 std::advance(it, idx);
                 return it->second.shape();
-            }
-
-            //! @brief Get raw data pointer for a specific block by linear index
-            const void* get_block_data(size_t idx) const override {
-                if (idx >= blocks_.size()) {
-                    throw std::out_of_range("Block index " + std::to_string(idx) + " out of range");
-                }
-                auto it = blocks_.begin();
-                std::advance(it, idx);
-                return (const void*)it->second.data();
             }
 
             //! @brief Get row offsets for all blocks
@@ -234,6 +238,20 @@ namespace lahva
                     count++;
                 }
                 throw std::out_of_range("Block index out of range");
+            }
+
+            const void* get_block_data_at(size_t block_row, size_t block_col) const override {
+                auto it = blocks_.find({block_row, block_col});
+                if (it != blocks_.end()) {
+                    return (const void*)it->second.data();
+                }
+                return nullptr;
+            }
+
+            //! @brief Get preferred sparse format for GPU operations
+            //! Returns BSR if all blocks have uniform size, CSR otherwise
+            SparseFormat get_sparse_format() const override {
+                return uniform_block_size_ ? SparseFormat::BSR : SparseFormat::CSR;
             }
 
             //! @brief Element access operator (const)
@@ -320,6 +338,7 @@ namespace lahva
 
                 blocks_[{i, j}] = block;
                 update_dimensions();
+                check_uniform_block_size(new_shape);
 
                 // Invalidate offset caches since block configuration changed
                 row_offsets_valid_ = false;
@@ -388,6 +407,12 @@ namespace lahva
             //! @brief Zero value for structural zeros outside blocks (mutable for const access)
             mutable T zero_value_ = (T)0;
 
+            //! @brief Flag indicating if all blocks have uniform size (enables BSR optimization)
+            bool uniform_block_size_;
+
+            //! @brief Cached shape for uniform block size check
+            Shape cached_block_shape_;
+
             //! @brief Compute and cache block offsets
             void compute_offsets() const {
                 row_offsets_.clear();
@@ -427,6 +452,23 @@ namespace lahva
 
                     n_rows_ = std::max(n_rows_, row_end);
                     n_cols_ = std::max(n_cols_, col_end);
+                }
+            }
+
+            //! @brief Check if the new block maintains uniform block size
+            void check_uniform_block_size(const Shape& new_shape) {
+                if (blocks_.empty()) {
+                    uniform_block_size_ = true;
+                    cached_block_shape_ = new_shape;
+                    return;
+                }
+
+                if (!uniform_block_size_) {
+                    return;  // Already non-uniform, stay non-uniform
+                }
+
+                if (new_shape != cached_block_shape_) {
+                    uniform_block_size_ = false;
                 }
             }
         };

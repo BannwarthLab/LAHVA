@@ -380,22 +380,6 @@ int test_blockmatrix_get_block_shape() {
     return TEST_PASS;
 }
 
-template <typename T>
-int test_blockmatrix_get_block_data() {
-    BlockMatrix<T> m;
-    Matrix<T, CudaHostAllocator<T>> block(Shape{2, 2}, (T)5);
-
-    m.set_block(0, 0, block);
-
-    const void* data_ptr = m.get_block_data(0);
-    if (data_ptr == nullptr) {
-        std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
-        return TEST_FAIL;
-    }
-
-    return TEST_PASS;
-}
-
 // ============================================================================
 // BlockMatrix GPU Operations Tests
 // ============================================================================
@@ -796,9 +780,6 @@ int main() {
     // BlockMatrix block indexing
     total_failures += test_blockmatrix_get_block_shape<double>();
     total_failures += test_blockmatrix_get_block_shape<float>();
-    total_failures += test_blockmatrix_get_block_data<double>();
-    total_failures += test_blockmatrix_get_block_data<float>();
-
     // BlockMatrix GPU operations
     total_failures += test_blockmatrix_gpu_operations_basic<double>();
     total_failures += test_blockmatrix_gpu_operations_basic<float>();

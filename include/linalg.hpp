@@ -16,6 +16,7 @@
 #include "impl/tensor/cpu/tensor.hpp"
 #include "impl/tensor/cpu/vector.hpp"
 #include "impl/tensor/cpu/blockdiagmatrix.hpp"
+#include "impl/tensor/cpu/block-matrix.hpp"
 
 #ifdef _CUDA
 #include <cuda_fp16.h>
