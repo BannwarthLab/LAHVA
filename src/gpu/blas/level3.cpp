@@ -594,68 +594,20 @@ namespace lahva
             if (!sparse.is_initialized()) throw std::invalid_argument("MatrixMatrixProduct: sparse matrix a is not initialized");
             sparse.allocate_gpu_memory();
             sparse.transfer_to_device(cudart);
-            const auto &sparse_data = sparse.get_sparse_data();
 
             int64_t m = static_cast<int64_t>(a.shape().first);
             int64_t k = static_cast<int64_t>(a.shape().second);
 
-            int64_t blockDim_m = 1, blockDim_n = 1;
-            if ((a.get_sparse_format() == SparseFormat::BSR) && a.num_blocks() > 0)
-            {
-                Shape first_block_shape = a.get_block_shape(0);
-                blockDim_m = static_cast<int64_t>(first_block_shape.first);
-                blockDim_n = static_cast<int64_t>(first_block_shape.second);
-            }
+            cudaDataType_t precision = get_cuda_datatype<T>();
 
-            cudaDataType_t precision;
-            if constexpr (std::is_same_v<T, float>)
-            {
-                precision = CUDA_R_32F;
-            }
-            else if constexpr (std::is_same_v<T, double>)
-            {
-                precision = CUDA_R_64F;
-            }
-            else
-            {
-                throw std::invalid_argument("MatrixMatrixProduct: unsupported type");
-            }
+            sparse.create_descriptor(cudart, precision);
+            cusparseSpMatDescr_t mat_a = sparse.get_descriptor();
 
             int64_t n = (OpB == CUSPARSE_OPERATION_NON_TRANSPOSE)
                             ? static_cast<int64_t>(b.shape().second)
                             : static_cast<int64_t>(b.shape().first);
 
-
             cusparseHandle_t handle = cudart.getcuSparseHandle();
-            cusparseSpMatDescr_t mat_a = nullptr;
-
-
-            if (format_to_use == SparseFormat::CSR)
-            {
-                get_cusparse_error(cusparseCreateCsr(&mat_a,
-                                                     rows_A, cols_A, sparse.nnz(),
-                                                     sparse_data.d_row_offsets,
-                                                     sparse_data.d_col_indices,
-                                                     sparse_data.d_values,
-                                                     CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
-                                                     CUSPARSE_INDEX_BASE_ZERO, precision));
-            }
-            else if (format_to_use == SparseFormat::BSR)
-            {
-                int64_t mb = rows_A / blockDim_m;
-                int64_t nb = cols_A / blockDim_n;
-
-                get_cusparse_error(cusparseCreateBsr(&mat_a,
-                                                     mb, nb, sparse.num_blocks(),
-                                                     static_cast<int>(blockDim_m), static_cast<int>(blockDim_n),
-                                                     sparse_data.d_row_offsets,
-                                                     sparse_data.d_col_indices,
-                                                     sparse_data.d_values,
-                                                     CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
-                                                     CUSPARSE_INDEX_BASE_ZERO,
-                                                     precision,
-                                                     CUSPARSE_ORDER_ROW));
-            }
             cusparseDnMatDescr_t mat_b = nullptr;
             get_cusparse_error(cusparseCreateDnMat(&mat_b, rows_B, cols_B, rows_B,
                                                    b.gpu_data(), precision, CUSPARSE_ORDER_COL));
@@ -737,7 +689,6 @@ namespace lahva
             if (!sparse.is_initialized()) throw std::invalid_argument("MatrixMatrixProduct: sparse matrix b is not initialized");
             sparse.allocate_gpu_memory();
             sparse.transfer_to_device(cudart);
-            const auto &sparse_data = sparse.get_sparse_data();
 
             bool transA = (userOpA == CUSPARSE_OPERATION_TRANSPOSE);
             bool transB = (userOpB == CUSPARSE_OPERATION_TRANSPOSE);
@@ -745,60 +696,15 @@ namespace lahva
             int64_t M = transA ? cols_A : rows_A;
             int64_t N = transB ? rows_B : cols_B;
 
-            cudaDataType_t precision;
-            if constexpr (std::is_same_v<T, float>)
-            {
-                precision = CUDA_R_32F;
-            }
-            else if constexpr (std::is_same_v<T, double>)
-            {
-                precision = CUDA_R_64F;
-            }
-            else
-            {
-                throw std::invalid_argument("MatrixMatrixProduct: unsupported type");
-            }
+            cudaDataType_t precision = get_cuda_datatype<T>();
+
+            sparse.create_descriptor(cudart, precision);
+            cusparseSpMatDescr_t mat_b = sparse.get_descriptor();
 
             T *a_gpu = a.gpu_data();
             T *c_gpu = c.gpu_data();
 
             cusparseHandle_t handle = cudart.getcuSparseHandle();
-            cusparseSpMatDescr_t mat_b = nullptr;
-
-            int64_t blockDim_m = 1, blockDim_n = 1;
-            if ((b.get_sparse_format() == SparseFormat::BSR) && b.num_blocks() > 0)
-            {
-                Shape first_block_shape = b.get_block_shape(0);
-                blockDim_m = static_cast<int64_t>(first_block_shape.first);
-                blockDim_n = static_cast<int64_t>(first_block_shape.second);
-            }
-
-            if (format_to_use == SparseFormat::CSR)
-            {
-                get_cusparse_error(cusparseCreateCsr(&mat_b,
-                                                     rows_B, cols_B, sparse.nnz(),
-                                                     sparse_data.d_row_offsets,
-                                                     sparse_data.d_col_indices,
-                                                     sparse_data.d_values,
-                                                     CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
-                                                     CUSPARSE_INDEX_BASE_ZERO, precision));
-            }
-            else if (format_to_use == SparseFormat::BSR)
-            {
-                int64_t mb = rows_B / blockDim_m;
-                int64_t nb = cols_B / blockDim_n;
-
-                get_cusparse_error(cusparseCreateBsr(&mat_b,
-                                                     mb, nb, sparse.num_blocks(),
-                                                     static_cast<int>(blockDim_m), static_cast<int>(blockDim_n),
-                                                     sparse_data.d_row_offsets,
-                                                     sparse_data.d_col_indices,
-                                                     sparse_data.d_values,
-                                                     CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
-                                                     CUSPARSE_INDEX_BASE_ZERO,
-                                                     precision,
-                                                     CUSPARSE_ORDER_ROW));
-            }
             cusparseDnMatDescr_t mat_a = nullptr;
             get_cusparse_error(cusparseCreateDnMat(&mat_a, rows_A, cols_A, rows_A,
                                                    (void *)a_gpu, precision, CUSPARSE_ORDER_COL));
@@ -824,7 +730,7 @@ namespace lahva
             cudart.synchronize();
 
             if (workspace) get_cuda_error(cudaFree(workspace));
-            get_cusparse_error(cusparseDestroySpMat(mat_b));
+            // mat_b is managed by sparse matrix and will be destroyed in its destructor
             get_cusparse_error(cusparseDestroyDnMat(mat_a));
             get_cusparse_error(cusparseDestroyDnMat(mat_c));
 

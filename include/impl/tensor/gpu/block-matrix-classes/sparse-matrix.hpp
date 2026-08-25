@@ -186,6 +186,69 @@ namespace lahva
             //! @brief Copy sparse data to GPU device
             void transfer_to_device(const CudaRuntime &cudart) { copy2device(cudart); }
 
+            //! @brief Invalidate the descriptor (called when matrix structure changes)
+            void invalidate_descriptor()
+            {
+                if (mat_descr_ != nullptr)
+                {
+                    get_cusparse_error(cusparseDestroySpMat(mat_descr_));
+                    mat_descr_ = nullptr;
+                }
+            }
+
+            //! @brief Create cuSPARSE matrix descriptor from sparse matrix data
+            //! Must be called after transfer_to_device() to ensure GPU data is available.
+            //! Only recreates the descriptor if it doesn't already exist (lazy initialization).
+            //! @param cudart CUDA runtime instance
+            //! @param precision CUDA data type for the matrix values
+            void create_descriptor(const CudaRuntime &cudart, cudaDataType_t precision)
+            {
+                // If descriptor already exists, reuse it (matrix structure hasn't changed)
+                if (mat_descr_ != nullptr)
+                {
+                    return;
+                }
+
+                if (format_ == SparseFormat::BSR)
+                {
+                    // BSR format requires uniform block size
+                    if (block_row_sizes_.empty() || block_col_sizes_.empty())
+                    {
+                        throw std::invalid_argument("create_descriptor: No block size information available for BSR format");
+                    }
+
+                    int blockDim_m = block_row_sizes_[0];
+                    int blockDim_n = block_col_sizes_[0];
+                    int64_t mb = m_ / blockDim_m;
+                    int64_t nb = n_ / blockDim_n;
+
+                    get_cusparse_error(cusparseCreateBsr(&mat_descr_,
+                                                         mb, nb, num_blocks_,
+                                                         blockDim_m, blockDim_n,
+                                                         sparse_data_.d_row_offsets,
+                                                         sparse_data_.d_col_indices,
+                                                         sparse_data_.d_values,
+                                                         CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                                         CUSPARSE_INDEX_BASE_ZERO,
+                                                         precision,
+                                                         CUSPARSE_ORDER_ROW));
+                }
+                else if (format_ == SparseFormat::CSR)
+                {
+                    get_cusparse_error(cusparseCreateCsr(&mat_descr_,
+                                                         m_, n_, nnz_,
+                                                         sparse_data_.d_row_offsets,
+                                                         sparse_data_.d_col_indices,
+                                                         sparse_data_.d_values,
+                                                         CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                                                         CUSPARSE_INDEX_BASE_ZERO, precision));
+                }
+                else
+                {
+                    throw std::invalid_argument("create_descriptor: Unsupported sparse format");
+                }
+            }
+
             //! @brief Copy sparse data from GPU device to host
             void transfer_to_host(const CudaRuntime &cudart) { copy2host(cudart); }
 

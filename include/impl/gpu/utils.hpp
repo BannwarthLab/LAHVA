@@ -92,6 +92,68 @@ namespace lahva
             return std::make_tuple(nrow, ncol);
         };
 
+        /// @brief Validates tensor shapes for block matrix-vector multiplication.
+        ///
+        /// Checks that the block matrix and vector dimensions are compatible for matrix-vector product.
+        /// Assertions verify that dimensions match considering optional transposition of the matrix.
+        ///
+        /// @tparam T Tensor element type.
+        /// @param m Input block matrix.
+        /// @param vmult Vector to multiply (must match matrix column count or row count if transposed).
+        /// @param vres Result vector (must match matrix row count or column count if transposed).
+        /// @param trans Optional transpose operation on matrix (default: CUBLAS_OP_N for no transpose).
+        /// @return Tuple of (nrow, ncol) dimensions of the matrix.
+        template <typename T>
+        std::tuple<size_t, size_t> check_size_mv(const BlockMatrix_<T> &m, const Tensor_<T> &vmult, const Tensor_<T> &vres, cublasOperation_t trans = CUBLAS_OP_N)
+        {
+            Shape s = m.shape();
+            size_t nrow = s.first;
+            size_t ncol = s.second;
+            if (trans == CUBLAS_OP_N)
+            {
+                assert(nrow == vres.size());
+                assert(ncol == vmult.size());
+            }
+            else
+            {
+                assert(nrow == vmult.size());
+                assert(ncol == vres.size());
+            }
+
+            return std::make_tuple(nrow, ncol);
+        };
+
+        /// @brief Validates tensor shapes for block matrix-vector multiplication with cuSPARSE operation type.
+        ///
+        /// Checks that the block matrix and vector dimensions are compatible for sparse matrix-vector product.
+        /// Assertions verify that dimensions match considering optional transposition of the matrix.
+        ///
+        /// @tparam T Tensor element type.
+        /// @param m Input block matrix.
+        /// @param vmult Vector to multiply (must match matrix column count or row count if transposed).
+        /// @param vres Result vector (must match matrix row count or column count if transposed).
+        /// @param trans Optional transpose operation on matrix (default: CUSPARSE_OPERATION_NON_TRANSPOSE for no transpose).
+        /// @return Tuple of (nrow, ncol) dimensions of the matrix.
+        template <typename T>
+        std::tuple<size_t, size_t> check_size_mv(const BlockMatrix_<T> &m, const Tensor_<T> &vmult, const Tensor_<T> &vres, cusparseOperation_t trans)
+        {
+            Shape s = m.shape();
+            size_t nrow = s.first;
+            size_t ncol = s.second;
+            if (trans == CUSPARSE_OPERATION_NON_TRANSPOSE)
+            {
+                assert(nrow == vres.size());
+                assert(ncol == vmult.size());
+            }
+            else
+            {
+                assert(nrow == vmult.size());
+                assert(ncol == vres.size());
+            }
+
+            return std::make_tuple(nrow, ncol);
+        };
+
         /// @brief Calculates leading dimension for column-major matrix storage.
         ///
         /// Computes the leading dimension (row stride) for cuBLAS operations considering
@@ -121,6 +183,38 @@ namespace lahva
         /// @param T Transposition character: 'N' (no transpose), 'T' (transpose).
         /// @return cuSPARSE operation type (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
         cusparseOperation_t get_cusparse_trans(const char *T);
+
+        /// @brief Converts C++ type to corresponding CUDA data type.
+        ///
+        /// Maps template type T to the appropriate cudaDataType_t for use in cuBLAS/cuSPARSE operations.
+        ///
+        /// @tparam T Numeric element type (float, double, or complex types).
+        /// @return CUDA data type constant (CUDA_R_32F, CUDA_R_64F, CUDA_C_32F, or CUDA_C_64F).
+        /// @throws std::invalid_argument if type T is not supported.
+        template <typename T>
+        cudaDataType_t get_cuda_datatype()
+        {
+            if constexpr (std::is_same_v<T, float>)
+            {
+                return CUDA_R_32F;
+            }
+            else if constexpr (std::is_same_v<T, double>)
+            {
+                return CUDA_R_64F;
+            }
+            else if constexpr (std::is_same_v<T, complex_float>)
+            {
+                return CUDA_C_32F;
+            }
+            else if constexpr (std::is_same_v<T, complex_double>)
+            {
+                return CUDA_C_64F;
+            }
+            else
+            {
+                throw std::invalid_argument("get_cuda_datatype: unsupported type");
+            }
+        };
 
         /// @brief Flips the transposition flag for cuSPARSE operations.
         ///

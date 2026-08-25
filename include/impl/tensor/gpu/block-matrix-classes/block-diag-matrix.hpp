@@ -24,6 +24,17 @@ namespace lahva
 {
     namespace gpu
     {
+        /// @brief Helper struct for GPU block diagonal matrix data packing
+        template<typename T>
+        struct GPUBlockDiagData {
+            T *d_data;           ///< Device pointer to padded packed blocks
+            size_t padded_stride; ///< Stride for padded blocks
+            size_t max_m;        ///< Maximum block row dimension
+            size_t max_k;        ///< Maximum block column dimension
+            int num_blocks;      ///< Number of blocks
+            T *h_packed;         ///< Host pinned memory (for cleanup)
+        };
+
         /// @brief GPU-accelerated block-diagonal matrix with batched operations.
         ///
         /// Stores and manipulates block-diagonal matrices on NVIDIA GPUs with automatic
@@ -65,6 +76,15 @@ namespace lahva
 
             /// @brief Flag indicating if column offsets cache is valid
             mutable bool col_offsets_valid_ = false;
+
+            /// @brief GPU vector for row offsets (lazy initialized)
+            mutable Vector<int> d_row_offsets_;
+
+            /// @brief GPU vector for block row sizes (lazy initialized)
+            mutable Vector<int> d_block_row_sizes_;
+
+            /// @brief Flag indicating if GPU offset vectors are valid
+            mutable bool d_offsets_valid_ = false;
 
             /// @brief Cached GPU block-diagonal data (padded and packed format)
             /// @note nullptr if GPU cache is invalid; managed via free_gpu_cache()
@@ -122,6 +142,7 @@ namespace lahva
                     blocks_ = other.blocks_;
                     row_offsets_valid_ = false;
                     col_offsets_valid_ = false;
+                    d_offsets_valid_ = false;
                 }
                 return *this;
             }
@@ -159,6 +180,7 @@ namespace lahva
                     gpu_data_valid_ = other.gpu_data_valid_;
                     row_offsets_valid_ = false;
                     col_offsets_valid_ = false;
+                    d_offsets_valid_ = false;
                     other.n_rows_ = 0;
                     other.n_cols_ = 0;
                     other.gpu_data_ = nullptr;
@@ -400,6 +422,26 @@ namespace lahva
                     result.push_back(block.shape().second);
                 }
                 return result;
+            }
+
+            /// @brief Get GPU pointer to row offsets (lazy initialized)
+            /// @param[in] cudart CUDA runtime for device allocation
+            /// @return Device pointer to row offsets array
+            const int* get_d_row_offsets(const CudaRuntime &cudart) const {
+                if (!d_offsets_valid_) {
+                    init_gpu_offsets(cudart);
+                }
+                return d_row_offsets_.gpu_data();
+            }
+
+            /// @brief Get GPU pointer to block row sizes (lazy initialized)
+            /// @param[in] cudart CUDA runtime for device allocation
+            /// @return Device pointer to block row sizes array
+            const int* get_d_block_row_sizes(const CudaRuntime &cudart) const {
+                if (!d_offsets_valid_) {
+                    init_gpu_offsets(cudart);
+                }
+                return d_block_row_sizes_.gpu_data();
             }
 
             /// @brief Extract main diagonals from all blocks as concatenated vector
@@ -880,6 +922,31 @@ namespace lahva
 
                 row_offsets_valid_ = true;
                 col_offsets_valid_ = true;
+            }
+
+            /// @brief Initialize GPU offset vectors (lazy initialization)
+            void init_gpu_offsets(const CudaRuntime &cudart) const {
+                // Ensure host offsets are computed
+                if (!row_offsets_valid_) {
+                    compute_offsets();
+                }
+
+                // Create GPU vectors and copy host data
+                d_row_offsets_ = Vector<int>(row_offsets_.size());
+                std::copy(row_offsets_.begin(), row_offsets_.end(), d_row_offsets_.data());
+                d_row_offsets_.copy2device(cudart);
+
+                // Get block row sizes (differences between consecutive offsets)
+                std::vector<int> block_row_sizes;
+                for (size_t i = 0; i < row_offsets_.size() - 1; ++i) {
+                    block_row_sizes.push_back(row_offsets_[i + 1] - row_offsets_[i]);
+                }
+
+                d_block_row_sizes_ = Vector<int>(block_row_sizes.size());
+                std::copy(block_row_sizes.begin(), block_row_sizes.end(), d_block_row_sizes_.data());
+                d_block_row_sizes_.copy2device(cudart);
+
+                d_offsets_valid_ = true;
             }
 
         public:

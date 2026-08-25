@@ -25,17 +25,6 @@ namespace lahva
             BSR   ///< Block Sparse Row format
         };
 
-        /// @brief Helper struct for GPU block diagonal matrix data packing
-        template<typename T>
-        struct GPUBlockDiagData {
-            T *d_data;           ///< Device pointer to padded packed blocks
-            size_t padded_stride; ///< Stride for padded blocks
-            size_t max_m;        ///< Maximum block row dimension
-            size_t max_k;        ///< Maximum block column dimension
-            int num_blocks;      ///< Number of blocks
-            T *h_packed;         ///< Host pinned memory (for cleanup)
-        };
-
         /// @brief Abstract base class for GPU block-diagonal matrices
         /// @tparam T data type for matrix elements
         template<typename T>
@@ -150,18 +139,29 @@ namespace lahva
                 n_rows_ = other.n_rows_;
                 n_cols_ = other.n_cols_;
                 blocks_ = std::move(other.blocks_);
+                block_order_ = std::move(other.block_order_);
                 row_offsets_ = std::move(other.row_offsets_);
                 col_offsets_ = std::move(other.col_offsets_);
                 row_offsets_valid_ = other.row_offsets_valid_;
                 col_offsets_valid_ = other.col_offsets_valid_;
+                cached_num_block_rows_ = other.cached_num_block_rows_;
+                cached_num_block_cols_ = other.cached_num_block_cols_;
+                block_dims_valid_ = other.block_dims_valid_;
                 uniform_block_size_ = other.uniform_block_size_;
                 cached_block_shape_ = other.cached_block_shape_;
+                d_row_offsets_ = std::move(other.d_row_offsets_);
+                d_block_row_sizes_ = std::move(other.d_block_row_sizes_);
+                d_offsets_valid_ = other.d_offsets_valid_;
                 other.n_rows_ = 0;
                 other.n_cols_ = 0;
                 other.row_offsets_valid_ = false;
                 other.col_offsets_valid_ = false;
+                other.cached_num_block_rows_ = 0;
+                other.cached_num_block_cols_ = 0;
+                other.block_dims_valid_ = false;
                 other.uniform_block_size_ = true;
                 other.cached_block_shape_ = Shape(0, 0);
+                other.d_offsets_valid_ = false;
                 return *this;
             }
 
@@ -173,12 +173,10 @@ namespace lahva
 
             //! @brief Get shape of a specific block by linear index
             Shape get_block_shape(size_t idx) const override {
-                if (idx >= blocks_.size()) {
+                if (idx >= block_order_.size()) {
                     throw std::out_of_range("Block index " + std::to_string(idx) + " out of range");
                 }
-                auto it = blocks_.begin();
-                std::advance(it, idx);
-                return it->second.shape();
+                return block_order_[idx]->second.shape();
             }
 
             //! @brief Get row offsets for all blocks
@@ -212,32 +210,24 @@ namespace lahva
                         return block(i - row_start, j - col_start);
                     }
                 }
-                // Element is outside all blocks; return cached zero
-                return zero_value_;
+                static T zero_value = (T)0;
+                return zero_value;
             }
 
             //! @brief Get element row position for a block by linear index
             size_t get_block_row(size_t idx) const override {
-                size_t count = 0;
-                for (const auto& [pos, block] : blocks_) {
-                    if (count == idx) {
-                        return pos.first;  // Element-space row position
-                    }
-                    count++;
+                if (idx >= block_order_.size()) {
+                    throw std::out_of_range("Block index out of range");
                 }
-                throw std::out_of_range("Block index out of range");
+                return block_order_[idx]->first.first;
             }
 
             //! @brief Get element column position for a block by linear index
             size_t get_block_col(size_t idx) const override {
-                size_t count = 0;
-                for (const auto& [pos, block] : blocks_) {
-                    if (count == idx) {
-                        return pos.second;  // Element-space column position
-                    }
-                    count++;
+                if (idx >= block_order_.size()) {
+                    throw std::out_of_range("Block index out of range");
                 }
-                throw std::out_of_range("Block index out of range");
+                return block_order_[idx]->first.second;
             }
 
             const void* get_block_data_at(size_t block_row, size_t block_col) const override {
@@ -269,28 +259,26 @@ namespace lahva
                         return block(i - row_start, j - col_start);
                     }
                 }
-                // Element is outside all blocks; return cached zero
-                return zero_value_;
+                static const T zero_value = (T)0;
+                return zero_value;
             }
 
             // ========== BlockMatrix-Specific Methods ==========
 
             //! @brief Get number of block rows (max row position + 1)
             size_t num_block_rows() const {
-                size_t max_row = 0;
-                for (const auto& [pos, block] : blocks_) {
-                    max_row = std::max(max_row, pos.first + 1);
+                if (!block_dims_valid_) {
+                    compute_block_dims();
                 }
-                return max_row;
+                return cached_num_block_rows_;
             }
 
             //! @brief Get number of block columns (max column position + 1)
             size_t num_block_cols() const {
-                size_t max_col = 0;
-                for (const auto& [pos, block] : blocks_) {
-                    max_col = std::max(max_col, pos.second + 1);
+                if (!block_dims_valid_) {
+                    compute_block_dims();
                 }
-                return max_col;
+                return cached_num_block_cols_;
             }
 
             //! @brief Check if a block exists at position (i,j)
@@ -336,13 +324,21 @@ namespace lahva
                     }
                 }
 
+                bool is_new_block = blocks_.find({i, j}) == blocks_.end();
                 blocks_[{i, j}] = block;
+
+                if (is_new_block) {
+                    block_order_.push_back(blocks_.find({i, j}));
+                }
+
                 update_dimensions();
                 check_uniform_block_size(new_shape);
 
-                // Invalidate offset caches since block configuration changed
+                // Invalidate offset and dimension caches since block configuration changed
                 row_offsets_valid_ = false;
                 col_offsets_valid_ = false;
+                block_dims_valid_ = false;
+                d_offsets_valid_ = false;
             }
 
             //! @brief Get block at position (i,j)
@@ -365,6 +361,26 @@ namespace lahva
                     throw std::out_of_range("Block at (" + std::to_string(i) + "," + std::to_string(j) + ") does not exist");
                 }
                 return it->second;
+            }
+
+            //! @brief Get GPU pointer to row offsets (lazy initialized)
+            //! @param[in] cudart CUDA runtime for device allocation
+            //! @return Device pointer to row offsets array
+            const int* get_d_row_offsets(const CudaRuntime &cudart) const {
+                if (!d_offsets_valid_) {
+                    init_gpu_offsets(cudart);
+                }
+                return d_row_offsets_.gpu_data();
+            }
+
+            //! @brief Get GPU pointer to block row sizes (lazy initialized)
+            //! @param[in] cudart CUDA runtime for device allocation
+            //! @return Device pointer to block row sizes array
+            const int* get_d_block_row_sizes(const CudaRuntime &cudart) const {
+                if (!d_offsets_valid_) {
+                    init_gpu_offsets(cudart);
+                }
+                return d_block_row_sizes_.gpu_data();
             }
 
             //! @brief Print the block matrix structure
@@ -392,6 +408,9 @@ namespace lahva
             //! @brief Blocks stored as a map indexed by (i,j) block coordinates
             std::map<std::pair<size_t, size_t>, Matrix<T, Allocator>> blocks_;
 
+            //! @brief Iterators to blocks in insertion order for O(1) indexed access
+            std::vector<typename std::map<std::pair<size_t, size_t>, Matrix<T, Allocator>>::iterator> block_order_;
+
             //! @brief Cached row offsets for blocks (mutable for lazy computation)
             mutable std::vector<int> row_offsets_;
 
@@ -404,14 +423,42 @@ namespace lahva
             //! @brief Flag indicating if column offsets cache is valid
             mutable bool col_offsets_valid_ = false;
 
-            //! @brief Zero value for structural zeros outside blocks (mutable for const access)
-            mutable T zero_value_ = (T)0;
-
             //! @brief Flag indicating if all blocks have uniform size (enables BSR optimization)
             bool uniform_block_size_;
 
             //! @brief Cached shape for uniform block size check
             Shape cached_block_shape_;
+
+            //! @brief Cached number of block rows
+            mutable size_t cached_num_block_rows_ = 0;
+
+            //! @brief Cached number of block columns
+            mutable size_t cached_num_block_cols_ = 0;
+
+            //! @brief Flag indicating if block dimensions cache is valid
+            mutable bool block_dims_valid_ = false;
+
+            //! @brief GPU vector for row offsets (lazy initialized)
+            mutable Vector<int> d_row_offsets_;
+
+            //! @brief GPU vector for block row sizes (lazy initialized)
+            mutable Vector<int> d_block_row_sizes_;
+
+            //! @brief Flag indicating if GPU offset vectors are valid
+            mutable bool d_offsets_valid_ = false;
+
+            //! @brief Compute and cache block grid dimensions
+            void compute_block_dims() const {
+                cached_num_block_rows_ = 0;
+                cached_num_block_cols_ = 0;
+
+                for (const auto& block_it : block_order_) {
+                    cached_num_block_rows_ = std::max(cached_num_block_rows_, block_it->first.first + 1);
+                    cached_num_block_cols_ = std::max(cached_num_block_cols_, block_it->first.second + 1);
+                }
+
+                block_dims_valid_ = true;
+            }
 
             //! @brief Compute and cache block offsets
             void compute_offsets() const {
@@ -421,8 +468,8 @@ namespace lahva
                 int row_offset = 0;
                 int col_offset = 0;
 
-                for (const auto& [pos, block] : blocks_) {
-                    Shape s = block.shape();
+                for (const auto& block_it : block_order_) {
+                    Shape s = block_it->second.shape();
                     row_offsets_.push_back(row_offset);
                     col_offsets_.push_back(col_offset);
                     row_offset += static_cast<int>(s.first);
@@ -434,6 +481,31 @@ namespace lahva
 
                 row_offsets_valid_ = true;
                 col_offsets_valid_ = true;
+            }
+
+            //! @brief Initialize GPU offset vectors (lazy initialization)
+            void init_gpu_offsets(const CudaRuntime &cudart) const {
+                // Ensure host offsets are computed
+                if (!row_offsets_valid_) {
+                    compute_offsets();
+                }
+
+                // Create GPU vectors and copy host data
+                d_row_offsets_ = Vector<int>(row_offsets_.size());
+                std::copy(row_offsets_.begin(), row_offsets_.end(), d_row_offsets_.data());
+                d_row_offsets_.copy2device(cudart);
+
+                // Get block row sizes (differences between consecutive offsets)
+                std::vector<int> block_row_sizes;
+                for (size_t i = 0; i < row_offsets_.size() - 1; ++i) {
+                    block_row_sizes.push_back(row_offsets_[i + 1] - row_offsets_[i]);
+                }
+
+                d_block_row_sizes_ = Vector<int>(block_row_sizes.size());
+                std::copy(block_row_sizes.begin(), block_row_sizes.end(), d_block_row_sizes_.data());
+                d_block_row_sizes_.copy2device(cudart);
+
+                d_offsets_valid_ = true;
             }
 
             //! @brief Update total matrix dimensions based on stored blocks

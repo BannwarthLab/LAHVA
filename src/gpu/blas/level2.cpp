@@ -7,8 +7,10 @@
 
 #include "impl/gpu/utils.hpp"
 #include "impl/blas/gpu/level2.hpp"
+#include "impl/gpu/unpack-vector.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
+#include <cuda_runtime.h>
 
 namespace lahva
 {
@@ -324,6 +326,53 @@ namespace lahva
                                          inx, reinterpret_cast<const cuComplex*>(&beta), reinterpret_cast<cuComplex*>(y.gpu_data()), iny));
         };
 
+        template <typename T>
+        void MatrixVectorProduct_blockdiag(CudaRuntime& cudart, const char* ta, const T alpha, const BlockDiagMatrix<T>& a,
+                                const Vector<T>& x, const T beta, Vector<T>& y)
+        {
+            cublasOperation_t transa = get_trans(ta);
+            int num_blocks = a.num_blocks();
+
+            const auto& gpu_a_data = a.ensure_on_gpu(cudart);
+            size_t max_m = gpu_a_data.max_m;
+            size_t max_k = gpu_a_data.max_k;
+            long long padded_stride_a = gpu_a_data.padded_stride;
+            T *d_a = reinterpret_cast<T*>(gpu_a_data.d_data);
+
+            size_t lda = max_m;
+            size_t incx = 1;
+            size_t incy = 1;
+
+            y.copy2device(cudart);
+
+            Vector<T> x_packed(max_k * num_blocks, (T)0);
+            a.pack_vector_to_gpu(cudart, x, x_packed, a.get_row_offsets(), a.get_block_cols());
+            T *d_x = x_packed.gpu_data();
+
+            Vector<T> y_packed(max_m * num_blocks, (T)0);
+            a.pack_vector_to_gpu(cudart, y, y_packed, a.get_row_offsets(), a.get_block_rows());
+            T *d_y = y_packed.gpu_data();
+
+            cudart.cublasSetStream_();
+            cublasStatus_t istat;
+            if (std::is_same<T, double>::value) {
+                istat = cublasDgemvStridedBatched(
+                    cudart.handle, transa, max_m, max_k, (const double*)&alpha,
+                    (const double*)d_a, lda, padded_stride_a,
+                    (const double*)d_x, incx, max_k,
+                    (const double*)&beta, (double*)d_y, incy, max_m, num_blocks);
+            } else {
+                istat = cublasSgemvStridedBatched(
+                    cudart.handle, transa, max_m, max_k, (const float*)&alpha,
+                    (const float*)d_a, lda, padded_stride_a,
+                    (const float*)d_x, incx, max_k,
+                    (const float*)&beta, (float*)d_y, incy, max_m, num_blocks);
+            }
+            get_cublas_error(istat);
+
+            unpack_vector(cudart, y_packed.gpu_data(), y.gpu_data(), a.get_d_row_offsets(cudart), a.get_d_block_row_sizes(cudart), max_m, num_blocks);
+        }
+
         /// @brief Computes batched matrix-vector product for block-diagonal matrices \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ (double precision).
         ///
         /// Performs batched matrix-vector multiplication on block-diagonal matrices supporting optional transposition.
@@ -337,53 +386,10 @@ namespace lahva
         /// @param x Input double-precision vector matching the column structure of a.
         /// @param beta Scalar factor for vector y.
         /// @param y Input/output double-precision vector, replaced with result.
-        void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const double alpha, const BlockDiagMatrix<double>& a,
+        void MatrixVectorProduct(CudaRuntime& cudart, const char* ta, const double alpha, const BlockDiagMatrix<double>& a,
                                 const Vector<double>& x, const double beta, Vector<double>& y)
         {
-            cublasOperation_t transa = get_trans(ta);
-            int num_blocks = a.num_blocks();
-
-            // Ensure block-diagonal matrix A is on GPU
-            const auto& gpu_a_data = a.ensure_on_gpu(cudart);
-
-            size_t max_m = gpu_a_data.max_m;
-            size_t max_k = gpu_a_data.max_k;
-            long long padded_stride_a = gpu_a_data.padded_stride;
-            double *d_a = gpu_a_data.d_data;
-
-            size_t lda = max_m;
-            size_t incx = 1;
-            size_t incy = 1;
-
-            // Pack X vector blocks and copy to GPU
-            Vector<double> x_packed(max_k * num_blocks, 0.0);
-            a.pack_vector_to_gpu(cudart, x, x_packed, a.get_row_offsets(), a.get_block_cols());
-            double *d_x = x_packed.gpu_data();
-
-            // Pack Y vector blocks and copy to GPU
-            Vector<double> y_packed(max_m * num_blocks, 0.0);
-            a.pack_vector_to_gpu(cudart, y, y_packed, a.get_row_offsets(), a.get_block_rows());
-            double *d_y = y_packed.gpu_data();
-
-            // Perform batched GEMV: Y = alpha * op(A) * X + beta * Y
-            cudart.cublasSetStream_();
-            cublasStatus_t istat = cublasDgemvStridedBatched(
-                cudart.handle,
-                transa,
-                max_m, max_k,
-                &alpha,
-                d_a, lda, padded_stride_a,
-                d_x, incx, max_k,
-                &beta,
-                d_y, incy, max_m,
-                num_blocks
-            );
-            get_cublas_error(istat);
-
-            // Copy result back to CPU and unpack
-            cudart.synchronize();
-            y_packed.copy2host(cudart);
-            a.unpack_vector_from_gpu(cudart, y_packed, y, a.get_row_offsets(), a.get_block_rows());
+            MatrixVectorProduct_blockdiag(cudart, ta, alpha, a, x, beta, y);
         }
 
         /// @brief Computes batched matrix-vector product for block-diagonal matrices \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ (single precision).
@@ -399,53 +405,79 @@ namespace lahva
         /// @param x Input single-precision vector matching the column structure of a.
         /// @param beta Scalar factor for vector y.
         /// @param y Input/output single-precision vector, replaced with result.
-        void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const float alpha, const BlockDiagMatrix<float>& a,
+        void MatrixVectorProduct(CudaRuntime& cudart, const char* ta, const float alpha, const BlockDiagMatrix<float>& a,
                                 const Vector<float>& x, const float beta, Vector<float>& y)
         {
-            cublasOperation_t transa = get_trans(ta);
-            int num_blocks = a.num_blocks();
-
-            // Ensure block-diagonal matrix A is on GPU
-            const auto& gpu_a_data = a.ensure_on_gpu(cudart);
-            size_t max_m = gpu_a_data.max_m;
-            size_t max_k = gpu_a_data.max_k;
-            long long padded_stride_a = gpu_a_data.padded_stride;
-            float *d_a = reinterpret_cast<float*>(gpu_a_data.d_data);
-
-            size_t lda = max_m;
-            size_t incx = 1;
-            size_t incy = 1;
-
-            // Pack X vector blocks and copy to GPU
-            Vector<float> x_packed(max_k * num_blocks, 0.0f);
-            a.pack_vector_to_gpu(cudart, x, x_packed, a.get_row_offsets(), a.get_block_cols());
-            float *d_x = x_packed.gpu_data();
-
-            // Pack Y vector blocks and copy to GPU
-            Vector<float> y_packed(max_m * num_blocks, 0.0f);
-            a.pack_vector_to_gpu(cudart, y, y_packed, a.get_row_offsets(), a.get_block_rows());
-            float *d_y = y_packed.gpu_data();
-
-            // Perform batched GEMV: Y = alpha * op(A) * X + beta * Y
-            cudart.cublasSetStream_();
-            cublasStatus_t istat = cublasSgemvStridedBatched(
-                cudart.handle,
-                transa,
-                max_m, max_k,
-                &alpha,
-                d_a, lda, padded_stride_a,
-                d_x, incx, max_k,
-                &beta,
-                d_y, incy, max_m,
-                num_blocks
-            );
-            get_cublas_error(istat);
-
-            // Copy result back to CPU and unpack
-            cudart.synchronize();
-            y_packed.copy2host(cudart);
-            a.unpack_vector_from_gpu(cudart, y_packed, y, a.get_row_offsets(), a.get_block_rows());
+            MatrixVectorProduct_blockdiag(cudart, ta, alpha, a, x, beta, y);
         }
+
+        /// @brief Sparse matrix-vector product with BlockMatrix via cuSPARSE.
+        ///
+        /// Performs sparse matrix-vector multiplication \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
+        /// or \f$\vec{y}=alpha*\mathbf{A}^T*\vec{x}+beta*\vec{y}\f$ using cuSPARSE operations.
+        /// The BlockMatrix is converted to sparse format (BSR for uniform blocks, CSR for non-uniform blocks).
+        ///
+        /// @tparam T Numeric element type (float or double).
+        /// @param cudart CUDA runtime instance.
+        /// @param ta Transposition character: 'N' (no transpose), 'T' (transpose).
+        /// @param alpha Scalar factor for the matrix-vector product.
+        /// @param a Input block-structured sparse matrix.
+        /// @param x Input vector to multiply (size must match matrix columns or rows if transposed).
+        /// @param beta Scalar factor for vector y.
+        /// @param y Input/output vector, replaced with result (size must match matrix rows or columns if transposed).
+        template <typename T>
+        void MatrixVectorProduct_sparse(CudaRuntime &cudart, const char* ta, const T alpha, const BlockMatrix_<T>& a,
+                                const Vector_<T>& x, const T beta, Vector_<T>& y)
+        {
+            cusparseOperation_t op = get_cusparse_trans(ta);
+            check_size_mv(a, x, y, op);
+
+            check_device_alloc(cudart, x);
+            check_device_alloc(cudart, y);
+
+            cudaDataType_t precision = get_cuda_datatype<T>();
+
+            // Convert BlockMatrix to SparseMatrix and copy to GPU
+            SparseMatrix<T> sparse(cudart, a, a.get_sparse_format());
+            sparse.allocate_gpu_memory();
+            sparse.transfer_to_device(cudart);
+            sparse.create_descriptor(cudart, precision);
+
+            cusparseSpMatDescr_t mat_a = sparse.get_descriptor();
+
+            // Create dense vector descriptors
+            cusparseDnVecDescr_t vec_x_descr, vec_y_descr;
+            get_cusparse_error(cusparseCreateDnVec(&vec_x_descr, x.size(), x.gpu_data(), precision));
+            get_cusparse_error(cusparseCreateDnVec(&vec_y_descr, y.size(), y.gpu_data(), precision));
+
+            // Allocate work buffer
+            cusparseHandle_t sparseHandle = cudart.getcuSparseHandle();
+            size_t bufferSize = 0;
+            get_cusparse_error(cusparseSpMV_bufferSize(sparseHandle, op, &alpha, mat_a, vec_x_descr,
+                                                        &beta, vec_y_descr, precision, CUSPARSE_SPMV_ALG_DEFAULT, &bufferSize));
+
+            void *buffer = nullptr;
+            if (bufferSize > 0) {
+                get_cuda_error(cudaMalloc(&buffer, bufferSize));
+            }
+
+            // Perform multiplication
+            get_cusparse_error(cusparseSpMV(sparseHandle, op, &alpha, mat_a, vec_x_descr,
+                                           &beta, vec_y_descr, precision, CUSPARSE_SPMV_ALG_DEFAULT, buffer));
+
+            // Cleanup
+            if (buffer) {
+                get_cuda_error(cudaFree(buffer));
+            }
+            get_cusparse_error(cusparseDestroyDnVec(vec_x_descr));
+            get_cusparse_error(cusparseDestroyDnVec(vec_y_descr));
+        }
+
+        // Explicit template instantiations
+        template void MatrixVectorProduct_sparse<float>(CudaRuntime&, const char*, float, const BlockMatrix_<float>&, const Vector_<float>&, float, Vector_<float>&);
+        template void MatrixVectorProduct_sparse<double>(CudaRuntime&, const char*, double, const BlockMatrix_<double>&, const Vector_<double>&, double, Vector_<double>&);
+        template void MatrixVectorProduct_blockdiag<float>(CudaRuntime&, const char*, float, const BlockDiagMatrix<float>&, const Vector<float>&, float, Vector<float>&);
+        template void MatrixVectorProduct_blockdiag<double>(CudaRuntime&, const char*, double, const BlockDiagMatrix<double>&, const Vector<double>&, double, Vector<double>&);
 
         /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
         for specified stride
@@ -657,6 +689,7 @@ namespace lahva
             cublasStatus_t istat = cublasSspmv(cudart.handle, tri_gpu, ncol, &alpha, a.gpu_data(), x.gpu_data(), inx, &beta, y.gpu_data(), iny);
             get_cublas_error(istat);
         };
+
 
     } // namespace gpu
 } // namespace lahva
