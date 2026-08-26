@@ -7,7 +7,6 @@
 
 #include "impl/gpu/utils.hpp"
 #include "impl/blas/gpu/level2.hpp"
-#include "impl/gpu/unpack-vector.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
 #include <cuda_runtime.h>
