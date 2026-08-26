@@ -10,7 +10,7 @@ namespace lahva
         /// @brief Abstract base class for block matrix operations
         /// @tparam T data type for matrix elements
         template<typename T>
-        class BlockMatrix_ : public virtual Tensor<T>
+        class BlockMatrix_ : public virtual Tensor_<T>
         {
         public:
             BlockMatrix_() = default;

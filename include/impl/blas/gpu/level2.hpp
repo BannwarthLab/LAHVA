@@ -314,8 +314,6 @@ namespace lahva
         MatrixVectorProduct(cudart, ta, alpha, a, x, beta, y);
     }
 
-
-
     /// @brief Computes symmetric matrix-vector product with double-precision GPU tensors, wrapper to cuBLAS function cublasDsymv.
     ///
     /// Performs y = alpha * A * x + beta * y where A is a symmetric matrix.
