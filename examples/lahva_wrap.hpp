@@ -45,6 +45,10 @@ namespace BLASwrap
         using Matrix = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, cpu::Matrix<T>, gpu::Matrix<T, CPUAll<T>, GPUAll<T>>>::type;
         template <typename T>
         using LowTriMatrix = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, cpu::LowTriMatrix<T>, gpu::LowTriMatrix<T, CPUAll<T>, GPUAll<T>>>::type;
+        template <typename T>
+        using BlockMatrix = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, cpu::BlockMatrix<T>, gpu::BlockMatrix<T, CPUAll<T>, GPUAll<T>>>::type;
+        template <typename T>
+        using BlockDiagMatrix = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, cpu::BlockDiagMatrix<T>, gpu::BlockDiagMatrix<T, CPUAll<T>, GPUAll<T>>>::type;
         template<typename high>
         using MixedPrecisionMatrix = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, cpu::Matrix<high>, gpu::MixedPrecisionMatrix<high, CPUAll<high>, GPUAll<high>>>::type;
 
@@ -65,6 +69,8 @@ namespace BLASwrap
         using Matrix = typename cpu::Matrix<T, CPUAll<T>>;
         template <typename T>
         using LowTriMatrix = typename cpu::LowTriMatrix<T, CPUAll<T>>;
+        template <typename T>
+        using BlockDiagMatrix = typename cpu::BlockMatrix<T, CPUAll<T>>;
         template <typename T>
         using MixedPrecisionMatrix = typename cpu::Matrix<T, CPUAll<T>>;
 

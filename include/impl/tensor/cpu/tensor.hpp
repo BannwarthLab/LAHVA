@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <memory>
 #include "impl/tensor/allocators.hpp"
 
 namespace lahva
