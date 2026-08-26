@@ -10,7 +10,7 @@ namespace lahva
 
 
     template<typename T>
-    class BlockDiagMatrix_ : public virtual Tensor<T>
+    class BlockDiagMatrix_ : public virtual Tensor_<T>
     {
         public:
             BlockDiagMatrix_() = default;
