@@ -388,14 +388,14 @@ namespace lahva
     // Template implementation for dense A * sparse B MatrixMatrixProduct
     // This must be defined in the header to allow inline instantiation
     template <typename T>
-    inline void MatrixMatrixProduct_impl(CudaRuntime &cudart, const char *Ta, const char *Tb,
+    inline void MatrixMatrixProduct_dense_sparse(CudaRuntime &cudart, const char *Ta, const char *Tb,
                                  const T alpha, const Matrix_<T> &a,
                                  const BlockMatrix_<T> &b, const T beta, Matrix_<T> &c);
 
-    // Template implementation for dense A * sparse B MatrixMatrixProduct
+    // Template implementation for sparse A * dense B MatrixMatrixProduct
     // This must be defined in the header to allow inline instantiation
     template <typename T>
-    inline void MatrixMatrixProduct_impl2(CudaRuntime &cudart, const char *Ta, const char *Tb,
+    inline void MatrixMatrixProduct_sparse_dense(CudaRuntime &cudart, const char *Ta, const char *Tb,
                                  const T alpha, const BlockMatrix_<T> &a,
                                  const Matrix_<T> &b, const T beta, Matrix_<T> &c);
 

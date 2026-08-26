@@ -6,7 +6,6 @@
 /// Inherits from both GPU and CPU lower triangular interfaces for mixed-precision computations.
 
 #pragma once
-#include <omp.h>
 
 #include "impl/tensor/cpu/lowtrimatrix.hpp"
 #include "impl/tensor/gpu/gputensor.hpp"

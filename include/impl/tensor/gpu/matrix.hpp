@@ -7,18 +7,9 @@
 
 #pragma once
 
-#include <cassert>
-#include <fstream>
-#include <initializer_list>
-#include <iostream>
-#include <omp.h>
-#include <string>
-
 #include "impl/blas/cpu/level1.h"
 #include "impl/tensor/allocators.hpp"
-#include "impl/tensor/cpu/matrix.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
-#include "impl/tensor/gpu/gputensor.hpp"
 #include "impl/tensor/gpu/vector.hpp"
 
 namespace lahva

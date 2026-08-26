@@ -7,15 +7,12 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <fstream>
-#include <initializer_list>
 #include <iostream>
-#include <omp.h>
-#include <string>
 
 #include "impl/blas/cpu/level1.h"
-#include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/vector.hpp"
 
 namespace lahva

@@ -6,9 +6,6 @@
 /// Vectors can be initialized from various sources and support mathematical operations.
 
 #pragma once
-#include <initializer_list>
-#include <memory>
-#include <omp.h>
 
 #include "impl/tensor/cpu/tensor.hpp"
 

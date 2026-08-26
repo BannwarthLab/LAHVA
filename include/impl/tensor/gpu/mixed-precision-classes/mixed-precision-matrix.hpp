@@ -7,11 +7,8 @@
 
 #pragma once
 
-#include <vector>
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/matrix.hpp"
-#include "impl/tensor/cpu/tensor.hpp"
-#include "impl/tensor/gpu/gputensor.hpp"
 #include "impl/tensor/gpu/matrix.hpp"
 
 namespace lahva

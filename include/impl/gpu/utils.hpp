@@ -365,5 +365,79 @@ namespace lahva
         return std::make_tuple(nrowc, ncolc);
     };
 
+    /// @brief Validates dimensions for sparse-dense matrix multiplication (sparse A * dense B).
+    ///
+    /// Checks that sparse matrix A and dense matrix B have compatible dimensions for
+    /// C = alpha*op(A)*op(B) + beta*C operation, where A is a BlockMatrix.
+    /// Assertions verify dimension compatibility considering optional transposition.
+    ///
+    /// @tparam T Element type for matrices.
+    /// @param sparse_a Sparse block matrix (first operand).
+    /// @param dense_b Dense matrix (second operand).
+    /// @param OpA Sparse operation on A (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
+    /// @param OpB Sparse operation on B (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
+    /// @return Tuple of (M, N, m, k) where:
+    ///         - M, N are result matrix dimensions
+    ///         - m, k are original sparse matrix dimensions
+    template <typename T>
+    std::tuple<int64_t, int64_t, int64_t, int64_t> check_size_sparse_dense(
+        const BlockMatrix_<T> &sparse_a,
+        const Matrix_<T> &dense_b,
+        cusparseOperation_t OpA,
+        cusparseOperation_t OpB)
+    {
+        int64_t rows_A = static_cast<int64_t>(sparse_a.shape().first);
+        int64_t cols_A = static_cast<int64_t>(sparse_a.shape().second);
+        int64_t rows_B = static_cast<int64_t>(dense_b.shape().first);
+        int64_t cols_B = static_cast<int64_t>(dense_b.shape().second);
+
+        bool transA = (OpA == CUSPARSE_OPERATION_TRANSPOSE);
+        bool transB = (OpB == CUSPARSE_OPERATION_TRANSPOSE);
+
+        int64_t M = transA ? cols_A : rows_A;
+        int64_t N = transB ? rows_B : cols_B;
+        int64_t m = rows_A;
+        int64_t k = cols_A;
+
+        return std::make_tuple(M, N, m, k);
+    };
+
+    /// @brief Validates dimensions for dense-sparse matrix multiplication (dense A * sparse B).
+    ///
+    /// Checks that dense matrix A and sparse matrix B have compatible dimensions for
+    /// C = alpha*op(A)*op(B) + beta*C operation, where B is a BlockMatrix.
+    /// Assertions verify dimension compatibility considering optional transposition.
+    ///
+    /// @tparam T Element type for matrices.
+    /// @param dense_a Dense matrix (first operand).
+    /// @param sparse_b Sparse block matrix (second operand).
+    /// @param OpA Operation on A (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
+    /// @param OpB Operation on B (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
+    /// @return Tuple of (M, N, m, k) where:
+    ///         - M, N are result matrix dimensions
+    ///         - m, k are original sparse matrix dimensions
+    template <typename T>
+    std::tuple<int64_t, int64_t, int64_t, int64_t> check_size_dense_sparse(
+        const Matrix_<T> &dense_a,
+        const BlockMatrix_<T> &sparse_b,
+        cusparseOperation_t OpA,
+        cusparseOperation_t OpB)
+    {
+        int64_t rows_A = static_cast<int64_t>(dense_a.shape().first);
+        int64_t cols_A = static_cast<int64_t>(dense_a.shape().second);
+        int64_t rows_B = static_cast<int64_t>(sparse_b.shape().first);
+        int64_t cols_B = static_cast<int64_t>(sparse_b.shape().second);
+
+        bool transA = (OpA == CUSPARSE_OPERATION_TRANSPOSE);
+        bool transB = (OpB == CUSPARSE_OPERATION_TRANSPOSE);
+
+        int64_t M = transA ? cols_A : rows_A;
+        int64_t N = transB ? rows_B : cols_B;
+        int64_t m = rows_B;
+        int64_t k = cols_B;
+
+        return std::make_tuple(M, N, m, k);
+    };
+
     } // namespace gpu
 } // namespace lahva

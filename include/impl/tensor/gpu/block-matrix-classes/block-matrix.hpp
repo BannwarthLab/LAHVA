@@ -6,13 +6,8 @@
 
 #pragma once
 
-#include "impl/tensor/gpu/gputensor.hpp"
 #include "impl/tensor/gpu/matrix.hpp"
-#include <vector>
 #include <map>
-#include <cstddef>
-#include <iostream>
-#include <iomanip>
 
 namespace lahva
 {
@@ -24,6 +19,10 @@ namespace lahva
             CSR,  ///< Compressed Sparse Row format
             BSR   ///< Block Sparse Row format
         };
+
+        /// @brief Forward declaration of SparseMatrix
+        template<typename T>
+        class SparseMatrix;
 
         /// @brief Abstract base class for GPU block-diagonal matrices
         /// @tparam T data type for matrix elements
@@ -91,7 +90,8 @@ namespace lahva
             /// @param[in] block_row Element-space row position of block
             /// @param[in] block_col Element-space column position of block
             /// @return Pointer to block data, or nullptr if block doesn't exist at that position
-            virtual const void* get_block_data_at(size_t block_row, size_t block_col) const = 0;
+            virtual const T* get_block_data_at(size_t block_row, size_t block_col) const = 0;
+
         };
 
         //! @brief GPU-accelerated block matrix with blocks at arbitrary positions
@@ -230,10 +230,10 @@ namespace lahva
                 return block_order_[idx]->first.second;
             }
 
-            const void* get_block_data_at(size_t block_row, size_t block_col) const override {
+            const T* get_block_data_at(size_t block_row, size_t block_col) const override {
                 auto it = blocks_.find({block_row, block_col});
                 if (it != blocks_.end()) {
-                    return (const void*)it->second.data();
+                    return it->second.data();
                 }
                 return nullptr;
             }
@@ -543,6 +543,7 @@ namespace lahva
                     uniform_block_size_ = false;
                 }
             }
+
         };
 
     } // namespace gpu

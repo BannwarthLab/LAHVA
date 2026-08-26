@@ -1,14 +1,7 @@
 #pragma once
 
-#include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/matrix.hpp"
-#include "impl/tensor/cpu/tensor.hpp"
-#include <algorithm>
-#include <cstddef>
-#include <iostream>
 #include <iomanip>
-#include <stdexcept>
-#include <vector>
 
 namespace lahva
 {

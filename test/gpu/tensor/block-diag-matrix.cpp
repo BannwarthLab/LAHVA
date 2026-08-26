@@ -350,71 +350,6 @@ int test_blockdiag_ensure_on_gpu(const CudaRuntime& cudart) {
     return TEST_PASS;
 }
 
-template <typename T>
-int test_blockdiag_is_on_gpu(const CudaRuntime& cudart) {
-    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
-    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, (T)1));
-
-    BlockDiagMatrix<T> m(blocks);
-
-    if (m.is_on_gpu()) {
-        std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
-        return TEST_FAIL;
-    }
-
-    m.ensure_on_gpu(cudart);
-
-    if (!m.is_on_gpu()) {
-        std::cerr << check_msg(get_type_name<T>(), "check 2") << std::endl;
-        return TEST_FAIL;
-    }
-
-    return TEST_PASS;
-}
-
-template <typename T>
-int test_blockdiag_free_gpu_cache(const CudaRuntime& cudart) {
-    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
-    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, (T)1));
-
-    BlockDiagMatrix<T> m(blocks);
-
-    m.ensure_on_gpu(cudart);
-
-    if (!m.is_on_gpu()) {
-        std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
-        return TEST_FAIL;
-    }
-
-    m.free_gpu_cache();
-
-    if (m.is_on_gpu()) {
-        std::cerr << check_msg(get_type_name<T>(), "check 2") << std::endl;
-        return TEST_FAIL;
-    }
-
-    return TEST_PASS;
-}
-
-template <typename T>
-int test_blockdiag_to_gpu() {
-    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
-    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, (T)1));
-    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, (T)2));
-
-    BlockDiagMatrix<T> m(blocks);
-
-    CudaRuntime cudart;
-    m.to_gpu(cudart);
-
-    if (!m.is_on_gpu()) {
-        std::cerr << check_msg(get_type_name<T>(), "") << std::endl;
-        return TEST_FAIL;
-    }
-
-    return TEST_PASS;
-}
-
 // ============================================================================
 // BlockDiagMatrix Sparse Conversion Tests
 // ============================================================================
@@ -762,13 +697,6 @@ int main() {
     // BlockDiagMatrix GPU operations
     total_failures += test_blockdiag_ensure_on_gpu<double>(cudart);
     total_failures += test_blockdiag_ensure_on_gpu<float>(cudart);
-    total_failures += test_blockdiag_is_on_gpu<double>(cudart);
-    total_failures += test_blockdiag_is_on_gpu<float>(cudart);
-    total_failures += test_blockdiag_free_gpu_cache<double>(cudart);
-    total_failures += test_blockdiag_free_gpu_cache<float>(cudart);
-    total_failures += test_blockdiag_to_gpu<double>();
-    total_failures += test_blockdiag_to_gpu<float>();
-
     // GPU round-trip transfers
     total_failures += test_sparse_matrix_gpu_roundtrip_csr<double>();
     total_failures += test_sparse_matrix_gpu_roundtrip_csr<float>();

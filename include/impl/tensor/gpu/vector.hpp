@@ -6,8 +6,6 @@
 /// Inherits from both GPU and CPU vector interfaces for mixed-precision computations.
 
 #pragma once
-#include <initializer_list>
-#include <omp.h>
 
 #include "impl/tensor/cpu/vector.hpp"
 #include "impl/tensor/gpu/gputensor.hpp"

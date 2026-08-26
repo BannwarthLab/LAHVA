@@ -1,15 +1,5 @@
 #pragma once
 
-#include <vector>
-#include <cstring>
-#include <map>
-#include <algorithm>
-#include <cusparse.h>
-#include <cublas_v2.h>
-#include <cuda_runtime.h>
-
-#include "impl/tensor/gpu/gputensor.hpp"
-#include "impl/tensor/gpu/matrix.hpp"
 #include "impl/tensor/gpu/block-matrix-classes/block-matrix.hpp"
 #include "runtime.hpp"
 

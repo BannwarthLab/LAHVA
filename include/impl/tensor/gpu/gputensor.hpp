@@ -6,7 +6,6 @@
 /// Base class for all specialized GPU tensor types (vectors, matrices, etc.).
 
 #pragma once
-#include <memory>
 
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
