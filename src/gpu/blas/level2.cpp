@@ -440,7 +440,7 @@ namespace lahva
             // Convert BlockMatrix to SparseMatrix and copy to GPU
             SparseMatrix<T> sparse(cudart, a, a.get_sparse_format());
             sparse.allocate_gpu_memory();
-            sparse.transfer_to_device(cudart);
+            sparse.copy2device(cudart);
             sparse.create_descriptor(cudart, precision);
 
             cusparseSpMatDescr_t mat_a = sparse.get_descriptor();

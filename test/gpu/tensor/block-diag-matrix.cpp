@@ -528,8 +528,8 @@ int test_sparse_matrix_gpu_roundtrip_csr() {
     }
 
     sparse_csr.allocate_gpu_memory();
-    sparse_csr.transfer_to_device(cudart);
-    sparse_csr.transfer_to_host(cudart);
+    sparse_csr.copy2device(cudart);
+    sparse_csr.copy2host(cudart);
     Matrix<T> reconstructed_dense = sparse_csr.to_dense();
 
     Shape reconstructed_shape = reconstructed_dense.shape();
@@ -546,7 +546,7 @@ int test_sparse_matrix_gpu_roundtrip_csr() {
         }
     }
 
-    sparse_csr.release_gpu_memory();
+    sparse_csr.free_gpu_memory();
     return TEST_PASS;
 }
 
@@ -570,8 +570,8 @@ int test_sparse_matrix_gpu_roundtrip_bsr() {
     }
 
     sparse_bsr.allocate_gpu_memory();
-    sparse_bsr.transfer_to_device(cudart);
-    sparse_bsr.transfer_to_host(cudart);
+    sparse_bsr.copy2device(cudart);
+    sparse_bsr.copy2host(cudart);
 
     Matrix<T> reconstructed_dense = sparse_bsr.to_dense();
 
@@ -588,7 +588,7 @@ int test_sparse_matrix_gpu_roundtrip_bsr() {
         }
     }
 
-    sparse_bsr.release_gpu_memory();
+    sparse_bsr.free_gpu_memory();
     return TEST_PASS;
 }
 
@@ -613,8 +613,8 @@ int test_sparse_matrix_gpu_roundtrip_varied_sizes() {
     }
 
     sparse.allocate_gpu_memory();
-    sparse.transfer_to_device(cudart);
-    sparse.transfer_to_host(cudart);
+    sparse.copy2device(cudart);
+    sparse.copy2host(cudart);
 
     Matrix<T> reconstructed_dense = sparse.to_dense();
 
@@ -632,7 +632,7 @@ int test_sparse_matrix_gpu_roundtrip_varied_sizes() {
         }
     }
 
-    sparse.release_gpu_memory();
+    sparse.free_gpu_memory();
     return TEST_PASS;
 }
 

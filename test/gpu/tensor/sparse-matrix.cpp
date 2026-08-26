@@ -177,11 +177,11 @@ int test_sparse_matrix_allocate_gpu_memory(const CudaRuntime& cudart) {
         return TEST_FAIL;
     }
     if (!check((int)sparse.nnz() > 0, 1, check_msg(get_type_name<T>(), "check 2"))) {
-        sparse.release_gpu_memory();
+        sparse.free_gpu_memory();
         return TEST_FAIL;
     }
 
-    sparse.release_gpu_memory();
+    sparse.free_gpu_memory();
     return TEST_PASS;
 }
 
@@ -193,16 +193,16 @@ int test_sparse_matrix_transfer_to_device(const CudaRuntime& cudart) {
     SparseMatrix<T> sparse(cudart, bdm, SparseFormat::CSR);
 
     sparse.allocate_gpu_memory();
-    sparse.transfer_to_device(cudart);
+    sparse.copy2device(cudart);
 
     // Verify sparse matrix is still valid
     if (!sparse.is_initialized()) {
         std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
-        sparse.release_gpu_memory();
+        sparse.free_gpu_memory();
         return TEST_FAIL;
     }
 
-    sparse.release_gpu_memory();
+    sparse.free_gpu_memory();
     return TEST_PASS;
 }
 
@@ -214,16 +214,16 @@ int test_sparse_matrix_transfer_to_host(const CudaRuntime& cudart) {
     SparseMatrix<T> sparse(cudart, bdm, SparseFormat::CSR);
 
     sparse.allocate_gpu_memory();
-    sparse.transfer_to_device(cudart);
-    sparse.transfer_to_host(cudart);
+    sparse.copy2device(cudart);
+    sparse.copy2host(cudart);
 
     if (!sparse.is_initialized()) {
         std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
-        sparse.release_gpu_memory();
+        sparse.free_gpu_memory();
         return TEST_FAIL;
     }
 
-    sparse.release_gpu_memory();
+    sparse.free_gpu_memory();
     return TEST_PASS;
 }
 
@@ -240,7 +240,7 @@ int test_sparse_matrix_release_gpu_memory(const CudaRuntime& cudart) {
     }
 
     sparse.allocate_gpu_memory();
-    sparse.release_gpu_memory();
+    sparse.free_gpu_memory();
 
     if (sparse.is_initialized()) {
         std::cerr << check_msg(get_type_name<T>(), "check 2") << std::endl;

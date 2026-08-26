@@ -81,7 +81,7 @@ namespace lahva
             virtual size_t get_block_col(size_t idx) const = 0;
 
             /// @brief Get preferred sparse format for GPU operations (CSR or BSR)
-            /// @return SparseFormat enum value (default: BSR for structured block matrices)
+            /// @return SparseFormat enum value
             virtual SparseFormat get_sparse_format() const {
                 return SparseFormat::BSR;
             }
@@ -94,28 +94,31 @@ namespace lahva
 
         };
 
-        //! @brief GPU-accelerated block matrix with blocks at arbitrary positions
-        //!
-        //! A generalization of BlockDiagMatrix that allows blocks at any (i,j) position,
-        //! not just along the diagonal. Useful for general sparse or structured matrices.
-        //!
-        //! @tparam T Numeric element type (double, float, complex types)
-        //! @tparam Allocator Host (pinned) memory allocator (default: CudaHostAllocator<T>)
-        //! @tparam GPUAllocator Device memory allocator (default: CudaDeviceAllocator<T>)
+        /// @brief GPU-accelerated block matrix with blocks at arbitrary positions
+        ///
+        /// A generalization of BlockDiagMatrix that allows blocks at any (i,j) position,
+        /// not just along the diagonal. Useful for general sparse or structured matrices.
+        ///
+        /// @tparam T Numeric element type (double, float, complex types)
+        /// @tparam Allocator Host (pinned) memory allocator (default: CudaHostAllocator<T>)
+        /// @tparam GPUAllocator Device memory allocator (default: CudaDeviceAllocator<T>)
         template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAllocator<T>>
         class BlockMatrix : virtual public Tensor<T, Allocator, GPUAllocator>, virtual public BlockMatrix_<T>
         {
             using alloc_ptr = CPUAllocator<T>;
             using gpualloc_ptr = GPUAllocator_<T>;
         public:
-            //! @brief Default constructor
+            /// @brief Default constructor
             BlockMatrix()
                 : Tensor<T, Allocator, GPUAllocator>(), Tensor_<T>(), BlockMatrix_<T>(),
                   n_rows_(0), n_cols_(0), uniform_block_size_(true), cached_block_shape_(0, 0)
             {
             }
 
-            //! @brief Constructor from shape - creates zero-initialized matrix with given dimensions
+            /// @brief Constructor from shape - creates zero-initialized matrix
+            /// @param[in] shape total matrix dimensions (rows, columns)
+            /// @param[in] alloc host memory allocator (default: Allocator())
+            /// @param[in] gpualloc device memory allocator (default: GPUAllocator())
             explicit BlockMatrix(const Shape &shape, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator())
                 : Tensor<T, Allocator, GPUAllocator>(shape.first * shape.second, alloc, gpualloc),
                   Tensor_<T>(), BlockMatrix_<T>(),
@@ -123,16 +126,16 @@ namespace lahva
             {
             }
 
-            //! @brief Copy constructor
+            /// @brief Copy constructor
             BlockMatrix(const BlockMatrix &other) = default;
 
-            //! @brief Move constructor
+            /// @brief Move constructor
             BlockMatrix(BlockMatrix &&other) noexcept = default;
 
-            //! @brief Copy assignment operator
+            /// @brief Copy assignment operator
             BlockMatrix &operator=(const BlockMatrix &other) = default;
 
-            //! @brief Move assignment operator
+            /// @brief Move assignment operator
             BlockMatrix &operator=(BlockMatrix &&other) noexcept {
                 Tensor<T, Allocator, GPUAllocator>::operator=(std::move(other));
                 BlockMatrix_<T>::operator=(std::move(other));
@@ -165,13 +168,13 @@ namespace lahva
                 return *this;
             }
 
-            //! @brief Get total shape (rows, columns) of the block matrix
+            /// @brief Get total shape (rows, columns) of the block matrix
             Shape shape() const override { return Shape(n_rows_, n_cols_); }
 
-            //! @brief Get total number of blocks stored
+            /// @brief Get total number of blocks stored
             size_t num_blocks() const override { return blocks_.size(); }
 
-            //! @brief Get shape of a specific block by linear index
+            /// @brief Get shape of a specific block by linear index
             Shape get_block_shape(size_t idx) const override {
                 if (idx >= block_order_.size()) {
                     throw std::out_of_range("Block index " + std::to_string(idx) + " out of range");
@@ -179,7 +182,7 @@ namespace lahva
                 return block_order_[idx]->second.shape();
             }
 
-            //! @brief Get row offsets for all blocks
+            /// @brief Get row offsets for all blocks
             const std::vector<int>& get_row_offsets() const override {
                 if (!row_offsets_valid_) {
                     compute_offsets();
@@ -187,7 +190,7 @@ namespace lahva
                 return row_offsets_;
             }
 
-            //! @brief Get column offsets for all blocks
+            /// @brief Get column offsets for all blocks
             const std::vector<int>& get_col_offsets() const override {
                 if (!col_offsets_valid_) {
                     compute_offsets();
@@ -195,7 +198,10 @@ namespace lahva
                 return col_offsets_;
             }
 
-            //! @brief Element access operator (mutable)
+            /// @brief Element access operator (mutable)
+            /// @param[in] i row index
+            /// @param[in] j column index
+            /// @return reference to element at (i,j); returns zero for positions outside all blocks
             T &operator()(size_t i, size_t j) override {
                 // Find block containing element (i, j)
                 // (i, j) in blocks_ map is the element-space position of block top-left corner
@@ -214,37 +220,10 @@ namespace lahva
                 return zero_value;
             }
 
-            //! @brief Get element row position for a block by linear index
-            size_t get_block_row(size_t idx) const override {
-                if (idx >= block_order_.size()) {
-                    throw std::out_of_range("Block index out of range");
-                }
-                return block_order_[idx]->first.first;
-            }
-
-            //! @brief Get element column position for a block by linear index
-            size_t get_block_col(size_t idx) const override {
-                if (idx >= block_order_.size()) {
-                    throw std::out_of_range("Block index out of range");
-                }
-                return block_order_[idx]->first.second;
-            }
-
-            const T* get_block_data_at(size_t block_row, size_t block_col) const override {
-                auto it = blocks_.find({block_row, block_col});
-                if (it != blocks_.end()) {
-                    return it->second.data();
-                }
-                return nullptr;
-            }
-
-            //! @brief Get preferred sparse format for GPU operations
-            //! Returns BSR if all blocks have uniform size, CSR otherwise
-            SparseFormat get_sparse_format() const override {
-                return uniform_block_size_ ? SparseFormat::BSR : SparseFormat::CSR;
-            }
-
-            //! @brief Element access operator (const)
+            /// @brief Element access operator (const)
+            /// @param[in] i row index
+            /// @param[in] j column index
+            /// @return const reference to element at (i,j); returns zero for positions outside all blocks
             const T &operator()(size_t i, size_t j) const override {
                 // Find block containing element (i, j)
                 // (i, j) in blocks_ map is the element-space position of block top-left corner
@@ -263,9 +242,42 @@ namespace lahva
                 return zero_value;
             }
 
-            // ========== BlockMatrix-Specific Methods ==========
+            /// @brief Get element row position for a block by linear index
+            size_t get_block_row(size_t idx) const override {
+                if (idx >= block_order_.size()) {
+                    throw std::out_of_range("Block index out of range");
+                }
+                return block_order_[idx]->first.first;
+            }
 
-            //! @brief Get number of block rows (max row position + 1)
+            /// @brief Get element column position for a block by linear index
+            size_t get_block_col(size_t idx) const override {
+                if (idx >= block_order_.size()) {
+                    throw std::out_of_range("Block index out of range");
+                }
+                return block_order_[idx]->first.second;
+            }
+
+            /// @brief Get block data by element-space row and column position
+            /// @param[in] block_row Element-space row position of block
+            /// @param[in] block_col Element-space column position of block
+            /// @return Pointer to block data, or nullptr if block doesn't exist at that position
+            const T* get_block_data_at(size_t block_row, size_t block_col) const override {
+                auto it = blocks_.find({block_row, block_col});
+                if (it != blocks_.end()) {
+                    return it->second.data();
+                }
+                return nullptr;
+            }
+
+            /// @brief Get preferred sparse format for GPU operations
+            /// @return SparseFormat::BSR if all blocks have uniform size, CSR otherwise
+            SparseFormat get_sparse_format() const override {
+                return uniform_block_size_ ? SparseFormat::BSR : SparseFormat::CSR;
+            }
+
+            /// @brief Get number of block rows in the block grid
+            /// @return maximum row position + 1
             size_t num_block_rows() const {
                 if (!block_dims_valid_) {
                     compute_block_dims();
@@ -273,7 +285,8 @@ namespace lahva
                 return cached_num_block_rows_;
             }
 
-            //! @brief Get number of block columns (max column position + 1)
+            /// @brief Get number of block columns in the block grid
+            /// @return maximum column position + 1
             size_t num_block_cols() const {
                 if (!block_dims_valid_) {
                     compute_block_dims();
@@ -281,16 +294,19 @@ namespace lahva
                 return cached_num_block_cols_;
             }
 
-            //! @brief Check if a block exists at position (i,j)
+            /// @brief Check if a block exists at position (i,j)
+            /// @param[in] i element row where block starts
+            /// @param[in] j element column where block starts
+            /// @return true if block exists at (i,j), false otherwise
             bool has_block(size_t i, size_t j) const {
                 return blocks_.find({i, j}) != blocks_.end();
             }
 
-            //! @brief Add or update a block at position (i,j)
-            //! @param[in] i element row where block starts
-            //! @param[in] j element column where block starts
-            //! @param[in] block the block matrix to store
-            //! @throws std::runtime_error if block overlaps with existing blocks
+            /// @brief Add or update a block at position (i,j)
+            /// @param[in] i element row where block starts
+            /// @param[in] j element column where block starts
+            /// @param[in] block the block matrix to store
+            /// @throws std::runtime_error if block overlaps with existing blocks
             void set_block(size_t i, size_t j, const Matrix<T, Allocator>& block) {
                 Shape new_shape = block.shape();
                 size_t new_row_end = i + new_shape.first;
@@ -341,8 +357,11 @@ namespace lahva
                 d_offsets_valid_ = false;
             }
 
-            //! @brief Get block at position (i,j)
-            //! @throws std::out_of_range if block doesn't exist
+            /// @brief Get block at position (i,j)
+            /// @param[in] i element row where block starts
+            /// @param[in] j element column where block starts
+            /// @return reference to block matrix at (i,j)
+            /// @throws std::out_of_range if block doesn't exist
             Matrix<T, Allocator>& get_block(size_t i, size_t j) {
                 auto key = std::make_pair(i, j);
                 auto it = blocks_.find(key);
@@ -352,8 +371,11 @@ namespace lahva
                 return it->second;
             }
 
-            //! @brief Get block at position (i,j) (const)
-            //! @throws std::out_of_range if block doesn't exist
+            /// @brief Get block at position (i,j) (const)
+            /// @param[in] i element row where block starts
+            /// @param[in] j element column where block starts
+            /// @return const reference to block matrix at (i,j)
+            /// @throws std::out_of_range if block doesn't exist
             const Matrix<T, Allocator>& get_block(size_t i, size_t j) const {
                 auto key = std::make_pair(i, j);
                 auto it = blocks_.find(key);
@@ -363,9 +385,9 @@ namespace lahva
                 return it->second;
             }
 
-            //! @brief Get GPU pointer to row offsets (lazy initialized)
-            //! @param[in] cudart CUDA runtime for device allocation
-            //! @return Device pointer to row offsets array
+            /// @brief Get GPU pointer to row offsets (lazy initialized)
+            /// @param[in] cudart CUDA runtime for device allocation
+            /// @return Device pointer to row offsets array
             const int* get_d_row_offsets(const CudaRuntime &cudart) const {
                 if (!d_offsets_valid_) {
                     init_gpu_offsets(cudart);
@@ -373,9 +395,9 @@ namespace lahva
                 return d_row_offsets_.gpu_data();
             }
 
-            //! @brief Get GPU pointer to block row sizes (lazy initialized)
-            //! @param[in] cudart CUDA runtime for device allocation
-            //! @return Device pointer to block row sizes array
+            /// @brief Get GPU pointer to block row sizes (lazy initialized)
+            /// @param[in] cudart CUDA runtime for device allocation
+            /// @return Device pointer to block row sizes array
             const int* get_d_block_row_sizes(const CudaRuntime &cudart) const {
                 if (!d_offsets_valid_) {
                     init_gpu_offsets(cudart);
@@ -383,7 +405,8 @@ namespace lahva
                 return d_block_row_sizes_.gpu_data();
             }
 
-            //! @brief Print the block matrix structure
+            /// @brief Print the block matrix structure to standard output
+            /// @note Outputs total dimensions, then each block with position and data
             void print() const {
                 std::cout << "BlockMatrix (" << n_rows_ << " x " << n_cols_ << ")" << std::endl;
                 for (const auto& [pos, block] : blocks_) {
@@ -399,55 +422,55 @@ namespace lahva
             }
 
         private:
-            //! @brief Total number of rows (sum of all block rows)
+            /// @brief Total number of rows (sum of all block rows)
             size_t n_rows_;
 
-            //! @brief Total number of columns (sum of all block columns)
+            /// @brief Total number of columns (sum of all block columns)
             size_t n_cols_;
 
-            //! @brief Blocks stored as a map indexed by (i,j) block coordinates
+            /// @brief Blocks stored as a map indexed by (i,j) block coordinates
             std::map<std::pair<size_t, size_t>, Matrix<T, Allocator>> blocks_;
 
-            //! @brief Iterators to blocks in insertion order for O(1) indexed access
+            /// @brief Iterators to blocks in insertion order
             std::vector<typename std::map<std::pair<size_t, size_t>, Matrix<T, Allocator>>::iterator> block_order_;
 
-            //! @brief Cached row offsets for blocks (mutable for lazy computation)
+            /// @brief Cached row offsets for blocks
             mutable std::vector<int> row_offsets_;
 
-            //! @brief Cached column offsets for blocks (mutable for lazy computation)
+            /// @brief Cached column offsets for blocks
             mutable std::vector<int> col_offsets_;
 
-            //! @brief Flag indicating if offsets cache is valid
+            /// @brief Flag indicating if offsets cache is valid
             mutable bool row_offsets_valid_ = false;
 
-            //! @brief Flag indicating if column offsets cache is valid
+            /// @brief Flag indicating if column offsets cache is valid
             mutable bool col_offsets_valid_ = false;
 
-            //! @brief Flag indicating if all blocks have uniform size (enables BSR optimization)
+            /// @brief Flag indicating if all blocks have uniform size
             bool uniform_block_size_;
 
-            //! @brief Cached shape for uniform block size check
+            /// @brief Cached shape for uniform block size check
             Shape cached_block_shape_;
 
-            //! @brief Cached number of block rows
+            /// @brief Cached number of block rows
             mutable size_t cached_num_block_rows_ = 0;
 
-            //! @brief Cached number of block columns
+            /// @brief Cached number of block columns
             mutable size_t cached_num_block_cols_ = 0;
 
-            //! @brief Flag indicating if block dimensions cache is valid
+            /// @brief Flag indicating if block dimensions cache is valid
             mutable bool block_dims_valid_ = false;
 
-            //! @brief GPU vector for row offsets (lazy initialized)
+            /// @brief GPU vector for row offsets
             mutable Vector<int> d_row_offsets_;
 
-            //! @brief GPU vector for block row sizes (lazy initialized)
+            /// @brief GPU vector for block row sizes
             mutable Vector<int> d_block_row_sizes_;
 
-            //! @brief Flag indicating if GPU offset vectors are valid
+            /// @brief Flag indicating if GPU offset vectors are valid
             mutable bool d_offsets_valid_ = false;
 
-            //! @brief Compute and cache block grid dimensions
+            /// @brief Compute and cache block grid dimensions
             void compute_block_dims() const {
                 cached_num_block_rows_ = 0;
                 cached_num_block_cols_ = 0;
@@ -460,7 +483,7 @@ namespace lahva
                 block_dims_valid_ = true;
             }
 
-            //! @brief Compute and cache block offsets
+            /// @brief Compute and cache block offsets
             void compute_offsets() const {
                 row_offsets_.clear();
                 col_offsets_.clear();
@@ -483,9 +506,9 @@ namespace lahva
                 col_offsets_valid_ = true;
             }
 
-            //! @brief Initialize GPU offset vectors (lazy initialization)
+            /// @brief Initialize GPU offset vectors
             void init_gpu_offsets(const CudaRuntime &cudart) const {
-                // Ensure host offsets are computed
+
                 if (!row_offsets_valid_) {
                     compute_offsets();
                 }
@@ -508,7 +531,7 @@ namespace lahva
                 d_offsets_valid_ = true;
             }
 
-            //! @brief Update total matrix dimensions based on stored blocks
+            /// @brief Update total matrix dimensions based on stored blocks
             void update_dimensions() {
                 n_rows_ = 0;
                 n_cols_ = 0;
@@ -527,7 +550,7 @@ namespace lahva
                 }
             }
 
-            //! @brief Check if the new block maintains uniform block size
+            /// @brief Check if the new block maintains uniform block size
             void check_uniform_block_size(const Shape& new_shape) {
                 if (blocks_.empty()) {
                     uniform_block_size_ = true;

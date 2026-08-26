@@ -430,8 +430,8 @@ int test_blockmatrix_gpu_roundtrip_uniform_blocks() {
 
     // Transfer to GPU and back
     sparse.allocate_gpu_memory();
-    sparse.transfer_to_device(cudart);
-    sparse.transfer_to_host(cudart);
+    sparse.copy2device(cudart);
+    sparse.copy2host(cudart);
 
     // Reconstruct dense matrix from sparse data
     Matrix<T> reconstructed_dense = sparse.to_dense();
@@ -440,7 +440,7 @@ int test_blockmatrix_gpu_roundtrip_uniform_blocks() {
     Shape reconstructed_shape = reconstructed_dense.shape();
     if (reconstructed_shape.first != original_dense.shape().first ||
         reconstructed_shape.second != original_dense.shape().second) {
-        sparse.release_gpu_memory();
+        sparse.free_gpu_memory();
         std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
         return TEST_FAIL;
     }
@@ -449,14 +449,14 @@ int test_blockmatrix_gpu_roundtrip_uniform_blocks() {
     for (size_t i = 0; i < original_dense.shape().first; ++i) {
         for (size_t j = 0; j < original_dense.shape().second; ++j) {
             if (!check(original_dense(i, j), reconstructed_dense(i, j), check_msg(get_type_name<T>(), "Element mismatch in roundtrip"))) {
-                sparse.release_gpu_memory();
+                sparse.free_gpu_memory();
                 std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
                 return TEST_FAIL;
             }
         }
     }
 
-    sparse.release_gpu_memory();
+    sparse.free_gpu_memory();
     return TEST_PASS;
 }
 
@@ -487,8 +487,8 @@ int test_blockmatrix_gpu_roundtrip_sparse_layout() {
 
     // Transfer to GPU and back
     sparse.allocate_gpu_memory();
-    sparse.transfer_to_device(cudart);
-    sparse.transfer_to_host(cudart);
+    sparse.copy2device(cudart);
+    sparse.copy2host(cudart);
 
     // Reconstruct dense matrix from sparse data
     Matrix<T> reconstructed_dense = sparse.to_dense();
@@ -497,7 +497,7 @@ int test_blockmatrix_gpu_roundtrip_sparse_layout() {
     Shape reconstructed_shape = reconstructed_dense.shape();
     if (reconstructed_shape.first != original_dense.shape().first ||
         reconstructed_shape.second != original_dense.shape().second) {
-        sparse.release_gpu_memory();
+        sparse.free_gpu_memory();
         std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
         return TEST_FAIL;
     }
@@ -506,14 +506,14 @@ int test_blockmatrix_gpu_roundtrip_sparse_layout() {
     for (size_t i = 0; i < original_dense.shape().first; ++i) {
         for (size_t j = 0; j < original_dense.shape().second; ++j) {
             if (!check(original_dense(i, j), reconstructed_dense(i, j), check_msg(get_type_name<T>(), "Element mismatch in roundtrip"))) {
-                sparse.release_gpu_memory();
+                sparse.free_gpu_memory();
                 std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
                 return TEST_FAIL;
             }
         }
     }
 
-    sparse.release_gpu_memory();
+    sparse.free_gpu_memory();
     return TEST_PASS;
 }
 
@@ -544,8 +544,8 @@ int test_blockmatrix_gpu_roundtrip_varied_sizes() {
 
     // Transfer to GPU and back
     sparse.allocate_gpu_memory();
-    sparse.transfer_to_device(cudart);
-    sparse.transfer_to_host(cudart);
+    sparse.copy2device(cudart);
+    sparse.copy2host(cudart);
 
     // Reconstruct dense matrix from sparse data
     Matrix<T> reconstructed_dense = sparse.to_dense();
@@ -554,7 +554,7 @@ int test_blockmatrix_gpu_roundtrip_varied_sizes() {
     Shape reconstructed_shape = reconstructed_dense.shape();
     if (reconstructed_shape.first != original_dense.shape().first ||
         reconstructed_shape.second != original_dense.shape().second) {
-        sparse.release_gpu_memory();
+        sparse.free_gpu_memory();
         std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
         return TEST_FAIL;
     }
@@ -563,14 +563,14 @@ int test_blockmatrix_gpu_roundtrip_varied_sizes() {
     for (size_t i = 0; i < original_dense.shape().first; ++i) {
         for (size_t j = 0; j < original_dense.shape().second; ++j) {
             if (!check(original_dense(i, j), reconstructed_dense(i, j), check_msg(get_type_name<T>(), "Element mismatch in roundtrip"))) {
-                sparse.release_gpu_memory();
+                sparse.free_gpu_memory();
                 std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
                 return TEST_FAIL;
             }
         }
     }
 
-    sparse.release_gpu_memory();
+    sparse.free_gpu_memory();
     return TEST_PASS;
 }
 

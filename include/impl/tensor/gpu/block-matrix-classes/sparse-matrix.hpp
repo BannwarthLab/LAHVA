@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring>
 #include "impl/tensor/gpu/block-matrix-classes/block-matrix.hpp"
 #include "runtime.hpp"
 
@@ -30,41 +31,33 @@ namespace lahva
             std::vector<int> block_value_offsets; ///< Value array offsets for each original block index (for BSR)
         };
 
-        //! @brief GPU-based sparse representation of block diagonal matrix in CSR or BSR format
-        //!
-        //! Stores a block diagonal matrix directly on the GPU in either Compressed Sparse Row (CSR)
-        //! or Block Sparse Row (BSR) format, enabling efficient sparse matrix operations without
-        //! CPU-GPU transfers during computation. Inherits from Tensor_ to provide consistent
-        //! GPU tensor semantics and memory management.
+        /// @brief GPU-based sparse representation of block diagonal matrix in CSR or BSR format
+        ///
+        /// Stores a block diagonal matrix directly on the GPU in either Compressed Sparse Row (CSR)
+        /// or Block Sparse Row (BSR) format, enabling efficient sparse matrix operations without
+        /// CPU-GPU transfers during computation. Inherits from Tensor_ to provide consistent
+        /// GPU tensor semantics and memory management.
         template <typename T>
         class SparseMatrix : public virtual Tensor_<T>
         {
         public:
-            //! @brief Default constructor
+            /// @brief Default constructor
+            /// @param[in] format sparse format (CSR or BSR) - defaults to CSR
             SparseMatrix(SparseFormat format = SparseFormat::CSR)
                 : m_(0), n_(0), nnz_(0), format_(format),
                   mat_descr_(nullptr), initialized_(false), num_blocks_(0)
             {
             }
 
-            //! @brief Construct and convert from a GPU BlockMatrix
+            /// @brief Construct and convert from a GPU BlockMatrix
+            /// @param[in] cudart CUDA runtime for device operations
+            /// @param[in] block_matrix source block matrix to convert
+            /// @param[in] format sparse format (CSR or BSR) - defaults to CSR
             SparseMatrix(const CudaRuntime &cudart,
                          const gpu::BlockMatrix_<T> &block_matrix,
                          SparseFormat format = SparseFormat::CSR)
                 : m_(0), n_(0), nnz_(0), format_(format),
                   mat_descr_(nullptr), initialized_(false), num_blocks_(0)
-            {
-                convert_from_block_matrix(cudart, block_matrix);
-            }
-
-            virtual ~SparseMatrix()
-            {
-                free_gpu_memory();
-            }
-
-            //! @brief Convert from a GPU BlockMatrix to sparse format
-            void convert_from_block_matrix(const CudaRuntime &cudart,
-                                           const gpu::BlockMatrix_<T> &block_matrix)
             {
                 // Free existing GPU memory
                 free_gpu_memory();
@@ -143,20 +136,44 @@ namespace lahva
                 initialized_ = true;
             }
 
+            /// @brief Destructor - frees all GPU memory
+            virtual ~SparseMatrix()
+            {
+                free_gpu_memory();
+            }
+
+            /// @brief Get number of matrix rows
+            /// @return total number of rows
             int64_t rows() const { return m_; }
+
+            /// @brief Get number of matrix columns
+            /// @return total number of columns
             int64_t cols() const { return n_; }
+
+            /// @brief Get number of non-zero elements
+            /// @return total number of non-zero elements
             int64_t nnz() const { return nnz_; }
+
+            /// @brief Get number of blocks
+            /// @return total number of blocks
             int num_blocks() const { return num_blocks_; }
+
+            /// @brief Check if sparse matrix is initialized
+            /// @return true if matrix has been initialized, false otherwise
             bool is_initialized() const { return initialized_; }
+
+            /// @brief Get sparse format (CSR or BSR)
+            /// @return current sparse format
             SparseFormat get_format() const { return format_; }
 
-            //! @brief Get reference to sparse matrix data (host + device pointers)
+            /// @brief Get reference to sparse matrix data (host + device pointers)
             const GPUSparseBlockDiagData<T> &get_sparse_data() const { return sparse_data_; }
 
-            //! @brief Get cusparse sparse matrix descriptor
+            /// @brief Get cusparse sparse matrix descriptor
             cusparseSpMatDescr_t get_descriptor() const { return mat_descr_; }
 
-            //! @brief Allocate GPU memory for sparse matrix data
+            /// @brief Allocate GPU memory for sparse matrix data
+            /// @note Only allocates memory if host data exists and device memory hasn't been allocated yet
             void allocate_gpu_memory()
             {
                 if (sparse_data_.d_values == nullptr && sparse_data_.h_values.size() > 0)
@@ -173,27 +190,14 @@ namespace lahva
                 }
             }
 
-            //! @brief Copy sparse data to GPU device
-            void transfer_to_device(const CudaRuntime &cudart) { copy2device(cudart); }
-
-            //! @brief Invalidate the descriptor (called when matrix structure changes)
-            void invalidate_descriptor()
-            {
-                if (mat_descr_ != nullptr)
-                {
-                    get_cusparse_error(cusparseDestroySpMat(mat_descr_));
-                    mat_descr_ = nullptr;
-                }
-            }
-
-            //! @brief Create cuSPARSE matrix descriptor from sparse matrix data
-            //! Must be called after transfer_to_device() to ensure GPU data is available.
-            //! Only recreates the descriptor if it doesn't already exist (lazy initialization).
-            //! @param cudart CUDA runtime instance
-            //! @param precision CUDA data type for the matrix values
+            /// @brief Create cuSPARSE matrix descriptor from sparse matrix data
+            /// @param[in] cudart CUDA runtime instance
+            /// @param[in] precision CUDA data type for the matrix values
+            /// @note Must be called after copy2device() to ensure GPU data is available
+            /// @note Uses lazy initialization; only recreates descriptor if it doesn't already exist
             void create_descriptor(const CudaRuntime &cudart, cudaDataType_t precision)
             {
-                // If descriptor already exists, reuse it (matrix structure hasn't changed)
+                // If descriptor already exists, reuse it
                 if (mat_descr_ != nullptr)
                 {
                     return;
@@ -239,13 +243,9 @@ namespace lahva
                 }
             }
 
-            //! @brief Copy sparse data from GPU device to host
-            void transfer_to_host(const CudaRuntime &cudart) { copy2host(cudart); }
-
-            //! @brief Free all GPU memory
-            void release_gpu_memory() { free_gpu_memory(); }
-
-            //! @brief Reconstruct dense matrix from sparse data (CSR or BSR format)
+            /// @brief Reconstruct dense matrix from sparse data
+            /// @return dense matrix representation with sparse elements expanded to full dimensions
+            /// @note Supports both CSR and BSR formats; fills structural zeros appropriately
             Matrix<T> to_dense() const
             {
                 // Initialize with zeros (for structural zeros in sparse layout)
@@ -254,45 +254,44 @@ namespace lahva
                 if (format_ == SparseFormat::CSR)
                 {
                     // Reconstruct from CSR format
+                    const T* values = sparse_data_.h_values.data();
+                    const int* col_indices = sparse_data_.h_col_indices.data();
+                    const int* row_offsets = sparse_data_.h_row_offsets.data();
+                    T* dense_data = dense.data();
+                    int64_t dense_stride = m_; // Column-major stride
+
                     for (int row = 0; row < static_cast<int>(m_); ++row)
                     {
-                        int col_start = sparse_data_.h_row_offsets[row];
-                        int col_end = sparse_data_.h_row_offsets[row + 1];
-
-                        for (int idx = col_start; idx < col_end; ++idx)
+                        for (int idx = row_offsets[row]; idx < row_offsets[row + 1]; ++idx)
                         {
-                            int col = sparse_data_.h_col_indices[idx];
-                            dense(row, col) = sparse_data_.h_values[idx];
+                            int col = col_indices[idx];
+                            dense_data[col * dense_stride + row] = values[idx];
                         }
                     }
                 }
                 else if (format_ == SparseFormat::BSR)
                 {
                     // Reconstruct from BSR format using block positions
+                    T* dense_data = dense.data();
+                    int64_t dense_stride = m_; // Column-major stride
+                    const T* values = sparse_data_.h_values.data();
+
                     for (int block_idx = 0; block_idx < num_blocks_; ++block_idx)
                     {
                         int block_rows = block_row_sizes_[block_idx];
                         int block_cols = block_col_sizes_[block_idx];
                         int element_row = block_row_positions_[block_idx];
                         int element_col = block_col_positions_[block_idx];
+                        int value_offset = sparse_data_.block_value_offsets[block_idx];
 
-                        // Get the value offset for this block
-                        int value_offset = 0;
-                        if (!sparse_data_.block_value_offsets.empty() && block_idx < static_cast<int>(sparse_data_.block_value_offsets.size()))
+                        // Copy block data (stored row-major) to dense matrix (column-major)
+                        const T* src = values + value_offset;
+                        for (int i = 0; i < block_rows; ++i)
                         {
-                            value_offset = sparse_data_.block_value_offsets[block_idx];
-                        }
-
-                        // Copy block data in row-major order
-                        if (value_offset + block_rows * block_cols <= static_cast<int>(sparse_data_.h_values.size()))
-                        {
-                            for (int i = 0; i < block_rows; ++i)
+                            for (int j = 0; j < block_cols; ++j)
                             {
-                                for (int j = 0; j < block_cols; ++j)
-                                {
-                                    dense(element_row + i, element_col + j) =
-                                        sparse_data_.h_values[value_offset + i * block_cols + j];
-                                }
+                                dense_data[((element_col + j) * dense_stride) + (element_row + i)] =
+                                    src[i * block_cols + j];
                             }
                         }
                     }
@@ -301,12 +300,12 @@ namespace lahva
                 return dense;
             }
 
-        private:
+        public:
             // Sparse matrix dimensions
-            int64_t m_;           //!< Number of rows
-            int64_t n_;           //!< Number of columns
-            int64_t nnz_;         //!< Number of non-zero elements
-            SparseFormat format_; //!< Selected sparse format (CSR or BSR)
+            int64_t m_;           ///< Number of rows
+            int64_t n_;           ///< Number of columns
+            int64_t nnz_;         ///< Number of non-zero elements
+            SparseFormat format_; ///< Selected sparse format (CSR or BSR)
 
             // Unified sparse matrix data structure (host + device)
             GPUSparseBlockDiagData<T> sparse_data_;
@@ -321,20 +320,11 @@ namespace lahva
             std::vector<int> block_col_sizes_;
             std::vector<int> row_offsets_;
             std::vector<int> col_offsets_;
-            std::vector<int> block_row_positions_; // Element-space row positions for each block
-            std::vector<int> block_col_positions_; // Element-space column positions for each block
+            std::vector<int> block_row_positions_; ///< Element-space row positions for each block
+            std::vector<int> block_col_positions_; ///< Element-space column positions for each block
 
-            //! @brief Allocate GPU memory and copy host data to device
-            void allocate_and_copy_to_device(const CudaRuntime &cudart,
-                                             GPUSparseBlockDiagData<T> &sparse_data)
-            {
-                get_cuda_error(cudaMalloc(&sparse_data.d_values, sparse_data.h_values.size() * sizeof(T)));
-                get_cuda_error(cudaMalloc(&sparse_data.d_row_offsets, sparse_data.h_row_offsets.size() * sizeof(int)));
-                get_cuda_error(cudaMalloc(&sparse_data.d_col_indices, sparse_data.h_col_indices.size() * sizeof(int)));
-                copy2device(cudart);
-            }
-
-            //! @brief Free all GPU memory
+            /// @brief Free all GPU memory and reset state
+            /// @note Also destroys the cuSPARSE descriptor and clears block metadata
             void free_gpu_memory()
             {
                 if (sparse_data_.d_values)
@@ -367,7 +357,10 @@ namespace lahva
                 nnz_ = 0;
             }
 
-            //! @brief Convert GPU BlockMatrix to CSR format
+            /// @brief Convert GPU BlockMatrix to CSR (Compressed Sparse Row) format
+            /// @param[in] cudart CUDA runtime for device operations
+            /// @param[in] block_matrix source block matrix to convert
+            /// @note Updates sparse_data_ member with CSR-formatted data and transfers to GPU
             void convert_to_csr_gpu(const CudaRuntime &cudart,
                                     const gpu::BlockMatrix_<T> &block_matrix)
             {
@@ -426,16 +419,18 @@ namespace lahva
                 }
 
                 // Allocate and copy sparse matrix to the GPU
-                allocate_and_copy_to_device(cudart, sparse_data_);
-
-                // Synchronize to ensure all transfers complete
+                get_cuda_error(cudaMalloc(&sparse_data_.d_values, sparse_data_.h_values.size() * sizeof(T)));
+                get_cuda_error(cudaMalloc(&sparse_data_.d_row_offsets, sparse_data_.h_row_offsets.size() * sizeof(int)));
+                get_cuda_error(cudaMalloc(&sparse_data_.d_col_indices, sparse_data_.h_col_indices.size() * sizeof(int)));
+                copy2device(cudart);
                 cudart.synchronize();
             }
 
-            //! @brief Helper function to convert GPU BlockMatrix to Blocked-ELL format
-            //! @brief Convert GPU BlockMatrix to Block Sparse Row (BSR) format
-            //! @note Packs each block ROW-MAJOR internally, since cuSPARSE's only
-            //! BSR SpMM algorithm (CUSPARSE_SPMM_BSR_ALG1) requires CUSPARSE_ORDER_ROW.
+            /// @brief Convert GPU BlockMatrix to Block Sparse Row (BSR) format
+            /// @param[in] cudart CUDA runtime for device operations
+            /// @param[in] block_matrix source block matrix to convert
+            /// @note Packs each block in ROW-MAJOR order internally
+            /// @note BSR format requires uniform block sizes; falls back to CSR if blocks differ
             void convert_to_bsr_gpu(const CudaRuntime &cudart,
                                     const gpu::BlockMatrix_<T> &block_matrix)
             {
@@ -515,12 +510,16 @@ namespace lahva
                     sparse_data_.h_row_offsets[br + 1] = current_block_idx;
                 }
 
-                allocate_and_copy_to_device(cudart, sparse_data_);
+                // Allocate and copy sparse matrix to the GPU
+                get_cuda_error(cudaMalloc(&sparse_data_.d_values, sparse_data_.h_values.size() * sizeof(T)));
+                get_cuda_error(cudaMalloc(&sparse_data_.d_row_offsets, sparse_data_.h_row_offsets.size() * sizeof(int)));
+                get_cuda_error(cudaMalloc(&sparse_data_.d_col_indices, sparse_data_.h_col_indices.size() * sizeof(int)));
+                copy2device(cudart);
                 cudart.synchronize();
             }
 
             /// @brief Implement GPU tensor interface: copy data to GPU device
-            /// @param cudart CUDA runtime instance
+            /// @param[in] cudart CUDA runtime instance
             void copy2device(const CudaRuntime &cudart) const override
             {
                 SparseMatrix<T> *self = const_cast<SparseMatrix<T> *>(this);
@@ -553,7 +552,7 @@ namespace lahva
             }
 
             /// @brief Implement GPU tensor interface: copy data from GPU to host
-            /// @param cudart CUDA runtime instance
+            /// @param[in] cudart CUDA runtime instance
             void copy2host(const CudaRuntime &cudart) override
             {
                 // Copy all data from device back to host using async or sync based on runtime configuration

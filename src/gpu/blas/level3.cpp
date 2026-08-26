@@ -584,7 +584,7 @@ namespace lahva
             cudaDataType_t precision = get_cuda_datatype<T>();
             SparseMatrix<T> sparse(cudart, a, format_to_use); // TODO Fix that sparse matrix is not instantiated every time
             sparse.allocate_gpu_memory();
-            sparse.transfer_to_device(cudart);
+            sparse.copy2device(cudart);
             sparse.create_descriptor(cudart, precision);
             cusparseSpMatDescr_t mat_a = sparse.get_descriptor();
 
@@ -665,7 +665,7 @@ namespace lahva
 
             SparseMatrix<T> sparse(cudart, b, format_to_use);
             sparse.allocate_gpu_memory();
-            sparse.transfer_to_device(cudart);
+            sparse.copy2device(cudart);
 
             int64_t rows_A = static_cast<int64_t>(a.shape().first);
             int64_t cols_A = static_cast<int64_t>(a.shape().second);
