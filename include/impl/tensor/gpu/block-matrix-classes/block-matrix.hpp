@@ -110,7 +110,7 @@ namespace lahva
         public:
             /// @brief Default constructor
             BlockMatrix()
-                : Tensor<T, Allocator, GPUAllocator>(), Tensor_<T>(), BlockMatrix_<T>(),
+                : Tensor<T, Allocator, GPUAllocator>(), BlockMatrix_<T>(),
                   n_rows_(0), n_cols_(0), uniform_block_size_(true), cached_block_shape_(0, 0)
             {
             }
@@ -121,7 +121,7 @@ namespace lahva
             /// @param[in] gpualloc device memory allocator (default: GPUAllocator())
             explicit BlockMatrix(const Shape &shape, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator())
                 : Tensor<T, Allocator, GPUAllocator>(shape.first * shape.second, alloc, gpualloc),
-                  Tensor_<T>(), BlockMatrix_<T>(),
+                  BlockMatrix_<T>(),
                   n_rows_(shape.first), n_cols_(shape.second), uniform_block_size_(true), cached_block_shape_(0, 0)
             {
             }

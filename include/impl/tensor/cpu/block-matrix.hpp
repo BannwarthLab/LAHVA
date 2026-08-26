@@ -61,13 +61,13 @@ namespace lahva
         {
         public:
             /// @brief Default constructor - creates empty 0x0 matrix
-            BlockMatrix() : Tensor<T>(0), Matrix<T, Allocator>(Shape{0, 0}, (T)0), BlockMatrix_<T>()
+            BlockMatrix() : BlockMatrix_<T>(), Matrix<T, Allocator>(Shape{0, 0}, (T)0)
             {
             }
 
             /// @brief Constructor from shape - creates zero-initialized matrix with given dimensions
             explicit BlockMatrix(const Shape &shape, const Allocator &alloc = Allocator())
-                : Tensor<T>(shape.first * shape.second, alloc), Matrix<T, Allocator>(shape, (T)0, alloc), BlockMatrix_<T>()
+                : BlockMatrix_<T>(), Matrix<T, Allocator>(shape, (T)0, alloc)
             {
             }
 
