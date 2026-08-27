@@ -1,6 +1,7 @@
 #pragma once
 
 #include "impl/tensor/cpu/matrix.hpp"
+#include <algorithm>
 
 namespace lahva
 {
