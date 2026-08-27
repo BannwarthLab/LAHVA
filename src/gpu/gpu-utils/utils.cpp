@@ -34,7 +34,13 @@ namespace lahva {
     };
 
 
-        /// Implementation of get_cusparse_trans - see utils.hpp for documentation.
+        /// @brief Converts character transposition flag to cuSPARSE operation type.
+        ///
+        /// Translates string transposition indicators ('N', 'T') to corresponding
+        /// cuSPARSE operation types for use in sparse matrix operations.
+        ///
+        /// @param T Transposition character: 'N' (no transpose), 'T' (transpose).
+        /// @return cuSPARSE operation type (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
         cusparseOperation_t get_cusparse_trans(const char* T){
         if (std::strcmp(T,"T") == 0 or std::strcmp(T,"t") == 0)
         {
@@ -43,6 +49,23 @@ namespace lahva {
         else
         {
             return CUSPARSE_OPERATION_NON_TRANSPOSE;
+        }
+    };
+
+        /// @brief Flips the transposition flag for cuSPARSE operations.
+        ///
+        /// Converts between transpose and non-transpose operations for use in sparse matrix operations.
+        ///
+        /// @param op cuSPARSE operation type to flip.
+        /// @return Flipped cuSPARSE operation type.
+        cusparseOperation_t flip_cusparse_trans(cusparseOperation_t op){
+        if (op == CUSPARSE_OPERATION_TRANSPOSE)
+        {
+            return CUSPARSE_OPERATION_NON_TRANSPOSE;
+        }
+        else
+        {
+            return CUSPARSE_OPERATION_TRANSPOSE;
         }
     };
     } // namespace gpu

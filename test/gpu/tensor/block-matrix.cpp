@@ -380,22 +380,6 @@ int test_blockmatrix_get_block_shape() {
     return TEST_PASS;
 }
 
-template <typename T>
-int test_blockmatrix_get_block_data() {
-    BlockMatrix<T> m;
-    Matrix<T, CudaHostAllocator<T>> block(Shape{2, 2}, (T)5);
-
-    m.set_block(0, 0, block);
-
-    const void* data_ptr = m.get_block_data(0);
-    if (data_ptr == nullptr) {
-        std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
-        return TEST_FAIL;
-    }
-
-    return TEST_PASS;
-}
-
 // ============================================================================
 // BlockMatrix GPU Operations Tests
 // ============================================================================
@@ -446,8 +430,8 @@ int test_blockmatrix_gpu_roundtrip_uniform_blocks() {
 
     // Transfer to GPU and back
     sparse.allocate_gpu_memory();
-    sparse.transfer_to_device(cudart);
-    sparse.transfer_to_host(cudart);
+    sparse.copy2device(cudart);
+    sparse.copy2host(cudart);
 
     // Reconstruct dense matrix from sparse data
     Matrix<T> reconstructed_dense = sparse.to_dense();
@@ -456,7 +440,7 @@ int test_blockmatrix_gpu_roundtrip_uniform_blocks() {
     Shape reconstructed_shape = reconstructed_dense.shape();
     if (reconstructed_shape.first != original_dense.shape().first ||
         reconstructed_shape.second != original_dense.shape().second) {
-        sparse.release_gpu_memory();
+        sparse.free_gpu_memory();
         std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
         return TEST_FAIL;
     }
@@ -465,14 +449,14 @@ int test_blockmatrix_gpu_roundtrip_uniform_blocks() {
     for (size_t i = 0; i < original_dense.shape().first; ++i) {
         for (size_t j = 0; j < original_dense.shape().second; ++j) {
             if (!check(original_dense(i, j), reconstructed_dense(i, j), check_msg(get_type_name<T>(), "Element mismatch in roundtrip"))) {
-                sparse.release_gpu_memory();
+                sparse.free_gpu_memory();
                 std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
                 return TEST_FAIL;
             }
         }
     }
 
-    sparse.release_gpu_memory();
+    sparse.free_gpu_memory();
     return TEST_PASS;
 }
 
@@ -503,8 +487,8 @@ int test_blockmatrix_gpu_roundtrip_sparse_layout() {
 
     // Transfer to GPU and back
     sparse.allocate_gpu_memory();
-    sparse.transfer_to_device(cudart);
-    sparse.transfer_to_host(cudart);
+    sparse.copy2device(cudart);
+    sparse.copy2host(cudart);
 
     // Reconstruct dense matrix from sparse data
     Matrix<T> reconstructed_dense = sparse.to_dense();
@@ -513,7 +497,7 @@ int test_blockmatrix_gpu_roundtrip_sparse_layout() {
     Shape reconstructed_shape = reconstructed_dense.shape();
     if (reconstructed_shape.first != original_dense.shape().first ||
         reconstructed_shape.second != original_dense.shape().second) {
-        sparse.release_gpu_memory();
+        sparse.free_gpu_memory();
         std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
         return TEST_FAIL;
     }
@@ -522,14 +506,14 @@ int test_blockmatrix_gpu_roundtrip_sparse_layout() {
     for (size_t i = 0; i < original_dense.shape().first; ++i) {
         for (size_t j = 0; j < original_dense.shape().second; ++j) {
             if (!check(original_dense(i, j), reconstructed_dense(i, j), check_msg(get_type_name<T>(), "Element mismatch in roundtrip"))) {
-                sparse.release_gpu_memory();
+                sparse.free_gpu_memory();
                 std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
                 return TEST_FAIL;
             }
         }
     }
 
-    sparse.release_gpu_memory();
+    sparse.free_gpu_memory();
     return TEST_PASS;
 }
 
@@ -560,8 +544,8 @@ int test_blockmatrix_gpu_roundtrip_varied_sizes() {
 
     // Transfer to GPU and back
     sparse.allocate_gpu_memory();
-    sparse.transfer_to_device(cudart);
-    sparse.transfer_to_host(cudart);
+    sparse.copy2device(cudart);
+    sparse.copy2host(cudart);
 
     // Reconstruct dense matrix from sparse data
     Matrix<T> reconstructed_dense = sparse.to_dense();
@@ -570,7 +554,7 @@ int test_blockmatrix_gpu_roundtrip_varied_sizes() {
     Shape reconstructed_shape = reconstructed_dense.shape();
     if (reconstructed_shape.first != original_dense.shape().first ||
         reconstructed_shape.second != original_dense.shape().second) {
-        sparse.release_gpu_memory();
+        sparse.free_gpu_memory();
         std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
         return TEST_FAIL;
     }
@@ -579,14 +563,14 @@ int test_blockmatrix_gpu_roundtrip_varied_sizes() {
     for (size_t i = 0; i < original_dense.shape().first; ++i) {
         for (size_t j = 0; j < original_dense.shape().second; ++j) {
             if (!check(original_dense(i, j), reconstructed_dense(i, j), check_msg(get_type_name<T>(), "Element mismatch in roundtrip"))) {
-                sparse.release_gpu_memory();
+                sparse.free_gpu_memory();
                 std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
                 return TEST_FAIL;
             }
         }
     }
 
-    sparse.release_gpu_memory();
+    sparse.free_gpu_memory();
     return TEST_PASS;
 }
 
@@ -796,9 +780,6 @@ int main() {
     // BlockMatrix block indexing
     total_failures += test_blockmatrix_get_block_shape<double>();
     total_failures += test_blockmatrix_get_block_shape<float>();
-    total_failures += test_blockmatrix_get_block_data<double>();
-    total_failures += test_blockmatrix_get_block_data<float>();
-
     // BlockMatrix GPU operations
     total_failures += test_blockmatrix_gpu_operations_basic<double>();
     total_failures += test_blockmatrix_gpu_operations_basic<float>();

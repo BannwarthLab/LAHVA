@@ -2,28 +2,32 @@
 /// @brief GPU-based block-diagonal matrix tensor implementation.
 ///
 /// Provides the BlockDiagMatrix class for storing and manipulating block-diagonal matrices
-/// on NVIDIA GPUs. Supports batched GEMM and GEMV operations via cuBLAS, automatic GPU memory
-/// management with caching, and efficient workspace buffer allocation for performance.
+/// on NVIDIA GPUs. Supports batched GEMM and GEMV operations via cuBLAS and automatic GPU
+/// memory management with caching.
 
 #pragma once
 
 #include "runtime.hpp"
-#include "impl/tensor/gpu/gputensor.hpp"
 #include "impl/tensor/gpu/matrix.hpp"
-#include "impl/tensor/cpu/blockdiagmatrix.hpp"
 #include "impl/tensor/gpu/block-matrix-classes/block-matrix.hpp"
-#include <omp.h>
-#include <algorithm>
 #include <cstring>
-#include <vector>
 #include <map>
-#include <iostream>
-#include <limits>
 
 namespace lahva
 {
     namespace gpu
     {
+        /// @brief Helper struct for GPU block diagonal matrix data packing
+        template<typename T>
+        struct GPUBlockDiagData {
+            T *d_data;           ///< Device pointer to padded packed blocks
+            size_t padded_stride; ///< Stride for padded blocks
+            size_t max_m;        ///< Maximum block row dimension
+            size_t max_k;        ///< Maximum block column dimension
+            int num_blocks;      ///< Number of blocks
+            T *h_packed;         ///< Host pinned memory (for cleanup)
+        };
+
         /// @brief GPU-accelerated block-diagonal matrix with batched operations.
         ///
         /// Stores and manipulates block-diagonal matrices on NVIDIA GPUs with automatic
@@ -31,6 +35,7 @@ namespace lahva
         /// in CPU memory, while an optional GPU cache stores padded/packed blocks for
         /// efficient cuBLAS batched operations. GPU cache is invalidated when host data
         /// is modified, ensuring correctness while maximizing GPU utilization.
+        /// If the blocks are not uniform in size, cuSPARSE is used.
         ///
         /// @tparam T Numeric element type (double, float, complex types)
         /// @tparam Allocator Host (pinned) memory allocator (default: CudaHostAllocator<T>)
@@ -47,17 +52,17 @@ namespace lahva
             /// @brief Total number of columns (max column position + 1)
             size_t n_cols_ = 0;
 
-            /// @brief Preferred sparse format for GPU operations (default: CSR)
-            SparseFormat sparse_format_ = SparseFormat::CSR;
+            /// @brief Preferred sparse format for GPU operations (default: BSR)
+            SparseFormat sparse_format_ = SparseFormat::BSR;
 
             /// @brief Blocks stored as map indexed by element-space position (row, col)
             /// Positions are element-space (i,j) where block's top-left corner is placed
             std::map<std::pair<size_t, size_t>, Matrix<T, Allocator>> blocks_;
 
-            /// @brief Cached row offsets for blocks (mutable for lazy computation)
+            /// @brief Cached row offsets for blocks
             mutable std::vector<int> row_offsets_;
 
-            /// @brief Cached column offsets for blocks (mutable for lazy computation)
+            /// @brief Cached column offsets for blocks
             mutable std::vector<int> col_offsets_;
 
             /// @brief Flag indicating if offsets cache is valid
@@ -66,6 +71,15 @@ namespace lahva
             /// @brief Flag indicating if column offsets cache is valid
             mutable bool col_offsets_valid_ = false;
 
+            /// @brief GPU vector for row offsets
+            mutable Vector<int> d_row_offsets_;
+
+            /// @brief GPU vector for block row sizes
+            mutable Vector<int> d_block_row_sizes_;
+
+            /// @brief Flag indicating if GPU offset vectors are valid
+            mutable bool d_offsets_valid_ = false;
+
             /// @brief Cached GPU block-diagonal data (padded and packed format)
             /// @note nullptr if GPU cache is invalid; managed via free_gpu_cache()
             mutable GPUBlockDiagData<T> *gpu_data_ = nullptr;
@@ -73,30 +87,39 @@ namespace lahva
             /// @brief Whether the GPU cache (gpu_data_) is valid and up-to-date with host
             mutable bool gpu_data_valid_ = false;
 
-            /// @brief GPU workspace buffer for batch operations (device memory)
-            mutable T *gpu_workspace_ = nullptr;
+        public:
+            /// @brief Lazily copy host blocks to GPU (internal optimization - caches result)
+            /// @note Internal library method; prefer copy2device() for public API
+            const GPUBlockDiagData<T>& ensure_on_gpu(const CudaRuntime &cudart) const {
+                if (!gpu_data_valid_) {
+                    copy2device(cudart);
+                }
+                return *gpu_data_;
+            }
 
-            /// @brief Host workspace buffer pinned for efficient GPU transfers
-            mutable T *host_workspace_ = nullptr;
+        private:
+            /// @brief Check whether GPU data is current
+            bool is_on_gpu() const { return gpu_data_valid_; }
 
-            /// @brief Current size of allocated workspace in number of elements
-            mutable size_t workspace_size_ = 0;
+            /// @brief Free GPU cache memory
+            void free_gpu_cache() {
+                if (gpu_data_ != nullptr) {
+                    free_gpu_data(*gpu_data_);
+                    delete gpu_data_;
+                    gpu_data_ = nullptr;
+                }
+                gpu_data_valid_ = false;
+            }
 
         public:
             /// @brief Default constructor - creates empty block-diagonal matrix
             BlockDiagMatrix() {};
 
-            /// @brief Destructor - frees GPU memory and workspace buffers
+            /// @brief Destructor - frees GPU memory
             virtual ~BlockDiagMatrix() {
                 if (gpu_data_ != nullptr) {
                     free_gpu_data(*gpu_data_);
                     delete gpu_data_;
-                }
-                if (gpu_workspace_ != nullptr) {
-                    get_cuda_error(cudaFree(gpu_workspace_));
-                }
-                if (host_workspace_ != nullptr) {
-                    get_cuda_error(cudaFreeHost(host_workspace_));
                 }
             }
 
@@ -122,6 +145,7 @@ namespace lahva
                     blocks_ = other.blocks_;
                     row_offsets_valid_ = false;
                     col_offsets_valid_ = false;
+                    d_offsets_valid_ = false;
                 }
                 return *this;
             }
@@ -159,6 +183,7 @@ namespace lahva
                     gpu_data_valid_ = other.gpu_data_valid_;
                     row_offsets_valid_ = false;
                     col_offsets_valid_ = false;
+                    d_offsets_valid_ = false;
                     other.n_rows_ = 0;
                     other.n_cols_ = 0;
                     other.gpu_data_ = nullptr;
@@ -227,30 +252,60 @@ namespace lahva
             /// @brief Create block-diagonal matrix from existing block matrices
             /// @param[in] blocks vector of Matrix objects to use as diagonal blocks
             /// @note takes a copy of the input vector; blocks are not modified
-            explicit BlockDiagMatrix(const std::vector<Matrix<T, Allocator>> &blocks)
+            BlockDiagMatrix(const std::vector<Matrix<T, Allocator>> &blocks)
             {
                 size_t row_pos = 0, col_pos = 0;
-                for (const auto &block : blocks) {
+                Shape first_shape;
+                bool all_same_size = true;
+
+                for (size_t i = 0; i < blocks.size(); ++i) {
+                    const auto &block = blocks[i];
+                    if (i == 0) {
+                        first_shape = block.shape();
+                    } else if (block.shape() != first_shape) {
+                        all_same_size = false;
+                    }
+
                     blocks_[{row_pos, col_pos}] = block;
                     Shape s = block.shape();
                     row_pos += s.first;
                     col_pos += s.second;
                 }
+
+                if (!all_same_size) {
+                    sparse_format_ = SparseFormat::CSR;
+                }
+
                 update_dimensions();
             }
 
             /// @brief Create block-diagonal matrix from existing block matrices (move semantics)
             /// @param[in] blocks vector of Matrix objects to move as diagonal blocks
             /// @note blocks vector is moved into this matrix; contents of input vector are transferred
-            explicit BlockDiagMatrix(std::vector<Matrix<T, Allocator>> &&blocks)
+            BlockDiagMatrix(std::vector<Matrix<T, Allocator>> &&blocks)
             {
                 size_t row_pos = 0, col_pos = 0;
-                for (auto &block : blocks) {
+                Shape first_shape;
+                bool all_same_size = true;
+
+                for (size_t i = 0; i < blocks.size(); ++i) {
+                    auto &block = blocks[i];
+                    if (i == 0) {
+                        first_shape = block.shape();
+                    } else if (block.shape() != first_shape) {
+                        all_same_size = false;
+                    }
+
                     blocks_[{row_pos, col_pos}] = std::move(block);
                     Shape s = blocks_[{row_pos, col_pos}].shape();
                     row_pos += s.first;
                     col_pos += s.second;
                 }
+
+                if (!all_same_size) {
+                    sparse_format_ = SparseFormat::CSR;
+                }
+
                 update_dimensions();
             }
 
@@ -271,7 +326,7 @@ namespace lahva
             virtual Shape shape() const override { return Shape{n_rows_, n_cols_}; }
 
             /// @brief Get shapes of all blocks as vector of vectors
-            /// @return Vector of [rows, cols] pairs for each diagonal block
+            /// @return Vector where each element [rows, cols] is the shape of a block in order
             std::vector<std::vector<size_t>> block_shapes() const
             {
                 std::vector<std::vector<size_t>> result;
@@ -330,18 +385,30 @@ namespace lahva
 
             /// @brief Get raw data pointer for a specific block
             /// @param[in] idx block index
-            /// @return const void pointer to block data in column-major format
-            virtual const void* get_block_data(size_t idx) const override {
+            /// @return const pointer to block data
+            const T* get_block_data(size_t idx) const {
                 if (idx >= blocks_.size()) {
                     throw std::out_of_range("Block index out of range");
                 }
                 auto it = blocks_.begin();
                 std::advance(it, idx);
-                return static_cast<const void*>(it->second.data());
+                return it->second.data();
+            }
+
+            /// @brief Get block data by element-space row and column position
+            /// @param[in] block_row Element-space row position of block
+            /// @param[in] block_col Element-space column position of block
+            /// @return Pointer to block data, or nullptr if block doesn't exist at that position
+            virtual const T* get_block_data_at(size_t block_row, size_t block_col) const override {
+                auto it = blocks_.find({block_row, block_col});
+                if (it != blocks_.end()) {
+                    return it->second.data();
+                }
+                return nullptr;
             }
 
             /// @brief Get row dimensions of all blocks
-            /// @return vector of block row dimensions
+            /// @return vector of row dimensions (m_i) for each block in order
             std::vector<size_t> get_block_rows() const {
                 std::vector<size_t> result;
                 for (const auto &[pos, block] : blocks_) {
@@ -351,13 +418,33 @@ namespace lahva
             }
 
             /// @brief Get column dimensions of all blocks
-            /// @return vector of block column dimensions
+            /// @return vector of column dimensions (k_i) for each block in order
             std::vector<size_t> get_block_cols() const {
                 std::vector<size_t> result;
                 for (const auto &[pos, block] : blocks_) {
                     result.push_back(block.shape().second);
                 }
                 return result;
+            }
+
+            /// @brief Get GPU pointer to row offsets
+            /// @param[in] cudart CUDA runtime for device allocation
+            /// @return Device pointer to row offsets array
+            const int* get_d_row_offsets(const CudaRuntime &cudart) const {
+                if (!d_offsets_valid_) {
+                    init_gpu_offsets(cudart);
+                }
+                return d_row_offsets_.gpu_data();
+            }
+
+            /// @brief Get GPU pointer to block row sizes
+            /// @param[in] cudart CUDA runtime for device allocation
+            /// @return Device pointer to block row sizes array
+            const int* get_d_block_row_sizes(const CudaRuntime &cudart) const {
+                if (!d_offsets_valid_) {
+                    init_gpu_offsets(cudart);
+                }
+                return d_block_row_sizes_.gpu_data();
             }
 
             /// @brief Extract main diagonals from all blocks as concatenated vector
@@ -473,7 +560,7 @@ namespace lahva
                 return it->first.second;
             }
 
-            /// @brief Get preferred sparse format for GPU operations (default: CSR)
+            /// @brief Get preferred sparse format for GPU operations
             SparseFormat get_sparse_format() const override {
                 return sparse_format_;
             }
@@ -492,6 +579,7 @@ namespace lahva
             /// @param[in] block matrix block to insert
             /// @param[in] index position to insert (default: append at end)
             /// @note blocks at index >= the insertion index are shifted; invalidates GPU cache
+            /// @throws std::out_of_range if index is beyond current block count
             void add_block(const Matrix<T, Allocator> &block, size_t index = std::numeric_limits<size_t>::max()) {
                 free_gpu_cache();
 
@@ -506,6 +594,16 @@ namespace lahva
 
                 Shape new_shape = block.shape();
                 size_t insert_row_pos, insert_col_pos;
+
+                // Check if block size is compatible with current sparse format
+                if (!blocks_.empty() && get_sparse_format() == SparseFormat::BSR)
+                {
+                    auto first_block_shape = blocks_.begin()->second.shape();
+                    if (new_shape.first != first_block_shape.first || new_shape.second != first_block_shape.second)
+                    {
+                        set_sparse_format(SparseFormat::CSR);
+                    }
+                }
 
                 // Find insertion position by iterating to index-th block
                 if (index == 0) {
@@ -551,7 +649,7 @@ namespace lahva
             }
 
             /// @brief Print all blocks to standard output
-            /// @note calls print() on each block matrix sequentially
+            /// @note Outputs header with total dimensions, then each block with position and data
             void print() const {
                 std::cout << "BlockDiagMatrix (" << n_rows_ << " x " << n_cols_ << ")" << std::endl;
                 for (const auto &[pos, block] : blocks_) {
@@ -562,22 +660,12 @@ namespace lahva
 
             /// @brief Print all blocks to a file
             /// @param[in] file filename to write block data to
-            /// @note calls print(file) on each block matrix sequentially
+            /// @note Appends block data to file; each block's data written sequentially
             void print(const char* file) const
             {
                 for (const auto &[pos, block] : blocks_) {
                     block.print(file);
                 }
-            }
-
-            // ========== GPU Data Transfer Interface ==========
-
-            /// @brief Prepare block-diagonal matrix for GPU operations
-            /// @param[in] cudart CUDA runtime for device selection and memory allocation
-            void to_gpu(const CudaRuntime &cudart) const {
-                ensure_on_gpu(cudart);
-                size_t estimated_workspace = static_cast<size_t>(max_block_size()) * 10;
-                ensure_workspace(cudart, estimated_workspace);
             }
 
             /// @brief Get estimated GPU memory requirement for packed blocks
@@ -592,30 +680,9 @@ namespace lahva
                 return max_m * max_k * num_blocks();
             }
 
-            /// @brief Lazily copy host blocks to GPU (caches result)
-            const GPUBlockDiagData<T>& ensure_on_gpu(const CudaRuntime &cudart) const {
-                if (!gpu_data_valid_) {
-                    copy2device(cudart);
-                }
-                return *gpu_data_;
-            }
-
-            /// @brief Check whether GPU data is current
-            bool is_on_gpu() const { return gpu_data_valid_; }
-
-            /// @brief Free GPU cache memory
-            void free_gpu_cache() {
-                if (gpu_data_ != nullptr) {
-                    free_gpu_data(*gpu_data_);
-                    delete gpu_data_;
-                    gpu_data_ = nullptr;
-                }
-                gpu_data_valid_ = false;
-            }
-
-            // ========== Virtual GPU Transfer Methods (Base Class Interface) ==========
-
-            /// @brief Copy host blocks to GPU (pack and transfer)
+            /// @brief Copy host blocks to GPU with automatic packing into padded format
+            /// @param[in] cudart CUDA runtime for device selection
+            /// @note Pads blocks to max dimensions for efficient batched operations; invalidates stale GPU cache
             void copy2device(const CudaRuntime &cudart) const override {
                 (void)cudart;
                 int num_blocks = blocks_.size();
@@ -662,7 +729,9 @@ namespace lahva
                 gpu_data_valid_ = true;
             }
 
-            /// @brief Copy GPU blocks back to host (unpack after transfer)
+            /// @brief Copy GPU blocks back to host with automatic unpacking from padded format
+            /// @param[in] cudart CUDA runtime for device operations
+            /// @note Unpacks padded blocks back to original block layouts; no-op if GPU cache invalid
             void copy2host(const CudaRuntime &cudart) override {
                 (void)cudart;
                 if (!gpu_data_valid_ || gpu_data_ == nullptr) {
@@ -691,76 +760,6 @@ namespace lahva
                 }
             }
 
-            /// @brief Ensure GPU and host workspace buffers are allocated
-            /// @param[in] cudart CUDA runtime for device selection
-            /// @param[in] num_elems number of elements to allocate (both GPU and host)
-            /// @return pair of (gpu_ptr, host_pinned_ptr) workspace buffers
-            /// @note reallocates if requested size exceeds current allocation
-            std::pair<T*, T*> ensure_workspace(const CudaRuntime &cudart, size_t num_elems) const;
-
-            /// @brief Pack dense matrix blocks into padded workspace for batch GEMM
-            /// @param[in] cudart CUDA runtime for device selection
-            /// @param[in] src source dense matrix to extract blocks from
-            /// @param[in] offsets block row/column starting positions in src
-            /// @param[in] block_sizes size of each block
-            /// @param[in] padded_dim padded dimension (row or column) for alignment
-            /// @param[in] transpose if true, extract column-major blocks; otherwise row-major
-            /// @return pair of (gpu_workspace, host_workspace) with packed data
-            /// @note allocates workspace via ensure_workspace(); data copied to GPU
-            std::pair<T*, T*> pack_batch_buffers(
-                const CudaRuntime &cudart,
-                const Matrix_<T> &src,
-                const std::vector<int> &offsets,
-                const std::vector<size_t> &block_sizes,
-                int padded_dim,
-                bool transpose = false) const;
-
-            /// @brief Pack dense matrix columns into padded workspace for batch operations
-            /// @param[in] cudart CUDA runtime for device selection
-            /// @param[in] src source dense matrix to extract column blocks from
-            /// @param[in] offsets column starting positions in src
-            /// @param[in] block_sizes column count for each block
-            /// @param[in] padded_cols padded column dimension for alignment
-            /// @return pair of (gpu_workspace, host_workspace) with packed column data
-            std::pair<T*, T*> pack_batch_buffers_cols(
-                const CudaRuntime &cudart,
-                const Matrix_<T> &src,
-                const std::vector<int> &offsets,
-                const std::vector<size_t> &block_sizes,
-                int padded_cols) const;
-
-            /// @brief Unpack batch GEMM result from padded workspace into dense matrix
-            /// @param[in,out] dst destination dense matrix to scatter blocks into
-            /// @param[in] dst_rows row dimension of dst
-            /// @param[in] n number of columns in result
-            /// @param[in] src padded result blocks from batch operation
-            /// @param[in] offsets block row starting positions in dst
-            /// @param[in] block_sizes row count for each block
-            /// @param[in] padded_rows padded row dimension of src blocks
-            void unpack_batch_result(
-                Matrix_<T> &dst,
-                long long dst_rows,
-                int n,
-                const T *src,
-                const std::vector<int> &offsets,
-                const std::vector<size_t> &block_sizes,
-                int padded_rows) const;
-
-            /// @brief Unpack batch result from padded column blocks into dense matrix
-            /// @param[in,out] dst destination dense matrix to scatter column blocks into
-            /// @param[in] dst_rows row dimension of dst
-            /// @param[in] src padded column blocks from batch operation
-            /// @param[in] offsets column starting positions in dst
-            /// @param[in] block_sizes column count for each block
-            /// @param[in] padded_cols padded column dimension of src blocks
-            void unpack_batch_result_cols(
-                Matrix_<T> &dst,
-                long long dst_rows,
-                const T *src,
-                const std::vector<int> &offsets,
-                const std::vector<size_t> &block_sizes,
-                int padded_cols) const;
-
             /// @brief Pack vector blocks into GPU-ready format with padding
             /// @param[in] cudart CUDA runtime for device selection
             /// @param[in] src source vector with scattered block elements
@@ -773,7 +772,25 @@ namespace lahva
                 const Vector<T> &src,
                 Vector<T> &dst,
                 const std::vector<int> &offsets,
-                const std::vector<size_t> &block_sizes) const;
+                const std::vector<size_t> &block_sizes) const
+            {
+                int num_blocks = this->num_blocks();
+                size_t max_size = *std::max_element(block_sizes.begin(), block_sizes.end());
+
+                for (int i = 0; i < num_blocks; ++i) {
+                    long long offset = offsets[i];
+                    size_t block_size = block_sizes[i];
+
+                    std::memcpy(
+                        dst.data() + i * max_size,
+                        src.data() + offset,
+                        block_size * sizeof(T)
+                    );
+                }
+
+                dst.allocateGPU(cudart);
+                dst.copy2device(cudart);
+            }
 
             /// @brief Unpack padded GPU vector blocks back to scattered vector
             /// @param[in] cudart CUDA runtime for device selection
@@ -786,7 +803,24 @@ namespace lahva
                 Vector<T> &src,
                 Vector<T> &dst,
                 const std::vector<int> &offsets,
-                const std::vector<size_t> &block_sizes) const;
+                const std::vector<size_t> &block_sizes) const
+            {
+                src.copy2host(cudart);
+
+                int num_blocks = this->num_blocks();
+                size_t max_size = *std::max_element(block_sizes.begin(), block_sizes.end());
+
+                for (int i = 0; i < num_blocks; ++i) {
+                    long long offset = offsets[i];
+                    size_t block_size = block_sizes[i];
+
+                    std::memcpy(
+                        dst.data() + offset,
+                        src.data() + i * max_size,
+                        block_size * sizeof(T)
+                    );
+                }
+            }
 
         private:
             /// @brief Update total matrix dimensions based on stored blocks
@@ -830,6 +864,32 @@ namespace lahva
                 col_offsets_valid_ = true;
             }
 
+            /// @brief Initialize GPU offset vectors (lazy initialization)
+            /// @param[in] cudart CUDA runtime for device allocation
+            void init_gpu_offsets(const CudaRuntime &cudart) const {
+                // Ensure host offsets are computed
+                if (!row_offsets_valid_) {
+                    compute_offsets();
+                }
+
+                // Create GPU vectors and copy host data
+                d_row_offsets_ = Vector<int>(row_offsets_.size());
+                std::copy(row_offsets_.begin(), row_offsets_.end(), d_row_offsets_.data());
+                d_row_offsets_.copy2device(cudart);
+
+                // Get block row sizes (differences between consecutive offsets)
+                std::vector<int> block_row_sizes;
+                for (size_t i = 0; i < row_offsets_.size() - 1; ++i) {
+                    block_row_sizes.push_back(row_offsets_[i + 1] - row_offsets_[i]);
+                }
+
+                d_block_row_sizes_ = Vector<int>(block_row_sizes.size());
+                std::copy(block_row_sizes.begin(), block_row_sizes.end(), d_block_row_sizes_.data());
+                d_block_row_sizes_.copy2device(cudart);
+
+                d_offsets_valid_ = true;
+            }
+
         public:
             /// @brief Free GPU block data structures and associated device memory
             /// @param[in] gpu_data GPU data structure with device and host pinned pointers
@@ -839,218 +899,6 @@ namespace lahva
                 get_cuda_error(cudaFreeHost(gpu_data.h_packed));
             }
         };
-
-        template<typename T, typename Allocator, typename GPUAllocator>
-        inline std::pair<T*, T*> BlockDiagMatrix<T, Allocator, GPUAllocator>::ensure_workspace(
-            const CudaRuntime &cudart, size_t num_elems) const
-        {
-            if (workspace_size_ < num_elems) {
-                if (gpu_workspace_ != nullptr) {
-                    get_cuda_error(cudaFree(gpu_workspace_));
-                }
-                if (host_workspace_ != nullptr) {
-                    get_cuda_error(cudaFreeHost(host_workspace_));
-                }
-
-                get_cuda_error(cudaSetDevice(cudart.device_id()));
-                get_cuda_error(cudaMalloc(&gpu_workspace_, num_elems * sizeof(T)));
-                get_cuda_error(cudaHostAlloc(&host_workspace_, num_elems * sizeof(T), cudaHostAllocDefault));
-                workspace_size_ = num_elems;
-            }
-            return {gpu_workspace_, host_workspace_};
-        }
-
-        template<typename T, typename Allocator, typename GPUAllocator>
-        inline std::pair<T*, T*> BlockDiagMatrix<T, Allocator, GPUAllocator>::pack_batch_buffers(
-            const CudaRuntime &cudart,
-            const Matrix_<T> &src,
-            const std::vector<int> &offsets,
-            const std::vector<size_t> &block_sizes,
-            int padded_dim,
-            bool transpose) const
-        {
-            int num_blocks = static_cast<int>(block_sizes.size());
-            long long src_rows = static_cast<long long>(src.shape().first);
-            long long src_cols = static_cast<long long>(src.shape().second);
-
-            size_t total_elems;
-
-            if (!transpose) {
-                long long stride = static_cast<long long>(padded_dim) * src_cols;
-                total_elems = static_cast<size_t>(stride) * num_blocks;
-
-                auto [d_packed, h_packed] = ensure_workspace(cudart, total_elems);
-                std::memset(h_packed, 0, total_elems * sizeof(T));
-
-                for (int i = 0; i < num_blocks; ++i) {
-                    long long row_off = offsets[i];
-                    size_t rows = block_sizes[i];
-                    for (long long j = 0; j < src_cols; ++j) {
-                        std::memcpy(
-                            h_packed + i * stride + j * padded_dim,
-                            src.data() + j * src_rows + row_off,
-                            rows * sizeof(T));
-                    }
-                }
-
-                get_cuda_error(cudaSetDevice(cudart.device_id()));
-                get_cuda_error(cudaMemcpy(d_packed, h_packed, total_elems * sizeof(T), cudaMemcpyHostToDevice));
-                return {d_packed, h_packed};
-            } else {
-                long long stride = src_rows * padded_dim;
-                total_elems = static_cast<size_t>(stride) * num_blocks;
-
-                auto [d_packed, h_packed] = ensure_workspace(cudart, total_elems);
-                std::memset(h_packed, 0, total_elems * sizeof(T));
-
-                for (int i = 0; i < num_blocks; ++i) {
-                    long long col_off = offsets[i];
-                    size_t cols = block_sizes[i];
-                    for (size_t j = 0; j < cols; ++j) {
-                        std::memcpy(
-                            h_packed + i * stride + j * src_rows,
-                            src.data() + (col_off + j) * src_rows,
-                            src_rows * sizeof(T));
-                    }
-                }
-
-                get_cuda_error(cudaSetDevice(cudart.device_id()));
-                get_cuda_error(cudaMemcpy(d_packed, h_packed, total_elems * sizeof(T), cudaMemcpyHostToDevice));
-                return {d_packed, h_packed};
-            }
-        }
-
-        template<typename T, typename Allocator, typename GPUAllocator>
-        inline std::pair<T*, T*> BlockDiagMatrix<T, Allocator, GPUAllocator>::pack_batch_buffers_cols(
-            const CudaRuntime &cudart,
-            const Matrix_<T> &src,
-            const std::vector<int> &offsets,
-            const std::vector<size_t> &block_sizes,
-            int padded_cols) const
-        {
-            int num_blocks = static_cast<int>(block_sizes.size());
-            long long src_rows = static_cast<long long>(src.shape().first);
-            long long stride = src_rows * padded_cols;
-            size_t total_elems = static_cast<size_t>(stride) * num_blocks;
-
-            auto [d_packed, h_packed] = ensure_workspace(cudart, total_elems);
-            std::memset(h_packed, 0, total_elems * sizeof(T));
-
-            for (int i = 0; i < num_blocks; ++i) {
-                long long col_off = offsets[i];
-                size_t cols = block_sizes[i];
-                for (size_t j = 0; j < cols; ++j) {
-                    std::memcpy(
-                        h_packed + i * stride + j * src_rows,
-                        src.data() + (col_off + j) * src_rows,
-                        src_rows * sizeof(T));
-                }
-            }
-
-            get_cuda_error(cudaSetDevice(cudart.device_id()));
-            get_cuda_error(cudaMemcpy(d_packed, h_packed, total_elems * sizeof(T), cudaMemcpyHostToDevice));
-            return {d_packed, h_packed};
-        }
-
-        template<typename T, typename Allocator, typename GPUAllocator>
-        inline void BlockDiagMatrix<T, Allocator, GPUAllocator>::unpack_batch_result(
-            Matrix_<T> &dst,
-            long long dst_rows,
-            int n,
-            const T *src,
-            const std::vector<int> &offsets,
-            const std::vector<size_t> &block_sizes,
-            int padded_rows) const
-        {
-            int num_blocks = static_cast<int>(block_sizes.size());
-            long long padded_stride = static_cast<long long>(padded_rows) * n;
-
-            for (int i = 0; i < num_blocks; ++i) {
-                long long row_off = offsets[i];
-                size_t rows = block_sizes[i];
-                for (int j = 0; j < n; ++j) {
-                    std::memcpy(
-                        dst.data() + j * dst_rows + row_off,
-                        src + i * padded_stride + j * padded_rows,
-                        rows * sizeof(T));
-                }
-            }
-        }
-
-        template<typename T, typename Allocator, typename GPUAllocator>
-        inline void BlockDiagMatrix<T, Allocator, GPUAllocator>::unpack_batch_result_cols(
-            Matrix_<T> &dst,
-            long long dst_rows,
-            const T *src,
-            const std::vector<int> &offsets,
-            const std::vector<size_t> &block_sizes,
-            int padded_cols) const
-        {
-            int num_blocks = static_cast<int>(block_sizes.size());
-            long long padded_stride = static_cast<long long>(dst_rows) * padded_cols;
-
-            for (int i = 0; i < num_blocks; ++i) {
-                long long col_off = offsets[i];
-                size_t cols = block_sizes[i];
-                for (size_t j = 0; j < cols; ++j) {
-                    std::memcpy(
-                        dst.data() + (col_off + j) * dst_rows,
-                        src + i * padded_stride + j * dst_rows,
-                        dst_rows * sizeof(T));
-                }
-            }
-        }
-
-        template<typename T, typename Allocator, typename GPUAllocator>
-        inline void BlockDiagMatrix<T, Allocator, GPUAllocator>::pack_vector_to_gpu(
-            const CudaRuntime &cudart,
-            const Vector<T> &src,
-            Vector<T> &dst,
-            const std::vector<int> &offsets,
-            const std::vector<size_t> &block_sizes) const
-        {
-            int num_blocks = this->num_blocks();
-            size_t max_size = *std::max_element(block_sizes.begin(), block_sizes.end());
-
-            for (int i = 0; i < num_blocks; ++i) {
-                long long offset = offsets[i];
-                size_t block_size = block_sizes[i];
-
-                std::memcpy(
-                    dst.data() + i * max_size,
-                    src.data() + offset,
-                    block_size * sizeof(T)
-                );
-            }
-
-            dst.allocateGPU(cudart);
-            dst.copy2device(cudart);
-        }
-
-        template<typename T, typename Allocator, typename GPUAllocator>
-        inline void BlockDiagMatrix<T, Allocator, GPUAllocator>::unpack_vector_from_gpu(
-            const CudaRuntime &cudart,
-            Vector<T> &src,
-            Vector<T> &dst,
-            const std::vector<int> &offsets,
-            const std::vector<size_t> &block_sizes) const
-        {
-            src.copy2host(cudart);
-
-            int num_blocks = this->num_blocks();
-            size_t max_size = *std::max_element(block_sizes.begin(), block_sizes.end());
-
-            for (int i = 0; i < num_blocks; ++i) {
-                long long offset = offsets[i];
-                size_t block_size = block_sizes[i];
-
-                std::memcpy(
-                    dst.data() + offset,
-                    src.data() + i * max_size,
-                    block_size * sizeof(T)
-                );
-            }
-        }
 
     } // namespace gpu
 } // namespace lahva

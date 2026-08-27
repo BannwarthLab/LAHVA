@@ -51,6 +51,7 @@ namespace lahva{
     
     // Forward declaration
     class cuSolverRuntime;
+    class cuSparseRuntime;
 
     /// @brief cudaRuntime object, stream and Device and cublas Handle
     class CudaRuntime : public BLASRuntime {
@@ -71,6 +72,10 @@ namespace lahva{
         mutable size_t max_block_ = std::numeric_limits<unsigned int>::max(); 
         ///
         std::shared_ptr<cuSolverRuntime> cusolv_;
+        
+        /// @brief Shared pointer to cuSPARSE runtime for sparse matrix operations.
+        /// Lazily initialized on first access via getcuSparseHandle().
+        std::shared_ptr<cuSparseRuntime> cusparse_;
         bool delete_handle = false;
         bool delete_stream = false;
         bool critical_memory = false;
@@ -103,6 +108,10 @@ namespace lahva{
         //%TODO move and copy Constructor
         ///
         cusolverDnHandle_t getcuSolverHandle();
+
+        /// @brief Retrieve or create the cuSPARSE handle.
+        /// @return cusparseHandle_t for GPU sparse matrix operations.
+        cusparseHandle_t getcuSparseHandle();
         /// @brief check if runtime is setup for async task
         /// @return true if a stream is created
         bool asyncCopy() {return async_;};
@@ -189,6 +198,36 @@ namespace lahva{
         void setStream(const cudaStream_t& stream);
         cusolverDnHandle_t getHandle() { return handle; };
         cusolverDnHandle_t *getHandlePtr() { return &handle; }
+    };
+
+    /// @brief GPU cuSPARSE runtime for sparse matrix operations.
+    ///
+    /// Manages cuSPARSE handle lifecycle and provides stream management for
+    /// GPU-accelerated sparse linear algebra operations.
+    class cuSparseRuntime
+    {
+    private:
+        /// @brief Sparse matrix handle for GPU sparse linear algebra operations.
+        cusparseHandle_t handle = NULL;
+
+    public:
+        /// @brief Constructor initializing the cuSPARSE handle.
+        cuSparseRuntime();
+
+        /// @brief Destructor releasing the cuSPARSE handle.
+        ~cuSparseRuntime();
+
+        /// @brief Associate the sparse handle with a specific CUDA stream.
+        /// @param stream CUDA stream to use for all sparse operations.
+        void setStream(const cudaStream_t& stream);
+
+        /// @brief Retrieve the cuSPARSE handle.
+        /// @return The cusparseHandle_t managed by this runtime.
+        cusparseHandle_t getHandle() { return handle; };
+
+        /// @brief Retrieve a pointer to the cuSPARSE handle.
+        /// @return Pointer to the cusparseHandle_t managed by this runtime.
+        cusparseHandle_t *getHandlePtr() { return &handle; }
     };
 }
 #endif

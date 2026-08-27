@@ -134,7 +134,7 @@ namespace lahva
             cblas_cgemm(major, transa, transb, m, n, k, &alpha, a.data(), lda, b.data(), ldb, &beta, c.data(), ldc);
         };
 
-        /// @brief Block-diagonal matrix-matrix multiply with full transpose support (double precision).
+ /// @brief Block-diagonal matrix-matrix multiply with full transpose support (double precision).
         ///
         /// Performs C = alpha * op(A) * op(B) + beta * C where A is a block-diagonal matrix, B and C are dense matrices,
         /// and op(X) is X, X^T, or X^H depending on transpose flags `Ta` and `Tb`. Uses MKL batch GEMM to efficiently

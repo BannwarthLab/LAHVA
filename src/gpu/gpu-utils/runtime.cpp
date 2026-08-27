@@ -1,5 +1,6 @@
 #include <cuda_runtime.h>
 #include <cublas_v2.h>
+#include <cusparse.h>
 #include "runtime.hpp"
 #include <iostream>
 #include <string>
@@ -16,13 +17,6 @@ void get_cuda_ERROR(cudaError_t stat, const char* file, int line) {
         if (stat != CUBLAS_STATUS_SUCCESS) {
             std::cerr << "CUBLAS Error: " << cublasGetStatusString(stat) << std::endl << "In File: "<< file << " at line: " << std::to_string(line)<< std::endl;
             throw std::runtime_error("CUBLAS Error");
-        }
-    }
-
-    void get_cusparse_ERROR(cusparseStatus_t stat, const char* file, int line) {
-        if (stat != CUSPARSE_STATUS_SUCCESS) {
-            std::cerr << "cuSPARSE Error: " << cusparseGetErrorString(stat) << std::endl << "In File: "<< file << " at line: " << std::to_string(line)<< std::endl;
-            throw std::runtime_error("cuSPARSE Error");
         }
     }
 
@@ -239,5 +233,21 @@ namespace lahva
             cusolv_->setStream(this->getStream());
         }
         return this->cusolv_->getHandle();
+    };
+
+    /// @brief Gets or creates cuSPARSE handle for sparse matrix operations.
+    ///
+    /// Lazily constructs cuSPARSE runtime on first call, associating it with
+    /// the CUDA stream from this runtime for proper synchronization.
+    ///
+    /// @return cuSPARSE handle for sparse matrix operations.
+    cusparseHandle_t CudaRuntime::getcuSparseHandle()
+    {
+        if (!this->cusparse_)
+        {
+            cusparse_ = std::make_shared<cuSparseRuntime>();
+            cusparse_->setStream(this->getStream());
+        }
+        return this->cusparse_->getHandle();
     };
 } // namespace lahva
