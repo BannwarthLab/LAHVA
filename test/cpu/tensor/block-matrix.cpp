@@ -20,6 +20,37 @@ int test_blockmatrix_default_constructor() {
 }
 
 template <typename T>
+int test_blockmatrix_shape_constructor() {
+    BlockMatrix<T> m(Shape{20, 20});
+
+    Shape s = m.shape();
+    if (!check((int)s.first, 20, check_msg(get_type_name<T>(), "Shape constructor should allocate 20x20"))) return TEST_FAIL;
+    if (!check((int)s.second, 20, check_msg(get_type_name<T>(), "Shape constructor should allocate 20x20"))) return TEST_FAIL;
+    if (!check((int)m.num_blocks(), 0, check_msg(get_type_name<T>(), "Shape constructor should have 0 blocks initially"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_blockmatrix_shape_constructor_with_set_block() {
+    BlockMatrix<T> m(Shape{20, 20});
+
+    Matrix<T> block(Shape{5, 5}, (T)3.0);
+    m.set_block(0, 0, block);
+
+    if (!check((int)m.num_blocks(), 1, check_msg(get_type_name<T>(), "Should have 1 block after set_block"))) return TEST_FAIL;
+
+    Shape s = m.shape();
+    if (!check((int)s.first, 20, check_msg(get_type_name<T>(), "Shape should remain 20x20"))) return TEST_FAIL;
+    if (!check((int)s.second, 20, check_msg(get_type_name<T>(), "Shape should remain 20x20"))) return TEST_FAIL;
+
+    if (!check((T)m(0, 0), (T)3.0, check_msg(get_type_name<T>(), "Block element (0,0) should be 3.0"))) return TEST_FAIL;
+    if (!check((T)m(4, 4), (T)3.0, check_msg(get_type_name<T>(), "Block element (4,4) should be 3.0"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
 int test_blockmatrix_copy_constructor() {
     BlockMatrix<T> m1;
 
@@ -268,10 +299,14 @@ int main() {
 
     // BlockMatrix constructors - double precision
     total_failures += test_blockmatrix_default_constructor<double>();
+    total_failures += test_blockmatrix_shape_constructor<double>();
+    total_failures += test_blockmatrix_shape_constructor_with_set_block<double>();
     total_failures += test_blockmatrix_copy_constructor<double>();
 
     // BlockMatrix constructors - single precision
     total_failures += test_blockmatrix_default_constructor<float>();
+    total_failures += test_blockmatrix_shape_constructor<float>();
+    total_failures += test_blockmatrix_shape_constructor_with_set_block<float>();
     total_failures += test_blockmatrix_copy_constructor<float>();
 
     // BlockMatrix block access - double precision

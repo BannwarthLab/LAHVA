@@ -65,9 +65,9 @@ namespace lahva
             {
             }
 
-            /// @brief Constructor from shape - creates zero-initialized matrix with given dimensions
+            /// @brief Constructor from shape - allocates dense backing matrix for given dimensions
             explicit BlockMatrix(const Shape &shape, const Allocator &alloc = Allocator())
-                : BlockMatrix_<T>(), Matrix<T, Allocator>(shape, (T)0, alloc)
+                : Tensor<T, Allocator>(shape.first * shape.second, alloc), BlockMatrix_<T>(), Matrix<T, Allocator>(shape, (T)0, alloc)
             {
             }
 
@@ -205,7 +205,8 @@ namespace lahva
                 size_t matrix_rows = std::max(static_cast<size_t>(this->shape().first), new_row_end);
                 size_t matrix_cols = std::max(static_cast<size_t>(this->shape().second), new_col_end);
 
-                if (matrix_rows > static_cast<size_t>(this->shape().first) ||
+                if (this->data() == nullptr ||
+                    matrix_rows > static_cast<size_t>(this->shape().first) ||
                     matrix_cols > static_cast<size_t>(this->shape().second)) {
                     Matrix<T, Allocator> new_matrix(Shape{matrix_rows, matrix_cols}, (T)0);
                     if (this->shape().first > 0 && this->shape().second > 0) {
