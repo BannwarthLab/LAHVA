@@ -110,19 +110,40 @@ LAHVA abstracts the complexity of managing mixed-precision matrices and ensuring
 
 LAHVA supports both Meson and CMake build systems.
 
+### Dependencies
+
+Before building LAHVA, ensure the following dependencies are installed on your system or available as loaded modules on your cluster:
+
+**Common Requirements:**
+- C++20 compatible compiler:
+  - GCC (GNU 11.x+)
+  - Intel C++ Compiler (2023.2.0+)
+- Meson 1.3.0+ or CMake 3.18+
+
+**For CPU-Only Builds:**
+- BLAS library: OpenBLAS or Intel MKL (2023.2.0+)
+- LAPACK (typically included with BLAS)
+
+**For GPU Builds (NVIDIA):**
+- CUDA Toolkit 12.0+ (tested with 12.5, 13.0)
+- NVIDIA driver supporting your CUDA version
+- One of the following BLAS libraries for CPU operations:
+  - Intel MKL 2023.2.0+
+  - OpenBLAS
+
 ### GPU Build (Nvidia)
 
 #### Compile with Meson
 
 ```bash
-meson setup _build -Dgpu=true -Dlapack=mkl  # or openblas
+meson setup _build -Dgpu="enabled" -Dlapack=mkl  # or openblas
 meson compile -C _build
 meson test -C _build
 ```
 
 Or for a CPU-only build:
 ```bash
-meson setup _build -Dgpu=false
+meson setup _build -Dgpu="disabled"
 meson compile -C _build
 meson test -C _build
 ```
