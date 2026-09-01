@@ -347,7 +347,8 @@ namespace lahva
                 }
                 else
                 {
-                    C.merge(cudart);
+                    std::fill(alpha_arr, alpha_arr + combinations, 1.0);
+                    C.merge(cudart, alpha_arr, beta);
                 }
 
                 delete[] alpha_arr;
@@ -427,7 +428,8 @@ namespace lahva
                 }
                 if (!batch)
                 {
-                    C.merge(cudart);
+                    std::fill(alpha_arr, alpha_arr + combinations, 1.0);
+                    C.merge(cudart, alpha_arr, beta);
                 }
                 if (batch)
                 {

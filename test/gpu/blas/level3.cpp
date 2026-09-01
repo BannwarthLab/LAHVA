@@ -733,7 +733,7 @@ int test_mp_matrix_gemm_basic(CudaRuntime& cudart) {
     Shape shape(8, 8);
     MixedPrecisionMatrix<T> A(shape);
     MixedPrecisionMatrix<T> B(shape);
-    Matrix<T> C(shape);
+    MixedPrecisionMatrix<T> C(shape);
 
     fill_random_mp(A);
     fill_random_mp(B);
@@ -747,7 +747,11 @@ int test_mp_matrix_gemm_basic(CudaRuntime& cudart) {
     C.copy2device(cudart);
     cudart.synchronize();
 
-    MatrixMatrixProduct(cudart, A, B, C, (T)1.0, (T)0.0);
+    MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
+    mp_rt.fast_mode = true;
+
+    MatrixMatrixProduct(cudart, mp_rt, A, B, C, (T)1.0, (T)0.0);
     cudart.synchronize();
     C.copy2host(cudart);
     cudart.synchronize();
@@ -795,7 +799,7 @@ int test_mp_matrix_scaling_operation(CudaRuntime& cudart) {
     Shape shape(4, 4);
     MixedPrecisionMatrix<T> A(shape);
     MixedPrecisionMatrix<T> B(shape);
-    Matrix<T> C(shape);
+    MixedPrecisionMatrix<T> C(shape);
 
     fill_random_mp(A);
     fill_random_mp(B);
@@ -809,7 +813,11 @@ int test_mp_matrix_scaling_operation(CudaRuntime& cudart) {
     C.copy2device(cudart);
     cudart.synchronize();
 
-    MatrixMatrixProduct(cudart, A, B, C, (T)0.5, (T)0.0);
+    MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
+    mp_rt.fast_mode = true;
+
+    MatrixMatrixProduct(cudart, mp_rt, A, B, C, (T)0.5, (T)0.0);
     cudart.synchronize();
     C.copy2host(cudart);
     cudart.synchronize();
@@ -832,7 +840,7 @@ int test_mp_matrix_accumulation(CudaRuntime& cudart) {
     Shape shape(4, 4);
     MixedPrecisionMatrix<T> A(shape);
     MixedPrecisionMatrix<T> B(shape);
-    Matrix<T> C(shape);
+    MixedPrecisionMatrix<T> C(shape);
 
     fill_random_mp(A);
     fill_random_mp(B);
@@ -846,7 +854,11 @@ int test_mp_matrix_accumulation(CudaRuntime& cudart) {
     C.copy2device(cudart);
     cudart.synchronize();
 
-    MatrixMatrixProduct(cudart, A, B, C, (T)1.0, (T)1.0);
+    MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
+    mp_rt.fast_mode = true;
+
+    MatrixMatrixProduct(cudart, mp_rt, A, B, C, (T)1.0, (T)1.0);
     cudart.synchronize();
     C.copy2host(cudart);
     cudart.synchronize();
@@ -869,7 +881,7 @@ int test_mp_matrix_identity_multiplication(CudaRuntime& cudart) {
     Shape shape(4, 4);
     MixedPrecisionMatrix<T> I(shape);
     MixedPrecisionMatrix<T> A(shape);
-    Matrix<T> C(shape);
+    MixedPrecisionMatrix<T> C(shape);
 
     for (size_t i = 0; i < I.size(); i++) {
         I.data()[i] = (T)0.0;
@@ -889,7 +901,11 @@ int test_mp_matrix_identity_multiplication(CudaRuntime& cudart) {
     C.copy2device(cudart);
     cudart.synchronize();
 
-    MatrixMatrixProduct(cudart, I, A, C, (T)1.0, (T)0.0);
+    MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
+    mp_rt.fast_mode = true;
+
+    MatrixMatrixProduct(cudart, mp_rt, I, A, C, (T)1.0, (T)0.0);
     cudart.synchronize();
     C.copy2host(cudart);
     cudart.synchronize();
@@ -915,8 +931,8 @@ int test_mp_matrix_transpose_consistency(CudaRuntime& cudart) {
     Shape shape(4, 4);
     MixedPrecisionMatrix<T> A(shape);
     MixedPrecisionMatrix<T> B(shape);
-    Matrix<T> C1(shape);
-    Matrix<T> C2(shape);
+    MixedPrecisionMatrix<T> C1(shape);
+    MixedPrecisionMatrix<T> C2(shape);
 
     fill_random_mp(A);
     fill_random_mp(B);
@@ -932,10 +948,14 @@ int test_mp_matrix_transpose_consistency(CudaRuntime& cudart) {
     C2.copy2device(cudart);
     cudart.synchronize();
 
-    MatrixMatrixProduct(cudart, A, B, C1, (T)1.0, (T)0.0);
+    MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
+    mp_rt.fast_mode = true;
+
+    MatrixMatrixProduct(cudart, mp_rt, A, B, C1, (T)1.0, (T)0.0);
     cudart.synchronize();
 
-    MatrixMatrixProduct(cudart, B, A, C2, (T)1.0, (T)0.0, "T", "T");
+    MatrixMatrixProduct(cudart, mp_rt, B, A, C2, (T)1.0, (T)0.0, "T", "T");
     cudart.synchronize();
 
     C1.copy2host(cudart);
