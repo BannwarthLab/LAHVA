@@ -11,16 +11,16 @@ template <typename T>
 int test_blockmatrix_default_constructor() {
     BlockMatrix<T> m;
 
-    if (!check((int)m.num_blocks(), 0, check_msg(get_type_name<T>(), "Default constructor should create empty matrix"))) return TEST_FAIL;
+    if (!check((int)m.num_blocks(), 0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     Shape s = m.shape();
-    if (!check((int)s.first, 0, check_msg(get_type_name<T>(), "Default matrix should have 0 rows"))) return TEST_FAIL;
+    if (!check((int)s.first, 0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
-    if (!check((int)s.second, 0, check_msg(get_type_name<T>(), "Default matrix should have 0 cols"))) return TEST_FAIL;
+    if (!check((int)s.second, 0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
-    if (!check((int)m.num_block_rows(), 0, check_msg(get_type_name<T>(), "Default matrix should have 0 block rows"))) return TEST_FAIL;
+    if (!check((int)m.num_block_rows(), 0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
 
-    if (!check((int)m.num_block_cols(), 0, check_msg(get_type_name<T>(), "Default matrix should have 0 block cols"))) return TEST_FAIL;
+    if (!check((int)m.num_block_cols(), 0, check_msg(get_type_name<T>(), "check 5"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -33,9 +33,9 @@ int test_blockmatrix_copy_constructor() {
 
     BlockMatrix<T> m2 = m1;  // Copy constructor
 
-    if (!check((int)m2.num_blocks(), 1, check_msg(get_type_name<T>(), "Copy should have same number of blocks"))) return TEST_FAIL;
+    if (!check((int)m2.num_blocks(), 1, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)m2.num_block_rows(), 1, check_msg(get_type_name<T>(), "Copy should have same block rows"))) return TEST_FAIL;
+    if (!check((int)m2.num_block_rows(), 1, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -48,9 +48,9 @@ int test_blockmatrix_move_constructor() {
 
     BlockMatrix<T> m2 = std::move(m1);  // Move constructor
 
-    if (!check((int)m2.num_blocks(), 1, check_msg(get_type_name<T>(), "Moved matrix should have 1 block"))) return TEST_FAIL;
+    if (!check((int)m2.num_blocks(), 1, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)m1.num_blocks(), 0, check_msg(get_type_name<T>(), "Original should be empty after move"))) return TEST_FAIL;
+    if (!check((int)m1.num_blocks(), 0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -66,11 +66,11 @@ int test_blockmatrix_set_block() {
 
     m.set_block(0, 0, block);
 
-    if (!check((int)m.num_blocks(), 1, check_msg(get_type_name<T>(), "Should have 1 block after set_block"))) return TEST_FAIL;
+    if (!check((int)m.num_blocks(), 1, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)m.num_block_rows(), 1, check_msg(get_type_name<T>(), "Should have 1 block row"))) return TEST_FAIL;
+    if (!check((int)m.num_block_rows(), 1, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
-    if (!check((int)m.num_block_cols(), 1, check_msg(get_type_name<T>(), "Should have 1 block col"))) return TEST_FAIL;
+    if (!check((int)m.num_block_cols(), 1, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -87,13 +87,13 @@ int test_blockmatrix_set_multiple_blocks() {
     m.set_block(0, 2, block2);
     m.set_block(2, 0, block3);
 
-    if (!check((int)m.num_blocks(), 3, check_msg(get_type_name<T>(), "Should have 3 blocks"))) return TEST_FAIL;
+    if (!check((int)m.num_blocks(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     // num_block_rows/cols return max position + 1 for grid dimensions
     // With positions at (0,0), (0,2), (2,0): max row is 2, max col is 2, so 3 and 3
-    if (!check((int)m.num_block_rows(), 3, check_msg(get_type_name<T>(), "Should have max row position + 1"))) return TEST_FAIL;
+    if (!check((int)m.num_block_rows(), 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
-    if (!check((int)m.num_block_cols(), 3, check_msg(get_type_name<T>(), "Should have max col position + 1"))) return TEST_FAIL;
+    if (!check((int)m.num_block_cols(), 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -108,9 +108,9 @@ int test_blockmatrix_get_block() {
     Matrix<T, CudaHostAllocator<T>>& retrieved = m.get_block(0, 0);
     Shape s = retrieved.shape();
 
-    if (!check((int)s.first, 2, check_msg(get_type_name<T>(), "Retrieved block should have 2 rows"))) return TEST_FAIL;
+    if (!check((int)s.first, 2, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((T)retrieved(0, 0), (T)1, check_msg(get_type_name<T>(), "Retrieved block first element should be 1"))) return TEST_FAIL;
+    if (!check((T)retrieved(0, 0), (T)1, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -125,7 +125,7 @@ int test_blockmatrix_get_block_const() {
     const Matrix<T, CudaHostAllocator<T>>& retrieved = m.get_block(2, 2);
     Shape s = retrieved.shape();
 
-    if (!check((int)s.first, 2, check_msg(get_type_name<T>(), "Retrieved const block should have 2 rows"))) return TEST_FAIL;
+    if (!check((int)s.first, 2, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -138,12 +138,12 @@ int test_blockmatrix_has_block() {
     m.set_block(0, 0, block);
 
     if (!m.has_block(0, 0)) {
-        std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
+        std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
         return TEST_FAIL;
     }
 
     if (m.has_block(1, 1)) {
-        std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
+        std::cerr << check_msg(get_type_name<T>(), "check 2") << std::endl;
         return TEST_FAIL;
     }
 
@@ -162,7 +162,7 @@ int test_blockmatrix_num_blocks() {
     m.set_block(0, 3, block2);
     m.set_block(3, 0, block3);
 
-    if (!check((int)m.num_blocks(), 3, check_msg(get_type_name<T>(), "num_blocks should return 3"))) return TEST_FAIL;
+    if (!check((int)m.num_blocks(), 3, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -182,9 +182,9 @@ int test_blockmatrix_shape() {
 
     Shape s = m.shape();
     // Total rows: max(0+2, 2+3) = 5; Total cols: max(0+3, 3+2) = 5
-    if (!check((int)s.first, 5, check_msg(get_type_name<T>(), "Total rows should be 5"))) return TEST_FAIL;
+    if (!check((int)s.first, 5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)s.second, 5, check_msg(get_type_name<T>(), "Total cols should be 5"))) return TEST_FAIL;
+    if (!check((int)s.second, 5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -201,9 +201,9 @@ int test_blockmatrix_shape_with_sparse_layout() {
 
     Shape s = m.shape();
     // Should account for the maximum row index in each row group
-    if (!check((int)s.first, 5, check_msg(get_type_name<T>(), "Total rows should account for all block rows"))) return TEST_FAIL;
+    if (!check((int)s.first, 5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)s.second, 5, check_msg(get_type_name<T>(), "Total cols should account for all block cols"))) return TEST_FAIL;
+    if (!check((int)s.second, 5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -221,7 +221,7 @@ int test_blockmatrix_num_block_rows() {
     m.set_block(0, 0, block1);
     m.set_block(2, 0, block2);
 
-    if (!check((int)m.num_block_rows(), 3, check_msg(get_type_name<T>(), "num_block_rows should return 3"))) return TEST_FAIL;
+    if (!check((int)m.num_block_rows(), 3, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -235,7 +235,7 @@ int test_blockmatrix_num_block_cols() {
     m.set_block(0, 0, block1);
     m.set_block(0, 2, block2);
 
-    if (!check((int)m.num_block_cols(), 3, check_msg(get_type_name<T>(), "num_block_cols should return 3"))) return TEST_FAIL;
+    if (!check((int)m.num_block_cols(), 3, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -253,9 +253,9 @@ int test_blockmatrix_block_grid_dimensions() {
     m.set_block(2, 0, block3);
     m.set_block(3, 3, block4);
 
-    if (!check((int)m.num_block_rows(), 4, check_msg(get_type_name<T>(), "num_block_rows should return 4"))) return TEST_FAIL;
+    if (!check((int)m.num_block_rows(), 4, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)m.num_block_cols(), 4, check_msg(get_type_name<T>(), "num_block_cols should return 4"))) return TEST_FAIL;
+    if (!check((int)m.num_block_cols(), 4, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -277,7 +277,7 @@ int test_blockmatrix_get_row_offsets() {
 
     // Offsets should be computed lazily
     if (row_offsets.empty()) {
-        std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
+        std::cerr << check_msg(get_type_name<T>(), "") << std::endl;
         return TEST_FAIL;
     }
 
@@ -297,7 +297,7 @@ int test_blockmatrix_get_col_offsets() {
 
     // Offsets should be computed lazily
     if (col_offsets.empty()) {
-        std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
+        std::cerr << check_msg(get_type_name<T>(), "") << std::endl;
         return TEST_FAIL;
     }
 
@@ -316,9 +316,9 @@ int test_blockmatrix_element_access_read() {
     m.set_block(0, 0, block);
 
     // Test first block element
-    if (!check((T)m(0, 0), (T)1, check_msg(get_type_name<T>(), "Element (0,0) should be 1"))) return TEST_FAIL;
+    if (!check((T)m(0, 0), (T)1, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((T)m(1, 1), (T)5, check_msg(get_type_name<T>(), "Element (1,1) should be 5"))) return TEST_FAIL;
+    if (!check((T)m(1, 1), (T)5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -334,9 +334,9 @@ int test_blockmatrix_element_access_write() {
     m(0, 0) = (T)7.5;
     m(1, 1) = (T)8.5;
 
-    if (!check((T)m(0, 0), (T)7.5, check_msg(get_type_name<T>(), "Element (0,0) should be 7.5 after write"))) return TEST_FAIL;
+    if (!check((T)m(0, 0), (T)7.5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((T)m(1, 1), (T)8.5, check_msg(get_type_name<T>(), "Element (1,1) should be 8.5 after write"))) return TEST_FAIL;
+    if (!check((T)m(1, 1), (T)8.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -349,10 +349,6 @@ int test_blockmatrix_element_access_arbitrary_positions() {
 
     m.set_block(0, 0, block1);
     m.set_block(2, 2, block2);
-
-    // Block 1 is at (0,0) with size 2x2
-    // Block 2 is at (1,1) with size 3x3
-    // But the matrix uses fixed positions like pos.first*100, pos.second*100
 
     return TEST_PASS;
 }
@@ -372,10 +368,10 @@ int test_blockmatrix_get_block_shape() {
 
     // Get by linear index
     Shape shape0 = m.get_block_shape(0);
-    if (!check((int)shape0.first, 2, check_msg(get_type_name<T>(), "First block should have 2 rows"))) return TEST_FAIL;
+    if (!check((int)shape0.first, 2, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     Shape shape1 = m.get_block_shape(1);
-    if (!check((int)shape1.first, 3, check_msg(get_type_name<T>(), "Second block should have 3 rows"))) return TEST_FAIL;
+    if (!check((int)shape1.first, 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -395,7 +391,7 @@ int test_blockmatrix_gpu_operations_basic() {
 
     // Test that we can access GPU-related methods
     Shape s = m.shape();
-    if (!check((int)s.first, 2, check_msg(get_type_name<T>(), "Matrix should have correct dimensions"))) return TEST_FAIL;
+    if (!check((int)s.first, 2, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -441,16 +437,16 @@ int test_blockmatrix_gpu_roundtrip_uniform_blocks() {
     if (reconstructed_shape.first != original_dense.shape().first ||
         reconstructed_shape.second != original_dense.shape().second) {
         sparse.free_gpu_memory();
-        std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
+        std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
         return TEST_FAIL;
     }
 
     // Verify all elements match
     for (size_t i = 0; i < original_dense.shape().first; ++i) {
         for (size_t j = 0; j < original_dense.shape().second; ++j) {
-            if (!check(original_dense(i, j), reconstructed_dense(i, j), check_msg(get_type_name<T>(), "Element mismatch in roundtrip"))) {
+            if (!check(original_dense(i, j), reconstructed_dense(i, j), check_msg(get_type_name<T>(), "check 2"))) {
                 sparse.free_gpu_memory();
-                std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
+                std::cerr << check_msg(get_type_name<T>(), "check 3") << std::endl;
                 return TEST_FAIL;
             }
         }
@@ -498,16 +494,16 @@ int test_blockmatrix_gpu_roundtrip_sparse_layout() {
     if (reconstructed_shape.first != original_dense.shape().first ||
         reconstructed_shape.second != original_dense.shape().second) {
         sparse.free_gpu_memory();
-        std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
+        std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
         return TEST_FAIL;
     }
 
     // Verify all elements match
     for (size_t i = 0; i < original_dense.shape().first; ++i) {
         for (size_t j = 0; j < original_dense.shape().second; ++j) {
-            if (!check(original_dense(i, j), reconstructed_dense(i, j), check_msg(get_type_name<T>(), "Element mismatch in roundtrip"))) {
+            if (!check(original_dense(i, j), reconstructed_dense(i, j), check_msg(get_type_name<T>(), "check 2"))) {
                 sparse.free_gpu_memory();
-                std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
+                std::cerr << check_msg(get_type_name<T>(), "check 3") << std::endl;
                 return TEST_FAIL;
             }
         }
@@ -555,16 +551,16 @@ int test_blockmatrix_gpu_roundtrip_varied_sizes() {
     if (reconstructed_shape.first != original_dense.shape().first ||
         reconstructed_shape.second != original_dense.shape().second) {
         sparse.free_gpu_memory();
-        std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
+        std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
         return TEST_FAIL;
     }
 
     // Verify all elements match
     for (size_t i = 0; i < original_dense.shape().first; ++i) {
         for (size_t j = 0; j < original_dense.shape().second; ++j) {
-            if (!check(original_dense(i, j), reconstructed_dense(i, j), check_msg(get_type_name<T>(), "Element mismatch in roundtrip"))) {
+            if (!check(original_dense(i, j), reconstructed_dense(i, j), check_msg(get_type_name<T>(), "check 2"))) {
                 sparse.free_gpu_memory();
-                std::cerr << check_msg(get_type_name<T>(), "test condition failed") << std::endl;
+                std::cerr << check_msg(get_type_name<T>(), "check 3") << std::endl;
                 return TEST_FAIL;
             }
         }
@@ -587,9 +583,9 @@ int test_blockmatrix_copy_assignment() {
     BlockMatrix<T> m2;
     m2 = m1;  // Copy assignment
 
-    if (!check((int)m2.num_blocks(), 1, check_msg(get_type_name<T>(), "Assignment should copy blocks"))) return TEST_FAIL;
+    if (!check((int)m2.num_blocks(), 1, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)m2.num_block_rows(), 1, check_msg(get_type_name<T>(), "Assignment should copy block rows"))) return TEST_FAIL;
+    if (!check((int)m2.num_block_rows(), 1, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -603,9 +599,9 @@ int test_blockmatrix_move_assignment() {
     BlockMatrix<T> m2;
     m2 = std::move(m1);  // Move assignment
 
-    if (!check((int)m2.num_blocks(), 1, check_msg(get_type_name<T>(), "Move should transfer blocks"))) return TEST_FAIL;
+    if (!check((int)m2.num_blocks(), 1, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)m1.num_blocks(), 0, check_msg(get_type_name<T>(), "Original should be empty after move"))) return TEST_FAIL;
+    if (!check((int)m1.num_blocks(), 0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -621,10 +617,10 @@ int test_blockmatrix_single_block() {
 
     m.set_block(0, 0, block);
 
-    if (!check((int)m.num_blocks(), 1, check_msg(get_type_name<T>(), "Should have 1 block"))) return TEST_FAIL;
+    if (!check((int)m.num_blocks(), 1, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     Shape s = m.shape();
-    if (!check((int)s.first, 5, check_msg(get_type_name<T>(), "Total rows should be 5"))) return TEST_FAIL;
+    if (!check((int)s.first, 5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -639,11 +635,11 @@ int test_blockmatrix_sparse_layout() {
     m.set_block(0, 0, block1);
     m.set_block(2, 2, block2);  // Sparse position
 
-    if (!check((int)m.num_blocks(), 2, check_msg(get_type_name<T>(), "Should have 2 blocks"))) return TEST_FAIL;
+    if (!check((int)m.num_blocks(), 2, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)m.num_block_rows(), 3, check_msg(get_type_name<T>(), "Should account for all block row indices"))) return TEST_FAIL;
+    if (!check((int)m.num_block_rows(), 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
-    if (!check((int)m.num_block_cols(), 3, check_msg(get_type_name<T>(), "Should account for all block col indices"))) return TEST_FAIL;
+    if (!check((int)m.num_block_cols(), 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -657,11 +653,11 @@ int test_blockmatrix_large_block_indices() {
     m.set_block(0, 0, block1);
     m.set_block(10, 10, block2);  // Large indices
 
-    if (!check((int)m.num_blocks(), 2, check_msg(get_type_name<T>(), "Should have 2 blocks"))) return TEST_FAIL;
+    if (!check((int)m.num_blocks(), 2, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    if (!check((int)m.num_block_rows(), 11, check_msg(get_type_name<T>(), "Should handle large block row indices"))) return TEST_FAIL;
+    if (!check((int)m.num_block_rows(), 11, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
-    if (!check((int)m.num_block_cols(), 11, check_msg(get_type_name<T>(), "Should handle large block col indices"))) return TEST_FAIL;
+    if (!check((int)m.num_block_cols(), 11, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -677,7 +673,7 @@ int test_blockmatrix_varying_block_sizes() {
     m.set_block(2, 2, block2);
     m.set_block(7, 7, block3);
 
-    if (!check((int)m.num_blocks(), 3, check_msg(get_type_name<T>(), "Should have 3 blocks"))) return TEST_FAIL;
+    if (!check((int)m.num_blocks(), 3, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -691,12 +687,12 @@ int test_blockmatrix_rectangular_blocks() {
     m.set_block(0, 0, block1);
     m.set_block(2, 0, block2);
 
-    if (!check((int)m.num_blocks(), 2, check_msg(get_type_name<T>(), "Should have 2 rectangular blocks"))) return TEST_FAIL;
+    if (!check((int)m.num_blocks(), 2, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     Shape s = m.shape();
-    if (!check((int)s.first, 5, check_msg(get_type_name<T>(), "Total rows should be 2+3=5"))) return TEST_FAIL;
+    if (!check((int)s.first, 5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
-    if (!check((int)s.second, 4, check_msg(get_type_name<T>(), "Total cols should be max(4,2)=4"))) return TEST_FAIL;
+    if (!check((int)s.second, 4, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -708,14 +704,14 @@ int test_blockmatrix_update_existing_block() {
     Matrix<T, CudaHostAllocator<T>> block2(Shape{3, 3}, (T)2);
 
     m.set_block(0, 0, block1);
-    if (!check((int)m.num_blocks(), 1, check_msg(get_type_name<T>(), "Should have 1 block initially"))) return TEST_FAIL;
+    if (!check((int)m.num_blocks(), 1, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     m.set_block(0, 0, block2);  // Update with different size
-    if (!check((int)m.num_blocks(), 1, check_msg(get_type_name<T>(), "Should still have 1 block after update"))) return TEST_FAIL;
+    if (!check((int)m.num_blocks(), 1, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     // New block should have different shape
     Shape s = m.get_block(0, 0).shape();
-    if (!check((int)s.first, 3, check_msg(get_type_name<T>(), "Updated block should have 3 rows"))) return TEST_FAIL;
+    if (!check((int)s.first, 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
