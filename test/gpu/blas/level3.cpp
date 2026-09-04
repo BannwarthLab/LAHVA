@@ -1661,7 +1661,6 @@ int test_gpu_dense_times_blockmatrix_transpose_both(CudaRuntime& cudart) {
 template <typename T>
 int test_mp_matrix_nonbatch_gemm(CudaRuntime& cudart) {
     MPRuntime mp_rt;
-    mp_rt.nsplits_FP32 = 4;
     mp_rt.fast_mode = false;
     mp_rt.batch_mode = false;
 
@@ -1698,7 +1697,6 @@ int test_mp_matrix_nonbatch_gemm(CudaRuntime& cudart) {
 template <typename T>
 int test_mp_matrix_nonbatch_with_alpha(CudaRuntime& cudart) {
     MPRuntime mp_rt;
-    mp_rt.nsplits_FP32 = 4;
     mp_rt.fast_mode = false;
     mp_rt.batch_mode = false;
 
@@ -1734,7 +1732,6 @@ int test_mp_matrix_nonbatch_with_alpha(CudaRuntime& cudart) {
 template <typename T>
 int test_mp_matrix_nonbatch_with_beta(CudaRuntime& cudart) {
     MPRuntime mp_rt;
-    mp_rt.nsplits_FP32 = 4;
     mp_rt.fast_mode = false;
     mp_rt.batch_mode = false;
 
