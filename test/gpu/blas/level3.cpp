@@ -1690,7 +1690,7 @@ int test_mp_matrix_nonbatch_gemm(CudaRuntime& cudart) {
     cudart.synchronize();
 
     
-    if (!check(C.data(), C_ref.data(), C.size(), check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check<T, ToleranceType::LAPACK>(C.data(), C_ref.data(), C.size(), check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -1726,7 +1726,7 @@ int test_mp_matrix_nonbatch_with_alpha(CudaRuntime& cudart) {
     C_ref.copy2host(cudart);
     cudart.synchronize();
 
-    if (!check(C.data(), C_ref.data(), C.size(), check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check<T, ToleranceType::LAPACK>(C.data(), C_ref.data(), C.size(), check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -1767,7 +1767,7 @@ int test_mp_matrix_nonbatch_with_beta(CudaRuntime& cudart) {
     C_ref.copy2host(cudart);
     cudart.synchronize();
 
-    if (!check(C.data(), C_ref.data(), C.size(), check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check<T, ToleranceType::LAPACK>(C.data(), C_ref.data(), C.size(), check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }

@@ -98,7 +98,6 @@ int test_HadamardProduct(const CudaRuntime& cudart)
 {
 
     int n=1000;
-    std::cout << "Matrix size (n): " << n << std::endl;
 
     MyMatrix<T> A(Shape(n,n),0.0);
     MyMatrix<T> B(Shape(n,n),0.0);
