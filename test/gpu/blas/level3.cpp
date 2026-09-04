@@ -1769,6 +1769,134 @@ int test_mp_matrix_nonbatch_with_beta(CudaRuntime& cudart) {
     return TEST_PASS;
 }
 
+template <typename T>
+int test_mp_matrix_nonbatch_gemm() {
+    int failures = 0;
+    CudaRuntime cudart(false);
+    MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
+    mp_rt.fast_mode = false;
+    mp_rt.batch_mode = false;
+
+    Shape shape(8, 8);
+    MixedPrecisionMatrix<T> A(shape);
+    MixedPrecisionMatrix<T> B(shape);
+    MixedPrecisionMatrix<T> C(shape);
+
+    fill_random_mp(A);
+    fill_random_mp(B);
+
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
+    cudart.synchronize();
+
+    MatrixMatrixProduct(cudart, mp_rt, A, B, C, (T)1.0, (T)0.0);
+    cudart.synchronize();
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    MixedPrecisionMatrix<T> C_ref(shape);
+    C_ref.copy2device(cudart);
+    MatrixMatrixProduct(cudart, A, B, C_ref, (T)1.0, (T)0.0);
+    C_ref.copy2host(cudart);
+    cudart.synchronize();
+
+    double norm = FrobeniusNorm(cudart, C, C_ref);
+    if (norm > 1e-5) {
+        failures += 1;
+    }
+
+    return failures;
+}
+
+template <typename T>
+int test_mp_matrix_nonbatch_with_alpha() {
+    int failures = 0;
+    CudaRuntime cudart(false);
+    MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
+    mp_rt.fast_mode = false;
+    mp_rt.batch_mode = false;
+
+    Shape shape(8, 8);
+    MixedPrecisionMatrix<T> A(shape);
+    MixedPrecisionMatrix<T> B(shape);
+    MixedPrecisionMatrix<T> C(shape);
+
+    fill_random_mp(A);
+    fill_random_mp(B);
+
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
+    cudart.synchronize();
+
+    MatrixMatrixProduct(cudart, mp_rt, A, B, C, (T)2.5, (T)0.0);
+    cudart.synchronize();
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    MixedPrecisionMatrix<T> C_ref(shape);
+    C_ref.copy2device(cudart);
+    MatrixMatrixProduct(cudart, A, B, C_ref, (T)2.5, (T)0.0);
+    C_ref.copy2host(cudart);
+    cudart.synchronize();
+
+    double norm = FrobeniusNorm(cudart, C, C_ref);
+    if (norm > 1e-5) {
+        failures += 1;
+    }
+
+    return failures;
+}
+
+template <typename T>
+int test_mp_matrix_nonbatch_with_beta() {
+    int failures = 0;
+    CudaRuntime cudart(false);
+    MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
+    mp_rt.fast_mode = false;
+    mp_rt.batch_mode = false;
+
+    Shape shape(8, 8);
+    MixedPrecisionMatrix<T> A(shape);
+    MixedPrecisionMatrix<T> B(shape);
+    MixedPrecisionMatrix<T> C(shape);
+    MixedPrecisionMatrix<T> C_ref(shape);
+
+    fill_random_mp(A);
+    fill_random_mp(B);
+    fill_random_mp(C);
+
+    lahva::cpu::CopyVectors(C, C_ref);
+
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
+    cudart.synchronize();
+
+    MatrixMatrixProduct(cudart, mp_rt, A, B, C, (T)1.0, (T)0.5);
+    cudart.synchronize();
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+
+    C_ref.copy2device(cudart);
+    cudart.synchronize();
+    MatrixMatrixProduct(cudart, A, B, C_ref, (T)1.0, (T)0.5);
+    C_ref.copy2host(cudart);
+    cudart.synchronize();
+
+    double norm = FrobeniusNorm(cudart, C, C_ref);
+    if (norm > 1e-5) {
+        failures += 1;
+    }
+
+    return failures;
+}
+
 // ============================================================================
 // Main
 // ============================================================================
