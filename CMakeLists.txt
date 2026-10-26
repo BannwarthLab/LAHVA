@@ -11,16 +11,14 @@ project(
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-option(WITH_TESTS "Copmile Testsuite" ON)
 # Follow GNU conventions for installing directories
 include(GNUInstallDirs)
 
+option(WITH_TESTS "Compile Testsuite" ON)
 option(GPU "Enable GPU support" OFF)
 option(LAPACK_VENDOR "Specify LAPACK vendor" "auto")
 option(CUSTOM_LIBRARIES "Custom libraries for LAPACK" "")
 #option(CUDA_ARCHITECTURES "NVIDIA Compute Capability (list of strings)" "89;86;80")
-
-option(WITH_TESTS "Copmile Testsuite" OFF)
 
 add_library(
   "${PROJECT_NAME}-lib" SHARED
@@ -64,7 +62,28 @@ if(GPU)
     >)
   endif()
   find_package(OpenMP)
-  target_link_libraries("${PROJECT_NAME}-lib" PUBLIC "CUDA::cudart" "CUDA::cublas" "CUDA::cusolver" "CUDA::cusparse")
+
+  set(CUDA_LINK_LIBS "CUDA::cudart" "CUDA::cublas" "CUDA::cusolver" "CUDA::cusparse")
+  if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "12.0")
+    if (TARGET CUDA::nvJitLink)
+      list(APPEND CUDA_LINK_LIBS CUDA::nvJitLink)
+    else()
+      message(STATUS ${CUDAToolkit_LIBRARY_DIR})
+      find_library(NVJITLINK_LIB NAMES nvJITLink nvjitlink nvJitLink HINTS ${CUDAToolkit_LIBRARY_DIR} PATH_SUFFIXES lib lib64)
+      if (NVJITLINK_LIB)
+        list(APPEND CUDA_LINK_LIBS ${NVJITLINK_LIB})
+      else()
+        message(STATUS ${CUDAToolkit_LIBRARY_ROOT})
+        find_library(NVJITLINK_LIB NAMES nvJITLink nvjitlink nvJitLink HINTS ${CUDAToolkit_LIBRARY_ROOT})
+        if (NVJITLINK_LIB)
+          list(APPEND CUDA_LINK_LIBS ${NVJITLINK_LIB})
+        else()
+          message(WARNING "CUDA 12+ detected but nvJitLink not found; runtime JIT linking may fail if required")
+        endif()
+      endif()
+    endif()
+  endif()
+  target_link_libraries("${PROJECT_NAME}-lib" PUBLIC ${CUDA_LINK_LIBS})
   list(APPEND PRE_FLAGS "_CUDA")
 endif()
 

@@ -1,12 +1,15 @@
-#include "common.h"
+#include "test_common.h"
 #include <random>
-#include "utils.hpp"
-
 #include <omp.h>
 
 using namespace lahva::gpu;
+using lahva::Shape;
+using lahva::CudaRuntime;
+using lahva::CPUTimer;
+
+
 template <typename T>
-void fill_with_rd_values(Matrix<T>& m)
+void fill_diagonally_dominant(Matrix<T>& m)
 {
     std::random_device rd;  // Obtain a random number from hardware
     std::minstd_rand eng(rd()); // Seed the generator
@@ -26,72 +29,71 @@ void fill_with_rd_values(Matrix<T>& m)
 }
 
 template <typename T>
-double CompareGEMMS(Shape& shape)
+int CompareGEMMS(Shape& shape)
 {
     CudaRuntime cudart(false);
     MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
     mp_rt.fast_mode = true;
     mp_rt.batch_mode = true;
-    //cudart.setblockSize(1024);
-    CPUTimer timer;
-    timer.push("Total");
-    timer.push("Setup");
+
     MixedPrecisionMatrix<T> A(shape);
     MixedPrecisionMatrix<T> B(shape);
     Matrix<T> C(shape);
-    timer.pop();
-    timer.push("FillData");
-    fill_with_rd_values(A);
-    fill_with_rd_values(B);
-    timer.pop();
-    timer.push("Copy2Device");
+   
+    fill_diagonally_dominant(A);
+    fill_diagonally_dominant(B);
+    
     A.copy2device(cudart);
     B.copy2device(cudart);
     C.copy2device(cudart);
-    timer.pop();
-    
-    timer.push("GEMM");
+
     MatrixMatrixProduct(cudart, A, B, C, 1.0, 0.0);
     cudart.synchronize();
-    timer.pop();
-
     C.copy2host(cudart);
     cudart.synchronize();
-    std::cout << "C(0,0)\t" << C(0,0) << std::endl;
-    std::cout << "C(1,0)\t" << C(1,0) << std::endl;
 
     MixedPrecisionMatrix<T> C2(shape);
     C2.copy2device(cudart);
-
-    timer.push("Markidis");
     MatrixMatrixProduct(cudart, mp_rt, A, B, C2, (T)1.0, (T)0.0);
+    C2.copy2host(cudart);
     cudart.synchronize();
-    timer.pop();
-   
-    cudart.synchronize();
-    std::cout << "Markidis: Forb. Norm " << FrobeniusNorm(cudart, C, C2) << std::endl;
-    timer.pop();
-    std::cout << timer.print_entries() << std::endl;
-    return FrobeniusNorm(cudart, C, C2);
+
+    // Not using the check function here because the regular double comparison is too strict for mixed-precision
+    if (FrobeniusNorm(cudart, C, C2) > 1e-5) 
+    {
+        std::cout << "Test failed: Precision: " << get_type_name<T>() << " Shape: (" << shape.first << ", " << shape.second << ")" << "Frobenius Norm: " << FrobeniusNorm(cudart, C, C2) << std::endl;
+        return TEST_FAIL;
+    }
+
+    return TEST_PASS;
 
 }
 
+template <typename T>
+int mp_gemms()
+{
+    for (int i = 10; i <16; i++)
+    {
+        int n = int((i*256));
+        Shape shape(n, n);
+        if (CompareGEMMS<double>(shape)) return TEST_FAIL;
+    }
+
+    return TEST_PASS;
+}
 
 int main()
 {   
-    for (int i = 10; i <16; i++)
-    {
-        std::cout.precision(12);
-        int n = int((i*256));
-        std::cout << "Shape: " << n << "x" << n << std::endl;
-        Shape shape(n, n);
-        //CompareGEMMS<float>(shape);
-        double err = CompareGEMMS<double>(shape);
-        if (err > 1e-5)
-        {
-            std::cout << "Test failed with error: " << err << std::endl;
-            return 1;
-        }
+    int total_failures = 0;
+    total_failures += mp_gemms<double>();
+    total_failures += mp_gemms<float>();
+
+    if (total_failures > 0) {
+        std::cerr << "gpu/utils/test-mp tests: " << total_failures << " failures" << std::endl;
+        return TEST_FAIL;
     }
-    return 0;
+
+    std::cout << "All gpu/utils/test-mp tests passed!" << std::endl;
+    return TEST_PASS;
 };

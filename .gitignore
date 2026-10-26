@@ -1,4 +1,6 @@
 _*
 .*
+!.gitlab
+!.gitlab/.gitlab-ci.yml
 
 *sif
