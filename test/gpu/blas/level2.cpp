@@ -625,6 +625,50 @@ int test_gpu_blockmatrix_gemv_transpose_csr(CudaRuntime& cudart) {
 // Main
 // ============================================================================
 
+// ============================================================================
+// BlockMatrix GEMV sparse representation caching
+// ============================================================================
+
+template <typename T>
+int test_gpu_blockmatrix_gemv_cached(CudaRuntime& cudart) {
+
+    BlockMatrix<T> A;
+    A.set_block(0, 0, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {(T)1, (T)3, (T)2, (T)4}));
+    A.set_block(2, 1, Matrix<T, CudaHostAllocator<T>>(Shape{2, 3}, {(T)1, (T)2, (T)3, (T)4, (T)5, (T)6}));
+    const BlockMatrix<T> &Aref = A;
+
+    Vector<T, CudaHostAllocator<T>> x(4);
+    for (int i = 0; i < 4; ++i) x[i] = static_cast<T>(i + 1);
+
+    auto check_result = [&](const char *msg) {
+        Vector<T, CudaHostAllocator<T>> y(4, (T)0);
+        MatrixVectorProduct(cudart, "N", (T)1.0, A, x, (T)0.0, y);
+        y.copy2host(cudart);
+        cudart.synchronize();
+        for (size_t i = 0; i < 4; ++i) {
+            T ref = 0;
+            for (size_t j = 0; j < 4; ++j) ref += Aref(i, j) * x[j];
+            if (!check(y[i], ref, check_msg(get_type_name<T>(), msg))) return false;
+        }
+        return true;
+    };
+
+    if (!check_result("first product")) return TEST_FAIL;
+    if (!check_result("repeated product")) return TEST_FAIL;
+    if (!check((int)A.sparse_build_count(), 1, check_msg(get_type_name<T>(), "repeated products should build once"))) return TEST_FAIL;
+
+    A(3, 2) = (T)-10;
+    if (!check_result("after value change")) return TEST_FAIL;
+    if (!check((int)A.sparse_build_count(), 1, check_msg(get_type_name<T>(), "value change should not rebuild"))) return TEST_FAIL;
+    if (!check((int)A.sparse_values_refresh_count(), 1, check_msg(get_type_name<T>(), "value change should refresh once"))) return TEST_FAIL;
+
+    A.set_block(0, 3, Matrix<T, CudaHostAllocator<T>>(Shape{1, 1}, {(T)7}));
+    if (!check_result("after adding a block")) return TEST_FAIL;
+    if (!check((int)A.sparse_build_count(), 2, check_msg(get_type_name<T>(), "new block should rebuild"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
 int main(){
     int total_failures = 0;
     CudaRuntime cudart;
@@ -680,6 +724,10 @@ int main(){
     total_failures += test_gpu_blockmatrix_gemv_csr_with_beta<float>(cudart);
     total_failures += test_gpu_blockmatrix_gemv_transpose_csr<double>(cudart);
     total_failures += test_gpu_blockmatrix_gemv_transpose_csr<float>(cudart);
+
+    // Sparse representation caching
+    total_failures += test_gpu_blockmatrix_gemv_cached<double>(cudart);
+    total_failures += test_gpu_blockmatrix_gemv_cached<float>(cudart);
 
     if (total_failures > 0) {
         std::cerr << "gpu/blas/level2 tests: " << total_failures << " failures" << std::endl;

@@ -118,3 +118,11 @@ add_executable(${PROJECT_NAME}-gpu-test-mp
 target_link_libraries(${PROJECT_NAME}-gpu-test-mp PRIVATE ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME}-gpu-test-mp PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
 add_test(NAME gpu-mixed-precision COMMAND ${PROJECT_NAME}-gpu-test-mp)
+
+# LAPACK tests
+add_executable(${PROJECT_NAME}-gpu-lapack
+    blas/lapack.cpp
+)
+target_link_libraries(${PROJECT_NAME}-gpu-lapack PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-gpu-lapack PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME gpu-blas-lapack COMMAND ${PROJECT_NAME}-gpu-lapack)

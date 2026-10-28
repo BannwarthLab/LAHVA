@@ -31,6 +31,14 @@ target_link_libraries(${PROJECT_NAME}-cpu-tensor-blockdiagmatrix PRIVATE ${PROJE
 target_include_directories(${PROJECT_NAME}-cpu-tensor-blockdiagmatrix PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
 add_test(NAME cpu-tensor-blockdiagmatrix COMMAND ${PROJECT_NAME}-cpu-tensor-blockdiagmatrix)
 
+# Block Matrix tensor tests
+add_executable(${PROJECT_NAME}-cpu-tensor-blockmatrix
+    tensor/block-matrix.cpp
+)
+target_link_libraries(${PROJECT_NAME}-cpu-tensor-blockmatrix PRIVATE ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}-cpu-tensor-blockmatrix PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)
+add_test(NAME cpu-tensor-blockmatrix COMMAND ${PROJECT_NAME}-cpu-tensor-blockmatrix)
+
 # Level 1 BLAS tests
 add_executable(${PROJECT_NAME}-cpu-level1
     blas/level1.cpp

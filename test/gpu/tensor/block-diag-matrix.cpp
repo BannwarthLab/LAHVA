@@ -637,6 +637,99 @@ int test_sparse_matrix_gpu_roundtrip_varied_sizes() {
 }
 
 // ============================================================================
+// BlockDiagMatrix Sparse Cache Tests
+// ============================================================================
+
+template <typename T>
+cudaDataType_t sparse_precision() {
+    return std::is_same<T, double>::value ? CUDA_R_64F : CUDA_R_32F;
+}
+
+// Checks that the host and device copies of the cached sparse data both match the block matrix
+template <typename T>
+bool sparse_matches(const BlockDiagMatrix<T> &bdm, const gpu::SparseMatrix<T> &sparse) {
+    Matrix<T> dense = sparse.to_dense();
+    Shape s = bdm.shape();
+    for (size_t i = 0; i < s.first; ++i) {
+        for (size_t j = 0; j < s.second; ++j) {
+            if (dense(i, j) != bdm(i, j)) return false;
+        }
+    }
+
+    const auto &data = sparse.get_sparse_data();
+    std::vector<T> device_values(data.h_values.size());
+    get_cuda_error(cudaMemcpy(device_values.data(), data.d_values, device_values.size() * sizeof(T), cudaMemcpyDeviceToHost));
+    return device_values == data.h_values;
+}
+
+template <typename T>
+int test_blockdiag_sparse_cache_value_mutators() {
+    CudaRuntime cudart;
+    for (gpu::SparseFormat format : {gpu::SparseFormat::CSR, gpu::SparseFormat::BSR}) {
+        std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+        blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+        blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 6, 7, 8}));
+        BlockDiagMatrix<T> bdm(blocks);
+
+        const auto *cached = &bdm.get_sparse(cudart, format, sparse_precision<T>());
+
+        bdm += (T)1;
+        if (!check((int)(sparse_matches(bdm, bdm.get_sparse(cudart, format, sparse_precision<T>()))), 1,
+                   check_msg(get_type_name<T>(), "Values should be refreshed after operator+="))) return TEST_FAIL;
+
+        bdm.set_diagonal(cpu::Vector<T, CudaHostAllocator<T>>({(T)-1, (T)-2, (T)-3, (T)-4}));
+        if (!check((int)(sparse_matches(bdm, bdm.get_sparse(cudart, format, sparse_precision<T>()))), 1,
+                   check_msg(get_type_name<T>(), "Values should be refreshed after set_diagonal"))) return TEST_FAIL;
+
+        bdm.symmetrize();
+        if (!check((int)(sparse_matches(bdm, bdm.get_sparse(cudart, format, sparse_precision<T>()))), 1,
+                   check_msg(get_type_name<T>(), "Values should be refreshed after symmetrize"))) return TEST_FAIL;
+
+        bdm(3, 2) = (T)99;
+        const auto *after_element = &bdm.get_sparse(cudart, format, sparse_precision<T>());
+        if (!check((int)(sparse_matches(bdm, *after_element)), 1,
+                   check_msg(get_type_name<T>(), "Values should be refreshed after element write"))) return TEST_FAIL;
+
+        if (!check((int)(after_element == cached), 1, check_msg(get_type_name<T>(), "Value changes should reuse the cached object"))) return TEST_FAIL;
+        if (!check((int)bdm.sparse_build_count(), 1, check_msg(get_type_name<T>(), "Value changes should not rebuild"))) return TEST_FAIL;
+        if (!check((int)bdm.sparse_values_refresh_count(), 4, check_msg(get_type_name<T>(), "Each value change should refresh once"))) return TEST_FAIL;
+    }
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_blockdiag_sparse_cache_structural_mutators() {
+    CudaRuntime cudart;
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+    BlockDiagMatrix<T> bdm(blocks);
+    bdm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+
+    bdm.add_block(Matrix<T, CudaHostAllocator<T>>(Shape{3, 3}, (T)2));
+    const auto &after_add = bdm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+    if (!check((int)bdm.sparse_build_count(), 2, check_msg(get_type_name<T>(), "add_block should trigger a rebuild"))) return TEST_FAIL;
+    if (!check((int)after_add.nnz(), 13, check_msg(get_type_name<T>(), "Rebuilt matrix should contain the new block"))) return TEST_FAIL;
+    if (!check((int)(sparse_matches(bdm, after_add)), 1, check_msg(get_type_name<T>(), "Rebuilt matrix should match after add_block"))) return TEST_FAIL;
+
+    // Copy assignment replaces the data and must drop the cache
+    std::vector<Matrix<T, CudaHostAllocator<T>>> other_blocks;
+    other_blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {9, 8, 7, 6}));
+    BlockDiagMatrix<T> other(other_blocks);
+    bdm = other;
+    const auto &after_assign = bdm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+    if (!check((int)after_assign.nnz(), 4, check_msg(get_type_name<T>(), "Copy-assigned matrix should rebuild"))) return TEST_FAIL;
+    if (!check((int)(sparse_matches(bdm, after_assign)), 1, check_msg(get_type_name<T>(), "Copy-assigned matrix should match"))) return TEST_FAIL;
+
+    // A copy does not share the cache
+    BlockDiagMatrix<T> copy(bdm);
+    if (!check((int)copy.sparse_build_count(), 0, check_msg(get_type_name<T>(), "Copy should not share the cache"))) return TEST_FAIL;
+    if (!check((int)(&copy.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>()) != &after_assign), 1,
+               check_msg(get_type_name<T>(), "Copy should have its own sparse matrix"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
 // Main
 // ============================================================================
 
@@ -728,6 +821,12 @@ int main() {
     total_failures += test_blockdiag_get_block_shape<float>();
     total_failures += test_blockdiag_get_block_data<double>();
     total_failures += test_blockdiag_get_block_data<float>();
+
+    // BlockDiagMatrix sparse cache
+    total_failures += test_blockdiag_sparse_cache_value_mutators<double>();
+    total_failures += test_blockdiag_sparse_cache_value_mutators<float>();
+    total_failures += test_blockdiag_sparse_cache_structural_mutators<double>();
+    total_failures += test_blockdiag_sparse_cache_structural_mutators<float>();
 
     if (total_failures > 0) {
         std::cerr << "gpu/tensor/blockdiagmatrix tests: " << total_failures << " failures" << std::endl;

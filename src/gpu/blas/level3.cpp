@@ -582,13 +582,10 @@ namespace lahva
             }
 
             cudaDataType_t precision = get_cuda_datatype<T>();
-            SparseMatrix<T> sparse(cudart, a, format_to_use); // TODO Fix that sparse matrix is not instantiated every time
-            sparse.allocate_gpu_memory();
-            sparse.copy2device(cudart);
-            sparse.create_descriptor(cudart, precision);
+
+            const SparseMatrix<T> &sparse = a.get_sparse(cudart, format_to_use, precision);
             cusparseSpMatDescr_t mat_a = sparse.get_descriptor();
 
-            // Create dense descriptors for b and c
             cusparseHandle_t handle = cudart.getcuSparseHandle();
             cusparseDnMatDescr_t mat_b = nullptr;
             get_cusparse_error(cusparseCreateDnMat(&mat_b, b.shape().first, b.shape().second, b.shape().first,
@@ -597,25 +594,18 @@ namespace lahva
             get_cusparse_error(cusparseCreateDnMat(&mat_c, M, N, M,
                                                    c.gpu_data(), precision, CUSPARSE_ORDER_COL));
 
-            // Workspace
             size_t workspace_size = 0;
             get_cusparse_error(cusparseSpMM_bufferSize(handle, OpA, OpB,
                                                        &alpha, mat_a, mat_b, &beta, mat_c,
                                                        precision, CUSPARSE_SPMM_ALG_DEFAULT, &workspace_size));
-            void *workspace = nullptr;
-            if (workspace_size > 0)
-            {
-                get_cuda_error(cudaMalloc(&workspace, workspace_size));
-            }
+            void *workspace = sparse.get_workspace(workspace_size);
 
-            // Perform the matrix-matrix multiplication
             get_cusparse_error(cusparseSpMM(handle, OpA, OpB,
                                             &alpha, mat_a, mat_b, &beta, mat_c,
                                             precision, CUSPARSE_SPMM_ALG_DEFAULT, workspace));
 
             cudart.synchronize();
 
-            if (workspace) get_cuda_error(cudaFree(workspace));
             get_cusparse_error(cusparseDestroyDnMat(mat_b));
             get_cusparse_error(cusparseDestroyDnMat(mat_c));
         }
@@ -663,16 +653,12 @@ namespace lahva
                 format_to_use = SparseFormat::CSR;
             }
 
-            SparseMatrix<T> sparse(cudart, b, format_to_use);
-            sparse.allocate_gpu_memory();
-            sparse.copy2device(cudart);
+            cudaDataType_t precision = get_cuda_datatype<T>();
+            const SparseMatrix<T> &sparse = b.get_sparse(cudart, format_to_use, precision);
 
             int64_t rows_A = static_cast<int64_t>(a.shape().first);
             int64_t cols_A = static_cast<int64_t>(a.shape().second);
 
-            cudaDataType_t precision = get_cuda_datatype<T>();
-
-            sparse.create_descriptor(cudart, precision);
             cusparseSpMatDescr_t mat_b = sparse.get_descriptor();
 
             T *a_gpu = a.gpu_data();
@@ -691,11 +677,7 @@ namespace lahva
                                                        &alpha, mat_b, mat_a, &beta, mat_c,
                                                        precision, CUSPARSE_SPMM_ALG_DEFAULT, &workspace_size));
 
-            void *workspace = nullptr;
-            if (workspace_size > 0)
-            {
-                get_cuda_error(cudaMalloc(&workspace, workspace_size));
-            }
+            void *workspace = sparse.get_workspace(workspace_size);
 
             get_cusparse_error(cusparseSpMM(handle, cusparse_opA, cusparse_opB,
                                             &alpha, mat_b, mat_a, &beta, mat_c,
@@ -703,8 +685,6 @@ namespace lahva
 
             cudart.synchronize();
 
-            if (workspace) get_cuda_error(cudaFree(workspace));
-            // mat_b is managed by sparse matrix and will be destroyed in its destructor
             get_cusparse_error(cusparseDestroyDnMat(mat_a));
             get_cusparse_error(cusparseDestroyDnMat(mat_c));
         }

@@ -756,6 +756,193 @@ int test_blockmatrix_update_existing_block() {
 }
 
 // ============================================================================
+// BlockMatrix Sparse Cache Tests
+// ============================================================================
+
+template <typename T>
+cudaDataType_t sparse_precision() {
+    return std::is_same<T, double>::value ? CUDA_R_64F : CUDA_R_32F;
+}
+
+// Checks that the host and device copies of the cached sparse data both match the block matrix
+template <typename T>
+bool sparse_matches(const BlockMatrix<T> &bm, const gpu::SparseMatrix<T> &sparse) {
+    Matrix<T> dense = sparse.to_dense();
+    Shape s = bm.shape();
+    for (size_t i = 0; i < s.first; ++i) {
+        for (size_t j = 0; j < s.second; ++j) {
+            if (dense(i, j) != bm(i, j)) return false;
+        }
+    }
+
+    const auto &data = sparse.get_sparse_data();
+    std::vector<T> device_values(data.h_values.size());
+    get_cuda_error(cudaMemcpy(device_values.data(), data.d_values, device_values.size() * sizeof(T), cudaMemcpyDeviceToHost));
+    return device_values == data.h_values;
+}
+
+template <typename T>
+int test_blockmatrix_sparse_cache_reuse() {
+    CudaRuntime cudart;
+    BlockMatrix<T> bm;
+    bm.set_block(0, 0, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+    bm.set_block(2, 2, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 6, 7, 8}));
+
+    const auto &first = bm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+    const auto &second = bm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+
+    if (!check((int)(&first == &second), 1, check_msg(get_type_name<T>(), "Repeated get_sparse should return the cached object"))) return TEST_FAIL;
+    if (!check((int)(second.get_descriptor() != nullptr), 1, check_msg(get_type_name<T>(), "Cached sparse matrix should have a descriptor"))) return TEST_FAIL;
+    if (!check((int)bm.sparse_build_count(), 1, check_msg(get_type_name<T>(), "Sparse matrix should be built once"))) return TEST_FAIL;
+    if (!check((int)bm.sparse_values_refresh_count(), 0, check_msg(get_type_name<T>(), "Unchanged matrix should not refresh values"))) return TEST_FAIL;
+
+    // Const element access must not invalidate the cache
+    const BlockMatrix<T> &cref = bm;
+    (void)cref(0, 0);
+    (void)cref.get_block(0, 0);
+    bm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+    if (!check((int)bm.sparse_values_refresh_count(), 0, check_msg(get_type_name<T>(), "Const access should not refresh values"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_blockmatrix_sparse_cache_values_refresh() {
+    CudaRuntime cudart;
+    for (gpu::SparseFormat format : {gpu::SparseFormat::CSR, gpu::SparseFormat::BSR}) {
+        BlockMatrix<T> bm;
+        bm.set_block(0, 0, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+        bm.set_block(2, 2, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 6, 7, 8}));
+
+        const auto *cached = &bm.get_sparse(cudart, format, sparse_precision<T>());
+
+        // Write through get_block()
+        bm.get_block(0, 0)(1, 0) = (T)42;
+        const auto *after_get_block = &bm.get_sparse(cudart, format, sparse_precision<T>());
+        if (!check((int)(after_get_block == cached), 1, check_msg(get_type_name<T>(), "Value change should reuse the cached object"))) return TEST_FAIL;
+        if (!check((int)(sparse_matches(bm, *after_get_block)), 1, check_msg(get_type_name<T>(), "Values should be refreshed after get_block write"))) return TEST_FAIL;
+
+        // Write through operator()
+        bm(3, 2) = (T)-7;
+        const auto &after_element = bm.get_sparse(cudart, format, sparse_precision<T>());
+        if (!check((int)(sparse_matches(bm, after_element)), 1, check_msg(get_type_name<T>(), "Values should be refreshed after element write"))) return TEST_FAIL;
+
+        // Replace a block with one of the same shape
+        bm.set_block(2, 2, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {9, 10, 11, 12}));
+        const auto &after_replace = bm.get_sparse(cudart, format, sparse_precision<T>());
+        if (!check((int)(sparse_matches(bm, after_replace)), 1, check_msg(get_type_name<T>(), "Values should be refreshed after same-shape set_block"))) return TEST_FAIL;
+
+        if (!check((int)bm.sparse_build_count(), 1, check_msg(get_type_name<T>(), "Value changes should not rebuild"))) return TEST_FAIL;
+        if (!check((int)bm.sparse_values_refresh_count(), 3, check_msg(get_type_name<T>(), "Each value change should refresh once"))) return TEST_FAIL;
+    }
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_blockmatrix_sparse_cache_structure_change() {
+    CudaRuntime cudart;
+    BlockMatrix<T> bm;
+    bm.set_block(0, 0, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+    bm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+
+    // Adding a block changes the sparsity structure
+    bm.set_block(2, 2, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 6, 7, 8}));
+    const auto &after_add = bm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+    if (!check((int)bm.sparse_build_count(), 2, check_msg(get_type_name<T>(), "New block should trigger a rebuild"))) return TEST_FAIL;
+    if (!check((int)after_add.nnz(), 8, check_msg(get_type_name<T>(), "Rebuilt matrix should contain the new block"))) return TEST_FAIL;
+    if (!check((int)(sparse_matches(bm, after_add)), 1, check_msg(get_type_name<T>(), "Rebuilt matrix should match"))) return TEST_FAIL;
+
+    // Replacing a block with a different shape changes the sparsity structure
+    bm.set_block(2, 2, Matrix<T, CudaHostAllocator<T>>(Shape{3, 1}, {1, 1, 1}));
+    const auto &after_reshape = bm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+    if (!check((int)bm.sparse_build_count(), 3, check_msg(get_type_name<T>(), "Reshaped block should trigger a rebuild"))) return TEST_FAIL;
+    if (!check((int)(sparse_matches(bm, after_reshape)), 1, check_msg(get_type_name<T>(), "Rebuilt matrix should match after reshape"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_blockmatrix_sparse_cache_per_format() {
+    CudaRuntime cudart;
+    BlockMatrix<T> bm;
+    bm.set_block(0, 0, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+    bm.set_block(2, 0, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 6, 7, 8}));
+
+    for (int i = 0; i < 3; ++i) {
+        bm.get_sparse(cudart, gpu::SparseFormat::BSR, sparse_precision<T>());
+        bm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+    }
+    if (!check((int)bm.sparse_build_count(), 2, check_msg(get_type_name<T>(), "CSR and BSR should each be built once"))) return TEST_FAIL;
+
+    const auto &bsr = bm.get_sparse(cudart, gpu::SparseFormat::BSR, sparse_precision<T>());
+    const auto &csr = bm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+    if (!check((int)(bsr.get_format() == gpu::SparseFormat::BSR), 1, check_msg(get_type_name<T>(), "BSR slot should hold a BSR matrix"))) return TEST_FAIL;
+    if (!check((int)(csr.get_format() == gpu::SparseFormat::CSR), 1, check_msg(get_type_name<T>(), "CSR slot should hold a CSR matrix"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_blockmatrix_sparse_cache_copy_and_move() {
+    CudaRuntime cudart;
+    BlockMatrix<T> bm;
+    bm.set_block(0, 0, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+    const auto *cached = &bm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+
+    // A copy builds its own sparse matrix and does not affect the original
+    BlockMatrix<T> copy(bm);
+    if (!check((int)copy.sparse_build_count(), 0, check_msg(get_type_name<T>(), "Copy should not share the cache"))) return TEST_FAIL;
+    copy.get_block(0, 0)(0, 0) = (T)100;
+    const auto &copy_sparse = copy.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+    if (!check((int)(&copy_sparse != cached), 1, check_msg(get_type_name<T>(), "Copy should have its own sparse matrix"))) return TEST_FAIL;
+    if (!check((int)(sparse_matches(copy, copy_sparse)), 1, check_msg(get_type_name<T>(), "Copy sparse data should match the copy"))) return TEST_FAIL;
+    if (!check((int)(sparse_matches(bm, bm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>()))), 1,
+               check_msg(get_type_name<T>(), "Original sparse data should be unaffected by the copy"))) return TEST_FAIL;
+
+    // Copy assignment drops the target's cache
+    BlockMatrix<T> assigned;
+    assigned.set_block(0, 0, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {0, 0, 0, 0}));
+    assigned.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+    assigned = copy;
+    if (!check((int)(sparse_matches(assigned, assigned.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>()))), 1,
+               check_msg(get_type_name<T>(), "Copy-assigned matrix should rebuild from the new data"))) return TEST_FAIL;
+
+    // A move transfers the cache
+    BlockMatrix<T> moved(std::move(bm));
+    const auto *moved_sparse = &moved.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+    if (!check((int)(moved_sparse == cached), 1, check_msg(get_type_name<T>(), "Move should transfer the cached sparse matrix"))) return TEST_FAIL;
+    if (!check((int)moved.sparse_build_count(), 1, check_msg(get_type_name<T>(), "Move should not trigger a rebuild"))) return TEST_FAIL;
+
+    BlockMatrix<T> move_assigned;
+    move_assigned = std::move(moved);
+    if (!check((int)(&move_assigned.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>()) == cached), 1,
+               check_msg(get_type_name<T>(), "Move assignment should transfer the cached sparse matrix"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_blockmatrix_sparse_csr_sorted_columns() {
+    CudaRuntime cudart;
+    BlockMatrix<T> bm;
+    // Insert the right block first so insertion order differs from column order
+    bm.set_block(0, 3, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 6, 7, 8}));
+    bm.set_block(0, 0, Matrix<T, CudaHostAllocator<T>>(Shape{2, 3}, {1, 2, 3, 4, 9, 10}));
+
+    const auto &sparse = bm.get_sparse(cudart, gpu::SparseFormat::CSR, sparse_precision<T>());
+    const auto &data = sparse.get_sparse_data();
+    for (size_t row = 0; row + 1 < data.h_row_offsets.size(); ++row) {
+        for (int idx = data.h_row_offsets[row] + 1; idx < data.h_row_offsets[row + 1]; ++idx) {
+            if (!check((int)(data.h_col_indices[idx - 1] < data.h_col_indices[idx]), 1,
+                       check_msg(get_type_name<T>(), "CSR column indices should be sorted within each row"))) return TEST_FAIL;
+        }
+    }
+    if (!check((int)(sparse_matches(bm, sparse)), 1, check_msg(get_type_name<T>(), "CSR data should match"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
 // Main
 // ============================================================================
 
@@ -850,6 +1037,20 @@ int main() {
     total_failures += test_blockmatrix_rectangular_blocks<float>();
     total_failures += test_blockmatrix_update_existing_block<double>();
     total_failures += test_blockmatrix_update_existing_block<float>();
+
+    // BlockMatrix sparse cache
+    total_failures += test_blockmatrix_sparse_cache_reuse<double>();
+    total_failures += test_blockmatrix_sparse_cache_reuse<float>();
+    total_failures += test_blockmatrix_sparse_cache_values_refresh<double>();
+    total_failures += test_blockmatrix_sparse_cache_values_refresh<float>();
+    total_failures += test_blockmatrix_sparse_cache_structure_change<double>();
+    total_failures += test_blockmatrix_sparse_cache_structure_change<float>();
+    total_failures += test_blockmatrix_sparse_cache_per_format<double>();
+    total_failures += test_blockmatrix_sparse_cache_per_format<float>();
+    total_failures += test_blockmatrix_sparse_cache_copy_and_move<double>();
+    total_failures += test_blockmatrix_sparse_cache_copy_and_move<float>();
+    total_failures += test_blockmatrix_sparse_csr_sorted_columns<double>();
+    total_failures += test_blockmatrix_sparse_csr_sorted_columns<float>();
 
     if (total_failures > 0) {
         std::cerr << "gpu/tensor/blockmatrix tests: " << total_failures << " failures" << std::endl;

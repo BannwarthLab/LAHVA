@@ -1773,6 +1773,161 @@ int test_gpu_dense_times_blockmatrix_transpose_both(CudaRuntime& cudart) {
 }
 
 // ============================================================================
+// GPU sparse representation caching across repeated products
+// ============================================================================
+
+// Checks C == op(A) * B against a host reference, where A is sparse (op = transpose if trans_a)
+template <typename T>
+bool check_sparse_dense_product(const BlockMatrix_<T> &A, const Matrix<T, CudaHostAllocator<T>> &B,
+                                const Matrix<T, CudaHostAllocator<T>> &C, bool trans_a, const std::string &msg) {
+    size_t inner = trans_a ? A.shape().first : A.shape().second;
+    for (size_t i = 0; i < C.shape().first; ++i) {
+        for (size_t j = 0; j < C.shape().second; ++j) {
+            T ref = 0;
+            for (size_t l = 0; l < inner; ++l) {
+                ref += (trans_a ? A(l, i) : A(i, l)) * B(l, j);
+            }
+            if (!check(C(i, j), ref, msg)) return false;
+        }
+    }
+    return true;
+}
+
+// Checks C == A * op(B) against a host reference, where B is sparse (op = transpose if trans_b)
+template <typename T>
+bool check_dense_sparse_product(const Matrix<T, CudaHostAllocator<T>> &A, const BlockMatrix_<T> &B,
+                                const Matrix<T, CudaHostAllocator<T>> &C, bool trans_b, const std::string &msg) {
+    size_t inner = A.shape().second;
+    for (size_t i = 0; i < C.shape().first; ++i) {
+        for (size_t j = 0; j < C.shape().second; ++j) {
+            T ref = 0;
+            for (size_t l = 0; l < inner; ++l) {
+                ref += A(i, l) * (trans_b ? B(j, l) : B(l, j));
+            }
+            if (!check(C(i, j), ref, msg)) return false;
+        }
+    }
+    return true;
+}
+
+template <typename T>
+int test_gpu_blockmatrix_cached_repeated_product(CudaRuntime& cudart) {
+
+    BlockMatrix<T> A;
+    A.set_block(0, 0, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    A.set_block(2, 3, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    const BlockMatrix<T> &Aref = A;
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{5, 3});
+    for (int i = 0; i < 15; i++) {
+        B.data()[i] = static_cast<T>(i + 1);
+    }
+
+    for (int rep = 0; rep < 3; ++rep) {
+        Matrix<T, CudaHostAllocator<T>> C(Shape{4, 3}, (T)0);
+        MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+        C.copy2host(cudart);
+        cudart.synchronize();
+        if (!check_sparse_dense_product(Aref, B, C, false, check_msg(get_type_name<T>(), "repeated product"))) return TEST_FAIL;
+    }
+    if (!check((int)A.sparse_build_count(), 1, check_msg(get_type_name<T>(), "repeated products should build once"))) return TEST_FAIL;
+
+    // Changing values refreshes the cached data without a rebuild
+    A.get_block(0, 0)(1, 1) = (T)-3;
+    {
+        Matrix<T, CudaHostAllocator<T>> C(Shape{4, 3}, (T)0);
+        MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+        C.copy2host(cudart);
+        cudart.synchronize();
+        if (!check_sparse_dense_product(Aref, B, C, false, check_msg(get_type_name<T>(), "after value change"))) return TEST_FAIL;
+    }
+    if (!check((int)A.sparse_build_count(), 1, check_msg(get_type_name<T>(), "value change should not rebuild"))) return TEST_FAIL;
+    if (!check((int)A.sparse_values_refresh_count(), 1, check_msg(get_type_name<T>(), "value change should refresh once"))) return TEST_FAIL;
+
+    // Adding a block rebuilds the cached data
+    A.set_block(0, 2, Matrix<T, CudaHostAllocator<T>>(Shape{2, 1}, {10, 20}));
+    {
+        Matrix<T, CudaHostAllocator<T>> C(Shape{4, 3}, (T)0);
+        MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+        C.copy2host(cudart);
+        cudart.synchronize();
+        if (!check_sparse_dense_product(Aref, B, C, false, check_msg(get_type_name<T>(), "after adding a block"))) return TEST_FAIL;
+    }
+    if (!check((int)A.sparse_build_count(), 2, check_msg(get_type_name<T>(), "new block should rebuild"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_cached_alternating_transpose(CudaRuntime& cudart) {
+
+    // Uniform blocks prefer BSR; the transposed product falls back to CSR
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> A(blocks);
+    A.set_sparse_format(SparseFormat::BSR);
+    const BlockDiagMatrix<T> &Aref = A;
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{4, 2});
+    for (int i = 0; i < 8; i++) {
+        B.data()[i] = static_cast<T>(i + 1);
+    }
+
+    for (int rep = 0; rep < 2; ++rep) {
+        for (bool trans : {false, true}) {
+            Matrix<T, CudaHostAllocator<T>> C(Shape{4, 2}, (T)0);
+            MatrixMatrixProduct(cudart, trans ? "T" : "N", "N", (T)1.0, A, B, (T)0.0, C);
+            C.copy2host(cudart);
+            cudart.synchronize();
+            if (!check_sparse_dense_product(Aref, B, C, trans, check_msg(get_type_name<T>(), trans ? "transposed product" : "product"))) return TEST_FAIL;
+        }
+    }
+    if (!check((int)A.sparse_build_count(), 2, check_msg(get_type_name<T>(), "BSR and CSR should each be built once"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_dense_times_blockdiag_cached(CudaRuntime& cudart) {
+
+    Matrix<T, CudaHostAllocator<T>> A(Shape{3, 4});
+    for (int i = 0; i < 12; i++) {
+        A.data()[i] = static_cast<T>(i + 1);
+    }
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> B(blocks);
+    const BlockDiagMatrix<T> &Bref = B;
+
+    for (int rep = 0; rep < 2; ++rep) {
+        for (bool trans : {false, true}) {
+            Matrix<T, CudaHostAllocator<T>> C(Shape{3, 4}, (T)0);
+            MatrixMatrixProduct(cudart, "N", trans ? "T" : "N", (T)1.0, A, B, (T)0.0, C);
+            C.copy2host(cudart);
+            cudart.synchronize();
+            if (!check_dense_sparse_product(A, Bref, C, trans, check_msg(get_type_name<T>(), "dense x sparse product"))) return TEST_FAIL;
+        }
+    }
+    size_t builds = B.sparse_build_count();
+
+    B += (T)1;
+    {
+        Matrix<T, CudaHostAllocator<T>> C(Shape{3, 4}, (T)0);
+        MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+        C.copy2host(cudart);
+        cudart.synchronize();
+        if (!check_dense_sparse_product(A, Bref, C, false, check_msg(get_type_name<T>(), "after value change"))) return TEST_FAIL;
+    }
+    if (!check((int)B.sparse_build_count(), (int)builds, check_msg(get_type_name<T>(), "value change should not rebuild"))) return TEST_FAIL;
+    if (!check((int)B.sparse_values_refresh_count(), 1, check_msg(get_type_name<T>(), "value change should refresh once"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
 // Main
 // ============================================================================
 
@@ -1915,6 +2070,14 @@ int main(){
     total_failures += test_gpu_dense_times_blockmatrix_transpose_a<float>(cudart);
     total_failures += test_gpu_dense_times_blockmatrix_transpose_b<float>(cudart);
     total_failures += test_gpu_dense_times_blockmatrix_transpose_both<float>(cudart);
+
+    // Sparse representation caching
+    total_failures += test_gpu_blockmatrix_cached_repeated_product<double>(cudart);
+    total_failures += test_gpu_blockmatrix_cached_repeated_product<float>(cudart);
+    total_failures += test_gpu_blockdiag_cached_alternating_transpose<double>(cudart);
+    total_failures += test_gpu_blockdiag_cached_alternating_transpose<float>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_cached<double>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_cached<float>(cudart);
 
     if (total_failures > 0) {
         std::cerr << "gpu/blas/level3 tests: " << total_failures << " failures" << std::endl;

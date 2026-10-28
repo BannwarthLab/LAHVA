@@ -140,6 +140,7 @@ namespace lahva
                 if (this != &other)
                 {
                     free_gpu_cache();
+                    this->invalidate_sparse_cache();
                     n_rows_ = other.n_rows_;
                     n_cols_ = other.n_cols_;
                     blocks_ = other.blocks_;
@@ -316,6 +317,7 @@ namespace lahva
             BlockDiagMatrix &operator+=(T val)
             {
                 free_gpu_cache();
+                this->mark_modified();
                 for (auto &[pos, block] : blocks_)
                     block += val;
                 return *this;
@@ -477,6 +479,7 @@ namespace lahva
             void set_diagonal(const cpu::Vector<T, Allocator> &diag)
             {
                 free_gpu_cache();
+                this->mark_modified();
                 size_t offset = 0;
                 for (std::pair<const std::pair<size_t, size_t>, Matrix<T, Allocator>> &entry : blocks_)
                 {
@@ -495,6 +498,7 @@ namespace lahva
             void symmetrize()
             {
                 free_gpu_cache();
+                this->mark_modified();
                 for (auto &[pos, block] : blocks_)
                     block.symmetrize();
             }
@@ -504,7 +508,9 @@ namespace lahva
             /// @param[in] j column index
             /// @return reference to element at (i,j); returns zero for off-diagonal positions
             /// @note GPU cache must be manually invalidated after modifications via free_gpu_cache()
+            /// @note Conservatively marks block values as modified for the sparse cache (see mark_modified())
             virtual T &operator()(size_t i, size_t j) override {
+                this->mark_modified();
                 for (auto &[pos, block] : blocks_) {
                     size_t row_start = pos.first;
                     size_t col_start = pos.second;
@@ -582,6 +588,7 @@ namespace lahva
             /// @throws std::out_of_range if index is beyond current block count
             void add_block(const Matrix<T, Allocator> &block, size_t index = std::numeric_limits<size_t>::max()) {
                 free_gpu_cache();
+                this->invalidate_sparse_cache();
 
                 // Default to append at end
                 if (index == std::numeric_limits<size_t>::max()) {
@@ -739,6 +746,7 @@ namespace lahva
                 }
 
                 const GPUBlockDiagData<T>& gpu_data = *gpu_data_;
+                this->mark_modified();
 
                 get_cuda_error(cudaMemcpy(gpu_data.h_packed, gpu_data.d_data,
                                          gpu_data.padded_stride * gpu_data.num_blocks * sizeof(T),

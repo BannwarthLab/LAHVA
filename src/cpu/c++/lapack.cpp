@@ -5,6 +5,7 @@
 /// factorization, Cholesky decomposition, eigenvalue solvers, and matrix inversions.
 /// Functions accept Matrix<T> and Vector<T> types and forward to Fortran LAPACK routines.
 
+#include <algorithm>
 #include "linalg.hpp"
 #include "impl/blas/cpu/lapack.hpp"
 #include "lapack_wrap.hpp"
@@ -630,6 +631,96 @@ namespace lahva
             if (info != 0)
             {
                 throw std::runtime_error("Failure in STRTRI");
+            }
+        };
+
+        /// @brief Compute the inverse of a double-precision general square matrix
+        ///
+        /// Computes the LU factorization with partial pivoting (DGETRF) of A and uses it to compute
+        /// the inverse (DGETRI). The matrix is overwritten with its inverse. The optimal workspace
+        /// size for DGETRI is obtained with a workspace query (lwork = -1).
+        ///
+        /// @tparam T Numerical element type (double).
+        /// @param a Input square matrix (double precision, overwritten with its inverse).
+        /// @throw std::runtime_error if A is not square or if DGETRF/DGETRI fails (singular matrix).
+        template <>
+        void InvertMatrix<double>(Matrix_<double> &a)
+        {
+            LPCK_INT info = 0;
+            LPCK_INT n = a.shape().first;
+            Vector<LPCK_INT> ipiv(n);
+            LUFactorization(a, ipiv);
+
+#ifdef W_MKL
+            info = LAPACKE_dgetri(l_major, n, a.data(), n, ipiv.data());
+#else
+            LPCK_INT lwork = -1;
+            double work_query = 0.0;
+#ifdef _APPLE
+            dgetri_(&n, a.data(), &n, ipiv.data(), &work_query, &lwork, &info);
+#else
+            LAPACK_dgetri(&n, a.data(), &n, ipiv.data(), &work_query, &lwork, &info);
+#endif
+            if (info != 0)
+            {
+                throw std::runtime_error("Failure in DGETRI workspace query");
+            }
+            lwork = std::max<LPCK_INT>(static_cast<LPCK_INT>(work_query), n);
+            Vector<double> work(lwork);
+#ifdef _APPLE
+            dgetri_(&n, a.data(), &n, ipiv.data(), work.data(), &lwork, &info);
+#else
+            LAPACK_dgetri(&n, a.data(), &n, ipiv.data(), work.data(), &lwork, &info);
+#endif
+#endif
+            if (info != 0)
+            {
+                throw std::runtime_error("Failure in DGETRI");
+            }
+        };
+
+        /// @brief Compute the inverse of a single-precision general square matrix
+        ///
+        /// Computes the LU factorization with partial pivoting (SGETRF) of A and uses it to compute
+        /// the inverse (SGETRI). The matrix is overwritten with its inverse. The optimal workspace
+        /// size for SGETRI is obtained with a workspace query (lwork = -1).
+        ///
+        /// @tparam T Numerical element type (float).
+        /// @param a Input square matrix (single precision, overwritten with its inverse).
+        /// @throw std::runtime_error if A is not square or if SGETRF/SGETRI fails (singular matrix).
+        template <>
+        void InvertMatrix<float>(Matrix_<float> &a)
+        {
+            LPCK_INT info = 0;
+            LPCK_INT n = a.shape().first;
+            Vector<LPCK_INT> ipiv(n);
+            LUFactorization(a, ipiv);
+
+#ifdef W_MKL
+            info = LAPACKE_sgetri(l_major, n, a.data(), n, ipiv.data());
+#else
+            LPCK_INT lwork = -1;
+            float work_query = 0.0f;
+#ifdef _APPLE
+            sgetri_(&n, a.data(), &n, ipiv.data(), &work_query, &lwork, &info);
+#else
+            LAPACK_sgetri(&n, a.data(), &n, ipiv.data(), &work_query, &lwork, &info);
+#endif
+            if (info != 0)
+            {
+                throw std::runtime_error("Failure in SGETRI workspace query");
+            }
+            lwork = std::max<LPCK_INT>(static_cast<LPCK_INT>(work_query), n);
+            Vector<float> work(lwork);
+#ifdef _APPLE
+            sgetri_(&n, a.data(), &n, ipiv.data(), work.data(), &lwork, &info);
+#else
+            LAPACK_sgetri(&n, a.data(), &n, ipiv.data(), work.data(), &lwork, &info);
+#endif
+#endif
+            if (info != 0)
+            {
+                throw std::runtime_error("Failure in SGETRI");
             }
         };
 

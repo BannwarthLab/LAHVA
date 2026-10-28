@@ -95,6 +95,18 @@ namespace lahva
         template <typename T>
         void InvertTriMatrix(Matrix_<T> &a);
 
+        /// @brief Wrapper function to invert a general square matrix, using LAPACK routines <T>getrf and <T>getri.
+        ///
+        /// Computes the inverse of a general (non-singular) square matrix A using LU factorization with
+        /// partial pivoting (getrf) followed by inversion from the LU factors (getri). The inverse is
+        /// stored back in A, overwriting the original matrix.
+        ///
+        /// @tparam T Numerical element type (double, float).
+        /// @param a Input square matrix A (overwritten with its inverse).
+        /// @throw std::runtime_error if A is not square, or if A is singular (getrf/getri fails).
+        template <typename T>
+        void InvertMatrix(Matrix_<T> &a);
+
         /// @brief Wrapper function to compute the eigenvalue decomposition of a symmetric matrix, using LAPACK routines <T>syevd.
         ///
         /// Computes the eigenvalues and optionally the eigenvectors of a symmetric matrix A.
@@ -146,6 +158,16 @@ namespace lahva
         void SolvePosSysLinEquations(const CPURuntime &rt_, Args &&...args)
         {
             (SolvePosSysLinEquations(args...));
+        }
+
+        /// @brief Runtime-dispatching overload for general matrix inversion (CPURuntime first).
+        ///
+        /// The runtime parameter is ignored for CPU implementations but this overload
+        /// mirrors the signatures used for GPU/CUDA dispatching.
+        template <typename... Args>
+        void InvertMatrix(const CPURuntime &rt_, Args &&...args)
+        {
+            (InvertMatrix(args...));
         }
 
     } // namespace cpu

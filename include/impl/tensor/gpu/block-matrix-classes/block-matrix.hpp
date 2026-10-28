@@ -8,6 +8,7 @@
 
 #include "impl/tensor/gpu/matrix.hpp"
 #include <map>
+#include <memory>
 
 namespace lahva
 {
@@ -31,10 +32,40 @@ namespace lahva
         {
         public:
             BlockMatrix_() = default;
-            BlockMatrix_(const BlockMatrix_ &) = default;
-            BlockMatrix_ &operator=(const BlockMatrix_ &) = default;
-            BlockMatrix_(BlockMatrix_ &&) noexcept = default;
-            BlockMatrix_ &operator=(BlockMatrix_ &&) noexcept { return *this; }
+
+            /// @brief Copy constructor
+            /// @note The cached sparse representation is not shared; the copy builds its own on first use
+            BlockMatrix_(const BlockMatrix_ &) {}
+
+            /// @brief Copy assignment operator
+            /// @note Drops the cached sparse representation since the block data is replaced
+            BlockMatrix_ &operator=(const BlockMatrix_ &other)
+            {
+                if (this != &other)
+                {
+                    invalidate_sparse_cache();
+                }
+                return *this;
+            }
+
+            /// @brief Move constructor
+            /// @note Transfers the cached sparse representation together with the block data
+            BlockMatrix_(BlockMatrix_ &&other) noexcept
+            {
+                move_sparse_cache_from(other);
+            }
+
+            /// @brief Move assignment operator
+            /// @note Transfers the cached sparse representation together with the block data
+            BlockMatrix_ &operator=(BlockMatrix_ &&other) noexcept
+            {
+                if (this != &other)
+                {
+                    move_sparse_cache_from(other);
+                }
+                return *this;
+            }
+
             virtual ~BlockMatrix_() = default;
 
             /// @brief Get total shape (rows, columns) of the block-diagonal matrix
@@ -92,6 +123,61 @@ namespace lahva
             /// @return Pointer to block data, or nullptr if block doesn't exist at that position
             virtual const T* get_block_data_at(size_t block_row, size_t block_col) const = 0;
 
+            /// @brief Get the cached cuSPARSE representation of this matrix, (re)building it if stale
+            /// @param[in] cudart CUDA runtime for device operations
+            /// @param[in] format requested sparse format (CSR or BSR)
+            /// @param[in] precision CUDA data type for the cuSPARSE descriptor
+            /// @return reference to a SparseMatrix with its data on the GPU and its descriptor created
+            /// @note Only block values are re-uploaded when the block structure is unchanged
+            /// @note The returned reference is invalidated by structural changes to this matrix
+            /// @note Defined in sparse-matrix.hpp
+            const SparseMatrix<T> &get_sparse(const CudaRuntime &cudart, SparseFormat format,
+                                              cudaDataType_t precision) const;
+
+            /// @brief Mark block values as modified so the cached sparse representation is refreshed
+            /// @note Call this after writing through a reference obtained from a mutable accessor
+            ///       (e.g. get_block() or operator()) after the sparse representation was used
+            void mark_modified() { ++values_version_; }
+
+            /// @brief Drop the cached sparse representations (e.g. after a structural change)
+            void invalidate_sparse_cache() const
+            {
+                for (auto &slot : sparse_cache_)
+                {
+                    slot.reset();
+                }
+            }
+
+            /// @brief Number of times a sparse representation was fully built for this matrix
+            size_t sparse_build_count() const { return sparse_build_count_; }
+
+            /// @brief Number of times only the values of a cached sparse representation were refreshed
+            size_t sparse_values_refresh_count() const { return sparse_values_refresh_count_; }
+
+        private:
+            /// @brief Cached sparse representations, one slot per SparseFormat (CSR, BSR)
+            mutable std::shared_ptr<SparseMatrix<T>> sparse_cache_[2];
+
+            /// @brief Incremented whenever block values may have changed
+            uint64_t values_version_ = 0;
+
+            /// @brief Diagnostic counters for the sparse cache
+            mutable size_t sparse_build_count_ = 0;
+            mutable size_t sparse_values_refresh_count_ = 0;
+
+            /// @brief Take over the sparse cache state of another matrix
+            void move_sparse_cache_from(BlockMatrix_ &other) noexcept
+            {
+                for (size_t i = 0; i < 2; ++i)
+                {
+                    sparse_cache_[i] = std::move(other.sparse_cache_[i]);
+                }
+                values_version_ = other.values_version_;
+                sparse_build_count_ = other.sparse_build_count_;
+                sparse_values_refresh_count_ = other.sparse_values_refresh_count_;
+                other.sparse_build_count_ = 0;
+                other.sparse_values_refresh_count_ = 0;
+            }
         };
 
         /// @brief GPU-accelerated block matrix with blocks at arbitrary positions
@@ -202,7 +288,9 @@ namespace lahva
             /// @param[in] i row index
             /// @param[in] j column index
             /// @return reference to element at (i,j); returns zero for positions outside all blocks
+            /// @note Conservatively marks block values as modified (see mark_modified())
             T &operator()(size_t i, size_t j) override {
+                this->mark_modified();
                 // Find block containing element (i, j)
                 // (i, j) in blocks_ map is the element-space position of block top-left corner
                 for (auto& [pos, block] : blocks_) {
@@ -340,8 +428,17 @@ namespace lahva
                     }
                 }
 
-                bool is_new_block = blocks_.find({i, j}) == blocks_.end();
+                auto existing = blocks_.find({i, j});
+                bool is_new_block = existing == blocks_.end();
+                bool same_shape = !is_new_block && existing->second.shape() == new_shape;
                 blocks_[{i, j}] = block;
+
+                // Replacing a block with one of the same shape only changes values
+                if (same_shape) {
+                    this->mark_modified();
+                } else {
+                    this->invalidate_sparse_cache();
+                }
 
                 if (is_new_block) {
                     block_order_.push_back(blocks_.find({i, j}));
@@ -362,12 +459,14 @@ namespace lahva
             /// @param[in] j element column where block starts
             /// @return reference to block matrix at (i,j)
             /// @throws std::out_of_range if block doesn't exist
+            /// @note Conservatively marks block values as modified (see mark_modified())
             Matrix<T, Allocator>& get_block(size_t i, size_t j) {
                 auto key = std::make_pair(i, j);
                 auto it = blocks_.find(key);
                 if (it == blocks_.end()) {
                     throw std::out_of_range("Block at (" + std::to_string(i) + "," + std::to_string(j) + ") does not exist");
                 }
+                this->mark_modified();
                 return it->second;
             }
 

@@ -16,6 +16,7 @@
 #include "impl/blas/gpu/level1.hpp"
 #include "impl/blas/gpu/level2.hpp"
 #include "impl/blas/gpu/level3.hpp"
+#include "impl/blas/gpu/lapack.hpp"
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/additional-level2.hpp"
 #include "impl/blas/gpu/additional-level3.hpp"

@@ -436,11 +436,8 @@ namespace lahva
 
             cudaDataType_t precision = get_cuda_datatype<T>();
 
-            // Convert BlockMatrix to SparseMatrix and copy to GPU
-            SparseMatrix<T> sparse(cudart, a, a.get_sparse_format());
-            sparse.allocate_gpu_memory();
-            sparse.copy2device(cudart);
-            sparse.create_descriptor(cudart, precision);
+            // Sparse representation is cached on a; only rebuilt or re-uploaded when a has changed
+            const SparseMatrix<T> &sparse = a.get_sparse(cudart, a.get_sparse_format(), precision);
 
             cusparseSpMatDescr_t mat_a = sparse.get_descriptor();
 
@@ -455,19 +452,13 @@ namespace lahva
             get_cusparse_error(cusparseSpMV_bufferSize(sparseHandle, op, &alpha, mat_a, vec_x_descr,
                                                         &beta, vec_y_descr, precision, CUSPARSE_SPMV_ALG_DEFAULT, &bufferSize));
 
-            void *buffer = nullptr;
-            if (bufferSize > 0) {
-                get_cuda_error(cudaMalloc(&buffer, bufferSize));
-            }
+            void *buffer = sparse.get_workspace(bufferSize);
 
             // Perform multiplication
             get_cusparse_error(cusparseSpMV(sparseHandle, op, &alpha, mat_a, vec_x_descr,
                                            &beta, vec_y_descr, precision, CUSPARSE_SPMV_ALG_DEFAULT, buffer));
 
-            // Cleanup
-            if (buffer) {
-                get_cuda_error(cudaFree(buffer));
-            }
+            // Cleanup (mat_a and the work buffer are owned by the cached sparse matrix)
             get_cusparse_error(cusparseDestroyDnVec(vec_x_descr));
             get_cusparse_error(cusparseDestroyDnVec(vec_y_descr));
         }

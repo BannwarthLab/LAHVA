@@ -6,6 +6,7 @@ list(APPEND SRC_FILES
   ${dir}/level1.cpp
   ${dir}/level2.cpp
   ${dir}/level3.cpp
+  ${dir}/lapack.cpp
 )
 
 set(SRC_FILES ${SRC_FILES} PARENT_SCOPE)

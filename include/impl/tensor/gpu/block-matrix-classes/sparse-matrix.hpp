@@ -1,6 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include <cstring>
+#include <numeric>
 #include "impl/tensor/gpu/block-matrix-classes/block-matrix.hpp"
 #include "runtime.hpp"
 
@@ -57,7 +59,8 @@ namespace lahva
                          const gpu::BlockMatrix_<T> &block_matrix,
                          SparseFormat format = SparseFormat::CSR)
                 : m_(0), n_(0), nnz_(0), format_(format),
-                  mat_descr_(nullptr), initialized_(false), num_blocks_(0)
+                  mat_descr_(nullptr), initialized_(false), num_blocks_(0),
+                  device_id_(cudart.device_id())
             {
                 // Free existing GPU memory
                 free_gpu_memory();
@@ -136,10 +139,65 @@ namespace lahva
                 initialized_ = true;
             }
 
+            /// @brief Copying is disabled: the object owns raw device allocations and a cuSPARSE descriptor
+            SparseMatrix(const SparseMatrix &) = delete;
+            SparseMatrix &operator=(const SparseMatrix &) = delete;
+
             /// @brief Destructor - frees all GPU memory
             virtual ~SparseMatrix()
             {
                 free_gpu_memory();
+            }
+
+            /// @brief Get the CUDA device the data was uploaded to
+            int device_id() const { return device_id_; }
+
+            /// @brief Re-pack the values from the source block matrix and upload only the values array
+            /// @param[in] cudart CUDA runtime for device operations
+            /// @param[in] block_matrix source block matrix; must have the same block structure as at construction
+            /// @note Row offsets, column indices, allocations and the cuSPARSE descriptor are reused
+            void refresh_values(const CudaRuntime &cudart, const gpu::BlockMatrix_<T> &block_matrix)
+            {
+                if (!initialized_ || static_cast<int>(block_matrix.num_blocks()) != num_blocks_)
+                {
+                    throw std::logic_error("SparseMatrix::refresh_values: block structure changed since construction");
+                }
+
+                pack_values(block_matrix);
+
+                if (cudart.asyncCopy())
+                {
+                    get_cuda_error(cudaMemcpyAsync(sparse_data_.d_values, sparse_data_.h_values.data(),
+                                                   sparse_data_.h_values.size() * sizeof(T),
+                                                   cudaMemcpyHostToDevice, cudart.getStream()));
+                }
+                else
+                {
+                    get_cuda_error(cudaMemcpy(sparse_data_.d_values, sparse_data_.h_values.data(),
+                                              sparse_data_.h_values.size() * sizeof(T),
+                                              cudaMemcpyHostToDevice));
+                }
+                cudart.synchronize();
+            }
+
+            /// @brief Get a device scratch buffer of at least the requested size for cuSPARSE operations
+            /// @param[in] bytes required size in bytes
+            /// @return device pointer (nullptr if bytes == 0); grows but never shrinks between calls
+            /// @note The buffer is shared by all operations on this matrix; operations must be stream-ordered
+            void *get_workspace(size_t bytes) const
+            {
+                if (bytes > workspace_size_)
+                {
+                    if (workspace_)
+                    {
+                        get_cuda_error(cudaFree(workspace_));
+                        workspace_ = nullptr;
+                        workspace_size_ = 0;
+                    }
+                    get_cuda_error(cudaMalloc(&workspace_, bytes));
+                    workspace_size_ = bytes;
+                }
+                return workspace_;
             }
 
             /// @brief Get number of matrix rows
@@ -323,6 +381,16 @@ namespace lahva
             std::vector<int> block_row_positions_; ///< Element-space row positions for each block
             std::vector<int> block_col_positions_; ///< Element-space column positions for each block
 
+            /// CSR only: index into the values array where row r of block b starts,
+            /// stored at [sum of rows of blocks < b] + r
+            std::vector<int> csr_value_offsets_;
+
+            int device_id_ = -1; ///< CUDA device the data was uploaded to
+
+            // Reusable cuSPARSE workspace (see get_workspace())
+            mutable void *workspace_ = nullptr;
+            mutable size_t workspace_size_ = 0;
+
             /// @brief Free all GPU memory and reset state
             /// @note Also destroys the cuSPARSE descriptor and clears block metadata
             void free_gpu_memory()
@@ -348,6 +416,12 @@ namespace lahva
                     cusparseDestroySpMat(mat_descr_);
                     mat_descr_ = nullptr;
                 }
+                if (workspace_)
+                {
+                    get_cuda_error(cudaFree(workspace_));
+                    workspace_ = nullptr;
+                    workspace_size_ = 0;
+                }
 
                 block_row_positions_.clear();
                 block_col_positions_.clear();
@@ -361,6 +435,7 @@ namespace lahva
             /// @param[in] cudart CUDA runtime for device operations
             /// @param[in] block_matrix source block matrix to convert
             /// @note Updates sparse_data_ member with CSR-formatted data and transfers to GPU
+            /// @note Column indices within each row are sorted, as blocks are visited in column order
             void convert_to_csr_gpu(const CudaRuntime &cudart,
                                     const gpu::BlockMatrix_<T> &block_matrix)
             {
@@ -370,53 +445,54 @@ namespace lahva
                 // Prepare sparse data in member variable
                 sparse_data_.format = format_;
                 sparse_data_.h_values.resize(total_nnz);
-                sparse_data_.h_row_offsets.resize(total_rows + 1);
+                sparse_data_.h_row_offsets.assign(total_rows + 1, 0);
                 sparse_data_.h_col_indices.resize(total_nnz);
 
-                // Build CSR structure row by row
-                int current_nnz_idx = 0;
-                sparse_data_.h_row_offsets[0] = 0;
-
-                for (int row = 0; row < total_rows; ++row)
+                // Count non-zeros per row
+                for (int b = 0; b < num_blocks_; ++b)
                 {
-                    // For each block, check if it contains this row
-                    for (size_t block_idx = 0; block_idx < block_matrix.num_blocks(); ++block_idx)
+                    for (int r = 0; r < block_row_sizes_[b]; ++r)
                     {
-                        Shape block_shape = block_matrix.get_block_shape(block_idx);
-                        int block_rows = block_shape.first;
-                        int block_cols = block_shape.second;
-                        int block_row_start = block_row_positions_[block_idx];
-                        int block_col_start = block_col_positions_[block_idx];
+                        sparse_data_.h_row_offsets[block_row_positions_[b] + r + 1] += block_col_sizes_[b];
+                    }
+                }
+                std::partial_sum(sparse_data_.h_row_offsets.begin(), sparse_data_.h_row_offsets.end(),
+                                 sparse_data_.h_row_offsets.begin());
 
-                        int block_row_end = block_row_start + block_rows;
+                // Start of each block's rows in csr_value_offsets_
+                std::vector<int> block_row_base(num_blocks_ + 1, 0);
+                for (int b = 0; b < num_blocks_; ++b)
+                {
+                    block_row_base[b + 1] = block_row_base[b] + block_row_sizes_[b];
+                }
+                csr_value_offsets_.resize(block_row_base[num_blocks_]);
 
-                        // Check if this row is in this block
-                        if (row >= block_row_start && row < block_row_end)
+                // Visit blocks in column order so column indices are sorted within each row
+                std::vector<int> order(num_blocks_);
+                std::iota(order.begin(), order.end(), 0);
+                std::stable_sort(order.begin(), order.end(),
+                                 [&](int a, int b)
+                                 {
+                                     return block_col_positions_[a] < block_col_positions_[b];
+                                 });
+
+                std::vector<int> row_cursor(sparse_data_.h_row_offsets.begin(), sparse_data_.h_row_offsets.end() - 1);
+                for (int b : order)
+                {
+                    for (int r = 0; r < block_row_sizes_[b]; ++r)
+                    {
+                        int row = block_row_positions_[b] + r;
+                        int offset = row_cursor[row];
+                        row_cursor[row] += block_col_sizes_[b];
+                        csr_value_offsets_[block_row_base[b] + r] = offset;
+                        for (int jj = 0; jj < block_col_sizes_[b]; ++jj)
                         {
-                            // Get block data pointer using position-based lookup
-                            const void *block_data_void = block_matrix.get_block_data_at(block_row_start, block_col_start);
-                            if (block_data_void == nullptr)
-                            {
-                                continue; // Block doesn't exist at this position
-                            }
-                            const T *block_data = static_cast<const T *>(block_data_void);
-
-                            // Row within this block
-                            int local_row = row - block_row_start;
-
-                            // Add all elements from this row of the block to CSR
-                            for (int jj = 0; jj < block_cols; ++jj)
-                            {
-                                // Column-major indexing: element (local_row, jj) at index jj * block_rows + local_row
-                                sparse_data_.h_values[current_nnz_idx] = static_cast<double>(block_data[jj * block_rows + local_row]);
-                                sparse_data_.h_col_indices[current_nnz_idx] = block_col_start + jj;
-                                current_nnz_idx++;
-                            }
+                            sparse_data_.h_col_indices[offset + jj] = block_col_positions_[b] + jj;
                         }
                     }
-
-                    sparse_data_.h_row_offsets[row + 1] = current_nnz_idx;
                 }
+
+                pack_values(block_matrix);
 
                 // Allocate and copy sparse matrix to the GPU
                 get_cuda_error(cudaMalloc(&sparse_data_.d_values, sparse_data_.h_values.size() * sizeof(T)));
@@ -424,6 +500,45 @@ namespace lahva
                 get_cuda_error(cudaMalloc(&sparse_data_.d_col_indices, sparse_data_.h_col_indices.size() * sizeof(int)));
                 copy2device(cudart);
                 cudart.synchronize();
+            }
+
+            /// @brief Pack block values into sparse_data_.h_values using the current sparsity structure
+            /// @param[in] block_matrix source block matrix with the same block structure as at construction
+            void pack_values(const gpu::BlockMatrix_<T> &block_matrix)
+            {
+                int row_base = 0;
+                for (int b = 0; b < num_blocks_; ++b)
+                {
+                    int block_rows = block_row_sizes_[b];
+                    int block_cols = block_col_sizes_[b];
+                    const T *block_data = block_matrix.get_block_data_at(block_row_positions_[b], block_col_positions_[b]);
+                    if (block_data == nullptr)
+                    {
+                        throw std::logic_error("SparseMatrix::pack_values: block missing from source matrix");
+                    }
+
+                    if (format_ == SparseFormat::CSR)
+                    {
+                        // block_data is column-major: element (r, jj) at jj * block_rows + r
+                        for (int r = 0; r < block_rows; ++r)
+                        {
+                            T *dst = sparse_data_.h_values.data() + csr_value_offsets_[row_base + r];
+                            for (int jj = 0; jj < block_cols; ++jj)
+                            {
+                                dst[jj] = block_data[jj * block_rows + r];
+                            }
+                        }
+                        row_base += block_rows;
+                    }
+                    else
+                    {
+                        // bsrValues is ROW-MAJOR within each block for CUSPARSE_ORDER_ROW
+                        T *dst = sparse_data_.h_values.data() + sparse_data_.block_value_offsets[b];
+                        for (int ii = 0; ii < block_rows; ++ii)
+                            for (int jj = 0; jj < block_cols; ++jj)
+                                dst[ii * block_cols + jj] = block_data[jj * block_rows + ii];
+                    }
+                }
             }
 
             /// @brief Convert GPU BlockMatrix to Block Sparse Row (BSR) format
@@ -477,38 +592,21 @@ namespace lahva
 
                     for (size_t block_idx : row_blocks)
                     {
-                        const void *block_data_void = block_matrix.get_block_data_at(
-                            block_row_positions_[block_idx],
-                            block_col_positions_[block_idx]);
+                        // Track where this block's data starts in the values array
+                        sparse_data_.block_value_offsets[block_idx] = current_value_idx;
 
-                        if (block_data_void != nullptr)
-                        {
-                            const T *block_data = static_cast<const T *>(block_data_void);
-                            int block_rows = block_row_sizes_[block_idx];
-                            int block_cols = block_col_sizes_[block_idx];
+                        // BLOCK-GRID column index (not element-space position)
+                        int block_col_idx = block_col_positions_[block_idx] / blockDim_cols;
+                        sparse_data_.h_col_indices[current_block_idx] = block_col_idx;
 
-                            // Track where this block's data starts in the values array
-                            sparse_data_.block_value_offsets[block_idx] = current_value_idx;
-
-                            // BLOCK-GRID column index (not element-space position)
-                            int block_col_idx = block_col_positions_[block_idx] / blockDim_cols;
-                            sparse_data_.h_col_indices[current_block_idx] = block_col_idx;
-
-                            // block_data is column-major: element (ii, jj) at jj * block_rows + ii
-                            // bsrValues needs ROW-MAJOR within each block for CUSPARSE_ORDER_ROW:
-                            // element (ii, jj) goes to ii * block_cols + jj
-                            for (int ii = 0; ii < block_rows; ++ii)
-                                for (int jj = 0; jj < block_cols; ++jj)
-                                    sparse_data_.h_values[current_value_idx + ii * block_cols + jj] =
-                                        block_data[jj * block_rows + ii];
-
-                            current_value_idx += block_rows * block_cols;
-                            current_block_idx++; // once per BLOCK, not once per row
-                        }
+                        current_value_idx += block_row_sizes_[block_idx] * block_col_sizes_[block_idx];
+                        current_block_idx++; // once per BLOCK, not once per row
                     }
 
                     sparse_data_.h_row_offsets[br + 1] = current_block_idx;
                 }
+
+                pack_values(block_matrix);
 
                 // Allocate and copy sparse matrix to the GPU
                 get_cuda_error(cudaMalloc(&sparse_data_.d_values, sparse_data_.h_values.size() * sizeof(T)));
@@ -618,7 +716,41 @@ namespace lahva
             /// @brief Implement Tensor interface: get const pointer to host data
             /// @return const pointer to sparse values array
             T *data() const override { return const_cast<T *>(sparse_data_.h_values.data()); }
+
+        private:
+            /// @brief Values version of the source block matrix at the last sync (see BlockMatrix_::get_sparse)
+            uint64_t source_values_version_ = 0;
+
+            friend class BlockMatrix_<T>;
         };
+
+        template <typename T>
+        const SparseMatrix<T> &BlockMatrix_<T>::get_sparse(const CudaRuntime &cudart, SparseFormat format,
+                                                           cudaDataType_t precision) const
+        {
+            std::shared_ptr<SparseMatrix<T>> &slot = sparse_cache_[static_cast<size_t>(format)];
+
+            // Device data is only usable on the device it was uploaded to
+            if (slot && slot->device_id() != cudart.device_id())
+            {
+                slot.reset();
+            }
+
+            if (!slot)
+            {
+                slot = std::make_shared<SparseMatrix<T>>(cudart, *this, format);
+                ++sparse_build_count_;
+            }
+            else if (slot->source_values_version_ != values_version_)
+            {
+                slot->refresh_values(cudart, *this);
+                ++sparse_values_refresh_count_;
+            }
+            slot->source_values_version_ = values_version_;
+
+            slot->create_descriptor(cudart, precision);
+            return *slot;
+        }
 
     } // namespace gpu
 } // namespace lahva

@@ -155,3 +155,13 @@ test('gpu-mixed-precision',
   ),
   timeout: 120,
 )
+
+# LAPACK tests
+test('gpu-blas-lapack',
+  executable(
+    'lahva-gpu-lapack',
+    sources: files('blas/lapack.cpp'),
+    dependencies: [lahva_dep, gpu_test_utils_dep],
+    link_language: 'cpp',
+  ),
+)
