@@ -157,6 +157,58 @@ int test_blockdiag_add_block() {
 }
 
 template <typename T>
+int test_blockdiag_add_block_at_index() {
+    BlockDiagMatrix<T> m;
+
+    Matrix<T> block1(Shape{2, 2}, (T)1);
+    m.add_block(block1);
+    Matrix<T> block3(Shape{3, 3}, (T)3);
+    m.add_block(block3);
+
+    if (!check((int)m.num_blocks(), 2, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+
+    Matrix<T> block2(Shape{1, 1}, (T)2);
+    m.add_block(block2, 1);
+
+    if (!check((int)m.num_blocks(), 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    Shape s = m.shape();
+    if (!check((int)s.first, 6, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check((int)s.second, 6, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+
+    const auto &row_offsets = m.get_row_offsets();
+    const auto &col_offsets = m.get_col_offsets();
+    if (!check((int)row_offsets.size(), 4, check_msg(get_type_name<T>(), "check 5"))) return TEST_FAIL;
+    if (!check(row_offsets[1], 2, check_msg(get_type_name<T>(), "check 6"))) return TEST_FAIL;
+    if (!check(row_offsets[2], 3, check_msg(get_type_name<T>(), "check 7"))) return TEST_FAIL;
+    if (!check(row_offsets[3], 6, check_msg(get_type_name<T>(), "check 8"))) return TEST_FAIL;
+    if (!check(col_offsets[2], 3, check_msg(get_type_name<T>(), "check 9"))) return TEST_FAIL;
+
+    if (!check((T)m(1, 1), (T)1, check_msg(get_type_name<T>(), "check 10"))) return TEST_FAIL;
+    if (!check((T)m(2, 2), (T)2, check_msg(get_type_name<T>(), "check 11"))) return TEST_FAIL;
+    if (!check((T)m(3, 3), (T)3, check_msg(get_type_name<T>(), "check 12"))) return TEST_FAIL;
+    if (!check((T)m(2, 3), (T)0, check_msg(get_type_name<T>(), "check 13"))) return TEST_FAIL;
+
+    // Insert at front
+    Matrix<T> block0(Shape{1, 1}, (T)4);
+    m.add_block(block0, 0);
+    if (!check((T)m(0, 0), (T)4, check_msg(get_type_name<T>(), "check 14"))) return TEST_FAIL;
+    if (!check((T)m(1, 1), (T)1, check_msg(get_type_name<T>(), "check 15"))) return TEST_FAIL;
+    if (!check((int)m.shape().first, 7, check_msg(get_type_name<T>(), "check 16"))) return TEST_FAIL;
+
+    // Index past the end must throw
+    bool threw = false;
+    try {
+        m.add_block(block0, m.num_blocks() + 1);
+    } catch (const std::out_of_range &) {
+        threw = true;
+    }
+    if (!check((int)threw, 1, check_msg(get_type_name<T>(), "check 17"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
 int test_blockdiag_copy_constructor() {
     std::vector<Matrix<T>> blocks;
     blocks.push_back(Matrix<T>(Shape{2, 2}, {1, 2, 3, 4}));
@@ -200,6 +252,7 @@ int main() {
     total_failures += test_blockdiag_set_diagonal<double>();
     total_failures += test_blockdiag_symmetrize<double>();
     total_failures += test_blockdiag_add_block<double>();
+    total_failures += test_blockdiag_add_block_at_index<double>();
     total_failures += test_blockdiag_copy_constructor<double>();
 
     // BlockDiagMatrix operations - single precision
@@ -207,6 +260,7 @@ int main() {
     total_failures += test_blockdiag_set_diagonal<float>();
     total_failures += test_blockdiag_symmetrize<float>();
     total_failures += test_blockdiag_add_block<float>();
+    total_failures += test_blockdiag_add_block_at_index<float>();
     total_failures += test_blockdiag_copy_constructor<float>();
 
     if (total_failures > 0) {

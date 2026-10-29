@@ -1,5 +1,8 @@
 #pragma once
 
+#include <limits>
+#include <stdexcept>
+
 #include "impl/tensor/cpu/matrix.hpp"
 
 namespace lahva
@@ -355,10 +358,30 @@ namespace lahva
         //! @return Const reference to vector where offsets[i] is cumulative column position of block i
         const std::vector<int>& get_col_offsets() const override { return col_offsets_; }
 
-        //! @brief Add a new block to the block diagonal matrix
+        //! @brief Add a new block at specified index
         //! @param[in] block The matrix to add as a new diagonal block
-        //! @note Updates total dimensions and all offset arrays
-        void add_block(const Matrix<T, Allocator> &block) {
+        //! @param[in] index Position to insert (default: append at end)
+        //! @note Blocks at index >= the insertion index are shifted; updates total dimensions and all offset arrays
+        //! @throws std::out_of_range if index is beyond current block count
+        void add_block(const Matrix<T, Allocator> &block, size_t index = std::numeric_limits<size_t>::max()) {
+            // Default to append at end
+            if (index == std::numeric_limits<size_t>::max())
+                index = matrices.size();
+
+            if (index > matrices.size())
+                throw std::out_of_range("Block insertion index out of range");
+
+            if (index < matrices.size()) {
+                matrices.insert(matrices.begin() + index, block);
+                n_rows_ = 0;
+                n_cols_ = 0;
+                block_sizes_.clear();
+                row_offsets_.clear();
+                col_offsets_.clear();
+                build_offsets_();
+                return;
+            }
+
             matrices.push_back(block);
             block_sizes_.push_back(block.shape().first);
             n_rows_ += block.shape().first;
