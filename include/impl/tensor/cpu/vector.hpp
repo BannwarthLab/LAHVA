@@ -29,7 +29,7 @@ namespace lahva
             using alloc_ptr = CPUAllocator<T>;
 
             /// @brief Default constructor - creates empty vector without allocation
-            Vector() { this->no_alloc = true; };
+            Vector() {};
 
             /// @brief Allocate vector storage without initialization
             /// @param[in] count number of elements to allocate

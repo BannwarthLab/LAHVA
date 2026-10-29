@@ -85,6 +85,21 @@ int test_vector_copy_constructor() {
 }
 
 template <typename T>
+int test_vector_copy_of_wrapped_pointer() {
+    T buf[] = {(T)1.0, (T)2.0, (T)3.0};
+    Vector<T> v1(3, buf, false);  // Wrap without ownership
+    Vector<T> v2 = v1;
+
+    if (!check((int)(v2.data() != nullptr), 1, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)(v2.data() != buf), 1, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    for (int i = 0; i < 3; i++) {
+        if (!check((double)v2.data()[i], (double)buf[i], check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    }
+
+    return TEST_PASS;
+}
+
+template <typename T>
 int test_vector_move_constructor() {
     Vector<T> v1({(T)1.0, (T)2.0, (T)3.0});
     T* original_data = v1.data();
@@ -311,6 +326,7 @@ int main() {
     total_failures += test_vector_size_value_constructor<double>();
     total_failures += test_vector_initializer_list_constructor<double>();
     total_failures += test_vector_copy_constructor<double>();
+    total_failures += test_vector_copy_of_wrapped_pointer<double>();
     total_failures += test_vector_move_constructor<double>();
 
     // Constructors - float
@@ -319,6 +335,7 @@ int main() {
     total_failures += test_vector_size_value_constructor<float>();
     total_failures += test_vector_initializer_list_constructor<float>();
     total_failures += test_vector_copy_constructor<float>();
+    total_failures += test_vector_copy_of_wrapped_pointer<float>();
     total_failures += test_vector_move_constructor<float>();
 
     // Attributes - double

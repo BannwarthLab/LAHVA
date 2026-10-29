@@ -1,7 +1,9 @@
 #pragma once
 
+#include <algorithm>
 #include <limits>
 #include <stdexcept>
+#include <vector>
 
 #include "impl/tensor/cpu/matrix.hpp"
 

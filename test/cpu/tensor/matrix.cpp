@@ -97,6 +97,26 @@ int test_matrix_move_constructor() {
     Shape s1 = m1.shape();
     if (!check((int)s1.first, 0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
+    // Data should be transferred, not copied
+    if (!check((int)(m1.data() == nullptr), 1, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+    if (!check((double)m2.data()[0], 4.0, check_msg(get_type_name<T>(), "check 5"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_matrix_default_constructor() {
+    Matrix<T> m;
+
+    Shape s = m.shape();
+    if (!check((int)s.first, 0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check((int)s.second, 0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check((int)(m.data() == nullptr), 1, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+
+    // Copying an empty matrix must not allocate
+    Matrix<T> m2 = m;
+    if (!check((int)(m2.data() == nullptr), 1, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+
     return TEST_PASS;
 }
 
@@ -354,6 +374,7 @@ int main() {
     total_failures += test_matrix_size_value_constructor<double>();
     total_failures += test_matrix_copy_constructor<double>();
     total_failures += test_matrix_move_constructor<double>();
+    total_failures += test_matrix_default_constructor<double>();
 
     // Constructors - float
     total_failures += test_matrix_size_constructor<float>();
@@ -361,6 +382,7 @@ int main() {
     total_failures += test_matrix_size_value_constructor<float>();
     total_failures += test_matrix_copy_constructor<float>();
     total_failures += test_matrix_move_constructor<float>();
+    total_failures += test_matrix_default_constructor<float>();
 
     // Attributes - double
     total_failures += test_matrix_shape_attribute<double>();

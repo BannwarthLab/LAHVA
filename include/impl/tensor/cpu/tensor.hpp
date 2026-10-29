@@ -128,9 +128,6 @@ namespace lahva
         /// @brief Flag indicating if this object owns the data
         bool is_owner_ = true;
 
-        /// @brief Flag indicating if memory should not be allocated
-        bool no_alloc = false;
-
     public:
         /// @brief Construct CPU tensor with specified element count
         /// @param[in] count number of elements in the tensor
@@ -154,17 +151,15 @@ namespace lahva
         Tensor(const alloc_ptr &alloc) : alloc_{alloc} { is_owner_ = false; };
 
         /// @brief Default constructor for CPU tensor
-        Tensor() : count_{0}, data_{nullptr}, no_alloc{true} {
-
-                   };
+        Tensor() : count_{0}, data_{nullptr} {};
 
         /// @brief Copy constructor for CPU tensor
         /// @param[in] other source tensor to copy
-        Tensor(const Tensor &other) : no_alloc{other.no_alloc}
+        Tensor(const Tensor &other)
         {
             this->count_ = other.count_;
             this->alloc_ = other.get_allocator();
-            if (!this->no_alloc)
+            if (other.data_ != nullptr && count_ > 0)
             {
                 this->data_ = this->alloc_.allocate(other.size());
                 this->is_owner_ = true;
@@ -173,6 +168,7 @@ namespace lahva
             else
             {
                 this->data_ = nullptr;
+                this->is_owner_ = false;
             }
         };
 
@@ -224,9 +220,17 @@ namespace lahva
                     this->alloc_.deallocate(this->data_, this->count_);
                 this->alloc_ = other.get_allocator();
                 count_ = other.count_;
-                this->data_ = this->alloc_.allocate(other.size());
-                this->is_owner_ = true;
-                std::copy(other.data(), other.data() + other.size(), this->data_);
+                if (other.data_ != nullptr && count_ > 0)
+                {
+                    this->data_ = this->alloc_.allocate(other.size());
+                    this->is_owner_ = true;
+                    std::copy(other.data(), other.data() + other.size(), this->data_);
+                }
+                else
+                {
+                    this->data_ = nullptr;
+                    this->is_owner_ = false;
+                }
             }
             return *this;
         };

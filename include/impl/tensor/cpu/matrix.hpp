@@ -48,10 +48,10 @@ namespace lahva
 
         protected:
             /// @brief Number of rows in the matrix
-            size_t n_rows_;
+            size_t n_rows_ = 0;
 
             /// @brief Number of columns in the matrix
-            size_t n_cols_;
+            size_t n_cols_ = 0;
 
             /// @brief Calculate linear index for matrix element in column-major storage
             /// @param[in] i row index
@@ -338,7 +338,7 @@ namespace lahva
 
         /// @brief Move constructor implementation
         template <typename T, class Allocator>
-        Matrix<T, Allocator>::Matrix(Matrix<T, Allocator> &&other) : Tensor<T, Allocator>{other},
+        Matrix<T, Allocator>::Matrix(Matrix<T, Allocator> &&other) : Tensor<T, Allocator>{std::move(other)},
                                                                      n_rows_{other.n_rows_}, n_cols_{other.n_cols_}
         {
 

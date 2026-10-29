@@ -65,10 +65,7 @@ namespace lahva
 
             /// @brief Construct GPU tensor with GPU allocator for device-only memory
             /// @param[in] alloc device (GPU) memory allocator
-            Tensor(const GPUAllocator &alloc) : lahva::Tensor<T, Allocator>{}, gpualloc_{alloc}, gpu_buffer{true}
-            {
-                this->no_alloc = true;
-            };
+            Tensor(const GPUAllocator &alloc) : lahva::Tensor<T, Allocator>{}, gpualloc_{alloc}, gpu_buffer{true} {};
 
             /// @brief Destructor for GPU tensor, releases GPU memory and CPU memory (via base class)
             virtual ~Tensor() { this->device_ptr_.get_deleter() = this->gpualloc_; };
