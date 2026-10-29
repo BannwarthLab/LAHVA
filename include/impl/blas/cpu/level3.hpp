@@ -52,7 +52,7 @@ namespace lahva
         /// @param b     Right-hand input matrix (Matrix_<T>).
         /// @param beta  Scaling factor applied to existing contents of `c` (will be cast to T).
         /// @param c     Output matrix which will receive the result (Matrix_<T>).
-        template <typename T, typename Scalar, typename Scalar2>
+        template <typename T, typename Scalar = T, typename Scalar2 = T>
         void MatrixMatrixProduct(const char *Ta, const char *Tb, const Scalar alpha, const Matrix_<T> &a, const Matrix_<T> &b,
                                  const Scalar2 beta, Matrix_<T> &c)
         {
@@ -75,7 +75,7 @@ namespace lahva
         /// @param beta  Scaling factor applied to existing contents of `c` (will be cast to T). Default: 0.0.
         /// @param Ta    Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H). Default: "N"
         /// @param Tb    Transpose option for B: "N" (no transpose, B), "T" (transpose, B^T), "C" (conjugate-transpose, B^H). Default: "N"
-        template <typename T, typename Scalar, typename Scalar2>
+        template <typename T, typename Scalar = T, typename Scalar2 = T>
         void MatrixMatrixProduct(const Matrix_<T> &a, const Matrix_<T> &b, Matrix_<T> &c,
                                  const Scalar alpha = 1.0, const Scalar2 beta = 0.0, const char *Ta = "N", const char *Tb = "N")
         {
