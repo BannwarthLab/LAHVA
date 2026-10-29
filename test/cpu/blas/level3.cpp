@@ -102,6 +102,34 @@ int test_gemm_with_alpha_beta() {
     return TEST_PASS;
 }
 
+// Non-square operands
+template <typename T>
+int test_gemm_transpose(const char *Ta, const char *Tb) {
+    bool ta = Ta[0] == 'T';
+    bool tb = Tb[0] == 'T';
+
+    Matrix<T> A(ta ? Shape(K,M) : Shape(M,K));
+    Matrix<T> B(tb ? Shape(N,K) : Shape(K,N));
+    Matrix<T> C(Shape(M,N), (T)0.0);
+    for (size_t i = 0; i < A.size(); i++) A.data()[i] = (T)(1 + i);
+    for (size_t i = 0; i < B.size(); i++) B.data()[i] = (T)(1 + 2 * i);
+
+    MatrixMatrixProduct(Ta, Tb, (T)1.0, A, B, (T)0.0, C);
+
+    Matrix<T> expected(Shape(M,N), (T)0.0);
+    for (size_t i = 0; i < M; i++) {
+        for (size_t j = 0; j < N; j++) {
+            for (size_t l = 0; l < K; l++) {
+                expected(i,j) += (ta ? A(l,i) : A(i,l)) * (tb ? B(j,l) : B(l,j));
+            }
+        }
+    }
+
+    if (!check(C.data(), expected.data(), M*N, check_msg(get_type_name<T>(), std::string(Ta) + Tb))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
 // ============================================================================
 // SymMatrixMatrixProduct Tests
 // ============================================================================
@@ -640,6 +668,14 @@ int main(){
     total_failures += test_gemm_with_beta<float>();
     total_failures += test_gemm_with_alpha_beta<double>();
     total_failures += test_gemm_with_alpha_beta<float>();
+
+    // Transpose tests with non-square operands
+    for (const char *Ta : {"N", "T"}) {
+        for (const char *Tb : {"N", "T"}) {
+            total_failures += test_gemm_transpose<double>(Ta, Tb);
+            total_failures += test_gemm_transpose<float>(Ta, Tb);
+        }
+    }
 
     // SymMatrixMatrixProduct tests
     total_failures += test_symm_left<double>();

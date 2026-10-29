@@ -291,7 +291,7 @@ namespace lahva
                     assert(nrowa == ncolb);
                     assert(ncola == nrowc);
                     assert(nrowb == ncolc);
-                    k = ncola;
+                    k = nrowa;
                 }
             }
 

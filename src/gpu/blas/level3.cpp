@@ -40,8 +40,8 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, k, transa);
+            size_t ldb = get_leading(k, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();
@@ -75,8 +75,8 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, k, transa);
+            size_t ldb = get_leading(k, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();
@@ -110,8 +110,8 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, k, transa);
+            size_t ldb = get_leading(k, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();
@@ -145,8 +145,8 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, k, transa);
+            size_t ldb = get_leading(k, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();
@@ -179,8 +179,8 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, k, transa);
+            size_t ldb = get_leading(k, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();
@@ -214,8 +214,8 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, k, transa);
+            size_t ldb = get_leading(k, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();
@@ -249,8 +249,8 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, k, transa);
+            size_t ldb = get_leading(k, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();
@@ -284,8 +284,8 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, k, transa);
+            size_t ldb = get_leading(k, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();
@@ -445,8 +445,8 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, k, transa);
+            size_t ldb = get_leading(k, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();
@@ -484,8 +484,8 @@ namespace lahva
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
             cudaDataType_t data_type = CUDA_R_32F;
             cublasComputeType_t computeType = CUBLAS_COMPUTE_32F_FAST_TF32;
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, k, transa);
+            size_t ldb = get_leading(k, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();
@@ -525,8 +525,8 @@ namespace lahva
             cudaDataType_t half_type = CUDA_R_16F;
             cublasComputeType_t computeType = CUBLAS_COMPUTE_32F;
 
-            size_t lda = get_leading(m, k);
-            size_t ldb = get_leading(k, n);
+            size_t lda = get_leading(m, k, transa);
+            size_t ldb = get_leading(k, n, transb);
             size_t ldc = get_leading(m, n);
 
             cudart.cublasSetStream_();

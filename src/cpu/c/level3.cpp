@@ -39,8 +39,8 @@ namespace lahva
             BLAS_INT n_ = n;
             BLAS_INT k_ = k;
 
-            BLAS_INT lda = get_leading(m_, k_);
-            BLAS_INT ldb = get_leading(k_, n_);
+            BLAS_INT lda = get_leading(m_, k_, transa);
+            BLAS_INT ldb = get_leading(k_, n_, transb);
             BLAS_INT ldc = get_leading(m_, n_);
 
             if constexpr (std::is_same_v<T, double>)
