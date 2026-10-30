@@ -91,5 +91,50 @@ namespace lahva {
         }
     };
 
+        /// @brief Block shapes of C = op(A) * op(B) for block-diagonal matrices A and B.
+        ///
+        /// Use the result to construct an output matrix for the block-diagonal MatrixMatrixProduct.
+        ///
+        /// @tparam T Numeric element type (double or float).
+        /// @param Ta Operation on A: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param Tb Operation on B: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param a Input block-diagonal matrix.
+        /// @param b Input block-diagonal matrix.
+        /// @return Shape of each block of C, in block order.
+        /// @throws std::invalid_argument if the blocks of op(A) and op(B) cannot be multiplied.
+        template <typename T>
+        std::vector<Shape> product_block_shapes(const char *Ta, const char *Tb, const BlockDiagMatrix<T> &a, const BlockDiagMatrix<T> &b)
+        {
+            const bool trans_a = get_trans(Ta) != CUBLAS_OP_N;
+            const bool trans_b = get_trans(Tb) != CUBLAS_OP_N;
+
+            const size_t num_blocks = a.num_blocks();
+            if (b.num_blocks() != num_blocks) {
+                throw std::invalid_argument("product_block_shapes: block-diagonal matrices must have the same number of blocks");
+            }
+
+            // Looking up a shape by index walks the block map, so get them all at once
+            const std::vector<size_t> a_rows = a.get_block_rows(), a_cols = a.get_block_cols();
+            const std::vector<size_t> b_rows = b.get_block_rows(), b_cols = b.get_block_cols();
+            const std::vector<size_t> &op_a_rows = trans_a ? a_cols : a_rows;
+            const std::vector<size_t> &op_a_cols = trans_a ? a_rows : a_cols;
+            const std::vector<size_t> &op_b_rows = trans_b ? b_cols : b_rows;
+            const std::vector<size_t> &op_b_cols = trans_b ? b_rows : b_cols;
+
+            if (op_a_cols != op_b_rows) {
+                throw std::invalid_argument("product_block_shapes: blocks of op(A) and op(B) cannot be multiplied");
+            }
+
+            std::vector<Shape> shapes;
+            shapes.reserve(num_blocks);
+            for (size_t i = 0; i < num_blocks; ++i) {
+                shapes.push_back(Shape{op_a_rows[i], op_b_cols[i]});
+            }
+            return shapes;
+        }
+
+        template std::vector<Shape> product_block_shapes(const char *Ta, const char *Tb, const BlockDiagMatrix<double> &a, const BlockDiagMatrix<double> &b);
+        template std::vector<Shape> product_block_shapes(const char *Ta, const char *Tb, const BlockDiagMatrix<float> &a, const BlockDiagMatrix<float> &b);
+
     } // namespace gpu
 } // namespace lahva

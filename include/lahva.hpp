@@ -12,6 +12,7 @@
 #include "impl/blas/cpu/level1.hpp"
 #include "impl/blas/cpu/level2.hpp"
 #include "impl/blas/cpu/level3.hpp"
+#include "impl/cpu/utils.hpp"
 #ifdef _CUDA
 #include "impl/blas/gpu/level1.hpp"
 #include "impl/blas/gpu/level2.hpp"

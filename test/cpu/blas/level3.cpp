@@ -779,6 +779,10 @@ int check_blockdiag_times_blockdiag(const char *Ta, const char *Tb, const std::v
 
     const BlockDiagMatrix<T> A = make_blockdiag<T>(op_a_shapes, Ta);
     const BlockDiagMatrix<T> B = make_blockdiag<T>(op_b_shapes, Tb);
+    if (product_block_shapes(Ta, Tb, A, B) != c_shapes) {
+        std::cerr << check_msg(get_type_name<T>(), "product_block_shapes returned the wrong shapes") << std::endl;
+        return TEST_FAIL;
+    }
     BlockDiagMatrix<T> C = make_blockdiag<T>(c_shapes);
     Matrix<T> expected = blockdiag_to_dense(C);
 
@@ -869,6 +873,63 @@ int test_blockdiag_times_blockdiag_mismatch() {
     if (check_blockdiag_times_blockdiag_throws<T>("N", {Shape{2, 3}}, {Shape{3, 2}}, {Shape{3, 3}}) != TEST_PASS) return TEST_FAIL;
     // Only conforms when A is not transposed
     if (check_blockdiag_times_blockdiag_throws<T>("T", {Shape{2, 3}}, {Shape{3, 2}}, {Shape{2, 2}}) != TEST_PASS) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// An output matrix built from the returned shapes must be accepted by the product
+template <typename T>
+int test_product_block_shapes_builds_output() {
+    const BlockDiagMatrix<T> A = make_blockdiag<T>({Shape{2, 3}, Shape{3, 1}});
+    const BlockDiagMatrix<T> B = make_blockdiag<T>({Shape{2, 4}, Shape{3, 2}});
+
+    BlockDiagMatrix<T> C(product_block_shapes("T", "N", A, B), static_cast<T>(0));
+    Matrix<T> expected(C.shape(), static_cast<T>(0));
+
+    MatrixMatrixProduct("T", "N", static_cast<T>(1), A, B, static_cast<T>(0), C);
+    reference_gemm("T", "N", static_cast<T>(1), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(0), expected);
+
+    const Matrix<T> C_dense = blockdiag_to_dense(C);
+    const Shape s = C_dense.shape();
+    if (!check(C_dense.data(), expected.data(), static_cast<int>(s.first * s.second), check_msg(get_type_name<T>(), "built from the shapes"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_product_block_shapes_empty() {
+    const BlockDiagMatrix<T> A, B;
+
+    if (!product_block_shapes("N", "N", A, B).empty()) {
+        std::cerr << check_msg(get_type_name<T>(), "expected no shapes") << std::endl;
+        return TEST_FAIL;
+    }
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int check_product_block_shapes_throws(const char *Ta, const std::vector<Shape> &a_shapes, const std::vector<Shape> &b_shapes) {
+    const BlockDiagMatrix<T> A = make_blockdiag<T>(a_shapes);
+    const BlockDiagMatrix<T> B = make_blockdiag<T>(b_shapes);
+
+    try {
+        product_block_shapes(Ta, "N", A, B);
+    } catch (const std::invalid_argument &) {
+        return TEST_PASS;
+    }
+    std::cerr << check_msg(get_type_name<T>(), "product_block_shapes did not reject mismatched matrices") << std::endl;
+    return TEST_FAIL;
+}
+
+template <typename T>
+int test_product_block_shapes_mismatch() {
+    // Different partitions with the same total size
+    if (check_product_block_shapes_throws<T>("N", {Shape{2, 2}, Shape{2, 2}}, {Shape{1, 1}, Shape{3, 3}}) != TEST_PASS) return TEST_FAIL;
+    // Different block counts
+    if (check_product_block_shapes_throws<T>("N", {Shape{2, 2}}, {Shape{2, 2}, Shape{2, 2}}) != TEST_PASS) return TEST_FAIL;
+    // Only conforms when A is not transposed
+    if (check_product_block_shapes_throws<T>("T", {Shape{2, 3}}, {Shape{3, 2}}) != TEST_PASS) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -981,6 +1042,12 @@ int main(){
     total_failures += test_blockdiag_times_blockdiag_empty<float>();
     total_failures += test_blockdiag_times_blockdiag_mismatch<double>();
     total_failures += test_blockdiag_times_blockdiag_mismatch<float>();
+    total_failures += test_product_block_shapes_builds_output<double>();
+    total_failures += test_product_block_shapes_builds_output<float>();
+    total_failures += test_product_block_shapes_empty<double>();
+    total_failures += test_product_block_shapes_empty<float>();
+    total_failures += test_product_block_shapes_mismatch<double>();
+    total_failures += test_product_block_shapes_mismatch<float>();
 
     if (total_failures > 0) {
         std::cerr << "cpu/blas/level3 tests: " << total_failures << " failures" << std::endl;

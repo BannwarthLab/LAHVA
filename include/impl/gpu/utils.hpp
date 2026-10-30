@@ -246,6 +246,20 @@ namespace lahva
         /// @return cuSPARSE operation type (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
         cusparseOperation_t get_cusparse_trans(const char *T);
 
+        /// @brief Block shapes of C = op(A) * op(B) for block-diagonal matrices A and B.
+        ///
+        /// Use the result to construct an output matrix for the block-diagonal MatrixMatrixProduct.
+        ///
+        /// @tparam T Numeric element type (double or float).
+        /// @param Ta Operation on A: "N" (no transpose), "T" (transpose), "C" (conjugate transpose).
+        /// @param Tb Operation on B: "N" (no transpose), "T" (transpose), "C" (conjugate transpose).
+        /// @param a Input block-diagonal matrix.
+        /// @param b Input block-diagonal matrix.
+        /// @return Shape of each block of C, in block order.
+        /// @throws std::invalid_argument if the blocks of op(A) and op(B) cannot be multiplied.
+        template <typename T>
+        std::vector<Shape> product_block_shapes(const char *Ta, const char *Tb, const BlockDiagMatrix<T> &a, const BlockDiagMatrix<T> &b);
+
         /// @brief Validates tensor shapes for matrix-matrix multiplication operation.
         ///
         /// Checks that matrix dimensions are compatible for C = alpha*A*B + beta*C operation.
