@@ -506,8 +506,8 @@ Matrix<T, CudaHostAllocator<T>> make_filled_block(size_t n_rows, size_t n_cols) 
     return block;
 }
 
-// y of a block can have more elements than a kernel block has threads, both when it
-// follows the rows of the block and, when transposed, the columns
+// x and y of a block can have more elements than a kernel block has threads, both when
+// they follow the rows of the block and when they follow the columns
 template <typename T>
 int test_gpu_blockdiag_gemv_block_larger_than_kernel_block(CudaRuntime& cudart) {
 
@@ -517,10 +517,12 @@ int test_gpu_blockdiag_gemv_block_larger_than_kernel_block(CudaRuntime& cudart) 
     tall.push_back(make_filled_block<T>(n_large, 4));
     tall.push_back(make_filled_block<T>(2, 2));
     if (check_blockdiag_gemv(cudart, BlockDiagMatrix<T>(tall), "N") != TEST_PASS) return TEST_FAIL;
+    if (check_blockdiag_gemv(cudart, BlockDiagMatrix<T>(tall), "T") != TEST_PASS) return TEST_FAIL;
 
     std::vector<Matrix<T, CudaHostAllocator<T>>> wide;
     wide.push_back(make_filled_block<T>(4, n_large));
     wide.push_back(make_filled_block<T>(2, 2));
+    if (check_blockdiag_gemv(cudart, BlockDiagMatrix<T>(wide), "N") != TEST_PASS) return TEST_FAIL;
     if (check_blockdiag_gemv(cudart, BlockDiagMatrix<T>(wide), "T") != TEST_PASS) return TEST_FAIL;
 
     return TEST_PASS;
@@ -540,6 +542,155 @@ int test_gpu_blockdiag_gemv_after_add_block(CudaRuntime& cudart) {
     A.add_block(make_filled_block<T>(3, 3), 0);
 
     return check_blockdiag_gemv(cudart, A, "N");
+}
+
+// Naive reference, independent of BLAS: op(A) * x
+template <typename T, typename MatrixType>
+std::vector<T> reference_op_times_x(const MatrixType &A, const char *Ta, const std::vector<T> &x) {
+    const bool trans = Ta[0] != 'N';
+    const size_t n_rows = A.shape().first;
+    const size_t n_cols = A.shape().second;
+
+    std::vector<T> result(trans ? n_cols : n_rows, static_cast<T>(0));
+    for (size_t i = 0; i < n_rows; i++) {
+        for (size_t j = 0; j < n_cols; j++) {
+            result[trans ? j : i] += A(i, j) * x[trans ? i : j];
+        }
+    }
+    return result;
+}
+
+template <typename T>
+Vector<T, CudaHostAllocator<T>> make_filled_vector(size_t n) {
+    Vector<T, CudaHostAllocator<T>> x(n);
+    for (size_t i = 0; i < n; i++) {
+        x[i] = static_cast<T>(i + 1);
+    }
+    return x;
+}
+
+template <typename T>
+std::vector<T> to_std_vector(const Vector<T, CudaHostAllocator<T>> &v) {
+    return std::vector<T>(v.data(), v.data() + v.size());
+}
+
+template <typename T>
+void copy_result_to_host(CudaRuntime& cudart, Vector<T, CudaHostAllocator<T>> &v) {
+    cudart.synchronize();
+    v.copy2host(cudart);
+    cudart.synchronize();
+}
+
+template <typename T>
+BlockDiagMatrix<T> make_square_blockdiag() {
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(make_filled_block<T>(2, 2));
+    blocks.push_back(make_filled_block<T>(3, 3));
+    return BlockDiagMatrix<T>(blocks);
+}
+
+// y only holds its value on the device when it is used as the input of the second product
+template <typename T>
+int test_gpu_blockdiag_gemv_input_from_earlier_product(CudaRuntime& cudart) {
+
+    const BlockDiagMatrix<T> A = make_square_blockdiag<T>();
+    const Vector<T, CudaHostAllocator<T>> x = make_filled_vector<T>(5);
+    const std::vector<T> y_expected = reference_op_times_x(A, "N", to_std_vector(x));
+    std::vector<T> z_expected = reference_op_times_x(A, "N", y_expected);
+
+    Vector<T, CudaHostAllocator<T>> y(5, (T)0);
+    Vector<T, CudaHostAllocator<T>> z(5, (T)0);
+    MatrixVectorProduct(cudart, "N", (T)1.0, A, x, (T)0.0, y);
+    MatrixVectorProduct(cudart, "N", (T)1.0, A, y, (T)0.0, z);
+    copy_result_to_host(cudart, z);
+
+    if (!check(z.data(), z_expected.data(), 5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// y only holds its value on the device when the second product scales it with beta
+template <typename T>
+int test_gpu_blockdiag_gemv_beta_from_earlier_product(CudaRuntime& cudart) {
+
+    const BlockDiagMatrix<T> A = make_square_blockdiag<T>();
+    const Vector<T, CudaHostAllocator<T>> x = make_filled_vector<T>(5);
+    std::vector<T> expected = reference_op_times_x(A, "N", to_std_vector(x));
+    for (T &value : expected) {
+        value *= static_cast<T>(2);
+    }
+
+    Vector<T, CudaHostAllocator<T>> y(5, (T)0);
+    MatrixVectorProduct(cudart, "N", (T)1.0, A, x, (T)0.0, y);
+    MatrixVectorProduct(cudart, "N", (T)1.0, A, x, (T)1.0, y);
+    copy_result_to_host(cudart, y);
+
+    if (!check(y.data(), expected.data(), 5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemv_after_element_write(CudaRuntime& cudart) {
+
+    BlockDiagMatrix<T> A = make_square_blockdiag<T>();
+    const BlockDiagMatrix<T> &A_const = A;
+    const Vector<T, CudaHostAllocator<T>> x = make_filled_vector<T>(5);
+
+    Vector<T, CudaHostAllocator<T>> y_first(5, (T)0);
+    MatrixVectorProduct(cudart, "N", (T)1.0, A, x, (T)0.0, y_first);
+    copy_result_to_host(cudart, y_first);
+
+    A(0, 0) = (T)100;
+    std::vector<T> expected = reference_op_times_x(A_const, "N", to_std_vector(x));
+
+    Vector<T, CudaHostAllocator<T>> y(5, (T)0);
+    MatrixVectorProduct(cudart, "N", (T)1.0, A, x, (T)0.0, y);
+    copy_result_to_host(cudart, y);
+
+    if (!check(y.data(), expected.data(), 5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// For real values "C" must give the same result as "T"
+template <typename T>
+int test_gpu_blockmatrix_gemv_conjugate_transpose(CudaRuntime& cudart) {
+
+    BlockMatrix<T> A;
+    A.set_block(0, 0, make_filled_block<T>(2, 2));
+    A.set_block(2, 2, make_filled_block<T>(3, 3));
+
+    const Vector<T, CudaHostAllocator<T>> x = make_filled_vector<T>(5);
+    std::vector<T> expected = reference_op_times_x(A, "T", to_std_vector(x));
+
+    Vector<T, CudaHostAllocator<T>> y(5, (T)0);
+    MatrixVectorProduct(cudart, "C", (T)1.0, A, x, (T)0.0, y);
+    copy_result_to_host(cudart, y);
+
+    if (!check(y.data(), expected.data(), 5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockmatrix_gemv_uniform_rectangular_blocks(CudaRuntime& cudart) {
+
+    BlockMatrix<T> A;
+    A.set_block(0, 0, make_filled_block<T>(2, 3));
+    A.set_block(2, 3, make_filled_block<T>(2, 3));
+    A.set_block(4, 6, make_filled_block<T>(2, 3));
+
+    const Vector<T, CudaHostAllocator<T>> x = make_filled_vector<T>(9);
+    std::vector<T> expected = reference_op_times_x(A, "N", to_std_vector(x));
+
+    Vector<T, CudaHostAllocator<T>> y(6, (T)0);
+    MatrixVectorProduct(cudart, "N", (T)1.0, A, x, (T)0.0, y);
+    copy_result_to_host(cudart, y);
+
+    if (!check(y.data(), expected.data(), 6, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+
+    return TEST_PASS;
 }
 
 template <typename T>
@@ -857,6 +1008,20 @@ int main(){
     // Stride tests
     total_failures += test_gemv_strided<double>(cudart);
     total_failures += test_gemv_strided<float>(cudart);
+
+    // Block-diagonal GEMV with data on the device and element writes
+    total_failures += test_gpu_blockdiag_gemv_input_from_earlier_product<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_input_from_earlier_product<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_beta_from_earlier_product<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_beta_from_earlier_product<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_after_element_write<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_after_element_write<float>(cudart);
+
+    // BlockMatrix GEMV with "C" and with uniform rectangular blocks
+    total_failures += test_gpu_blockmatrix_gemv_conjugate_transpose<double>(cudart);
+    total_failures += test_gpu_blockmatrix_gemv_conjugate_transpose<float>(cudart);
+    total_failures += test_gpu_blockmatrix_gemv_uniform_rectangular_blocks<double>(cudart);
+    total_failures += test_gpu_blockmatrix_gemv_uniform_rectangular_blocks<float>(cudart);
 
     // BlockMatrix GEMV with BSR format (uniform blocks)
     total_failures += test_gpu_blockmatrix_gemv_bsr_format<double>(cudart);

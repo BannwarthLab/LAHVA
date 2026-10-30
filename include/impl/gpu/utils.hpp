@@ -393,6 +393,7 @@ namespace lahva
     /// @tparam T Element type for matrices.
     /// @param sparse_a Sparse block matrix (first operand).
     /// @param dense_b Dense matrix (second operand).
+    /// @param dense_c Dense output matrix.
     /// @param OpA Sparse operation on A (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
     /// @param OpB Sparse operation on B (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
     /// @return Tuple of (M, N, m, k) where:
@@ -402,6 +403,7 @@ namespace lahva
     std::tuple<int64_t, int64_t, int64_t, int64_t> check_size_sparse_dense(
         const BlockMatrix_<T> &sparse_a,
         const Matrix_<T> &dense_b,
+        const Matrix_<T> &dense_c,
         cusparseOperation_t OpA,
         cusparseOperation_t OpB)
     {
@@ -415,6 +417,11 @@ namespace lahva
 
         int64_t M = transA ? cols_A : rows_A;
         int64_t N = transB ? rows_B : cols_B;
+
+        assert((transA ? rows_A : cols_A) == (transB ? cols_B : rows_B));
+        assert(static_cast<int64_t>(dense_c.shape().first) == M);
+        assert(static_cast<int64_t>(dense_c.shape().second) == N);
+
         int64_t m = rows_A;
         int64_t k = cols_A;
 
@@ -430,6 +437,7 @@ namespace lahva
     /// @tparam T Element type for matrices.
     /// @param dense_a Dense matrix (first operand).
     /// @param sparse_b Sparse block matrix (second operand).
+    /// @param dense_c Dense output matrix.
     /// @param OpA Operation on A (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
     /// @param OpB Operation on B (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
     /// @return Tuple of (M, N, m, k) where:
@@ -439,6 +447,7 @@ namespace lahva
     std::tuple<int64_t, int64_t, int64_t, int64_t> check_size_dense_sparse(
         const Matrix_<T> &dense_a,
         const BlockMatrix_<T> &sparse_b,
+        const Matrix_<T> &dense_c,
         cusparseOperation_t OpA,
         cusparseOperation_t OpB)
     {
@@ -452,11 +461,40 @@ namespace lahva
 
         int64_t M = transA ? cols_A : rows_A;
         int64_t N = transB ? rows_B : cols_B;
+
+        assert((transA ? rows_A : cols_A) == (transB ? cols_B : rows_B));
+        assert(static_cast<int64_t>(dense_c.shape().first) == M);
+        assert(static_cast<int64_t>(dense_c.shape().second) == N);
+
         int64_t m = rows_B;
         int64_t k = cols_B;
 
         return std::make_tuple(M, N, m, k);
     };
+
+        /// @brief Packs block vector from scattered to padded layout on device.
+        ///
+        /// Launches GPU kernel to gather a vector into the padded block layout used by batched
+        /// block operations. Reads the device copy of the vector, which holds the results of
+        /// earlier GPU operations.
+        ///
+        /// @tparam T Floating point type (float or double).
+        /// @param[in] cudart CUDA runtime context for stream and block size configuration.
+        /// @param[in] src Device pointer to input vector in scattered layout [total_size].
+        /// @param[out] dst Device pointer to padded block vector [num_blocks * max_size]; padding is left untouched.
+        /// @param[in] d_offsets Device array of starting positions for each block [num_blocks].
+        /// @param[in] d_block_sizes Device array of actual block sizes [num_blocks].
+        /// @param[in] max_size Maximum block size (padding size for uniform blocks).
+        /// @param[in] num_blocks Number of blocks to pack.
+        template <typename T>
+        void pack_vector(
+            const CudaRuntime &cudart,
+            const T *src,
+            T *dst,
+            const int *d_offsets,
+            const int *d_block_sizes,
+            size_t max_size,
+            int num_blocks);
 
         /// @brief Unpacks block vector from padded to scattered layout on device.
         ///

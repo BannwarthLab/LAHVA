@@ -57,13 +57,14 @@ namespace lahva {
 
         /// @brief Converts character transposition flag to cuSPARSE operation type.
         ///
-        /// Translates string transposition indicators ('N', 'T') to corresponding
-        /// cuSPARSE operation types for use in sparse matrix operations.
+        /// Translates string transposition indicators ('N', 'T', 'C') to corresponding
+        /// cuSPARSE operation types for use in sparse matrix operations. The sparse routines
+        /// only support real types, for which 'C' is the same operation as 'T'.
         ///
-        /// @param T Transposition character: 'N' (no transpose), 'T' (transpose).
+        /// @param T Transposition character: 'N' (no transpose), 'T' (transpose), 'C' (conjugate transpose).
         /// @return cuSPARSE operation type (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
         cusparseOperation_t get_cusparse_trans(const char* T){
-        if (std::strcmp(T,"T") == 0 or std::strcmp(T,"t") == 0)
+        if (std::strcmp(T,"T") == 0 or std::strcmp(T,"t") == 0 or std::strcmp(T,"C") == 0 or std::strcmp(T,"c") == 0)
         {
             return CUSPARSE_OPERATION_TRANSPOSE;
         }

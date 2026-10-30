@@ -224,12 +224,35 @@ int test_blockdiag_copy_constructor() {
     return TEST_PASS;
 }
 
+// Positions outside the blocks have no storage, so a write there must not show up anywhere
+template <typename T>
+int test_blockdiag_write_outside_blocks() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, (T)1));
+    blocks.push_back(Matrix<T>(Shape{2, 2}, (T)1));
+
+    BlockDiagMatrix<T> a(blocks);
+    BlockDiagMatrix<T> b(blocks);
+
+    a(0, 3) = (T)7;
+
+    if (!check((T)a(0, 3), (T)0, check_msg(get_type_name<T>(), "same position"))) return TEST_FAIL;
+    if (!check((T)a(3, 0), (T)0, check_msg(get_type_name<T>(), "other position"))) return TEST_FAIL;
+    if (!check((T)b(0, 3), (T)0, check_msg(get_type_name<T>(), "other matrix"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
 // ============================================================================
 // Main
 // ============================================================================
 
 int main() {
     int total_failures = 0;
+
+    // Writes outside the blocks
+    total_failures += test_blockdiag_write_outside_blocks<double>();
+    total_failures += test_blockdiag_write_outside_blocks<float>();
 
     // BlockDiagMatrix constructors - double precision
     total_failures += test_blockdiag_uniform_blocks_constructor<double>();

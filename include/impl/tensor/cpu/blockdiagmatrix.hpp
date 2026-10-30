@@ -213,6 +213,7 @@ namespace lahva
         //! @param[in] i Row index
         //! @param[in] j Column index
         //! @return Reference to element at (i, j), or reference to static zero if out of block bounds
+        //! @note Writes to positions out of block bounds have nowhere to go and are discarded
         T &operator()(size_t i, size_t j)
         {
             assert(i < n_rows_ && j < n_cols_);
@@ -220,7 +221,9 @@ namespace lahva
             size_t b = static_cast<size_t>(std::distance(row_offsets_.begin(), it)) - 1;
             if (j >= static_cast<size_t>(col_offsets_[b]) && j < static_cast<size_t>(col_offsets_[b + 1]))
                 return matrices[b](i - row_offsets_[b], j - col_offsets_[b]);
-            static T zero{};
+            // Reset on each access, so that an earlier write cannot show up in later reads
+            static thread_local T zero{};
+            zero = T{};
             return zero;
         }
 

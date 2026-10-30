@@ -108,20 +108,20 @@ namespace lahva
                     block_col_positions_.push_back(block_matrix.get_block_col(i));
                 }
 
-                // Validate BSR format - all blocks must be the same size
-                if (format_ == SparseFormat::BSR && block_row_sizes_.size() > 1)
+                // Validate BSR format - all blocks must be the same size and be square
+                if (format_ == SparseFormat::BSR)
                 {
-                    bool all_same_size = true;
+                    bool bsr_supported = block_row_sizes_[0] == block_col_sizes_[0];
                     for (size_t i = 1; i < block_row_sizes_.size(); ++i)
                     {
                         if (block_row_sizes_[i] != block_row_sizes_[0] ||
                             block_col_sizes_[i] != block_col_sizes_[0])
                         {
-                            all_same_size = false;
+                            bsr_supported = false;
                             break;
                         }
                     }
-                    if (!all_same_size)
+                    if (!bsr_supported)
                     {
                         format_ = SparseFormat::CSR;
                     }

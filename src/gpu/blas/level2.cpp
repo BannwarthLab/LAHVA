@@ -330,6 +330,7 @@ namespace lahva
                                 const Vector<T>& x, const T beta, Vector<T>& y)
         {
             cublasOperation_t transa = get_trans(ta);
+            check_size_mv(a, x, y, transa);
             int num_blocks = a.num_blocks();
 
             const auto& gpu_a_data = a.ensure_on_gpu(cudart);
@@ -346,17 +347,24 @@ namespace lahva
             const bool is_trans = transa != CUBLAS_OP_N;
             const size_t x_stride = is_trans ? max_m : max_k;
             const size_t y_stride = is_trans ? max_k : max_m;
+            const int *d_x_offsets = is_trans ? a.get_d_row_offsets(cudart) : a.get_d_col_offsets(cudart);
+            const int *d_x_sizes = is_trans ? a.get_d_block_row_sizes(cudart) : a.get_d_block_col_sizes(cudart);
+            const int *d_y_offsets = is_trans ? a.get_d_col_offsets(cudart) : a.get_d_row_offsets(cudart);
+            const int *d_y_sizes = is_trans ? a.get_d_block_col_sizes(cudart) : a.get_d_block_row_sizes(cudart);
 
-            y.copy2device(cudart);
+            check_device_alloc(cudart, x);
+            check_device_alloc(cudart, y);
 
+            // Packed from the device copies, which hold the results of earlier GPU operations.
+            // The padding has to stay zero, because the padded parts of A multiply it.
             Vector<T> x_packed(x_stride * num_blocks, (T)0);
-            a.pack_vector_to_gpu(cudart, x, x_packed, is_trans ? a.get_row_offsets() : a.get_col_offsets(),
-                                 is_trans ? a.get_block_rows() : a.get_block_cols());
+            x_packed.copy2device(cudart);
+            pack_vector(cudart, x.gpu_data(), x_packed.gpu_data(), d_x_offsets, d_x_sizes, x_stride, num_blocks);
             T *d_x = x_packed.gpu_data();
 
             Vector<T> y_packed(y_stride * num_blocks, (T)0);
-            a.pack_vector_to_gpu(cudart, y, y_packed, is_trans ? a.get_col_offsets() : a.get_row_offsets(),
-                                 is_trans ? a.get_block_cols() : a.get_block_rows());
+            y_packed.copy2device(cudart);
+            pack_vector(cudart, y.gpu_data(), y_packed.gpu_data(), d_y_offsets, d_y_sizes, y_stride, num_blocks);
             T *d_y = y_packed.gpu_data();
 
             cudart.cublasSetStream_();
@@ -376,10 +384,7 @@ namespace lahva
             }
             get_cublas_error(istat);
 
-            unpack_vector(cudart, y_packed.gpu_data(), y.gpu_data(),
-                          is_trans ? a.get_d_col_offsets(cudart) : a.get_d_row_offsets(cudart),
-                          is_trans ? a.get_d_block_col_sizes(cudart) : a.get_d_block_row_sizes(cudart),
-                          y_stride, num_blocks);
+            unpack_vector(cudart, y_packed.gpu_data(), y.gpu_data(), d_y_offsets, d_y_sizes, y_stride, num_blocks);
         }
 
         /// @brief Computes batched matrix-vector product for block-diagonal matrices \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ (double precision).

@@ -537,10 +537,12 @@ namespace lahva
             /// @param[in] i row index
             /// @param[in] j column index
             /// @return reference to element at (i,j); returns zero for off-diagonal positions
-            /// @note GPU cache must be manually invalidated after modifications via free_gpu_cache()
-            /// @note Conservatively marks block values as modified for the sparse cache (see mark_modified())
+            /// @note Conservatively marks the GPU cache as stale and block values as modified for the
+            ///       sparse cache (see mark_modified()), so the next GPU operation refreshes them
+            /// @note Writes to off-diagonal positions have nowhere to go and are discarded
             virtual T &operator()(size_t i, size_t j) override {
                 this->mark_modified();
+                gpu_data_valid_ = false;
                 for (auto &[pos, block] : blocks_) {
                     size_t row_start = pos.first;
                     size_t col_start = pos.second;
@@ -552,7 +554,9 @@ namespace lahva
                         return block(i - row_start, j - col_start);
                     }
                 }
-                static T zero{};
+                // Reset on each access, so that an earlier write cannot show up in later reads
+                static thread_local T zero{};
+                zero = T{};
                 return zero;
             }
 
@@ -798,38 +802,6 @@ namespace lahva
                     }
                     block_idx++;
                 }
-            }
-
-            /// @brief Pack vector blocks into GPU-ready format with padding
-            /// @param[in] cudart CUDA runtime for device selection
-            /// @param[in] src source vector with scattered block elements
-            /// @param[in,out] dst destination padded vector in GPU memory
-            /// @param[in] offsets block starting positions in src
-            /// @param[in] block_sizes size of each block
-            /// @note padded to max block size for efficient batch operations
-            void pack_vector_to_gpu(
-                const CudaRuntime &cudart,
-                const Vector<T> &src,
-                Vector<T> &dst,
-                const std::vector<int> &offsets,
-                const std::vector<size_t> &block_sizes) const
-            {
-                int num_blocks = this->num_blocks();
-                size_t max_size = *std::max_element(block_sizes.begin(), block_sizes.end());
-
-                for (int i = 0; i < num_blocks; ++i) {
-                    long long offset = offsets[i];
-                    size_t block_size = block_sizes[i];
-
-                    std::memcpy(
-                        dst.data() + i * max_size,
-                        src.data() + offset,
-                        block_size * sizeof(T)
-                    );
-                }
-
-                dst.allocateGPU(cudart);
-                dst.copy2device(cudart);
             }
 
             /// @brief Unpack padded GPU vector blocks back to scattered vector

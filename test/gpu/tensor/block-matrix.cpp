@@ -942,12 +942,37 @@ int test_blockmatrix_sparse_csr_sorted_columns() {
     return TEST_PASS;
 }
 
+// Positions outside the blocks have no storage, so a write there must not show up anywhere
+template <typename T>
+int test_blockmatrix_write_outside_blocks() {
+    const Matrix<T, CudaHostAllocator<T>> block(Shape{2, 2}, (T)1);
+
+    BlockMatrix<T> a;
+    a.set_block(0, 0, block);
+    a.set_block(2, 2, block);
+    BlockMatrix<T> b;
+    b.set_block(0, 0, block);
+    b.set_block(2, 2, block);
+
+    a(0, 3) = (T)7;
+
+    if (!check((T)a(0, 3), (T)0, check_msg(get_type_name<T>(), "same position"))) return TEST_FAIL;
+    if (!check((T)a(3, 0), (T)0, check_msg(get_type_name<T>(), "other position"))) return TEST_FAIL;
+    if (!check((T)b(0, 3), (T)0, check_msg(get_type_name<T>(), "other matrix"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
 // ============================================================================
 // Main
 // ============================================================================
 
 int main() {
     int total_failures = 0;
+
+    // Writes outside the blocks
+    total_failures += test_blockmatrix_write_outside_blocks<double>();
+    total_failures += test_blockmatrix_write_outside_blocks<float>();
 
     // BlockMatrix constructors
     total_failures += test_blockmatrix_default_constructor<double>();

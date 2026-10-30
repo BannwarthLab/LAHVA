@@ -571,7 +571,7 @@ namespace lahva
             cusparseOperation_t OpB = get_cusparse_trans(Tb);
 
             int64_t M, N, m, k;
-            std::tie(M, N, m, k) = check_size_sparse_dense(a, b, OpA, OpB);
+            std::tie(M, N, m, k) = check_size_sparse_dense(a, b, c, OpA, OpB);
 
             if ( a.num_blocks() == 0) throw std::invalid_argument("MatrixMatrixProduct: sparse matrix a has no non-zero blocks");
 
@@ -640,7 +640,7 @@ namespace lahva
             cusparseOperation_t userOpB = get_cusparse_trans(Tb);
 
             int64_t M, N, m, k;
-            std::tie(M, N, m, k) = check_size_dense_sparse(a, b, userOpA, userOpB);
+            std::tie(M, N, m, k) = check_size_dense_sparse(a, b, c, userOpA, userOpB);
 
             // We flip the operations because cusparseSpMM expects the sparse matrix to be the first argument, and the dense matrix to be the second argument.
             cusparseOperation_t cusparse_opA = flip_cusparse_trans(userOpB);

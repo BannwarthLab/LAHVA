@@ -289,6 +289,7 @@ namespace lahva
             /// @param[in] j column index
             /// @return reference to element at (i,j); returns zero for positions outside all blocks
             /// @note Conservatively marks block values as modified (see mark_modified())
+            /// @note Writes to positions outside all blocks have nowhere to go and are discarded
             T &operator()(size_t i, size_t j) override {
                 this->mark_modified();
                 // Find block containing element (i, j)
@@ -304,7 +305,9 @@ namespace lahva
                         return block(i - row_start, j - col_start);
                     }
                 }
-                static T zero_value = (T)0;
+                // Reset on each access, so that an earlier write cannot show up in later reads
+                static thread_local T zero_value = (T)0;
+                zero_value = (T)0;
                 return zero_value;
             }
 

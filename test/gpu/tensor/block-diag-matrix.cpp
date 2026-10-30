@@ -364,6 +364,25 @@ int test_blockdiag_ensure_on_gpu_without_blocks(const CudaRuntime& cudart) {
     return TEST_FAIL;
 }
 
+// Positions outside the blocks have no storage, so a write there must not show up anywhere
+template <typename T>
+int test_blockdiag_write_outside_blocks() {
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, (T)1));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, (T)1));
+
+    BlockDiagMatrix<T> a(blocks);
+    BlockDiagMatrix<T> b(blocks);
+
+    a(0, 3) = (T)7;
+
+    if (!check((T)a(0, 3), (T)0, check_msg(get_type_name<T>(), "same position"))) return TEST_FAIL;
+    if (!check((T)a(3, 0), (T)0, check_msg(get_type_name<T>(), "other position"))) return TEST_FAIL;
+    if (!check((T)b(0, 3), (T)0, check_msg(get_type_name<T>(), "other matrix"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
 // Other processes on the GPU can disturb the measured memory, so this only fails when
 // nearly all of the repeated caches are missing from the free memory
 template <typename T>
@@ -841,6 +860,8 @@ int main() {
     total_failures += test_blockdiag_ensure_on_gpu_without_blocks<float>(cudart);
     total_failures += test_blockdiag_repeated_copy2device_frees_cache<double>(cudart);
     total_failures += test_blockdiag_repeated_copy2device_frees_cache<float>(cudart);
+    total_failures += test_blockdiag_write_outside_blocks<double>();
+    total_failures += test_blockdiag_write_outside_blocks<float>();
     // GPU round-trip transfers
     total_failures += test_sparse_matrix_gpu_roundtrip_csr<double>();
     total_failures += test_sparse_matrix_gpu_roundtrip_csr<float>();
