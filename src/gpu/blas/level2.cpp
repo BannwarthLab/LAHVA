@@ -326,8 +326,8 @@ namespace lahva
         };
 
         template <typename T>
-        void MatrixVectorProduct_blockdiag(const CudaRuntime& cudart, const char* ta, const T alpha, const BlockDiagMatrix<T>& a,
-                                const Vector<T>& x, const T beta, Vector<T>& y)
+        void MatrixVectorProduct_blockdiag(const CudaRuntime& cudart, const char* ta, const T alpha, const BlockDiagMatrix_<T>& a,
+                                const Vector_<T>& x, const T beta, Vector_<T>& y)
         {
             cublasOperation_t transa = get_trans(ta);
             check_size_mv(a, x, y, transa);
@@ -400,8 +400,8 @@ namespace lahva
         /// @param x Input double-precision vector matching the column structure of a.
         /// @param beta Scalar factor for vector y.
         /// @param y Input/output double-precision vector, replaced with result.
-        void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const double alpha, const BlockDiagMatrix<double>& a,
-                                const Vector<double>& x, const double beta, Vector<double>& y)
+        void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const double alpha, const BlockDiagMatrix_<double>& a,
+                                const Vector_<double>& x, const double beta, Vector_<double>& y)
         {
             MatrixVectorProduct_blockdiag(cudart, ta, alpha, a, x, beta, y);
         }
@@ -419,8 +419,8 @@ namespace lahva
         /// @param x Input single-precision vector matching the column structure of a.
         /// @param beta Scalar factor for vector y.
         /// @param y Input/output single-precision vector, replaced with result.
-        void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const float alpha, const BlockDiagMatrix<float>& a,
-                                const Vector<float>& x, const float beta, Vector<float>& y)
+        void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const float alpha, const BlockDiagMatrix_<float>& a,
+                                const Vector_<float>& x, const float beta, Vector_<float>& y)
         {
             MatrixVectorProduct_blockdiag(cudart, ta, alpha, a, x, beta, y);
         }
@@ -481,8 +481,8 @@ namespace lahva
         // Explicit template instantiations
         template void MatrixVectorProduct_sparse<float>(const CudaRuntime&, const char*, float, const BlockMatrix_<float>&, const Vector_<float>&, float, Vector_<float>&);
         template void MatrixVectorProduct_sparse<double>(const CudaRuntime&, const char*, double, const BlockMatrix_<double>&, const Vector_<double>&, double, Vector_<double>&);
-        template void MatrixVectorProduct_blockdiag<float>(const CudaRuntime&, const char*, float, const BlockDiagMatrix<float>&, const Vector<float>&, float, Vector<float>&);
-        template void MatrixVectorProduct_blockdiag<double>(const CudaRuntime&, const char*, double, const BlockDiagMatrix<double>&, const Vector<double>&, double, Vector<double>&);
+        template void MatrixVectorProduct_blockdiag<float>(const CudaRuntime&, const char*, float, const BlockDiagMatrix_<float>&, const Vector_<float>&, float, Vector_<float>&);
+        template void MatrixVectorProduct_blockdiag<double>(const CudaRuntime&, const char*, double, const BlockDiagMatrix_<double>&, const Vector_<double>&, double, Vector_<double>&);
 
         /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
         for specified stride

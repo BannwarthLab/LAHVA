@@ -178,25 +178,25 @@ namespace lahva
     /// @param cudart CUDA runtime instance
     /// @param ta Transposition character: 'N' (no transpose), 'T' (transpose)
     /// @param alpha Scalar multiplier for the matrix-vector product (double)
-    /// @param a Input block-diagonal GPU matrix (BlockDiagMatrix<double>)
-    /// @param x Input GPU vector (Vector<double>)
+    /// @param a Input block-diagonal GPU matrix (BlockDiagMatrix_<double>)
+    /// @param x Input GPU vector (Vector_<double>)
     /// @param beta Scalar multiplier for vector y (double)
-    /// @param y Input/output GPU vector (Vector<double>), replaced with result
-    void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const double alpha, const BlockDiagMatrix<double>& a,
-                            const Vector<double>& x, const double beta, Vector<double>& y);
+    /// @param y Input/output GPU vector (Vector_<double>), replaced with result
+    void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const double alpha, const BlockDiagMatrix_<double>& a,
+                            const Vector_<double>& x, const double beta, Vector_<double>& y);
 
     /// @brief Computes block-diagonal matrix-vector product with double-precision GPU tensors (convenience overload).
     ///
     /// Performs y = alpha * op(A) * x + beta * y with default parameters.
     ///
     /// @param cudart CUDA runtime instance
-    /// @param a Input block-diagonal GPU matrix (BlockDiagMatrix<double>)
-    /// @param x Input GPU vector (Vector<double>)
-    /// @param y Input/output GPU vector (Vector<double>)
+    /// @param a Input block-diagonal GPU matrix (BlockDiagMatrix_<double>)
+    /// @param x Input GPU vector (Vector_<double>)
+    /// @param y Input/output GPU vector (Vector_<double>)
     /// @param ta Transposition character (default: "N" for no transpose)
     /// @param alpha Scalar multiplier (default: 1.0)
     /// @param beta Scalar multiplier for y (default: 0.0)
-    inline void MatrixVectorProduct(const CudaRuntime& cudart, const BlockDiagMatrix<double>& a, const Vector<double>& x, Vector<double>& y,
+    inline void MatrixVectorProduct(const CudaRuntime& cudart, const BlockDiagMatrix_<double>& a, const Vector_<double>& x, Vector_<double>& y,
                             const char* ta = "N", const double alpha = 1.0, const double beta = 0.0)
     {
         MatrixVectorProduct(cudart, ta, alpha, a, x, beta, y);
@@ -211,25 +211,25 @@ namespace lahva
     /// @param cudart CUDA runtime instance
     /// @param ta Transposition character: 'N' (no transpose), 'T' (transpose)
     /// @param alpha Scalar multiplier for the matrix-vector product (float)
-    /// @param a Input block-diagonal GPU matrix (BlockDiagMatrix<float>)
-    /// @param x Input GPU vector (Vector<float>)
+    /// @param a Input block-diagonal GPU matrix (BlockDiagMatrix_<float>)
+    /// @param x Input GPU vector (Vector_<float>)
     /// @param beta Scalar multiplier for vector y (float)
-    /// @param y Input/output GPU vector (Vector<float>), replaced with result
-    void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const float alpha, const BlockDiagMatrix<float>& a,
-                            const Vector<float>& x, const float beta, Vector<float>& y);
+    /// @param y Input/output GPU vector (Vector_<float>), replaced with result
+    void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const float alpha, const BlockDiagMatrix_<float>& a,
+                            const Vector_<float>& x, const float beta, Vector_<float>& y);
 
     /// @brief Computes block-diagonal matrix-vector product with single-precision GPU tensors (convenience overload).
     ///
     /// Performs y = alpha * op(A) * x + beta * y with default parameters.
     ///
     /// @param cudart CUDA runtime instance
-    /// @param a Input block-diagonal GPU matrix (BlockDiagMatrix<float>)
-    /// @param x Input GPU vector (Vector<float>)
-    /// @param y Input/output GPU vector (Vector<float>)
+    /// @param a Input block-diagonal GPU matrix (BlockDiagMatrix_<float>)
+    /// @param x Input GPU vector (Vector_<float>)
+    /// @param y Input/output GPU vector (Vector_<float>)
     /// @param ta Transposition character (default: "N" for no transpose)
     /// @param alpha Scalar multiplier (default: 1.0)
     /// @param beta Scalar multiplier for y (default: 0.0)
-    inline void MatrixVectorProduct(const CudaRuntime& cudart, const BlockDiagMatrix<float>& a, const Vector<float>& x, Vector<float>& y,
+    inline void MatrixVectorProduct(const CudaRuntime& cudart, const BlockDiagMatrix_<float>& a, const Vector_<float>& x, Vector_<float>& y,
                             const char* ta = "N", const float alpha = 1.0, const float beta = 0.0)
     {
         MatrixVectorProduct(cudart, ta, alpha, a, x, beta, y);

@@ -28,6 +28,50 @@ namespace lahva
             T *h_packed;         ///< Host pinned memory (for cleanup)
         };
 
+        /// @brief Interface of GPU block-diagonal matrices, independent of their allocators.
+        ///
+        /// Operations on block-diagonal matrices take this type, so that they accept any allocators.
+        ///
+        /// @tparam T Numeric element type (double, float, complex types)
+        template <class T>
+        class BlockDiagMatrix_ : public virtual BlockMatrix_<T>
+        {
+        public:
+            /// @brief Lazily copy host blocks to GPU (internal optimization - caches result)
+            /// @param[in] cudart CUDA runtime for device selection
+            /// @return Packed and padded device data of the blocks
+            /// @throws std::invalid_argument if the matrix has no blocks
+            virtual const GPUBlockDiagData<T>& ensure_on_gpu(const CudaRuntime &cudart) const = 0;
+
+            /// @brief Get row dimensions of all blocks
+            /// @return vector of row dimensions (m_i) for each block in order
+            virtual std::vector<size_t> get_block_rows() const = 0;
+
+            /// @brief Get column dimensions of all blocks
+            /// @return vector of column dimensions (k_i) for each block in order
+            virtual std::vector<size_t> get_block_cols() const = 0;
+
+            /// @brief Get GPU pointer to row offsets
+            /// @param[in] cudart CUDA runtime for device allocation
+            /// @return Device pointer to row offsets array
+            virtual const int* get_d_row_offsets(const CudaRuntime &cudart) const = 0;
+
+            /// @brief Get GPU pointer to block row sizes
+            /// @param[in] cudart CUDA runtime for device allocation
+            /// @return Device pointer to block row sizes array
+            virtual const int* get_d_block_row_sizes(const CudaRuntime &cudart) const = 0;
+
+            /// @brief Get GPU pointer to column offsets
+            /// @param[in] cudart CUDA runtime for device allocation
+            /// @return Device pointer to column offsets array
+            virtual const int* get_d_col_offsets(const CudaRuntime &cudart) const = 0;
+
+            /// @brief Get GPU pointer to block column sizes
+            /// @param[in] cudart CUDA runtime for device allocation
+            /// @return Device pointer to block column sizes array
+            virtual const int* get_d_block_col_sizes(const CudaRuntime &cudart) const = 0;
+        };
+
         /// @brief GPU-accelerated block-diagonal matrix with batched operations.
         ///
         /// Stores and manipulates block-diagonal matrices on NVIDIA GPUs with automatic
@@ -41,7 +85,7 @@ namespace lahva
         /// @tparam Allocator Host (pinned) memory allocator (default: CudaHostAllocator<T>)
         /// @tparam GPUAllocator Device memory allocator (default: CudaDeviceAllocator<T>)
         template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAllocator<T>>
-        class BlockDiagMatrix : virtual public Tensor<T, Allocator, GPUAllocator>, virtual public BlockMatrix_<T>
+        class BlockDiagMatrix : virtual public Tensor<T, Allocator, GPUAllocator>, virtual public BlockDiagMatrix_<T>
         {
             using alloc_ptr = CPUAllocator<T>;
             using gpualloc_ptr = GPUAllocator_<T>;
@@ -97,7 +141,7 @@ namespace lahva
             /// @brief Lazily copy host blocks to GPU (internal optimization - caches result)
             /// @note Internal library method; prefer copy2device() for public API
             /// @throws std::invalid_argument if the matrix has no blocks
-            const GPUBlockDiagData<T>& ensure_on_gpu(const CudaRuntime &cudart) const {
+            const GPUBlockDiagData<T>& ensure_on_gpu(const CudaRuntime &cudart) const override {
                 if (!gpu_data_valid_) {
                     copy2device(cudart);
                 }
@@ -421,7 +465,7 @@ namespace lahva
 
             /// @brief Get row dimensions of all blocks
             /// @return vector of row dimensions (m_i) for each block in order
-            std::vector<size_t> get_block_rows() const {
+            std::vector<size_t> get_block_rows() const override {
                 std::vector<size_t> result;
                 for (const auto &[pos, block] : blocks_) {
                     result.push_back(block.shape().first);
@@ -431,7 +475,7 @@ namespace lahva
 
             /// @brief Get column dimensions of all blocks
             /// @return vector of column dimensions (k_i) for each block in order
-            std::vector<size_t> get_block_cols() const {
+            std::vector<size_t> get_block_cols() const override {
                 std::vector<size_t> result;
                 for (const auto &[pos, block] : blocks_) {
                     result.push_back(block.shape().second);
@@ -442,7 +486,7 @@ namespace lahva
             /// @brief Get GPU pointer to row offsets
             /// @param[in] cudart CUDA runtime for device allocation
             /// @return Device pointer to row offsets array
-            const int* get_d_row_offsets(const CudaRuntime &cudart) const {
+            const int* get_d_row_offsets(const CudaRuntime &cudart) const override {
                 if (!d_offsets_valid_) {
                     init_gpu_offsets(cudart);
                 }
@@ -452,7 +496,7 @@ namespace lahva
             /// @brief Get GPU pointer to block row sizes
             /// @param[in] cudart CUDA runtime for device allocation
             /// @return Device pointer to block row sizes array
-            const int* get_d_block_row_sizes(const CudaRuntime &cudart) const {
+            const int* get_d_block_row_sizes(const CudaRuntime &cudart) const override {
                 if (!d_offsets_valid_) {
                     init_gpu_offsets(cudart);
                 }
@@ -462,7 +506,7 @@ namespace lahva
             /// @brief Get GPU pointer to column offsets
             /// @param[in] cudart CUDA runtime for device allocation
             /// @return Device pointer to column offsets array
-            const int* get_d_col_offsets(const CudaRuntime &cudart) const {
+            const int* get_d_col_offsets(const CudaRuntime &cudart) const override {
                 if (!d_offsets_valid_) {
                     init_gpu_offsets(cudart);
                 }
@@ -472,7 +516,7 @@ namespace lahva
             /// @brief Get GPU pointer to block column sizes
             /// @param[in] cudart CUDA runtime for device allocation
             /// @return Device pointer to block column sizes array
-            const int* get_d_block_col_sizes(const CudaRuntime &cudart) const {
+            const int* get_d_block_col_sizes(const CudaRuntime &cudart) const override {
                 if (!d_offsets_valid_) {
                     init_gpu_offsets(cudart);
                 }

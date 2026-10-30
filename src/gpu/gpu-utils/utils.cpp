@@ -103,7 +103,7 @@ namespace lahva {
         /// @return Shape of each block of C, in block order.
         /// @throws std::invalid_argument if the blocks of op(A) and op(B) cannot be multiplied.
         template <typename T>
-        std::vector<Shape> product_block_shapes(const char *Ta, const char *Tb, const BlockDiagMatrix<T> &a, const BlockDiagMatrix<T> &b)
+        std::vector<Shape> product_block_shapes(const char *Ta, const char *Tb, const BlockDiagMatrix_<T> &a, const BlockDiagMatrix_<T> &b)
         {
             const bool trans_a = get_trans(Ta) != CUBLAS_OP_N;
             const bool trans_b = get_trans(Tb) != CUBLAS_OP_N;
@@ -133,8 +133,8 @@ namespace lahva {
             return shapes;
         }
 
-        template std::vector<Shape> product_block_shapes(const char *Ta, const char *Tb, const BlockDiagMatrix<double> &a, const BlockDiagMatrix<double> &b);
-        template std::vector<Shape> product_block_shapes(const char *Ta, const char *Tb, const BlockDiagMatrix<float> &a, const BlockDiagMatrix<float> &b);
+        template std::vector<Shape> product_block_shapes(const char *Ta, const char *Tb, const BlockDiagMatrix_<double> &a, const BlockDiagMatrix_<double> &b);
+        template std::vector<Shape> product_block_shapes(const char *Ta, const char *Tb, const BlockDiagMatrix_<float> &a, const BlockDiagMatrix_<float> &b);
 
     } // namespace gpu
 } // namespace lahva

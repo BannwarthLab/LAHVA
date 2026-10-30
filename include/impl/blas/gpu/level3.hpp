@@ -394,8 +394,8 @@ namespace lahva
     ///       cuSPARSE-based product, which reads the host values. Don't call c.copy2device(cudart) before that, because
     ///       it replaces the device values with the host values.
     void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
-                            const double alpha, const BlockDiagMatrix<double> &a,
-                            const BlockDiagMatrix<double> &b, const double beta, BlockDiagMatrix<double> &c);
+                            const double alpha, const BlockDiagMatrix_<double> &a,
+                            const BlockDiagMatrix_<double> &b, const double beta, BlockDiagMatrix_<double> &c);
 
     /// @brief Computes matrix-matrix product of two block-diagonal matrices (convenience overload).
     ///
@@ -410,8 +410,8 @@ namespace lahva
     /// @param Ta Operation on A (default: "N")
     /// @param Tb Operation on B (default: "N")
     /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match
-    inline void MatrixMatrixProduct(const CudaRuntime &cudart, const BlockDiagMatrix<double> &a,
-                            const BlockDiagMatrix<double> &b, BlockDiagMatrix<double> &c,
+    inline void MatrixMatrixProduct(const CudaRuntime &cudart, const BlockDiagMatrix_<double> &a,
+                            const BlockDiagMatrix_<double> &b, BlockDiagMatrix_<double> &c,
                             const double alpha = 1.0, const double beta = 0.0, const char *Ta = "N", const char *Tb = "N")
     {
         MatrixMatrixProduct(cudart, Ta, Tb, alpha, a, b, beta, c);
@@ -436,8 +436,8 @@ namespace lahva
     ///       cuSPARSE-based product, which reads the host values. Don't call c.copy2device(cudart) before that, because
     ///       it replaces the device values with the host values.
     void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
-                            const float alpha, const BlockDiagMatrix<float> &a,
-                            const BlockDiagMatrix<float> &b, const float beta, BlockDiagMatrix<float> &c);
+                            const float alpha, const BlockDiagMatrix_<float> &a,
+                            const BlockDiagMatrix_<float> &b, const float beta, BlockDiagMatrix_<float> &c);
 
     /// @brief Computes matrix-matrix product of two block-diagonal matrices (convenience overload).
     ///
@@ -452,8 +452,8 @@ namespace lahva
     /// @param Ta Operation on A (default: "N")
     /// @param Tb Operation on B (default: "N")
     /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match
-    inline void MatrixMatrixProduct(const CudaRuntime &cudart, const BlockDiagMatrix<float> &a,
-                            const BlockDiagMatrix<float> &b, BlockDiagMatrix<float> &c,
+    inline void MatrixMatrixProduct(const CudaRuntime &cudart, const BlockDiagMatrix_<float> &a,
+                            const BlockDiagMatrix_<float> &b, BlockDiagMatrix_<float> &c,
                             const float alpha = 1.0, const float beta = 0.0, const char *Ta = "N", const char *Tb = "N")
     {
         MatrixMatrixProduct(cudart, Ta, Tb, alpha, a, b, beta, c);

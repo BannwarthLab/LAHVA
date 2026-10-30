@@ -2330,6 +2330,52 @@ int test_gpu_product_block_shapes_mismatch() {
     return TEST_PASS;
 }
 
+template <typename T>
+using AsyncBlockDiagMatrix = BlockDiagMatrix<T, CudaHostAllocator<T>, lahva::CudaDeviceAsyncAllocator<T>>;
+
+template <typename T>
+AsyncBlockDiagMatrix<T> to_async_allocator(const BlockDiagMatrix<T> &a) {
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    for (size_t b = 0; b < a.num_blocks(); b++) {
+        blocks.push_back(a.get_block(b));
+    }
+    return AsyncBlockDiagMatrix<T>(blocks);
+}
+
+// The operations must not depend on the allocators, also when they differ between the matrices.
+// The result with the default allocators is covered by the tests above.
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_async_allocator(CudaRuntime& cudart) {
+    const BlockDiagMatrix<T> A = make_blockdiag<T>({Shape{2, 3}, Shape{3, 1}});
+    const BlockDiagMatrix<T> B = make_blockdiag<T>({Shape{2, 4}, Shape{3, 2}});
+    const AsyncBlockDiagMatrix<T> A_async = to_async_allocator(A);
+    const AsyncBlockDiagMatrix<T> B_async = to_async_allocator(B);
+
+    const std::vector<Shape> shapes = product_block_shapes<T>("T", "N", A_async, B_async);
+
+    BlockDiagMatrix<T> C_default(shapes, static_cast<T>(0));
+    MatrixMatrixProduct(cudart, "T", "N", static_cast<T>(2), A, B, static_cast<T>(0), C_default);
+
+    AsyncBlockDiagMatrix<T> C_async(shapes, static_cast<T>(0));
+    MatrixMatrixProduct(cudart, "T", "N", static_cast<T>(2), A_async, B_async, static_cast<T>(0), C_async);
+
+    AsyncBlockDiagMatrix<T> C_mixed(shapes, static_cast<T>(0));
+    MatrixMatrixProduct(cudart, "T", "N", static_cast<T>(2), A, B_async, static_cast<T>(0), C_mixed);
+
+    cudart.synchronize();
+    C_default.copy2host(cudart);
+    C_async.copy2host(cudart);
+    C_mixed.copy2host(cudart);
+
+    for (size_t b = 0; b < shapes.size(); b++) {
+        const int n_elements = static_cast<int>(shapes[b].first * shapes[b].second);
+        if (!check(C_async.get_block(b).data(), C_default.get_block(b).data(), n_elements, check_msg(get_type_name<T>(), "async allocators"))) return TEST_FAIL;
+        if (!check(C_mixed.get_block(b).data(), C_default.get_block(b).data(), n_elements, check_msg(get_type_name<T>(), "mixed allocators"))) return TEST_FAIL;
+    }
+
+    return TEST_PASS;
+}
+
 // ============================================================================
 // Main
 // ============================================================================
@@ -2517,6 +2563,8 @@ int main(){
     total_failures += test_gpu_product_block_shapes_empty<float>();
     total_failures += test_gpu_product_block_shapes_mismatch<double>();
     total_failures += test_gpu_product_block_shapes_mismatch<float>();
+    total_failures += test_gpu_blockdiag_times_blockdiag_async_allocator<double>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_async_allocator<float>(cudart);
 
     if (total_failures > 0) {
         std::cerr << "gpu/blas/level3 tests: " << total_failures << " failures" << std::endl;

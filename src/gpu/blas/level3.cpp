@@ -706,8 +706,8 @@ namespace lahva
         /// @param c Input/output block-diagonal matrix, which must not share storage with a or b.
         /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match.
         template <typename T>
-        void MatrixMatrixProduct_blockdiag(const CudaRuntime &cudart, const char *Ta, const char *Tb, const T alpha, const BlockDiagMatrix<T> &a,
-                                 const BlockDiagMatrix<T> &b, const T beta, BlockDiagMatrix<T> &c)
+        void MatrixMatrixProduct_blockdiag(const CudaRuntime &cudart, const char *Ta, const char *Tb, const T alpha, const BlockDiagMatrix_<T> &a,
+                                 const BlockDiagMatrix_<T> &b, const T beta, BlockDiagMatrix_<T> &c)
         {
             cublasOperation_t transa = get_trans(Ta);
             cublasOperation_t transb = get_trans(Tb);
@@ -786,8 +786,8 @@ namespace lahva
         /// @param beta Scalar multiplier for result matrix C.
         /// @param c Input/output block-diagonal matrix, which must not share storage with a or b.
         void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
-                                 const double alpha, const BlockDiagMatrix<double> &a,
-                                 const BlockDiagMatrix<double> &b, const double beta, BlockDiagMatrix<double> &c)
+                                 const double alpha, const BlockDiagMatrix_<double> &a,
+                                 const BlockDiagMatrix_<double> &b, const double beta, BlockDiagMatrix_<double> &c)
         {
             MatrixMatrixProduct_blockdiag(cudart, Ta, Tb, alpha, a, b, beta, c);
         }
@@ -803,8 +803,8 @@ namespace lahva
         /// @param beta Scalar multiplier for result matrix C.
         /// @param c Input/output block-diagonal matrix, which must not share storage with a or b.
         void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
-                                 const float alpha, const BlockDiagMatrix<float> &a,
-                                 const BlockDiagMatrix<float> &b, const float beta, BlockDiagMatrix<float> &c)
+                                 const float alpha, const BlockDiagMatrix_<float> &a,
+                                 const BlockDiagMatrix_<float> &b, const float beta, BlockDiagMatrix_<float> &c)
         {
             MatrixMatrixProduct_blockdiag(cudart, Ta, Tb, alpha, a, b, beta, c);
         }

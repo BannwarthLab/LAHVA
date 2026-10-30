@@ -693,6 +693,43 @@ int test_gpu_blockmatrix_gemv_uniform_rectangular_blocks(CudaRuntime& cudart) {
     return TEST_PASS;
 }
 
+// The operations must not depend on the allocators, including the output of one
+// product being the input of the next
+template <typename T>
+int test_gpu_blockdiag_gemv_async_allocator(CudaRuntime& cudart) {
+
+    using AsyncAllocator = lahva::CudaDeviceAsyncAllocator<T>;
+    using AsyncVector = Vector<T, CudaHostAllocator<T>, AsyncAllocator>;
+
+    const BlockDiagMatrix<T> A_default = make_square_blockdiag<T>();
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    for (size_t b = 0; b < A_default.num_blocks(); b++) {
+        blocks.push_back(A_default.get_block(b));
+    }
+    const BlockDiagMatrix<T, CudaHostAllocator<T>, AsyncAllocator> A(blocks);
+
+    const std::vector<T> x_values = to_std_vector(make_filled_vector<T>(5));
+    const std::vector<T> y_expected = reference_op_times_x(A, "N", x_values);
+    std::vector<T> z_expected = reference_op_times_x(A, "N", y_expected);
+
+    AsyncVector x(5);
+    for (size_t i = 0; i < 5; i++) {
+        x[i] = x_values[i];
+    }
+    AsyncVector y(5, (T)0);
+    AsyncVector z(5, (T)0);
+
+    MatrixVectorProduct(cudart, "N", (T)1.0, A, x, (T)0.0, y);
+    MatrixVectorProduct(cudart, A, y, z);
+    cudart.synchronize();
+    z.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(z.data(), z_expected.data(), 5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
 template <typename T>
 int test_gemv_strided(CudaRuntime& cudart) {
 
@@ -1075,6 +1112,10 @@ int main(){
     total_failures += test_gpu_blockmatrix_gemv_conjugate_transpose<float>(cudart);
     total_failures += test_gpu_blockmatrix_gemv_uniform_rectangular_blocks<double>(cudart);
     total_failures += test_gpu_blockmatrix_gemv_uniform_rectangular_blocks<float>(cudart);
+
+    // Block-diagonal GEMV with other allocators
+    total_failures += test_gpu_blockdiag_gemv_async_allocator<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_async_allocator<float>(cudart);
 
     // BlockMatrix GEMV with BSR format (uniform blocks)
     total_failures += test_gpu_blockmatrix_gemv_bsr_format<double>(cudart);

@@ -258,7 +258,7 @@ namespace lahva
         /// @return Shape of each block of C, in block order.
         /// @throws std::invalid_argument if the blocks of op(A) and op(B) cannot be multiplied.
         template <typename T>
-        std::vector<Shape> product_block_shapes(const char *Ta, const char *Tb, const BlockDiagMatrix<T> &a, const BlockDiagMatrix<T> &b);
+        std::vector<Shape> product_block_shapes(const char *Ta, const char *Tb, const BlockDiagMatrix_<T> &a, const BlockDiagMatrix_<T> &b);
 
         /// @brief Validates tensor shapes for matrix-matrix multiplication operation.
         ///
