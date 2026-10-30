@@ -542,7 +542,7 @@ namespace lahva
         };
 
         // Double precision implementation
-        void MatrixMatrixProduct(CudaRuntime &cudart, const char *Ta, const char *Tb,
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
                                  const double alpha, const BlockMatrix_<double> &a,
                                  const Matrix_<double> &b, const double beta, Matrix_<double> &c)
         {
@@ -550,7 +550,7 @@ namespace lahva
         }
 
         // Float precision implementation
-        void MatrixMatrixProduct(CudaRuntime &cudart, const char *Ta, const char *Tb,
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
                                  const float alpha, const BlockMatrix_<float> &a,
                                  const Matrix_<float> &b, const float beta, Matrix_<float> &c)
         {
@@ -559,7 +559,7 @@ namespace lahva
 
 
         template <typename T>
-        void MatrixMatrixProduct_sparse_dense(CudaRuntime &cudart, const char *Ta, const char *Tb,
+        void MatrixMatrixProduct_sparse_dense(const CudaRuntime &cudart, const char *Ta, const char *Tb,
                                  const T alpha, const BlockMatrix_<T> &a,
                                  const Matrix_<T> &b, const T beta, Matrix_<T> &c)
         {
@@ -611,7 +611,7 @@ namespace lahva
         }
 
         // Double precision implementation
-        void MatrixMatrixProduct(CudaRuntime &cudart, const char *Ta, const char *Tb,
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
                                  const double alpha, const Matrix_<double> &a,
                                  const BlockMatrix_<double> &b, const double beta, Matrix_<double> &c)
         {
@@ -619,7 +619,7 @@ namespace lahva
         }
 
         // Float precision implementation
-        void MatrixMatrixProduct(CudaRuntime &cudart, const char *Ta, const char *Tb,
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
                                  const float alpha, const Matrix_<float> &a,
                                  const BlockMatrix_<float> &b, const float beta, Matrix_<float> &c)
         {
@@ -627,7 +627,7 @@ namespace lahva
         }
 
         template <typename T>
-        void MatrixMatrixProduct_dense_sparse(CudaRuntime &cudart, const char *Ta, const char *Tb,
+        void MatrixMatrixProduct_dense_sparse(const CudaRuntime &cudart, const char *Ta, const char *Tb,
                                  const T alpha, const Matrix_<T> &a,
                                  const BlockMatrix_<T> &b, const T beta, Matrix_<T> &c)
         {

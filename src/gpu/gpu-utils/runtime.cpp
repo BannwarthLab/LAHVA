@@ -334,13 +334,13 @@ namespace lahva
     /// the CUDA stream from this runtime for proper synchronization.
     ///
     /// @return cuSPARSE handle for sparse matrix operations.
-    cusparseHandle_t CudaRuntime::getcuSparseHandle()
+    cusparseHandle_t CudaRuntime::getcuSparseHandle() const
     {
-        if (!this->cusparse_)
+        std::call_once(cusparse_once_, [this]()
         {
             cusparse_ = std::make_shared<cuSparseRuntime>();
             cusparse_->setStream(this->getStream());
-        }
+        });
         return this->cusparse_->getHandle();
     };
 

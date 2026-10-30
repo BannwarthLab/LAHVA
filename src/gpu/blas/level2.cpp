@@ -326,7 +326,7 @@ namespace lahva
         };
 
         template <typename T>
-        void MatrixVectorProduct_blockdiag(CudaRuntime& cudart, const char* ta, const T alpha, const BlockDiagMatrix<T>& a,
+        void MatrixVectorProduct_blockdiag(const CudaRuntime& cudart, const char* ta, const T alpha, const BlockDiagMatrix<T>& a,
                                 const Vector<T>& x, const T beta, Vector<T>& y)
         {
             cublasOperation_t transa = get_trans(ta);
@@ -400,7 +400,7 @@ namespace lahva
         /// @param x Input double-precision vector matching the column structure of a.
         /// @param beta Scalar factor for vector y.
         /// @param y Input/output double-precision vector, replaced with result.
-        void MatrixVectorProduct(CudaRuntime& cudart, const char* ta, const double alpha, const BlockDiagMatrix<double>& a,
+        void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const double alpha, const BlockDiagMatrix<double>& a,
                                 const Vector<double>& x, const double beta, Vector<double>& y)
         {
             MatrixVectorProduct_blockdiag(cudart, ta, alpha, a, x, beta, y);
@@ -419,7 +419,7 @@ namespace lahva
         /// @param x Input single-precision vector matching the column structure of a.
         /// @param beta Scalar factor for vector y.
         /// @param y Input/output single-precision vector, replaced with result.
-        void MatrixVectorProduct(CudaRuntime& cudart, const char* ta, const float alpha, const BlockDiagMatrix<float>& a,
+        void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const float alpha, const BlockDiagMatrix<float>& a,
                                 const Vector<float>& x, const float beta, Vector<float>& y)
         {
             MatrixVectorProduct_blockdiag(cudart, ta, alpha, a, x, beta, y);
@@ -440,7 +440,7 @@ namespace lahva
         /// @param beta Scalar factor for vector y.
         /// @param y Input/output vector, replaced with result (size must match matrix rows or columns if transposed).
         template <typename T>
-        void MatrixVectorProduct_sparse(CudaRuntime &cudart, const char* ta, const T alpha, const BlockMatrix_<T>& a,
+        void MatrixVectorProduct_sparse(const CudaRuntime &cudart, const char* ta, const T alpha, const BlockMatrix_<T>& a,
                                 const Vector_<T>& x, const T beta, Vector_<T>& y)
         {
             cusparseOperation_t op = get_cusparse_trans(ta);
@@ -479,10 +479,10 @@ namespace lahva
         }
 
         // Explicit template instantiations
-        template void MatrixVectorProduct_sparse<float>(CudaRuntime&, const char*, float, const BlockMatrix_<float>&, const Vector_<float>&, float, Vector_<float>&);
-        template void MatrixVectorProduct_sparse<double>(CudaRuntime&, const char*, double, const BlockMatrix_<double>&, const Vector_<double>&, double, Vector_<double>&);
-        template void MatrixVectorProduct_blockdiag<float>(CudaRuntime&, const char*, float, const BlockDiagMatrix<float>&, const Vector<float>&, float, Vector<float>&);
-        template void MatrixVectorProduct_blockdiag<double>(CudaRuntime&, const char*, double, const BlockDiagMatrix<double>&, const Vector<double>&, double, Vector<double>&);
+        template void MatrixVectorProduct_sparse<float>(const CudaRuntime&, const char*, float, const BlockMatrix_<float>&, const Vector_<float>&, float, Vector_<float>&);
+        template void MatrixVectorProduct_sparse<double>(const CudaRuntime&, const char*, double, const BlockMatrix_<double>&, const Vector_<double>&, double, Vector_<double>&);
+        template void MatrixVectorProduct_blockdiag<float>(const CudaRuntime&, const char*, float, const BlockDiagMatrix<float>&, const Vector<float>&, float, Vector<float>&);
+        template void MatrixVectorProduct_blockdiag<double>(const CudaRuntime&, const char*, double, const BlockDiagMatrix<double>&, const Vector<double>&, double, Vector<double>&);
 
         /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
         for specified stride

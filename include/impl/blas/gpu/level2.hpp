@@ -182,7 +182,7 @@ namespace lahva
     /// @param x Input GPU vector (Vector<double>)
     /// @param beta Scalar multiplier for vector y (double)
     /// @param y Input/output GPU vector (Vector<double>), replaced with result
-    void MatrixVectorProduct(CudaRuntime& cudart, const char* ta, const double alpha, const BlockDiagMatrix<double>& a,
+    void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const double alpha, const BlockDiagMatrix<double>& a,
                             const Vector<double>& x, const double beta, Vector<double>& y);
 
     /// @brief Computes block-diagonal matrix-vector product with double-precision GPU tensors (convenience overload).
@@ -196,7 +196,7 @@ namespace lahva
     /// @param ta Transposition character (default: "N" for no transpose)
     /// @param alpha Scalar multiplier (default: 1.0)
     /// @param beta Scalar multiplier for y (default: 0.0)
-    inline void MatrixVectorProduct(CudaRuntime& cudart, const BlockDiagMatrix<double>& a, const Vector<double>& x, Vector<double>& y,
+    inline void MatrixVectorProduct(const CudaRuntime& cudart, const BlockDiagMatrix<double>& a, const Vector<double>& x, Vector<double>& y,
                             const char* ta = "N", const double alpha = 1.0, const double beta = 0.0)
     {
         MatrixVectorProduct(cudart, ta, alpha, a, x, beta, y);
@@ -215,7 +215,7 @@ namespace lahva
     /// @param x Input GPU vector (Vector<float>)
     /// @param beta Scalar multiplier for vector y (float)
     /// @param y Input/output GPU vector (Vector<float>), replaced with result
-    void MatrixVectorProduct(CudaRuntime& cudart, const char* ta, const float alpha, const BlockDiagMatrix<float>& a,
+    void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const float alpha, const BlockDiagMatrix<float>& a,
                             const Vector<float>& x, const float beta, Vector<float>& y);
 
     /// @brief Computes block-diagonal matrix-vector product with single-precision GPU tensors (convenience overload).
@@ -229,7 +229,7 @@ namespace lahva
     /// @param ta Transposition character (default: "N" for no transpose)
     /// @param alpha Scalar multiplier (default: 1.0)
     /// @param beta Scalar multiplier for y (default: 0.0)
-    inline void MatrixVectorProduct(CudaRuntime& cudart, const BlockDiagMatrix<float>& a, const Vector<float>& x, Vector<float>& y,
+    inline void MatrixVectorProduct(const CudaRuntime& cudart, const BlockDiagMatrix<float>& a, const Vector<float>& x, Vector<float>& y,
                             const char* ta = "N", const float alpha = 1.0, const float beta = 0.0)
     {
         MatrixVectorProduct(cudart, ta, alpha, a, x, beta, y);
@@ -238,7 +238,7 @@ namespace lahva
     /// @brief Implementation of sparse matrix-vector product with BlockMatrix using cuSPARSE.
     /// Should be called via the public MatrixVectorProduct wrapper functions for double and float precision.
     template <typename T>
-    void MatrixVectorProduct_sparse(CudaRuntime& cudart, const char* ta, const T alpha, const BlockMatrix_<T>& a,
+    void MatrixVectorProduct_sparse(const CudaRuntime& cudart, const char* ta, const T alpha, const BlockMatrix_<T>& a,
                             const Vector_<T>& x, const T beta, Vector_<T>& y);
 
 
@@ -255,7 +255,7 @@ namespace lahva
     /// @param x Input double-precision vector.
     /// @param beta Scalar factor for vector y.
     /// @param y Input/output double-precision vector, replaced with result.
-    inline void MatrixVectorProduct(CudaRuntime& cudart, const char* ta, const double alpha, const BlockMatrix_<double>& a,
+    inline void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const double alpha, const BlockMatrix_<double>& a,
                             const Vector_<double>& x, const double beta, Vector_<double>& y)
     {
         MatrixVectorProduct_sparse<double>(cudart, ta, alpha, a, x, beta, y);
@@ -272,7 +272,7 @@ namespace lahva
     /// @param ta Operation on matrix A (default: "N").
     /// @param alpha Scalar multiplier (default: 1.0).
     /// @param beta Scalar multiplier for y (default: 0.0).
-    inline void MatrixVectorProduct(CudaRuntime& cudart, const BlockMatrix_<double>& a, const Vector_<double>& x, Vector_<double>& y,
+    inline void MatrixVectorProduct(const CudaRuntime& cudart, const BlockMatrix_<double>& a, const Vector_<double>& x, Vector_<double>& y,
                             const char* ta = "N", const double alpha = 1.0, const double beta = 0.0)
     {
         MatrixVectorProduct(cudart, ta, alpha, a, x, beta, y);
@@ -291,7 +291,7 @@ namespace lahva
     /// @param x Input single-precision vector.
     /// @param beta Scalar factor for vector y.
     /// @param y Input/output single-precision vector, replaced with result.
-    inline void MatrixVectorProduct(CudaRuntime& cudart, const char* ta, const float alpha, const BlockMatrix_<float>& a,
+    inline void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const float alpha, const BlockMatrix_<float>& a,
                             const Vector_<float>& x, const float beta, Vector_<float>& y)
     {
         MatrixVectorProduct_sparse<float>(cudart, ta, alpha, a, x, beta, y);
@@ -308,7 +308,7 @@ namespace lahva
     /// @param ta Operation on matrix A (default: "N").
     /// @param alpha Scalar multiplier (default: 1.0).
     /// @param beta Scalar multiplier for y (default: 0.0).
-    inline void MatrixVectorProduct(CudaRuntime& cudart, const BlockMatrix_<float>& a, const Vector_<float>& x, Vector_<float>& y,
+    inline void MatrixVectorProduct(const CudaRuntime& cudart, const BlockMatrix_<float>& a, const Vector_<float>& x, Vector_<float>& y,
                             const char* ta = "N", const float alpha = 1.0, const float beta = 0.0)
     {
         MatrixVectorProduct(cudart, ta, alpha, a, x, beta, y);

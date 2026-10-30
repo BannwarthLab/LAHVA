@@ -13,6 +13,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <mutex>
 
 #include "const.h"
 
@@ -108,7 +109,10 @@ namespace lahva{
         
         /// @brief Shared pointer to cuSPARSE runtime for sparse matrix operations.
         /// Lazily initialized on first access via getcuSparseHandle().
-        std::shared_ptr<cuSparseRuntime> cusparse_;
+        mutable std::shared_ptr<cuSparseRuntime> cusparse_;
+
+        /// @brief Guards the lazy creation of cusparse_, so that threads can share a const runtime.
+        mutable std::once_flag cusparse_once_;
         
         /// @brief Flag indicating whether the cuBLAS handle should be deleted by destructor.
         bool delete_handle = false;
@@ -182,7 +186,7 @@ namespace lahva{
 
         /// @brief Retrieve or create the cuSPARSE handle.
         /// @return cusparseHandle_t for GPU sparse matrix operations.
-        cusparseHandle_t getcuSparseHandle();
+        cusparseHandle_t getcuSparseHandle() const;
 
         /// @brief Check if runtime is configured for asynchronous operations.
         /// @return True if async copy and stream-based execution are enabled.

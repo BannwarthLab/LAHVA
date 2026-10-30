@@ -1458,6 +1458,34 @@ int test_gpu_blockmatrix_simple(CudaRuntime& cudart) {
 }
 
 template <typename T>
+int test_gpu_blockmatrix_const_runtime(const CudaRuntime& cudart) {
+
+    BlockMatrix<T> A;
+    Matrix<T, CudaHostAllocator<T>> block1(Shape{2, 2}, {1, 3, 2, 4});
+    Matrix<T, CudaHostAllocator<T>> block2(Shape{2, 2}, {5, 7, 6, 8});
+    A.set_block(0, 0, block1);  // Top-left
+    A.set_block(2, 2, block2);  // Bottom-right
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{4, 3});
+    for (int i = 0; i < 12; i++) {
+        B.data()[i] = static_cast<T>(i + 1);
+    }
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{4, 3}, (T)0);
+
+    // Convenience overload, which forwards to the explicit one with a const runtime
+    MatrixMatrixProduct(cudart, A, B, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)5.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), (T)17.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(2, 0), (T)39.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
 int test_gpu_blockmatrix_sparse_layout(CudaRuntime& cudart) {
 
     // Create a sparse block matrix with non-contiguous blocks
@@ -2353,6 +2381,8 @@ int main(){
     total_failures += test_gpu_blockmatrix_simple<float>(cudart);
     total_failures += test_gpu_blockmatrix_sparse_layout<float>(cudart);
     total_failures += test_gpu_blockmatrix_mixed_sizes<float>(cudart);
+    total_failures += test_gpu_blockmatrix_const_runtime<double>(cudart);
+    total_failures += test_gpu_blockmatrix_const_runtime<float>(cudart);
 
     // Dense times BlockDiagMatrix tests (A is dense, B is sparse)
     total_failures += test_gpu_dense_times_blockdiag_simple<double>(cudart);

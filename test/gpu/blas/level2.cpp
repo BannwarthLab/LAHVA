@@ -789,6 +789,59 @@ int test_gpu_blockmatrix_gemv_bsr_with_beta(CudaRuntime& cudart) {
 }
 
 template <typename T>
+int test_gpu_blockmatrix_gemv_const_runtime(const CudaRuntime& cudart) {
+
+    BlockMatrix<T> A;
+    Matrix<T, CudaHostAllocator<T>> block1(Shape{2, 2}, {
+        (T)1, (T)2,
+        (T)3, (T)4
+    });
+
+    A.set_block(0, 0, block1);
+
+    Vector<T, CudaHostAllocator<T>> x(2, (T)1);
+    Vector<T, CudaHostAllocator<T>> y(2, (T)2);
+
+    MatrixVectorProduct(cudart, "N", (T)1.0, A, x, (T)2.0, y);
+
+    y.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(y[0], (T)8.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y[1], (T)10.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemv_const_runtime(const CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T, CudaHostAllocator<T>> x(4);
+    x[0] = 1.0;
+    x[1] = 2.0;
+    x[2] = 3.0;
+    x[3] = 4.0;
+
+    Vector<T, CudaHostAllocator<T>> y(4, 0.0);
+
+    MatrixVectorProduct(cudart, A, x, y);
+    y.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(y[0], static_cast<T>(5.0), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(11.0), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y[2], static_cast<T>(39.0), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(y[3], static_cast<T>(53.0), check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
 int test_gpu_blockmatrix_gemv_csr_format(CudaRuntime& cudart) {
 
     // Create a BlockMatrix with non-uniform blocks (CSR format)
@@ -1028,6 +1081,10 @@ int main(){
     total_failures += test_gpu_blockmatrix_gemv_bsr_format<float>(cudart);
     total_failures += test_gpu_blockmatrix_gemv_bsr_with_beta<double>(cudart);
     total_failures += test_gpu_blockmatrix_gemv_bsr_with_beta<float>(cudart);
+    total_failures += test_gpu_blockmatrix_gemv_const_runtime<double>(cudart);
+    total_failures += test_gpu_blockmatrix_gemv_const_runtime<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_const_runtime<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemv_const_runtime<float>(cudart);
     total_failures += test_gpu_blockmatrix_gemv_transpose_bsr<double>(cudart);
     total_failures += test_gpu_blockmatrix_gemv_transpose_bsr<float>(cudart);
 
