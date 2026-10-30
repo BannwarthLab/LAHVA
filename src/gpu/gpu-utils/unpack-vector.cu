@@ -33,15 +33,17 @@ namespace lahva
             int num_blocks)
         {
             int block_idx = blockIdx.x;
-            int thread_idx = threadIdx.x;
+            // A matrix block can have more elements than a kernel block has threads,
+            // so blockIdx.y selects which chunk of the matrix block this kernel block handles
+            size_t element_idx = blockIdx.y * blockDim.x + threadIdx.x;
 
             if (block_idx >= num_blocks) return;
 
             size_t block_size = block_sizes[block_idx];
-            if (thread_idx >= block_size) return;
+            if (element_idx >= block_size) return;
 
             int offset = offsets[block_idx];
-            dst[offset + thread_idx] = src[block_idx * max_size + thread_idx];
+            dst[offset + element_idx] = src[block_idx * max_size + element_idx];
         }
 
 
@@ -68,7 +70,11 @@ namespace lahva
             size_t max_size,
             int num_blocks)
         {
-            unpack_vector_kernel<<<num_blocks, cudart.blockSize(), 0, cudart.getStream()>>>(
+            const size_t threads_per_block = cudart.blockSize();
+            const size_t chunks_per_block = std::max<size_t>((max_size + threads_per_block - 1) / threads_per_block, 1);
+            const dim3 grid(static_cast<unsigned int>(num_blocks), static_cast<unsigned int>(chunks_per_block));
+
+            unpack_vector_kernel<<<grid, cudart.blockSize(), 0, cudart.getStream()>>>(
                 src, dst, d_offsets, d_block_sizes, max_size, num_blocks);
         }
 

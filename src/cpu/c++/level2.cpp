@@ -77,7 +77,7 @@ namespace lahva
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             BLAS_INT lda = get_leading(nrow, ncol);
 
             cblas_dgemv(major, trans, nrow, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
@@ -103,7 +103,7 @@ namespace lahva
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             BLAS_INT lda = get_leading(nrow, ncol);
             cblas_dgemv(major, trans, nrow, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
         };
@@ -130,7 +130,7 @@ namespace lahva
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             BLAS_INT lda = get_leading(nrow, ncol);
             cblas_sgemv(major, trans, nrow, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
         };
@@ -155,7 +155,7 @@ namespace lahva
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             BLAS_INT lda = get_leading(nrow, ncol);
             cblas_sgemv(major, trans, nrow, ncol, alpha, a.data(), lda, x.data(), inx, beta, y.data(), iny);
         };
@@ -182,7 +182,7 @@ namespace lahva
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             BLAS_INT lda = get_leading(nrow, ncol);
 
             cblas_zgemv(major, trans, nrow, ncol, &alpha, a.data(), lda, x.data(), inx, &beta, y.data(), iny);
@@ -208,7 +208,7 @@ namespace lahva
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             BLAS_INT lda = get_leading(nrow, ncol);
             cblas_zgemv(major, trans, nrow, ncol, &alpha, a.data(), lda, x.data(), inx, &beta, y.data(), iny);
         };
@@ -235,7 +235,7 @@ namespace lahva
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             BLAS_INT lda = get_leading(nrow, ncol);
             cblas_cgemv(major, trans, nrow, ncol, &alpha, a.data(), lda, x.data(), inx, &beta, y.data(), iny);
         };
@@ -260,7 +260,7 @@ namespace lahva
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             BLAS_INT lda = get_leading(nrow, ncol);
             cblas_cgemv(major, trans, nrow, ncol, &alpha, a.data(), lda, x.data(), inx, &beta, y.data(), iny);
         };
@@ -281,7 +281,7 @@ namespace lahva
                                     const Vector_<double> &x, const size_t incx, const double beta, Vector_<double> &y, const size_t incy)
         {
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, CblasNoTrans, incx, incy);
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
 
@@ -314,7 +314,11 @@ namespace lahva
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
+
+            // Block offsets along op(A): transposing swaps its rows and columns
+            const std::vector<int> &x_offsets = (trans == CblasNoTrans) ? a.get_col_offsets() : a.get_row_offsets();
+            const std::vector<int> &y_offsets = (trans == CblasNoTrans) ? a.get_row_offsets() : a.get_col_offsets();
 
             #pragma omp parallel for schedule(guided)
             for (size_t i = 0; i < a.num_blocks(); ++i) {
@@ -323,8 +327,8 @@ namespace lahva
                 BLAS_INT n = static_cast<BLAS_INT>(block_shape.second);
 
                 const double* Ai = static_cast<const double*>(a.get_block_data(i));
-                const double* xi = x.data() + a.get_col_offsets()[i];
-                double* yi = y.data() + a.get_row_offsets()[i];
+                const double* xi = x.data() + x_offsets[i] * inx;
+                double* yi = y.data() + y_offsets[i] * iny;
 
                 cblas_dgemv(major, trans, m, n, alpha, Ai, m, xi, inx, beta, yi, iny);
             }
@@ -354,7 +358,11 @@ namespace lahva
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
+
+            // Block offsets along op(A): transposing swaps its rows and columns
+            const std::vector<int> &x_offsets = (trans == CblasNoTrans) ? a.get_col_offsets() : a.get_row_offsets();
+            const std::vector<int> &y_offsets = (trans == CblasNoTrans) ? a.get_row_offsets() : a.get_col_offsets();
 
             #pragma omp parallel for schedule(guided)
             for (size_t i = 0; i < a.num_blocks(); ++i) {
@@ -363,8 +371,8 @@ namespace lahva
                 BLAS_INT n = static_cast<BLAS_INT>(block_shape.second);
 
                 const float* Ai = static_cast<const float*>(a.get_block_data(i));
-                const float* xi = x.data() + a.get_col_offsets()[i];
-                float* yi = y.data() + a.get_row_offsets()[i];
+                const float* xi = x.data() + x_offsets[i] * inx;
+                float* yi = y.data() + y_offsets[i] * iny;
 
                 cblas_sgemv(major, trans, m, n, alpha, Ai, m, xi, inx, beta, yi, iny);
             }
@@ -386,7 +394,7 @@ namespace lahva
                                     const Vector_<float> &x, const size_t incx, const float beta, Vector_<float> &y, const size_t incy)
         {
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, CblasNoTrans, incx, incy);
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
 
@@ -413,7 +421,7 @@ namespace lahva
                                     const Vector_<double> &x, const size_t incx, const double beta, Vector_<double> &y, const size_t incy)
         {
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, CblasNoTrans, incx, incy);
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
 
@@ -438,7 +446,7 @@ namespace lahva
                                     const Vector_<float> &x, const size_t incx, const float beta, Vector_<float> &y, const size_t incy)
         {
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, CblasNoTrans, incx, incy);
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
 
@@ -463,7 +471,7 @@ namespace lahva
             CBLAS_TRANSPOSE trans = get_trans(T);
 
             int row, col;
-            std::tie(row, col) = check_size_mv(a, x);
+            std::tie(row, col) = check_size_mv(a, x, incx);
 
             cblas_dtpmv(major, tri, trans, unit, col, a.data(), x.data(), inx);
         };
@@ -486,7 +494,7 @@ namespace lahva
             CBLAS_TRANSPOSE trans = get_trans(T);
 
             int row, col;
-            std::tie(row, col) = check_size_mv(a, x);
+            std::tie(row, col) = check_size_mv(a, x, incx);
 
             cblas_stpmv(major, tri, trans, unit, col, a.data(), x.data(), inx);
         };

@@ -77,6 +77,12 @@ namespace lahva
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
 
+            // Block offsets along op(A): transposing swaps its rows and columns
+            const std::vector<int> &input_offsets = (transa == CblasNoTrans) ? a.get_col_offsets() : a.get_row_offsets();
+            const std::vector<int> &output_offsets = (transa == CblasNoTrans) ? a.get_row_offsets() : a.get_col_offsets();
+            // Rows of op(B) are columns of B when transposed
+            const int b_stride = (transb == CblasNoTrans) ? 1 : b_rows;
+
             std::vector<const double*> a_array, b_array;
             std::vector<double*> c_array;
 
@@ -114,8 +120,8 @@ namespace lahva
                 size_t group_count = i - group_start;
 
                 // Determine dimensions based on transpose
-                int logical_m = (transa == CblasTrans) ? block_k : block_m;
-                int logical_k = (transa == CblasTrans) ? block_m : block_k;
+                int logical_m = (transa != CblasNoTrans) ? block_k : block_m;
+                int logical_k = (transa != CblasNoTrans) ? block_m : block_k;
 
                 // Add parameters once per group
                 m_vals.push_back(logical_m);
@@ -126,8 +132,8 @@ namespace lahva
                 // Add pointers for all blocks in this group
                 for (size_t j = group_start; j < i; ++j) {
                     a_array.push_back(static_cast<const double*>(a.get_block_data(j)));
-                    b_array.push_back(b.data() + a.get_col_offsets()[j]);
-                    c_array.push_back(c.data() + a.get_row_offsets()[j]);
+                    b_array.push_back(b.data() + input_offsets[j] * b_stride);
+                    c_array.push_back(c.data() + output_offsets[j]);
                 }
             }
 
@@ -168,8 +174,8 @@ namespace lahva
                 BLAS_INT block_k = static_cast<BLAS_INT>(block_shape.second);
 
                 // Determine dimensions based on transpose
-                BLAS_INT logical_m = (transa == CblasTrans) ? block_k : block_m;
-                BLAS_INT logical_k = (transa == CblasTrans) ? block_m : block_k;
+                BLAS_INT logical_m = (transa != CblasNoTrans) ? block_k : block_m;
+                BLAS_INT logical_k = (transa != CblasNoTrans) ? block_m : block_k;
 
                 cblas_dgemm(
                     major,
@@ -181,10 +187,10 @@ namespace lahva
                     alpha,
                     static_cast<const double*>(a.get_block_data(i)),
                     block_m,
-                    b.data() + a.get_col_offsets()[i],
+                    b.data() + input_offsets[i] * b_stride,
                     b_rows,
                     beta,
-                    c.data() + a.get_row_offsets()[i],
+                    c.data() + output_offsets[i],
                     m_out
                 );
             }
@@ -220,6 +226,12 @@ namespace lahva
 
             int m, n, k;
             std::tie(m, n, k) = check_size_mm(a, b, c, transa, transb);
+
+            // Block offsets along op(A): transposing swaps its rows and columns
+            const std::vector<int> &input_offsets = (transa == CblasNoTrans) ? a.get_col_offsets() : a.get_row_offsets();
+            const std::vector<int> &output_offsets = (transa == CblasNoTrans) ? a.get_row_offsets() : a.get_col_offsets();
+            // Rows of op(B) are columns of B when transposed
+            const int b_stride = (transb == CblasNoTrans) ? 1 : b_rows;
 
             std::vector<const float*> a_array, b_array;
             std::vector<float*> c_array;
@@ -258,8 +270,8 @@ namespace lahva
                 size_t group_count = i - group_start;
 
                 // Determine logical dimensions based on transpose
-                MKL_INT logical_m = (transa == CblasTrans) ? block_k : block_m;
-                MKL_INT logical_k = (transa == CblasTrans) ? block_m : block_k;
+                MKL_INT logical_m = (transa != CblasNoTrans) ? block_k : block_m;
+                MKL_INT logical_k = (transa != CblasNoTrans) ? block_m : block_k;
 
                 // Add parameters once per group
                 m_vals.push_back(logical_m);
@@ -270,8 +282,8 @@ namespace lahva
                 // Add pointers for all blocks in this group
                 for (size_t j = group_start; j < i; ++j) {
                     a_array.push_back(static_cast<const float*>(a.get_block_data(j)));
-                    b_array.push_back(b.data() + a.get_col_offsets()[j]);
-                    c_array.push_back(c.data() + a.get_row_offsets()[j]);
+                    b_array.push_back(b.data() + input_offsets[j] * b_stride);
+                    c_array.push_back(c.data() + output_offsets[j]);
                 }
             }
 
@@ -312,8 +324,8 @@ namespace lahva
                 BLAS_INT block_k = static_cast<BLAS_INT>(block_shape.second);
 
                 // Determine dimensions based on transpose
-                BLAS_INT logical_m = (transa == CblasTrans) ? block_k : block_m;
-                BLAS_INT logical_k = (transa == CblasTrans) ? block_m : block_k;
+                BLAS_INT logical_m = (transa != CblasNoTrans) ? block_k : block_m;
+                BLAS_INT logical_k = (transa != CblasNoTrans) ? block_m : block_k;
 
                 cblas_sgemm(
                     major,
@@ -325,10 +337,10 @@ namespace lahva
                     alpha,
                     static_cast<const float*>(a.get_block_data(i)),
                     block_m,
-                    b.data() + a.get_col_offsets()[i],
+                    b.data() + input_offsets[i] * b_stride,
                     b_rows,
                     beta,
-                    c.data() + a.get_row_offsets()[i],
+                    c.data() + output_offsets[i],
                     m_out
                 );
             }
@@ -363,6 +375,12 @@ namespace lahva
             int m_out, n_out, k_out;
             std::tie(m_out, n_out, k_out) = check_size_mm(a, b, c, transa, transb);
 
+            // Block offsets along op(B): transposing swaps its rows and columns
+            const std::vector<int> &input_offsets = (transb == CblasNoTrans) ? b.get_row_offsets() : b.get_col_offsets();
+            const std::vector<int> &output_offsets = (transb == CblasNoTrans) ? b.get_col_offsets() : b.get_row_offsets();
+            // Columns of op(A) are rows of A when transposed
+            const int a_stride = (transa == CblasNoTrans) ? m : 1;
+
             std::vector<const double*> a_array, b_array;
             std::vector<double*> c_array;
 
@@ -387,8 +405,8 @@ namespace lahva
                 MKL_INT block_n = static_cast<MKL_INT>(block_shape.second);
 
                 // Use transposed dimensions for grouping if transpose is applied
-                MKL_INT current_k = (transb == CblasTrans) ? block_n : block_k;
-                MKL_INT current_n = (transb == CblasTrans) ? block_k : block_n;
+                MKL_INT current_k = (transb != CblasNoTrans) ? block_n : block_k;
+                MKL_INT current_n = (transb != CblasNoTrans) ? block_k : block_n;
                 size_t group_start = i;
 
                 // Find consecutive blocks with same dimensions (accounting for transpose)
@@ -396,8 +414,8 @@ namespace lahva
                     Shape shape = b.get_block_shape(i);
                     MKL_INT shape_k = static_cast<MKL_INT>(shape.first);
                     MKL_INT shape_n = static_cast<MKL_INT>(shape.second);
-                    MKL_INT logical_k = (transb == CblasTrans) ? shape_n : shape_k;
-                    MKL_INT logical_n = (transb == CblasTrans) ? shape_k : shape_n;
+                    MKL_INT logical_k = (transb != CblasNoTrans) ? shape_n : shape_k;
+                    MKL_INT logical_n = (transb != CblasNoTrans) ? shape_k : shape_n;
                     if (logical_k == current_k && logical_n == current_n) {
                         ++i;
                     } else {
@@ -408,7 +426,7 @@ namespace lahva
                 size_t group_count = i - group_start;
 
                 // Determine m_val based on A's transpose flag
-                MKL_INT m_val = (transa == CblasTrans) ? k : m;
+                MKL_INT m_val = (transa != CblasNoTrans) ? k : m;
 
                 // Add parameters once per group
                 m_vals.push_back(m_val);
@@ -419,9 +437,9 @@ namespace lahva
 
                 // Add pointers for all blocks in this group
                 for (size_t j = group_start; j < i; ++j) {
-                    a_array.push_back(a.data() + b.get_row_offsets()[j] * m);
+                    a_array.push_back(a.data() + input_offsets[j] * a_stride);
                     b_array.push_back(static_cast<const double*>(b.get_block_data(j)));
-                    c_array.push_back(c.data() + b.get_col_offsets()[j] * m);
+                    c_array.push_back(c.data() + output_offsets[j] * m_out);
                 }
             }
 
@@ -461,9 +479,9 @@ namespace lahva
                 BLAS_INT block_n = static_cast<BLAS_INT>(block_shape.second);
 
                 // Use transposed dimensions if transpose is applied
-                BLAS_INT logical_k = (transb == CblasTrans) ? block_n : block_k;
-                BLAS_INT logical_n = (transb == CblasTrans) ? block_k : block_n;
-                BLAS_INT m_val = (transa == CblasTrans) ? k : m;
+                BLAS_INT logical_k = (transb != CblasNoTrans) ? block_n : block_k;
+                BLAS_INT logical_n = (transb != CblasNoTrans) ? block_k : block_n;
+                BLAS_INT m_val = (transa != CblasNoTrans) ? k : m;
 
                 cblas_dgemm(
                     major,
@@ -473,12 +491,12 @@ namespace lahva
                     logical_n,
                     logical_k,
                     alpha,
-                    a.data() + b.get_row_offsets()[i] * m,
+                    a.data() + input_offsets[i] * a_stride,
                     m,
                     static_cast<const double*>(b.get_block_data(i)),
                     block_k,
                     beta,
-                    c.data() + b.get_col_offsets()[i] * m,
+                    c.data() + output_offsets[i] * m_out,
                     m_out
                 );
             }
@@ -514,6 +532,12 @@ namespace lahva
             int m_out, n_out, k_out;
             std::tie(m_out, n_out, k_out) = check_size_mm(a, b, c, transa, transb);
 
+            // Block offsets along op(B): transposing swaps its rows and columns
+            const std::vector<int> &input_offsets = (transb == CblasNoTrans) ? b.get_row_offsets() : b.get_col_offsets();
+            const std::vector<int> &output_offsets = (transb == CblasNoTrans) ? b.get_col_offsets() : b.get_row_offsets();
+            // Columns of op(A) are rows of A when transposed
+            const int a_stride = (transa == CblasNoTrans) ? m : 1;
+
             std::vector<const float*> a_array, b_array;
             std::vector<float*> c_array;
 
@@ -538,8 +562,8 @@ namespace lahva
                 MKL_INT block_n = static_cast<MKL_INT>(block_shape.second);
 
                 // Use transposed dimensions for grouping if transpose is applied
-                MKL_INT current_k = (transb == CblasTrans) ? block_n : block_k;
-                MKL_INT current_n = (transb == CblasTrans) ? block_k : block_n;
+                MKL_INT current_k = (transb != CblasNoTrans) ? block_n : block_k;
+                MKL_INT current_n = (transb != CblasNoTrans) ? block_k : block_n;
                 size_t group_start = i;
 
                 // Find consecutive blocks with same dimensions (accounting for transpose)
@@ -547,8 +571,8 @@ namespace lahva
                     Shape shape = b.get_block_shape(i);
                     MKL_INT shape_k = static_cast<MKL_INT>(shape.first);
                     MKL_INT shape_n = static_cast<MKL_INT>(shape.second);
-                    MKL_INT logical_k = (transb == CblasTrans) ? shape_n : shape_k;
-                    MKL_INT logical_n = (transb == CblasTrans) ? shape_k : shape_n;
+                    MKL_INT logical_k = (transb != CblasNoTrans) ? shape_n : shape_k;
+                    MKL_INT logical_n = (transb != CblasNoTrans) ? shape_k : shape_n;
                     if (logical_k == current_k && logical_n == current_n) {
                         ++i;
                     } else {
@@ -559,7 +583,7 @@ namespace lahva
                 size_t group_count = i - group_start;
 
                 // Determine m_val based on A's transpose flag
-                MKL_INT m_val = (transa == CblasTrans) ? k : m;
+                MKL_INT m_val = (transa != CblasNoTrans) ? k : m;
 
                 // Add parameters once per group
                 m_vals.push_back(m_val);
@@ -570,9 +594,9 @@ namespace lahva
 
                 // Add pointers for all blocks in this group
                 for (size_t j = group_start; j < i; ++j) {
-                    a_array.push_back(a.data() + b.get_row_offsets()[j] * m);
+                    a_array.push_back(a.data() + input_offsets[j] * a_stride);
                     b_array.push_back(static_cast<const float*>(b.get_block_data(j)));
-                    c_array.push_back(c.data() + b.get_col_offsets()[j] * m);
+                    c_array.push_back(c.data() + output_offsets[j] * m_out);
                 }
             }
 
@@ -612,9 +636,9 @@ namespace lahva
                 BLAS_INT block_n = static_cast<BLAS_INT>(block_shape.second);
 
                 // Use transposed dimensions if transpose is applied
-                BLAS_INT logical_k = (transb == CblasTrans) ? block_n : block_k;
-                BLAS_INT logical_n = (transb == CblasTrans) ? block_k : block_n;
-                BLAS_INT m_val = (transa == CblasTrans) ? k : m;
+                BLAS_INT logical_k = (transb != CblasNoTrans) ? block_n : block_k;
+                BLAS_INT logical_n = (transb != CblasNoTrans) ? block_k : block_n;
+                BLAS_INT m_val = (transa != CblasNoTrans) ? k : m;
 
                 cblas_sgemm(
                     major,
@@ -624,12 +648,12 @@ namespace lahva
                     logical_n,
                     logical_k,
                     alpha,
-                    a.data() + b.get_row_offsets()[i] * m,
+                    a.data() + input_offsets[i] * a_stride,
                     m,
                     static_cast<const float*>(b.get_block_data(i)),
                     block_k,
                     beta,
-                    c.data() + b.get_col_offsets()[i] * m,
+                    c.data() + output_offsets[i] * m_out,
                     m_out
                 );
             }

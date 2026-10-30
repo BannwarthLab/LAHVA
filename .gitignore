@@ -2,6 +2,7 @@ _*
 .*
 !.gitlab
 !.gitlab/.gitlab-ci.yml
+doxygen/*
 
 *sif
 examples/*

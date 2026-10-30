@@ -28,7 +28,20 @@ namespace lahva
 
         };
 
-   
+        /// @brief Checks that a vector holds n elements at the given stride.
+        ///
+        /// Without a stride the vector must have exactly n elements. With a stride it may be
+        /// longer, as long as the last element at that stride is within the vector.
+        ///
+        /// @param size Number of elements in the vector.
+        /// @param n Number of elements the operation accesses.
+        /// @param inc Stride between the accessed elements.
+        /// @return True if the vector is valid for the operation.
+        inline bool fits_stride(size_t size, size_t n, size_t inc)
+        {
+            if (inc == 1) return size == n;
+            return n == 0 || size >= 1 + (n - 1) * inc;
+        };
 
         /// @brief Validates tensor shapes for matrix-vector multiplication operation.
         ///
@@ -40,22 +53,25 @@ namespace lahva
         /// @param vmult Vector to multiply (must match matrix column count or row count if transposed).
         /// @param vres Result vector (must match matrix row count or column count if transposed).
         /// @param trans Optional transpose operation on matrix (default: CUBLAS_OP_N for no transpose).
+        /// @param incx Stride of the vector to multiply (default: 1).
+        /// @param incy Stride of the result vector (default: 1).
         /// @return Tuple of (nrow, ncol) dimensions of the matrix.
         template <typename T>
-        std::tuple<size_t, size_t> check_size_mv(const Matrix_<T> &m, const Tensor_<T> &vmult, const Tensor_<T> &vres, cublasOperation_t trans = CUBLAS_OP_N)
+        std::tuple<size_t, size_t> check_size_mv(const Matrix_<T> &m, const Tensor_<T> &vmult, const Tensor_<T> &vres, cublasOperation_t trans = CUBLAS_OP_N,
+                                                 size_t incx = 1, size_t incy = 1)
         {
             Shape s = m.shape();
             size_t nrow = s.first;
             size_t ncol = s.second;
             if (trans == CUBLAS_OP_N)
             {
-                assert(nrow == vres.size());
-                assert(ncol == vmult.size());
+                assert(fits_stride(vres.size(), nrow, incy));
+                assert(fits_stride(vmult.size(), ncol, incx));
             }
             else
             {
-                assert(nrow == vmult.size());
-                assert(ncol == vres.size());
+                assert(fits_stride(vmult.size(), nrow, incx));
+                assert(fits_stride(vres.size(), ncol, incy));
             }
 
             return std::make_tuple(nrow, ncol);
@@ -71,22 +87,25 @@ namespace lahva
         /// @param vmult Vector to multiply (must match matrix column count or row count if transposed).
         /// @param vres Result vector (must match matrix row count or column count if transposed).
         /// @param trans Optional transpose operation on matrix (default: CUBLAS_OP_N for no transpose).
+        /// @param incx Stride of the vector to multiply (default: 1).
+        /// @param incy Stride of the result vector (default: 1).
         /// @return Tuple of (nrow, ncol) dimensions of the matrix.
         template <typename T>
-        std::tuple<size_t, size_t> check_size_mv(const LowTriMatrix_<T> &m, const Vector_<T> &vmult, const Vector_<T> &vres, cublasOperation_t trans = CUBLAS_OP_N)
+        std::tuple<size_t, size_t> check_size_mv(const LowTriMatrix_<T> &m, const Vector_<T> &vmult, const Vector_<T> &vres, cublasOperation_t trans = CUBLAS_OP_N,
+                                                 size_t incx = 1, size_t incy = 1)
         {
             Shape s = m.shape();
             size_t nrow = s.first;
             size_t ncol = s.second;
             if (trans == CUBLAS_OP_N)
             {
-                assert(nrow == vres.size());
-                assert(ncol == vmult.size());
+                assert(fits_stride(vres.size(), nrow, incy));
+                assert(fits_stride(vmult.size(), ncol, incx));
             }
             else
             {
-                assert(nrow == vmult.size());
-                assert(ncol == vres.size());
+                assert(fits_stride(vmult.size(), nrow, incx));
+                assert(fits_stride(vres.size(), ncol, incy));
             }
 
             return std::make_tuple(nrow, ncol);

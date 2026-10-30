@@ -77,6 +77,12 @@ namespace lahva
             /// @brief GPU vector for block row sizes
             mutable Vector<int> d_block_row_sizes_;
 
+            /// @brief GPU vector for column offsets
+            mutable Vector<int> d_col_offsets_;
+
+            /// @brief GPU vector for block column sizes
+            mutable Vector<int> d_block_col_sizes_;
+
             /// @brief Flag indicating if GPU offset vectors are valid
             mutable bool d_offsets_valid_ = false;
 
@@ -90,9 +96,13 @@ namespace lahva
         public:
             /// @brief Lazily copy host blocks to GPU (internal optimization - caches result)
             /// @note Internal library method; prefer copy2device() for public API
+            /// @throws std::invalid_argument if the matrix has no blocks
             const GPUBlockDiagData<T>& ensure_on_gpu(const CudaRuntime &cudart) const {
                 if (!gpu_data_valid_) {
                     copy2device(cudart);
+                }
+                if (gpu_data_ == nullptr) {
+                    throw std::invalid_argument("BlockDiagMatrix: matrix has no blocks to place on the GPU");
                 }
                 return *gpu_data_;
             }
@@ -102,7 +112,7 @@ namespace lahva
             bool is_on_gpu() const { return gpu_data_valid_; }
 
             /// @brief Free GPU cache memory
-            void free_gpu_cache() {
+            void free_gpu_cache() const {
                 if (gpu_data_ != nullptr) {
                     free_gpu_data(*gpu_data_);
                     delete gpu_data_;
@@ -449,6 +459,26 @@ namespace lahva
                 return d_block_row_sizes_.gpu_data();
             }
 
+            /// @brief Get GPU pointer to column offsets
+            /// @param[in] cudart CUDA runtime for device allocation
+            /// @return Device pointer to column offsets array
+            const int* get_d_col_offsets(const CudaRuntime &cudart) const {
+                if (!d_offsets_valid_) {
+                    init_gpu_offsets(cudart);
+                }
+                return d_col_offsets_.gpu_data();
+            }
+
+            /// @brief Get GPU pointer to block column sizes
+            /// @param[in] cudart CUDA runtime for device allocation
+            /// @return Device pointer to block column sizes array
+            const int* get_d_block_col_sizes(const CudaRuntime &cudart) const {
+                if (!d_offsets_valid_) {
+                    init_gpu_offsets(cudart);
+                }
+                return d_block_col_sizes_.gpu_data();
+            }
+
             /// @brief Extract main diagonals from all blocks as concatenated vector
             /// @return Vector containing diagonals of each block concatenated sequentially
             /// @note vector size equals sum of min(block_rows, block_cols) over all blocks
@@ -653,6 +683,7 @@ namespace lahva
                 update_dimensions();
                 row_offsets_valid_ = false;
                 col_offsets_valid_ = false;
+                d_offsets_valid_ = false;
             }
 
             /// @brief Print all blocks to standard output
@@ -692,6 +723,7 @@ namespace lahva
             /// @note Pads blocks to max dimensions for efficient batched operations; invalidates stale GPU cache
             void copy2device(const CudaRuntime &cudart) const override {
                 (void)cudart;
+                free_gpu_cache();
                 int num_blocks = blocks_.size();
 
                 if (num_blocks == 0) {
@@ -894,6 +926,20 @@ namespace lahva
                 d_block_row_sizes_ = Vector<int>(block_row_sizes.size());
                 std::copy(block_row_sizes.begin(), block_row_sizes.end(), d_block_row_sizes_.data());
                 d_block_row_sizes_.copy2device(cudart);
+
+                d_col_offsets_ = Vector<int>(col_offsets_.size());
+                std::copy(col_offsets_.begin(), col_offsets_.end(), d_col_offsets_.data());
+                d_col_offsets_.copy2device(cudart);
+
+                // Get block column sizes (differences between consecutive offsets)
+                std::vector<int> block_col_sizes;
+                for (size_t i = 0; i < col_offsets_.size() - 1; ++i) {
+                    block_col_sizes.push_back(col_offsets_[i + 1] - col_offsets_[i]);
+                }
+
+                d_block_col_sizes_ = Vector<int>(block_col_sizes.size());
+                std::copy(block_col_sizes.begin(), block_col_sizes.end(), d_block_col_sizes_.data());
+                d_block_col_sizes_.copy2device(cudart);
 
                 d_offsets_valid_ = true;
             }

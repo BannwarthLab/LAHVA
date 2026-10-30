@@ -152,7 +152,7 @@ meson test -C _build
 
 ```bash
 mkdir build && cd build
-cmake .. -DENABLE_GPU=ON
+cmake .. -DGPU=ON
 make
 ctest
 ```
@@ -160,7 +160,7 @@ ctest
 Or for a CPU-only build:
 ```bash
 mkdir build && cd build
-cmake .. -DENABLE_GPU=OFF
+cmake .. -DGPU=OFF
 make
 ctest
 ```

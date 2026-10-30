@@ -350,6 +350,53 @@ int test_blockdiag_ensure_on_gpu(const CudaRuntime& cudart) {
     return TEST_PASS;
 }
 
+template <typename T>
+int test_blockdiag_ensure_on_gpu_without_blocks(const CudaRuntime& cudart) {
+    const BlockDiagMatrix<T> m;
+
+    try {
+        m.ensure_on_gpu(cudart);
+    } catch (const std::invalid_argument &) {
+        return TEST_PASS;
+    }
+
+    std::cerr << check_msg(get_type_name<T>(), "expected std::invalid_argument") << std::endl;
+    return TEST_FAIL;
+}
+
+// Other processes on the GPU can disturb the measured memory, so this only fails when
+// nearly all of the repeated caches are missing from the free memory
+template <typename T>
+int test_blockdiag_repeated_copy2device_frees_cache(const CudaRuntime& cudart) {
+    const size_t n = 4096;
+    const size_t cache_bytes = n * n * sizeof(T);
+    const int n_repeats = 5;
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{n, n}, (T)1));
+    const BlockDiagMatrix<T> m(blocks);
+
+    size_t free_before = 0;
+    size_t free_after = 0;
+    size_t total = 0;
+
+    m.copy2device(cudart);
+    get_cuda_error(cudaMemGetInfo(&free_before, &total));
+
+    for (int i = 0; i < n_repeats; i++) {
+        m.copy2device(cudart);
+    }
+    get_cuda_error(cudaMemGetInfo(&free_after, &total));
+
+    const size_t lost = (free_before > free_after) ? free_before - free_after : 0;
+    if (lost >= (n_repeats - 1) * cache_bytes) {
+        std::cerr << check_msg(get_type_name<T>(), "device memory leaked: ") << lost << " bytes" << std::endl;
+        return TEST_FAIL;
+    }
+
+    return TEST_PASS;
+}
+
 // ============================================================================
 // BlockDiagMatrix Sparse Conversion Tests
 // ============================================================================
@@ -790,6 +837,10 @@ int main() {
     // BlockDiagMatrix GPU operations
     total_failures += test_blockdiag_ensure_on_gpu<double>(cudart);
     total_failures += test_blockdiag_ensure_on_gpu<float>(cudart);
+    total_failures += test_blockdiag_ensure_on_gpu_without_blocks<double>(cudart);
+    total_failures += test_blockdiag_ensure_on_gpu_without_blocks<float>(cudart);
+    total_failures += test_blockdiag_repeated_copy2device_frees_cache<double>(cudart);
+    total_failures += test_blockdiag_repeated_copy2device_frees_cache<float>(cudart);
     // GPU round-trip transfers
     total_failures += test_sparse_matrix_gpu_roundtrip_csr<double>();
     total_failures += test_sparse_matrix_gpu_roundtrip_csr<float>();

@@ -26,7 +26,21 @@ namespace lahva{
 
     namespace cpu
     {
-    
+
+    /// @brief Check that a vector holds n elements at the given stride.
+    ///
+    /// Without a stride the vector must have exactly n elements. With a stride it may be
+    /// longer, as long as the last element at that stride is within the vector.
+    ///
+    /// @param size Number of elements in the vector.
+    /// @param n Number of elements the operation accesses.
+    /// @param inc Stride between the accessed elements.
+    /// @return True if the vector is valid for the operation.
+    inline bool fits_stride(size_t size, size_t n, size_t inc){
+        if (inc == 1) return size == n;
+        return n == 0 || size >= 1 + (n - 1) * inc;
+    };
+
     /// @brief Validate matrix and vector dimensions for matrix-vector multiplication.
     ///
     /// Checks that the matrix and both vector operands have compatible dimensions
@@ -40,22 +54,25 @@ namespace lahva{
     /// @param vmult Input vector x that is multiplied by the matrix.
     /// @param vres Output/result vector y.
     /// @param trans Transpose flag for the matrix (default: CblasNoTrans).
+    /// @param incx Stride of the input vector x (default: 1).
+    /// @param incy Stride of the output vector y (default: 1).
     /// @return Tuple of (nrow, ncol) - row and column counts of the matrix.
     /// @note MatrixType is either a Matrix_<T> or a BlockDiagMatrix_<T> type, which are compatible with the BLAS interface.
     template<typename MatrixType, typename VectorType>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const MatrixType& m, const VectorType& vmult, const VectorType& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const MatrixType& m, const VectorType& vmult, const VectorType& vres, CBLAS_TRANSPOSE trans = CblasNoTrans,
+        size_t incx = 1, size_t incy = 1){
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
         if (trans == CblasNoTrans) {
-            assert(nrow == (BLAS_INT)vres.size());
-            assert(ncol == (BLAS_INT)vmult.size());
-            
+            assert(fits_stride(vres.size(), nrow, incy));
+            assert(fits_stride(vmult.size(), ncol, incx));
+
         }
         else {
-            assert(nrow == (BLAS_INT)vmult.size());
-            assert(ncol == (BLAS_INT)vres.size());
-            
+            assert(fits_stride(vmult.size(), nrow, incx));
+            assert(fits_stride(vres.size(), ncol, incy));
+
         }
         
         return std::make_tuple(nrow, ncol);
@@ -74,21 +91,24 @@ namespace lahva{
     /// @param vmult Input vector that is multiplied by the matrix.
     /// @param vres Output/result vector.
     /// @param trans Transpose flag for the matrix (default: CblasNoTrans).
+    /// @param incx Stride of the input vector x (default: 1).
+    /// @param incy Stride of the output vector y (default: 1).
     /// @return Tuple of (nrow, ncol) - row and column counts of the triangular matrix.
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor_<T>& vmult, const Tensor_<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor_<T>& vmult, const Tensor_<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans,
+        size_t incx = 1, size_t incy = 1){
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
         if (trans == CblasNoTrans) {
-            assert(nrow == (BLAS_INT)vres.size());
-            assert(ncol == (BLAS_INT)vmult.size());
-            
+            assert(fits_stride(vres.size(), nrow, incy));
+            assert(fits_stride(vmult.size(), ncol, incx));
+
         }
         else {
-            assert(nrow == (BLAS_INT)vmult.size());
-            assert(ncol == (BLAS_INT)vres.size());
-            
+            assert(fits_stride(vmult.size(), nrow, incx));
+            assert(fits_stride(vres.size(), ncol, incy));
+
         }
         
         return std::make_tuple(nrow, ncol);
@@ -242,15 +262,16 @@ namespace lahva{
     /// @tparam T Element type of matrix and vector.
     /// @param m Triangular matrix operand (LowTriMatrix_<T>) in packed storage format.
     /// @param vmult Input vector.
+    /// @param incx Stride of the input vector (default: 1).
     /// @return Tuple of (nrow, ncol) - row and column counts of the triangular matrix.
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor_<T>& vmult)
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor_<T>& vmult, size_t incx = 1)
     {
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
 
-        assert(ncol == (BLAS_INT)vmult.size());
+        assert(fits_stride(vmult.size(), ncol, incx));
        
         return std::make_tuple(nrow, ncol);
     };

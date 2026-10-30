@@ -16,6 +16,14 @@ template<typename T> T* get_test_data();
 template<> double* get_test_data<double>() { return pd; }
 template<> float* get_test_data<float>() { return pf; }
 
+template<typename T>
+T* make_lowtri_data() {
+    T* data = lahva::StdAllocator<T>().allocate(6);
+    const T values[6] = {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
+    std::copy(values, values + 6, data);
+    return data;
+}
+
 // ============================================================================
 // Basic GEMV Tests
 // ============================================================================
@@ -223,7 +231,7 @@ int test_symv_zero_lowtri_cpp(){
 
 template<typename T>
 int test_symv_lowtri_cpp(){
-    T* vdtri_ = new T[6] {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
+    T* vdtri_ = make_lowtri_data<T>();
     LowTriMatrix<T> A(3, vdtri_, std::is_same_v<T, float>);
     Vector<T> x({1.0, 2.0, 3.0});
     Vector<T> y(3, 0.0);
@@ -246,12 +254,15 @@ int test_symv_lowtri_cpp(){
 
     if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
+    // A only owns the data for float
+    if (!std::is_same_v<T, float>) lahva::StdAllocator<T>().deallocate(vdtri_);
+
     return TEST_PASS;
 }
 
 template<typename T>
 int test_tpmv_cpp(){
-    T* vdtri_ = new T[6] {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
+    T* vdtri_ = make_lowtri_data<T>();
     LowTriMatrix<T> A(3, vdtri_);
     Vector<T> x({1.0, 2.0, 3.0});
 
@@ -592,6 +603,137 @@ int test_blockdiag_gemv_no_transpose() {
     return TEST_PASS;
 }
 
+// Row and column offsets differ between the blocks, so swapping them changes the result
+template<typename T>
+int test_blockdiag_gemv_multi_block_transpose(const char *Ta) {
+    std::vector<Matrix<T>> blocks;
+    T value = static_cast<T>(1);
+    for (const Shape &shape : {Shape{2, 3}, Shape{3, 1}, Shape{1, 2}, Shape{1, 2}}) {
+        Matrix<T> block(shape);
+        for (size_t i = 0; i < shape.first; i++) {
+            for (size_t j = 0; j < shape.second; j++) {
+                block(i, j) = value++;
+            }
+        }
+        blocks.push_back(block);
+    }
+    BlockDiagMatrix<T> A(blocks);
+
+    const bool trans = Ta[0] != 'N';
+    const size_t n_in = trans ? A.shape().first : A.shape().second;
+    const size_t n_out = trans ? A.shape().second : A.shape().first;
+
+    Vector<T> x(n_in);
+    for (size_t i = 0; i < n_in; i++) {
+        x[i] = static_cast<T>(i + 1);
+    }
+    Vector<T> y(n_out, static_cast<T>(1));
+
+    // Naive reference, independent of BLAS: y = 2 * op(A) * x + 3 * y
+    std::vector<T> expected(n_out, static_cast<T>(3));
+    for (size_t b = 0; b < A.num_blocks(); b++) {
+        Shape shape = A.get_block_shape(b);
+        for (size_t i = 0; i < shape.first; i++) {
+            for (size_t j = 0; j < shape.second; j++) {
+                const size_t row = A.get_row_offsets()[b] + i;
+                const size_t col = A.get_col_offsets()[b] + j;
+                expected[trans ? col : row] += static_cast<T>(2) * A.get_block(b)(i, j) * x[trans ? row : col];
+            }
+        }
+    }
+
+    MatrixVectorProduct(Ta, static_cast<T>(2), A, x, 1, static_cast<T>(3), y, 1);
+
+    const std::string desc = std::string("Ta=") + Ta;
+    if (!check(y.data(), expected.data(), static_cast<int>(n_out), check_msg(get_type_name<T>(), desc))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
+// Stride Tests, where the vectors are longer than the matrix dimensions
+// ============================================================================
+
+template<typename T>
+int check_strided_gemv_result(const Vector<T> &y) {
+    const T expected[4] = {5, 11, 39, 53};
+    for (int i = 0; i < 4; i++) {
+        if (!check(y[3 * i], expected[i], check_msg(get_type_name<T>(), "element at stride 3"))) return TEST_FAIL;
+    }
+    return TEST_PASS;
+}
+
+template<typename T>
+Vector<T> make_strided_input() {
+    Vector<T> x(8, static_cast<T>(0));
+    for (int i = 0; i < 4; i++) {
+        x[2 * i] = static_cast<T>(i + 1);
+    }
+    return x;
+}
+
+template<typename T>
+int test_blockdiag_gemv_strided() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> A(blocks);
+
+    const Vector<T> x = make_strided_input<T>();
+    Vector<T> y(12, static_cast<T>(-1));
+
+    MatrixVectorProduct("N", static_cast<T>(1), A, x, 2, static_cast<T>(0), y, 3);
+
+    return check_strided_gemv_result(y);
+}
+
+template<typename T>
+int test_gemv_strided() {
+    Matrix<T> A(Shape{4, 4}, static_cast<T>(0));
+    A(0, 0) = 1; A(1, 0) = 3; A(0, 1) = 2; A(1, 1) = 4;
+    A(2, 2) = 5; A(3, 2) = 7; A(2, 3) = 6; A(3, 3) = 8;
+
+    const Vector<T> x = make_strided_input<T>();
+    Vector<T> y(12, static_cast<T>(-1));
+
+    MatrixVectorProduct("N", static_cast<T>(1), A, x, 2, static_cast<T>(0), y, 3);
+
+    return check_strided_gemv_result(y);
+}
+
+template<typename T>
+int test_symv_strided() {
+    Matrix<T> A(Shape{3, 3}, get_test_data<T>(), false);
+
+    Vector<T> x(5, static_cast<T>(0));
+    x[0] = 1; x[2] = 2; x[4] = 3;
+    Vector<T> y(7, static_cast<T>(-1));
+
+    SymMatrixVectorProduct(static_cast<T>(1), A, x, 2, static_cast<T>(0), y, 3);
+
+    if (!check(y[0], static_cast<T>(24), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y[3], static_cast<T>(26), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y[6], static_cast<T>(26), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template<typename T>
+int test_tpmv_strided() {
+    LowTriMatrix<T> A(3, make_lowtri_data<T>());
+
+    Vector<T> x(5, static_cast<T>(0));
+    x[0] = 1; x[2] = 2; x[4] = 3;
+
+    LowTriMatrixVectorProduct("N", CblasNonUnit, A, x, 2);
+
+    if (!check(x[0], static_cast<T>(1), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(x[2], static_cast<T>(8), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(x[4], static_cast<T>(26), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
 // ============================================================================
 // Main
 // ============================================================================
@@ -654,6 +796,20 @@ int main(){
     total_failures += test_blockdiag_gemv_transpose_with_alpha_beta<float>();
     total_failures += test_blockdiag_gemv_no_transpose<double>();
     total_failures += test_blockdiag_gemv_no_transpose<float>();
+    for (const char *Ta : {"N", "T", "C"}) {
+        total_failures += test_blockdiag_gemv_multi_block_transpose<double>(Ta);
+        total_failures += test_blockdiag_gemv_multi_block_transpose<float>(Ta);
+    }
+
+    // Stride tests
+    total_failures += test_blockdiag_gemv_strided<double>();
+    total_failures += test_blockdiag_gemv_strided<float>();
+    total_failures += test_gemv_strided<double>();
+    total_failures += test_gemv_strided<float>();
+    total_failures += test_symv_strided<double>();
+    total_failures += test_symv_strided<float>();
+    total_failures += test_tpmv_strided<double>();
+    total_failures += test_tpmv_strided<float>();
 
     if (total_failures > 0) {
         std::cerr << "cpu/blas/level2 tests: " << total_failures << " failures" << std::endl;

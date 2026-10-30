@@ -647,6 +647,110 @@ int test_dense_blockdiag_mixed_shapes_gemm() {
 }
 
 // ============================================================================
+// BlockDiagMatrix GEMM Transpose Tests with Several Rectangular Blocks
+// ============================================================================
+
+// Row and column offsets differ between these blocks, so swapping them changes the result
+template <typename T>
+BlockDiagMatrix<T> make_rectangular_blockdiag() {
+    std::vector<Matrix<T>> blocks;
+    T value = static_cast<T>(1);
+    for (const Shape &shape : {Shape{2, 3}, Shape{3, 1}, Shape{1, 2}, Shape{1, 2}}) {
+        Matrix<T> block(shape);
+        for (size_t i = 0; i < shape.first; i++) {
+            for (size_t j = 0; j < shape.second; j++) {
+                block(i, j) = value++;
+            }
+        }
+        blocks.push_back(block);
+    }
+    return BlockDiagMatrix<T>(blocks);
+}
+
+template <typename T>
+Matrix<T> blockdiag_to_dense(const BlockDiagMatrix<T> &a) {
+    Matrix<T> dense(a.shape(), static_cast<T>(0));
+    for (size_t b = 0; b < a.num_blocks(); b++) {
+        Shape shape = a.get_block_shape(b);
+        for (size_t i = 0; i < shape.first; i++) {
+            for (size_t j = 0; j < shape.second; j++) {
+                dense(a.get_row_offsets()[b] + i, a.get_col_offsets()[b] + j) = a.get_block(b)(i, j);
+            }
+        }
+    }
+    return dense;
+}
+
+inline Shape op_shape(const Shape &shape, const char *trans) {
+    return (trans[0] == 'N') ? shape : Shape{shape.second, shape.first};
+}
+
+template <typename T>
+Matrix<T> make_filled_matrix(const Shape &shape) {
+    Matrix<T> mat(shape);
+    for (size_t i = 0; i < shape.first * shape.second; i++) {
+        mat.data()[i] = static_cast<T>(1 + (i * 7) % 11);
+    }
+    return mat;
+}
+
+// Naive reference, independent of BLAS: C = alpha * op(A) * op(B) + beta * C
+template <typename T>
+void reference_gemm(const char *Ta, const char *Tb, const T alpha, const Matrix<T> &a, const Matrix<T> &b,
+                    const T beta, Matrix<T> &c) {
+    const size_t k = op_shape(a.shape(), Ta).second;
+    for (size_t i = 0; i < c.shape().first; i++) {
+        for (size_t j = 0; j < c.shape().second; j++) {
+            T sum = static_cast<T>(0);
+            for (size_t l = 0; l < k; l++) {
+                const T a_il = (Ta[0] == 'N') ? a(i, l) : a(l, i);
+                const T b_lj = (Tb[0] == 'N') ? b(l, j) : b(j, l);
+                sum += a_il * b_lj;
+            }
+            c(i, j) = alpha * sum + beta * c(i, j);
+        }
+    }
+}
+
+template <typename T>
+int test_blockdiag_gemm_multi_block_transpose(const char *Ta, const char *Tb) {
+    const BlockDiagMatrix<T> A = make_rectangular_blockdiag<T>();
+    const Shape op_a = op_shape(A.shape(), Ta);
+    const size_t n_cols = 4;
+
+    const Matrix<T> B = make_filled_matrix<T>(op_shape(Shape{op_a.second, n_cols}, Tb));
+    Matrix<T> C(Shape{op_a.first, n_cols}, static_cast<T>(1));
+    Matrix<T> expected(Shape{op_a.first, n_cols}, static_cast<T>(1));
+
+    MatrixMatrixProduct(Ta, Tb, static_cast<T>(2), A, B, static_cast<T>(3), C);
+    reference_gemm(Ta, Tb, static_cast<T>(2), blockdiag_to_dense(A), B, static_cast<T>(3), expected);
+
+    const std::string desc = std::string("Ta=") + Ta + " Tb=" + Tb;
+    if (!check(C.data(), expected.data(), static_cast<int>(op_a.first * n_cols), check_msg(get_type_name<T>(), desc))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_dense_times_blockdiag_gemm_multi_block_transpose(const char *Ta, const char *Tb) {
+    const BlockDiagMatrix<T> B = make_rectangular_blockdiag<T>();
+    const Shape op_b = op_shape(B.shape(), Tb);
+    const size_t n_rows = 4;
+
+    const Matrix<T> A = make_filled_matrix<T>(op_shape(Shape{n_rows, op_b.first}, Ta));
+    Matrix<T> C(Shape{n_rows, op_b.second}, static_cast<T>(1));
+    Matrix<T> expected(Shape{n_rows, op_b.second}, static_cast<T>(1));
+
+    MatrixMatrixProduct(Ta, Tb, static_cast<T>(2), A, B, static_cast<T>(3), C);
+    reference_gemm(Ta, Tb, static_cast<T>(2), A, blockdiag_to_dense(B), static_cast<T>(3), expected);
+
+    const std::string desc = std::string("Ta=") + Ta + " Tb=" + Tb;
+    if (!check(C.data(), expected.data(), static_cast<int>(n_rows * op_b.second), check_msg(get_type_name<T>(), desc))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
 // Main
 // ============================================================================
 
@@ -730,6 +834,16 @@ int main(){
     total_failures += test_blockdiag_dense_mixed_shapes_gemm<float>();
     total_failures += test_dense_blockdiag_mixed_shapes_gemm<double>();
     total_failures += test_dense_blockdiag_mixed_shapes_gemm<float>();
+
+    // BlockDiagMatrix GEMM transpose tests with several rectangular blocks
+    for (const char *Ta : {"N", "T", "C"}) {
+        for (const char *Tb : {"N", "T", "C"}) {
+            total_failures += test_blockdiag_gemm_multi_block_transpose<double>(Ta, Tb);
+            total_failures += test_blockdiag_gemm_multi_block_transpose<float>(Ta, Tb);
+            total_failures += test_dense_times_blockdiag_gemm_multi_block_transpose<double>(Ta, Tb);
+            total_failures += test_dense_times_blockdiag_gemm_multi_block_transpose<float>(Ta, Tb);
+        }
+    }
 
     if (total_failures > 0) {
         std::cerr << "cpu/blas/level3 tests: " << total_failures << " failures" << std::endl;
