@@ -385,6 +385,90 @@ namespace lahva
                             const float alpha, const BlockMatrix_<float> &a,
                             const Matrix_<float> &b, const float beta, Matrix_<float> &c);
 
+    /// @brief Computes matrix-matrix product of two block-diagonal matrices (double-precision).
+    ///
+    /// Performs C = alpha * op(A) * op(B) + beta * C by multiplying matching blocks, so that the result stays
+    /// block-diagonal and off-diagonal blocks cost nothing. Block i of op(A) must have as many columns as block i
+    /// of op(B) has rows, and block i of C must have the shape of their product.
+    ///
+    /// @param cudart CUDA runtime instance.
+    /// @param Ta Operation on A: "N" (no transpose), "T" (transpose), "C" (conjugate transpose)
+    /// @param Tb Operation on B: "N" (no transpose), "T" (transpose), "C" (conjugate transpose)
+    /// @param alpha Scalar multiplier for the matrix product
+    /// @param a Input block-diagonal matrix A
+    /// @param b Input block-diagonal matrix B
+    /// @param beta Scalar multiplier for result matrix C
+    /// @param c Input/output block-diagonal matrix C, which must not share storage with a or b
+    /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match
+    /// @note The result stays on the device. Call c.copy2host(cudart) before reading it on the host or using c in a
+    ///       cuSPARSE-based product, which reads the host values. Don't call c.copy2device(cudart) before that, because
+    ///       it replaces the device values with the host values.
+    void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                            const double alpha, const BlockDiagMatrix<double> &a,
+                            const BlockDiagMatrix<double> &b, const double beta, BlockDiagMatrix<double> &c);
+
+    /// @brief Computes matrix-matrix product of two block-diagonal matrices (convenience overload).
+    ///
+    /// Performs C = alpha * op(A) * op(B) + beta * C with default parameters.
+    ///
+    /// @param cudart CUDA runtime instance.
+    /// @param a Input block-diagonal matrix A
+    /// @param b Input block-diagonal matrix B
+    /// @param c Input/output block-diagonal matrix C, which must not share storage with a or b
+    /// @param alpha Scalar multiplier for the matrix product (default: 1.0)
+    /// @param beta Scalar multiplier for result matrix C (default: 0.0)
+    /// @param Ta Operation on A (default: "N")
+    /// @param Tb Operation on B (default: "N")
+    /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match
+    inline void MatrixMatrixProduct(const CudaRuntime &cudart, const BlockDiagMatrix<double> &a,
+                            const BlockDiagMatrix<double> &b, BlockDiagMatrix<double> &c,
+                            const double alpha = 1.0, const double beta = 0.0, const char *Ta = "N", const char *Tb = "N")
+    {
+        MatrixMatrixProduct(cudart, Ta, Tb, alpha, a, b, beta, c);
+    }
+
+    /// @brief Computes matrix-matrix product of two block-diagonal matrices (single-precision).
+    ///
+    /// Performs C = alpha * op(A) * op(B) + beta * C by multiplying matching blocks, so that the result stays
+    /// block-diagonal and off-diagonal blocks cost nothing. Block i of op(A) must have as many columns as block i
+    /// of op(B) has rows, and block i of C must have the shape of their product.
+    ///
+    /// @param cudart CUDA runtime instance.
+    /// @param Ta Operation on A: "N" (no transpose), "T" (transpose), "C" (conjugate transpose)
+    /// @param Tb Operation on B: "N" (no transpose), "T" (transpose), "C" (conjugate transpose)
+    /// @param alpha Scalar multiplier for the matrix product
+    /// @param a Input block-diagonal matrix A
+    /// @param b Input block-diagonal matrix B
+    /// @param beta Scalar multiplier for result matrix C
+    /// @param c Input/output block-diagonal matrix C, which must not share storage with a or b
+    /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match
+    /// @note The result stays on the device. Call c.copy2host(cudart) before reading it on the host or using c in a
+    ///       cuSPARSE-based product, which reads the host values. Don't call c.copy2device(cudart) before that, because
+    ///       it replaces the device values with the host values.
+    void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                            const float alpha, const BlockDiagMatrix<float> &a,
+                            const BlockDiagMatrix<float> &b, const float beta, BlockDiagMatrix<float> &c);
+
+    /// @brief Computes matrix-matrix product of two block-diagonal matrices (convenience overload).
+    ///
+    /// Performs C = alpha * op(A) * op(B) + beta * C with default parameters.
+    ///
+    /// @param cudart CUDA runtime instance.
+    /// @param a Input block-diagonal matrix A
+    /// @param b Input block-diagonal matrix B
+    /// @param c Input/output block-diagonal matrix C, which must not share storage with a or b
+    /// @param alpha Scalar multiplier for the matrix product (default: 1.0)
+    /// @param beta Scalar multiplier for result matrix C (default: 0.0)
+    /// @param Ta Operation on A (default: "N")
+    /// @param Tb Operation on B (default: "N")
+    /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match
+    inline void MatrixMatrixProduct(const CudaRuntime &cudart, const BlockDiagMatrix<float> &a,
+                            const BlockDiagMatrix<float> &b, BlockDiagMatrix<float> &c,
+                            const float alpha = 1.0, const float beta = 0.0, const char *Ta = "N", const char *Tb = "N")
+    {
+        MatrixMatrixProduct(cudart, Ta, Tb, alpha, a, b, beta, c);
+    }
+
     // Template implementation for dense A * sparse B MatrixMatrixProduct
     // This must be defined in the header to allow inline instantiation
     template <typename T>

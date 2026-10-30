@@ -2080,6 +2080,165 @@ int test_gpu_blockdiag_gemm_conjugate_transpose(CudaRuntime& cudart) {
 }
 
 // ============================================================================
+// BlockDiagMatrix times BlockDiagMatrix GEMM Tests
+// ============================================================================
+
+template <typename T>
+BlockDiagMatrix<T> make_blockdiag_op(const std::vector<Shape> &shapes, const char *trans) {
+    std::vector<Shape> stored;
+    for (const Shape &shape : shapes) {
+        stored.push_back(op_shape(shape, trans));
+    }
+    return make_blockdiag<T>(stored);
+}
+
+// Compares C = 2 * op(A) * op(B) + 3 * C with a naive product of the densified matrices.
+// The shapes are those of op(A) and op(B), so that they conform for every transpose option.
+template <typename T>
+int check_blockdiag_times_blockdiag(CudaRuntime& cudart, const char *Ta, const char *Tb, const std::vector<Shape> &op_a_shapes, const std::vector<Shape> &op_b_shapes) {
+    std::vector<Shape> c_shapes;
+    for (size_t i = 0; i < op_a_shapes.size(); i++) {
+        c_shapes.push_back(Shape{op_a_shapes[i].first, op_b_shapes[i].second});
+    }
+
+    const BlockDiagMatrix<T> A = make_blockdiag_op<T>(op_a_shapes, Ta);
+    const BlockDiagMatrix<T> B = make_blockdiag_op<T>(op_b_shapes, Tb);
+    BlockDiagMatrix<T> C(c_shapes, static_cast<T>(1));
+    Matrix<T, CudaHostAllocator<T>> expected = blockdiag_to_dense(C);
+
+    MatrixMatrixProduct(cudart, Ta, Tb, static_cast<T>(2), A, B, static_cast<T>(3), C);
+    cudart.synchronize();
+    C.copy2host(cudart);
+
+    reference_gemm(Ta, Tb, static_cast<T>(2), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(3), expected);
+
+    const Matrix<T, CudaHostAllocator<T>> C_dense = blockdiag_to_dense(C);
+    const Shape s = C_dense.shape();
+    const std::string desc = std::string("Ta=") + Ta + " Tb=" + Tb;
+    if (!check(C_dense.data(), expected.data(), static_cast<int>(s.first * s.second), check_msg(get_type_name<T>(), desc))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// Runs of equal shapes, a lone block, and rectangular blocks whose row and column offsets differ.
+// The padding differs between A, B and C, so this also needs each matrix's own stride and leading dimension.
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_mixed_shapes(CudaRuntime& cudart, const char *Ta, const char *Tb) {
+    return check_blockdiag_times_blockdiag<T>(cudart, Ta, Tb,
+        {Shape{2, 3}, Shape{2, 3}, Shape{3, 1}, Shape{1, 2}, Shape{1, 2}},
+        {Shape{3, 4}, Shape{3, 4}, Shape{1, 2}, Shape{2, 2}, Shape{2, 2}});
+}
+
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_uniform(CudaRuntime& cudart, const char *Ta, const char *Tb) {
+    return check_blockdiag_times_blockdiag<T>(cudart, Ta, Tb,
+        {Shape{2, 3}, Shape{2, 3}, Shape{2, 3}},
+        {Shape{3, 2}, Shape{3, 2}, Shape{3, 2}});
+}
+
+// All blocks of A have the same shape, so only B can end a run of equal shapes
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_run_ended_by_b(CudaRuntime& cudart) {
+    return check_blockdiag_times_blockdiag<T>(cudart, "N", "N",
+        {Shape{2, 2}, Shape{2, 2}, Shape{2, 2}},
+        {Shape{2, 3}, Shape{2, 1}, Shape{2, 1}});
+}
+
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_convenience(CudaRuntime& cudart) {
+    const BlockDiagMatrix<T> A = make_blockdiag<T>({Shape{2, 2}, Shape{3, 3}});
+    const BlockDiagMatrix<T> B = make_blockdiag<T>({Shape{2, 2}, Shape{3, 3}});
+    BlockDiagMatrix<T> C(std::vector<Shape>{Shape{2, 2}, Shape{3, 3}}, static_cast<T>(1));
+    Matrix<T, CudaHostAllocator<T>> expected(C.shape(), static_cast<T>(0));
+
+    MatrixMatrixProduct(cudart, A, B, C);
+    cudart.synchronize();
+    C.copy2host(cudart);
+
+    reference_gemm("N", "N", static_cast<T>(1), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(0), expected);
+
+    const Matrix<T, CudaHostAllocator<T>> C_dense = blockdiag_to_dense(C);
+    if (!check(C_dense.data(), expected.data(), 25, check_msg(get_type_name<T>(), "default arguments"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// The first result is only on the device when it is used as input and when it is accumulated into,
+// so this fails if the operation uploads stale host values
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_chained(CudaRuntime& cudart) {
+    const std::vector<Shape> shapes{Shape{2, 2}, Shape{3, 3}, Shape{3, 3}};
+    const BlockDiagMatrix<T> A = make_blockdiag<T>(shapes);
+    const BlockDiagMatrix<T> B = make_blockdiag<T>(shapes);
+    BlockDiagMatrix<T> AB(shapes, static_cast<T>(0));
+    BlockDiagMatrix<T> ABA(shapes, static_cast<T>(0));
+
+    MatrixMatrixProduct(cudart, "N", "N", static_cast<T>(1), A, B, static_cast<T>(0), AB);
+    MatrixMatrixProduct(cudart, "N", "N", static_cast<T>(1), AB, A, static_cast<T>(0), ABA);
+    MatrixMatrixProduct(cudart, "N", "N", static_cast<T>(1), A, B, static_cast<T>(1), AB);
+    cudart.synchronize();
+    AB.copy2host(cudart);
+    ABA.copy2host(cudart);
+
+    const Matrix<T, CudaHostAllocator<T>> A_dense = blockdiag_to_dense(A);
+    const Matrix<T, CudaHostAllocator<T>> B_dense = blockdiag_to_dense(B);
+    Matrix<T, CudaHostAllocator<T>> AB_once(A.shape(), static_cast<T>(0));
+    Matrix<T, CudaHostAllocator<T>> ABA_expected(A.shape(), static_cast<T>(0));
+    Matrix<T, CudaHostAllocator<T>> AB_twice(A.shape(), static_cast<T>(0));
+    reference_gemm("N", "N", static_cast<T>(1), A_dense, B_dense, static_cast<T>(0), AB_once);
+    reference_gemm("N", "N", static_cast<T>(1), AB_once, A_dense, static_cast<T>(0), ABA_expected);
+    reference_gemm("N", "N", static_cast<T>(2), A_dense, B_dense, static_cast<T>(0), AB_twice);
+
+    const Matrix<T, CudaHostAllocator<T>> AB_dense = blockdiag_to_dense(AB);
+    const Matrix<T, CudaHostAllocator<T>> ABA_dense = blockdiag_to_dense(ABA);
+    if (!check(ABA_dense.data(), ABA_expected.data(), 64, check_msg(get_type_name<T>(), "result used as input"))) return TEST_FAIL;
+    if (!check(AB_dense.data(), AB_twice.data(), 64, check_msg(get_type_name<T>(), "accumulated into result"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_empty(CudaRuntime& cudart) {
+    const BlockDiagMatrix<T> A, B;
+    BlockDiagMatrix<T> C;
+
+    MatrixMatrixProduct(cudart, "N", "N", static_cast<T>(1), A, B, static_cast<T>(0), C);
+
+    if (!check(static_cast<T>(C.num_blocks()), static_cast<T>(0), check_msg(get_type_name<T>(), "no blocks"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int check_blockdiag_times_blockdiag_throws(CudaRuntime& cudart, const char *Ta, const std::vector<Shape> &a_shapes, const std::vector<Shape> &b_shapes, const std::vector<Shape> &c_shapes) {
+    const BlockDiagMatrix<T> A = make_blockdiag<T>(a_shapes);
+    const BlockDiagMatrix<T> B = make_blockdiag<T>(b_shapes);
+    BlockDiagMatrix<T> C(c_shapes, static_cast<T>(0));
+
+    try {
+        MatrixMatrixProduct(cudart, Ta, "N", static_cast<T>(1), A, B, static_cast<T>(0), C);
+    } catch (const std::invalid_argument &) {
+        return TEST_PASS;
+    }
+    std::cerr << "MatrixMatrixProduct did not reject mismatched block-diagonal matrices" << std::endl;
+    return TEST_FAIL;
+}
+
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_mismatch(CudaRuntime& cudart) {
+    // Different partitions with the same total size
+    if (check_blockdiag_times_blockdiag_throws<T>(cudart, "N", {Shape{2, 2}, Shape{2, 2}}, {Shape{1, 1}, Shape{3, 3}}, {Shape{2, 1}, Shape{2, 3}}) != TEST_PASS) return TEST_FAIL;
+    // Different block counts
+    if (check_blockdiag_times_blockdiag_throws<T>(cudart, "N", {Shape{2, 2}}, {Shape{2, 2}, Shape{2, 2}}, {Shape{2, 2}}) != TEST_PASS) return TEST_FAIL;
+    // Output block with the wrong shape
+    if (check_blockdiag_times_blockdiag_throws<T>(cudart, "N", {Shape{2, 3}}, {Shape{3, 2}}, {Shape{3, 3}}) != TEST_PASS) return TEST_FAIL;
+    // Only conforms when A is not transposed
+    if (check_blockdiag_times_blockdiag_throws<T>(cudart, "T", {Shape{2, 3}}, {Shape{3, 2}}, {Shape{2, 2}}) != TEST_PASS) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
 // Main
 // ============================================================================
 
@@ -2238,6 +2397,26 @@ int main(){
     total_failures += test_gpu_blockdiag_gemm_uniform_rectangular_blocks<float>(cudart);
     total_failures += test_gpu_blockdiag_gemm_conjugate_transpose<double>(cudart);
     total_failures += test_gpu_blockdiag_gemm_conjugate_transpose<float>(cudart);
+
+    // BlockDiagMatrix times BlockDiagMatrix GEMM tests
+    for (const char *Ta : {"N", "T", "C"}) {
+        for (const char *Tb : {"N", "T", "C"}) {
+            total_failures += test_gpu_blockdiag_times_blockdiag_mixed_shapes<double>(cudart, Ta, Tb);
+            total_failures += test_gpu_blockdiag_times_blockdiag_mixed_shapes<float>(cudart, Ta, Tb);
+            total_failures += test_gpu_blockdiag_times_blockdiag_uniform<double>(cudart, Ta, Tb);
+            total_failures += test_gpu_blockdiag_times_blockdiag_uniform<float>(cudart, Ta, Tb);
+        }
+    }
+    total_failures += test_gpu_blockdiag_times_blockdiag_run_ended_by_b<double>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_run_ended_by_b<float>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_convenience<double>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_convenience<float>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_chained<double>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_chained<float>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_empty<double>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_empty<float>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_mismatch<double>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_mismatch<float>(cudart);
 
     if (total_failures > 0) {
         std::cerr << "gpu/blas/level3 tests: " << total_failures << " failures" << std::endl;

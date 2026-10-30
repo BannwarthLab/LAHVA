@@ -689,5 +689,125 @@ namespace lahva
             get_cusparse_error(cusparseDestroyDnMat(mat_c));
         }
 
+        /// @brief Block-diagonal times block-diagonal product using cuBLAS strided batched GEMM.
+        ///
+        /// Performs C = alpha * op(A) * op(B) + beta * C on the padded block storage of the matrices. Each run of
+        /// consecutive blocks with identical dimensions is one batch using the true block dimensions, so the padding
+        /// is not part of the computation.
+        ///
+        /// @tparam T Numeric element type (double or float).
+        /// @param cudart CUDA runtime instance.
+        /// @param Ta Operation on A: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param Tb Operation on B: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param alpha Scalar multiplier for the matrix product.
+        /// @param a Input block-diagonal matrix.
+        /// @param b Input block-diagonal matrix.
+        /// @param beta Scalar multiplier for result matrix C.
+        /// @param c Input/output block-diagonal matrix, which must not share storage with a or b.
+        /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match.
+        template <typename T>
+        void MatrixMatrixProduct_blockdiag(const CudaRuntime &cudart, const char *Ta, const char *Tb, const T alpha, const BlockDiagMatrix<T> &a,
+                                 const BlockDiagMatrix<T> &b, const T beta, BlockDiagMatrix<T> &c)
+        {
+            cublasOperation_t transa = get_trans(Ta);
+            cublasOperation_t transb = get_trans(Tb);
+
+            const size_t num_blocks = a.num_blocks();
+            if (b.num_blocks() != num_blocks || c.num_blocks() != num_blocks) {
+                throw std::invalid_argument("MatrixMatrixProduct: block-diagonal matrices must have the same number of blocks");
+            }
+
+            // Looking up a shape by index walks the block map, so get them all at once
+            const std::vector<size_t> a_rows = a.get_block_rows(), a_cols = a.get_block_cols();
+            const std::vector<size_t> b_rows = b.get_block_rows(), b_cols = b.get_block_cols();
+            const std::vector<size_t> c_rows = c.get_block_rows(), c_cols = c.get_block_cols();
+            const std::vector<size_t> &op_a_rows = (transa != CUBLAS_OP_N) ? a_cols : a_rows;
+            const std::vector<size_t> &op_a_cols = (transa != CUBLAS_OP_N) ? a_rows : a_cols;
+            const std::vector<size_t> &op_b_rows = (transb != CUBLAS_OP_N) ? b_cols : b_rows;
+            const std::vector<size_t> &op_b_cols = (transb != CUBLAS_OP_N) ? b_rows : b_cols;
+
+            if (op_a_cols != op_b_rows || c_rows != op_a_rows || c_cols != op_b_cols) {
+                throw std::invalid_argument("MatrixMatrixProduct: block shapes of block-diagonal matrices do not match");
+            }
+
+            if (num_blocks == 0) return;
+
+            const auto &gpu_a = a.ensure_on_gpu(cudart);
+            const auto &gpu_b = b.ensure_on_gpu(cudart);
+            const auto &gpu_c = c.ensure_on_gpu(cudart);
+            const long long stride_a = gpu_a.padded_stride;
+            const long long stride_b = gpu_b.padded_stride;
+            const long long stride_c = gpu_c.padded_stride;
+
+            cudart.cublasSetStream_();
+
+            size_t start = 0;
+            while (start < num_blocks) {
+                // Find consecutive blocks with same dimensions, which also fixes the shape of C
+                size_t end = start + 1;
+                while (end < num_blocks && op_a_rows[end] == op_a_rows[start] && op_a_cols[end] == op_a_cols[start] &&
+                       op_b_cols[end] == op_b_cols[start]) {
+                    ++end;
+                }
+
+                const int m = op_a_rows[start];
+                const int n = op_b_cols[start];
+                const int k = op_a_cols[start];
+                const int count = end - start;
+
+                cublasStatus_t istat;
+                if constexpr (std::is_same_v<T, double>) {
+                    istat = cublasDgemmStridedBatched(
+                        cudart.handle, transa, transb, m, n, k, &alpha,
+                        gpu_a.d_data + start * stride_a, gpu_a.max_m, stride_a,
+                        gpu_b.d_data + start * stride_b, gpu_b.max_m, stride_b, &beta,
+                        gpu_c.d_data + start * stride_c, gpu_c.max_m, stride_c, count);
+                } else {
+                    istat = cublasSgemmStridedBatched(
+                        cudart.handle, transa, transb, m, n, k, &alpha,
+                        gpu_a.d_data + start * stride_a, gpu_a.max_m, stride_a,
+                        gpu_b.d_data + start * stride_b, gpu_b.max_m, stride_b, &beta,
+                        gpu_c.d_data + start * stride_c, gpu_c.max_m, stride_c, count);
+                }
+                get_cublas_error(istat);
+
+                start = end;
+            }
+        }
+
+        /// @brief Computes block-diagonal times block-diagonal product C = alpha * op(A) * op(B) + beta * C (double precision).
+        ///
+        /// @param cudart CUDA runtime instance.
+        /// @param Ta Operation on A: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param Tb Operation on B: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param alpha Scalar multiplier for the matrix product.
+        /// @param a Input block-diagonal matrix.
+        /// @param b Input block-diagonal matrix.
+        /// @param beta Scalar multiplier for result matrix C.
+        /// @param c Input/output block-diagonal matrix, which must not share storage with a or b.
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                                 const double alpha, const BlockDiagMatrix<double> &a,
+                                 const BlockDiagMatrix<double> &b, const double beta, BlockDiagMatrix<double> &c)
+        {
+            MatrixMatrixProduct_blockdiag(cudart, Ta, Tb, alpha, a, b, beta, c);
+        }
+
+        /// @brief Computes block-diagonal times block-diagonal product C = alpha * op(A) * op(B) + beta * C (single precision).
+        ///
+        /// @param cudart CUDA runtime instance.
+        /// @param Ta Operation on A: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param Tb Operation on B: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param alpha Scalar multiplier for the matrix product.
+        /// @param a Input block-diagonal matrix.
+        /// @param b Input block-diagonal matrix.
+        /// @param beta Scalar multiplier for result matrix C.
+        /// @param c Input/output block-diagonal matrix, which must not share storage with a or b.
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                                 const float alpha, const BlockDiagMatrix<float> &a,
+                                 const BlockDiagMatrix<float> &b, const float beta, BlockDiagMatrix<float> &c)
+        {
+            MatrixMatrixProduct_blockdiag(cudart, Ta, Tb, alpha, a, b, beta, c);
+        }
+
     }
 } // namespace lahva

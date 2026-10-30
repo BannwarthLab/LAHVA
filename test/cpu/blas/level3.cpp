@@ -751,6 +751,129 @@ int test_dense_times_blockdiag_gemm_multi_block_transpose(const char *Ta, const 
 }
 
 // ============================================================================
+// BlockDiagMatrix times BlockDiagMatrix GEMM Tests
+// ============================================================================
+
+template <typename T>
+BlockDiagMatrix<T> make_blockdiag(const std::vector<Shape> &shapes, const char *trans = "N") {
+    std::vector<Matrix<T>> blocks;
+    T value = static_cast<T>(1);
+    for (const Shape &shape : shapes) {
+        Matrix<T> block(op_shape(shape, trans));
+        for (size_t i = 0; i < block.shape().first * block.shape().second; i++) {
+            block.data()[i] = value++;
+        }
+        blocks.push_back(block);
+    }
+    return BlockDiagMatrix<T>(blocks);
+}
+
+// Compares C = 2 * op(A) * op(B) + 3 * C with a naive product of the densified matrices.
+// The shapes are those of op(A) and op(B), so that they conform for every transpose option.
+template <typename T>
+int check_blockdiag_times_blockdiag(const char *Ta, const char *Tb, const std::vector<Shape> &op_a_shapes, const std::vector<Shape> &op_b_shapes) {
+    std::vector<Shape> c_shapes;
+    for (size_t i = 0; i < op_a_shapes.size(); i++) {
+        c_shapes.push_back(Shape{op_a_shapes[i].first, op_b_shapes[i].second});
+    }
+
+    const BlockDiagMatrix<T> A = make_blockdiag<T>(op_a_shapes, Ta);
+    const BlockDiagMatrix<T> B = make_blockdiag<T>(op_b_shapes, Tb);
+    BlockDiagMatrix<T> C = make_blockdiag<T>(c_shapes);
+    Matrix<T> expected = blockdiag_to_dense(C);
+
+    MatrixMatrixProduct(Ta, Tb, static_cast<T>(2), A, B, static_cast<T>(3), C);
+    reference_gemm(Ta, Tb, static_cast<T>(2), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(3), expected);
+
+    const Matrix<T> C_dense = blockdiag_to_dense(C);
+    const Shape s = C_dense.shape();
+    const std::string desc = std::string("Ta=") + Ta + " Tb=" + Tb;
+    if (!check(C_dense.data(), expected.data(), static_cast<int>(s.first * s.second), check_msg(get_type_name<T>(), desc))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// Runs of equal shapes, a lone block, and rectangular blocks whose row and column offsets differ
+template <typename T>
+int test_blockdiag_times_blockdiag_mixed_shapes(const char *Ta, const char *Tb) {
+    return check_blockdiag_times_blockdiag<T>(Ta, Tb,
+        {Shape{2, 3}, Shape{2, 3}, Shape{3, 1}, Shape{1, 2}, Shape{1, 2}},
+        {Shape{3, 4}, Shape{3, 4}, Shape{1, 2}, Shape{2, 2}, Shape{2, 2}});
+}
+
+template <typename T>
+int test_blockdiag_times_blockdiag_uniform(const char *Ta, const char *Tb) {
+    return check_blockdiag_times_blockdiag<T>(Ta, Tb,
+        {Shape{2, 3}, Shape{2, 3}, Shape{2, 3}},
+        {Shape{3, 2}, Shape{3, 2}, Shape{3, 2}});
+}
+
+// All blocks of A have the same shape, so only B can end a run of equal shapes
+template <typename T>
+int test_blockdiag_times_blockdiag_run_ended_by_b() {
+    return check_blockdiag_times_blockdiag<T>("N", "N",
+        {Shape{2, 2}, Shape{2, 2}, Shape{2, 2}},
+        {Shape{2, 3}, Shape{2, 1}, Shape{2, 1}});
+}
+
+template <typename T>
+int test_blockdiag_times_blockdiag_convenience() {
+    const std::vector<Shape> shapes = {Shape{2, 2}, Shape{3, 3}};
+    const BlockDiagMatrix<T> A = make_blockdiag<T>(shapes);
+    const BlockDiagMatrix<T> B = make_blockdiag<T>(shapes);
+    BlockDiagMatrix<T> C = make_blockdiag<T>(shapes);
+    Matrix<T> expected(C.shape(), static_cast<T>(0));
+
+    MatrixMatrixProduct(A, B, C);
+    reference_gemm("N", "N", static_cast<T>(1), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(0), expected);
+
+    const Matrix<T> C_dense = blockdiag_to_dense(C);
+    if (!check(C_dense.data(), expected.data(), 25, check_msg(get_type_name<T>(), "default arguments"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_blockdiag_times_blockdiag_empty() {
+    BlockDiagMatrix<T> A, B, C;
+
+    MatrixMatrixProduct("N", "N", static_cast<T>(1), A, B, static_cast<T>(0), C);
+
+    if (!check(static_cast<T>(C.num_blocks()), static_cast<T>(0), check_msg(get_type_name<T>(), "no blocks"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int check_blockdiag_times_blockdiag_throws(const char *Ta, const std::vector<Shape> &a_shapes, const std::vector<Shape> &b_shapes, const std::vector<Shape> &c_shapes) {
+    const BlockDiagMatrix<T> A = make_blockdiag<T>(a_shapes);
+    const BlockDiagMatrix<T> B = make_blockdiag<T>(b_shapes);
+    BlockDiagMatrix<T> C = make_blockdiag<T>(c_shapes);
+
+    try {
+        MatrixMatrixProduct(Ta, "N", static_cast<T>(1), A, B, static_cast<T>(0), C);
+    } catch (const std::invalid_argument &) {
+        return TEST_PASS;
+    }
+    std::cerr << "MatrixMatrixProduct did not reject mismatched block-diagonal matrices" << std::endl;
+    return TEST_FAIL;
+}
+
+template <typename T>
+int test_blockdiag_times_blockdiag_mismatch() {
+    // Different partitions with the same total size
+    if (check_blockdiag_times_blockdiag_throws<T>("N", {Shape{2, 2}, Shape{2, 2}}, {Shape{1, 1}, Shape{3, 3}}, {Shape{2, 1}, Shape{2, 3}}) != TEST_PASS) return TEST_FAIL;
+    // Different block counts
+    if (check_blockdiag_times_blockdiag_throws<T>("N", {Shape{2, 2}}, {Shape{2, 2}, Shape{2, 2}}, {Shape{2, 2}}) != TEST_PASS) return TEST_FAIL;
+    // Output block with the wrong shape
+    if (check_blockdiag_times_blockdiag_throws<T>("N", {Shape{2, 3}}, {Shape{3, 2}}, {Shape{3, 3}}) != TEST_PASS) return TEST_FAIL;
+    // Only conforms when A is not transposed
+    if (check_blockdiag_times_blockdiag_throws<T>("T", {Shape{2, 3}}, {Shape{3, 2}}, {Shape{2, 2}}) != TEST_PASS) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
 // Main
 // ============================================================================
 
@@ -842,8 +965,22 @@ int main(){
             total_failures += test_blockdiag_gemm_multi_block_transpose<float>(Ta, Tb);
             total_failures += test_dense_times_blockdiag_gemm_multi_block_transpose<double>(Ta, Tb);
             total_failures += test_dense_times_blockdiag_gemm_multi_block_transpose<float>(Ta, Tb);
+            total_failures += test_blockdiag_times_blockdiag_mixed_shapes<double>(Ta, Tb);
+            total_failures += test_blockdiag_times_blockdiag_mixed_shapes<float>(Ta, Tb);
+            total_failures += test_blockdiag_times_blockdiag_uniform<double>(Ta, Tb);
+            total_failures += test_blockdiag_times_blockdiag_uniform<float>(Ta, Tb);
         }
     }
+
+    // BlockDiagMatrix times BlockDiagMatrix GEMM tests
+    total_failures += test_blockdiag_times_blockdiag_run_ended_by_b<double>();
+    total_failures += test_blockdiag_times_blockdiag_run_ended_by_b<float>();
+    total_failures += test_blockdiag_times_blockdiag_convenience<double>();
+    total_failures += test_blockdiag_times_blockdiag_convenience<float>();
+    total_failures += test_blockdiag_times_blockdiag_empty<double>();
+    total_failures += test_blockdiag_times_blockdiag_empty<float>();
+    total_failures += test_blockdiag_times_blockdiag_mismatch<double>();
+    total_failures += test_blockdiag_times_blockdiag_mismatch<float>();
 
     if (total_failures > 0) {
         std::cerr << "cpu/blas/level3 tests: " << total_failures << " failures" << std::endl;

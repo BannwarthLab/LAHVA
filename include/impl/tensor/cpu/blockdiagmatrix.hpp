@@ -43,6 +43,11 @@ namespace lahva
             //! @return Const void pointer to block data
             virtual const void* get_block_data(size_t idx) const = 0;
 
+            //! @brief Get writable raw data pointer to a block.
+            //! @param[in] idx Block index
+            //! @return Void pointer to block data
+            virtual void* get_block_data(size_t idx) = 0;
+
             //! @brief Get cumulative row offsets of all blocks.
             //! @return Const reference to vector of row offsets where offsets[i] is cumulative row position of block i
             virtual const std::vector<int>& get_row_offsets() const = 0;
@@ -348,6 +353,13 @@ namespace lahva
         //! @return Const void pointer to block data at index idx
         const void* get_block_data(size_t idx) const override {
             return static_cast<const void*>(matrices[idx].data());
+        }
+
+        //! @brief Get writable raw data pointer to a block (override from base class)
+        //! @param[in] idx Block index
+        //! @return Void pointer to block data at index idx
+        void* get_block_data(size_t idx) override {
+            return static_cast<void*>(matrices[idx].data());
         }
 
         //! @brief Get const reference to a block matrix

@@ -660,6 +660,131 @@ namespace lahva
 #endif
         }
 
+        /// @brief Block-diagonal times block-diagonal matrix multiply with full transpose support.
+        ///
+        /// Performs C = alpha * op(A) * op(B) + beta * C where A, B and C are block-diagonal, multiplying matching
+        /// blocks. Uses MKL batch GEMM to efficiently process consecutive blocks with identical dimensions, falling
+        /// back to an OpenMP loop over the blocks if batch GEMM is unavailable.
+        ///
+        /// @tparam T Numeric element type (double or float).
+        /// @param Ta    Transpose option for A: "N" (no transpose, A), "T" (transpose, A^T), "C" (conjugate-transpose, A^H).
+        /// @param Tb    Transpose option for B: "N" (no transpose, B), "T" (transpose, B^T), "C" (conjugate-transpose, B^H).
+        /// @param alpha Scaling factor applied to op(A)*op(B).
+        /// @param a     Block-diagonal input matrix (BlockDiagMatrix_<T>).
+        /// @param b     Block-diagonal input matrix (BlockDiagMatrix_<T>).
+        /// @param beta  Scaling factor applied to existing contents of c.
+        /// @param c     Block-diagonal output matrix (BlockDiagMatrix_<T>), which must not share storage with a or b.
+        /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match.
+        template <typename T>
+        void MatrixMatrixProduct(const char *Ta, const char *Tb, const T alpha, const BlockDiagMatrix_<T> &a, const BlockDiagMatrix_<T> &b,
+                                 const T beta, BlockDiagMatrix_<T> &c)
+        {
+            CBLAS_TRANSPOSE transa = get_trans(Ta);
+            CBLAS_TRANSPOSE transb = get_trans(Tb);
+
+            const size_t num_blocks = a.num_blocks();
+            if (b.num_blocks() != num_blocks || c.num_blocks() != num_blocks) {
+                throw std::invalid_argument("MatrixMatrixProduct: block-diagonal matrices must have the same number of blocks");
+            }
+
+            for (size_t i = 0; i < num_blocks; ++i) {
+                const Shape sa = a.get_block_shape(i);
+                const Shape sb = b.get_block_shape(i);
+                const size_t op_a_rows = (transa != CblasNoTrans) ? sa.second : sa.first;
+                const size_t op_a_cols = (transa != CblasNoTrans) ? sa.first : sa.second;
+                const size_t op_b_rows = (transb != CblasNoTrans) ? sb.second : sb.first;
+                const size_t op_b_cols = (transb != CblasNoTrans) ? sb.first : sb.second;
+                if (op_a_cols != op_b_rows || c.get_block_shape(i) != Shape{op_a_rows, op_b_cols}) {
+                    throw std::invalid_argument("MatrixMatrixProduct: block shapes of block-diagonal matrices do not match");
+                }
+            }
+
+            if (num_blocks == 0) return;
+
+#ifdef W_MKL
+            std::vector<const T*> a_array, b_array;
+            std::vector<T*> c_array;
+            a_array.reserve(num_blocks);
+            b_array.reserve(num_blocks);
+            c_array.reserve(num_blocks);
+
+            std::vector<MKL_INT> m_vals, n_vals, k_vals, lda_vals, ldb_vals, ldc_vals, group_size;
+
+            size_t i = 0;
+            while (i < num_blocks) {
+                const Shape sa = a.get_block_shape(i);
+                const Shape sb = b.get_block_shape(i);
+                const size_t group_start = i;
+
+                // Find consecutive blocks with same dimensions, which also fixes the shape of C
+                while (i < num_blocks && a.get_block_shape(i) == sa && b.get_block_shape(i) == sb) {
+                    a_array.push_back(static_cast<const T*>(a.get_block_data(i)));
+                    b_array.push_back(static_cast<const T*>(b.get_block_data(i)));
+                    c_array.push_back(static_cast<T*>(c.get_block_data(i)));
+                    ++i;
+                }
+
+                // Add parameters once per group
+                m_vals.push_back(static_cast<MKL_INT>((transa != CblasNoTrans) ? sa.second : sa.first));
+                k_vals.push_back(static_cast<MKL_INT>((transa != CblasNoTrans) ? sa.first : sa.second));
+                n_vals.push_back(static_cast<MKL_INT>((transb != CblasNoTrans) ? sb.first : sb.second));
+                lda_vals.push_back(static_cast<MKL_INT>(sa.first));
+                ldb_vals.push_back(static_cast<MKL_INT>(sb.first));
+                ldc_vals.push_back(m_vals.back());
+                group_size.push_back(static_cast<MKL_INT>(i - group_start));
+            }
+
+            // Fill constant arrays
+            const size_t group_count = group_size.size();
+            std::vector<CBLAS_TRANSPOSE> transa_array(group_count, transa);
+            std::vector<CBLAS_TRANSPOSE> transb_array(group_count, transb);
+            std::vector<T> alpha_array(group_count, alpha);
+            std::vector<T> beta_array(group_count, beta);
+
+            if constexpr (std::is_same_v<T, double>)
+            {
+                cblas_dgemm_batch(major, transa_array.data(), transb_array.data(), m_vals.data(), n_vals.data(), k_vals.data(),
+                                  alpha_array.data(), a_array.data(), lda_vals.data(), b_array.data(), ldb_vals.data(),
+                                  beta_array.data(), c_array.data(), ldc_vals.data(), group_count, group_size.data());
+            }
+            else if constexpr (std::is_same_v<T, float>)
+            {
+                cblas_sgemm_batch(major, transa_array.data(), transb_array.data(), m_vals.data(), n_vals.data(), k_vals.data(),
+                                  alpha_array.data(), a_array.data(), lda_vals.data(), b_array.data(), ldb_vals.data(),
+                                  beta_array.data(), c_array.data(), ldc_vals.data(), group_count, group_size.data());
+            }
+#else
+            // OpenMP-parallelized fallback for non-MKL BLAS; block costs can vary a lot, so don't split them evenly
+#pragma omp parallel for schedule(guided)
+            for (size_t i = 0; i < num_blocks; ++i) {
+                const Shape sa = a.get_block_shape(i);
+                const Shape sb = b.get_block_shape(i);
+                const BLAS_INT m = static_cast<BLAS_INT>((transa != CblasNoTrans) ? sa.second : sa.first);
+                const BLAS_INT k = static_cast<BLAS_INT>((transa != CblasNoTrans) ? sa.first : sa.second);
+                const BLAS_INT n = static_cast<BLAS_INT>((transb != CblasNoTrans) ? sb.first : sb.second);
+                const BLAS_INT lda = static_cast<BLAS_INT>(sa.first);
+                const BLAS_INT ldb = static_cast<BLAS_INT>(sb.first);
+                const T *a_block = static_cast<const T*>(a.get_block_data(i));
+                const T *b_block = static_cast<const T*>(b.get_block_data(i));
+                T *c_block = static_cast<T*>(c.get_block_data(i));
+
+                if constexpr (std::is_same_v<T, double>)
+                {
+                    cblas_dgemm(major, transa, transb, m, n, k, alpha, a_block, lda, b_block, ldb, beta, c_block, m);
+                }
+                else if constexpr (std::is_same_v<T, float>)
+                {
+                    cblas_sgemm(major, transa, transb, m, n, k, alpha, a_block, lda, b_block, ldb, beta, c_block, m);
+                }
+            }
+#endif
+        }
+
+        template void MatrixMatrixProduct(const char *Ta, const char *Tb, const double alpha, const BlockDiagMatrix_<double> &a, const BlockDiagMatrix_<double> &b,
+                                 const double beta, BlockDiagMatrix_<double> &c);
+        template void MatrixMatrixProduct(const char *Ta, const char *Tb, const float alpha, const BlockDiagMatrix_<float> &a, const BlockDiagMatrix_<float> &b,
+                                 const float beta, BlockDiagMatrix_<float> &c);
+
 
     /// @brief Symmetric matrix-matrix multiply (double precision).
     ///
