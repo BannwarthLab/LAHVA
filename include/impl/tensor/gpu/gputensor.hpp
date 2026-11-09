@@ -168,6 +168,12 @@ namespace lahva
             /// @brief Flag indicating if host memory is registered with CUDA
             mutable bool registered = false;
 
+            /// @brief Non-owning alias device pointer (e.g. another tensor's buffer)
+            mutable T *device_view_ptr_ = nullptr;
+
+            /// @brief Flag tracking whether device_view_ptr_ is active
+            mutable bool device_view_active_ = false;
+
         public:
             /// @brief Register host memory for faster GPU transfers
             /// @param[in] cudart CUDA runtime instance
@@ -205,11 +211,29 @@ namespace lahva
 
             /// @brief Get pointer to GPU device memory
             /// @return const pointer to GPU device data
-            T *gpu_data() const override { return this->device_ptr_.get(); };
+            T *gpu_data() const override { return this->device_view_active_ ? this->device_view_ptr_ : this->device_ptr_.get(); };
 
             /// @brief Get pointer to GPU device memory
             /// @return non-const pointer to GPU device data
-            T *gpu_data() override { return this->device_ptr_.get(); };
+            T *gpu_data() override { return this->device_view_active_ ? this->device_view_ptr_ : this->device_ptr_.get(); };
+
+            /// @brief Attach a non-owning alias device pointer (e.g. another tensor's buffer).
+            /// Must outlive this tensor (or any view of it).
+            /// @remark When active, gpu_data() returns p, device_ptr_ stays null,
+            /// so destruction of this view is a no-op on the underlying buffer.
+            void attach_device_ptr(T *p) const
+            {
+                this->device_view_ptr_ = p;
+                this->device_view_active_ = true;
+                this->is_on_device_ = true;
+            }
+
+            /// @brief Invalidate an attached device view pointer (does not free anything)
+            void clear_device_view() const
+            {
+                this->device_view_ptr_ = nullptr;
+                this->device_view_active_ = false;
+            }
 
             /// @brief Release GPU device pointer without freeing memory
             void release_gpu_ptr() { device_ptr_.reset(); };
@@ -249,6 +273,11 @@ namespace lahva
         template <typename T, typename Allocator, typename GPUAllocator>
         void Tensor<T, Allocator, GPUAllocator>::deallocateGPU(const CudaRuntime &cudart) const
         {
+            if (this->device_view_active_)
+            {
+                // aliased buffer is owned elsewhere; refuse to free it
+                return;
+            }
             this->gpualloc_.setDevice(cudart.device_id());
             this->gpualloc_.setStream(cudart.getStreamPtr());
             this->device_ptr_.get_deleter() = this->gpualloc_;
@@ -269,6 +298,12 @@ namespace lahva
         template <typename T, typename Allocator, typename GPUAllocator>
         void Tensor<T, Allocator, GPUAllocator>::copy2device(const CudaRuntime &cudart) const
         {
+            // aliased view: buffer is owned elsewhere (typically already on device)
+            if (this->device_view_active_)
+            {
+                return;
+            }
+
             if (!this->is_on_device_)
             {
 
@@ -299,7 +334,7 @@ namespace lahva
             {
                 this->gpualloc_.setDevice(cudart.device_id());
                 this->gpualloc_.setStream(cudart.getStreamPtr());
-                gpualloc_.D2HCopy(this->device_ptr_.get(), this->data(), this->size() * sizeof(T));
+                gpualloc_.D2HCopy(this->gpu_data(), this->data(), this->size() * sizeof(T));
                 this->is_on_device_ = false;
                 if ((cudart.criticalMem()) && (cudart.criticalSize(this->size() * sizeof(T))))
                 {
