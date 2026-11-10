@@ -224,6 +224,25 @@ int test_blockdiag_copy_constructor() {
     return TEST_PASS;
 }
 
+template <typename T>
+int test_blockdiag_set_block_shapes() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, (T)1));
+    BlockDiagMatrix<T> m(blocks);
+
+    m.set_block_shapes({Shape{2, 3}, Shape{1, 1}});
+
+    if (!check((int)m.num_blocks(), 2, check_msg(get_type_name<T>(), "block count"))) return TEST_FAIL;
+    if (!check((int)m.shape().first, 3, check_msg(get_type_name<T>(), "rows"))) return TEST_FAIL;
+    if (!check((int)m.shape().second, 4, check_msg(get_type_name<T>(), "columns"))) return TEST_FAIL;
+    if (!check(m.get_row_offsets()[1], 2, check_msg(get_type_name<T>(), "row offset"))) return TEST_FAIL;
+    if (!check(m.get_col_offsets()[1], 3, check_msg(get_type_name<T>(), "column offset"))) return TEST_FAIL;
+    if (!check((T)m(0, 0), (T)0, check_msg(get_type_name<T>(), "old value"))) return TEST_FAIL;
+    if (!check((T)m(2, 3), (T)0, check_msg(get_type_name<T>(), "new block"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
 // Positions outside the blocks have no storage, so a write there must not show up anywhere
 template <typename T>
 int test_blockdiag_write_outside_blocks() {
@@ -253,6 +272,8 @@ int main() {
     // Writes outside the blocks
     total_failures += test_blockdiag_write_outside_blocks<double>();
     total_failures += test_blockdiag_write_outside_blocks<float>();
+    total_failures += test_blockdiag_set_block_shapes<double>();
+    total_failures += test_blockdiag_set_block_shapes<float>();
 
     // BlockDiagMatrix constructors - double precision
     total_failures += test_blockdiag_uniform_blocks_constructor<double>();

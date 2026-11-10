@@ -703,7 +703,8 @@ namespace lahva
         /// @param a Input block-diagonal matrix.
         /// @param b Input block-diagonal matrix.
         /// @param beta Scalar multiplier for result matrix C.
-        /// @param c Input/output block-diagonal matrix, which must not share storage with a or b.
+        /// @param c Input/output block-diagonal matrix, which must not share storage with a or b. If c has no blocks,
+        ///          it gets the blocks of the product, initialized to zero, so beta has no effect.
         /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match.
         template <typename T>
         void MatrixMatrixProduct_blockdiag(const CudaRuntime &cudart, const char *Ta, const char *Tb, const T alpha, const BlockDiagMatrix_<T> &a,
@@ -711,6 +712,11 @@ namespace lahva
         {
             cublasOperation_t transa = get_trans(Ta);
             cublasOperation_t transb = get_trans(Tb);
+
+            // An output without blocks gets the blocks of the product
+            if (c.num_blocks() == 0 && a.num_blocks() > 0) {
+                c.set_block_shapes(product_block_shapes(Ta, Tb, a, b));
+            }
 
             const size_t num_blocks = a.num_blocks();
             if (b.num_blocks() != num_blocks || c.num_blocks() != num_blocks) {
@@ -784,7 +790,8 @@ namespace lahva
         /// @param a Input block-diagonal matrix.
         /// @param b Input block-diagonal matrix.
         /// @param beta Scalar multiplier for result matrix C.
-        /// @param c Input/output block-diagonal matrix, which must not share storage with a or b.
+        /// @param c Input/output block-diagonal matrix, which must not share storage with a or b. If c has no blocks,
+        ///          it gets the blocks of the product, initialized to zero, so beta has no effect.
         void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
                                  const double alpha, const BlockDiagMatrix_<double> &a,
                                  const BlockDiagMatrix_<double> &b, const double beta, BlockDiagMatrix_<double> &c)
@@ -801,7 +808,8 @@ namespace lahva
         /// @param a Input block-diagonal matrix.
         /// @param b Input block-diagonal matrix.
         /// @param beta Scalar multiplier for result matrix C.
-        /// @param c Input/output block-diagonal matrix, which must not share storage with a or b.
+        /// @param c Input/output block-diagonal matrix, which must not share storage with a or b. If c has no blocks,
+        ///          it gets the blocks of the product, initialized to zero, so beta has no effect.
         void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
                                  const float alpha, const BlockDiagMatrix_<float> &a,
                                  const BlockDiagMatrix_<float> &b, const float beta, BlockDiagMatrix_<float> &c)

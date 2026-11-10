@@ -8,6 +8,7 @@
 #include "../utils/utils.hpp"
 #include "impl/blas/cpu/level3.h"
 #include "impl/blas/cpu/level3.hpp"
+#include "impl/cpu/utils.hpp"
 #include "linalg.hpp"
 
 namespace lahva
@@ -674,6 +675,8 @@ namespace lahva
         /// @param b     Block-diagonal input matrix (BlockDiagMatrix_<T>).
         /// @param beta  Scaling factor applied to existing contents of c.
         /// @param c     Block-diagonal output matrix (BlockDiagMatrix_<T>), which must not share storage with a or b.
+        ///              If c has no blocks, it gets the blocks of the product, initialized to zero,
+        ///              so beta has no effect.
         /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match.
         template <typename T>
         void MatrixMatrixProduct(const char *Ta, const char *Tb, const T alpha, const BlockDiagMatrix_<T> &a, const BlockDiagMatrix_<T> &b,
@@ -681,6 +684,11 @@ namespace lahva
         {
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
+
+            // An output without blocks gets the blocks of the product
+            if (c.num_blocks() == 0 && a.num_blocks() > 0) {
+                c.set_block_shapes(product_block_shapes(Ta, Tb, a, b));
+            }
 
             const size_t num_blocks = a.num_blocks();
             if (b.num_blocks() != num_blocks || c.num_blocks() != num_blocks) {

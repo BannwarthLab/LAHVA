@@ -388,7 +388,8 @@ namespace lahva
     /// @param a Input block-diagonal matrix A
     /// @param b Input block-diagonal matrix B
     /// @param beta Scalar multiplier for result matrix C
-    /// @param c Input/output block-diagonal matrix C, which must not share storage with a or b
+    /// @param c Input/output block-diagonal matrix C, which must not share storage with a or b. If c has no blocks,
+    ///          it gets the blocks of the product, initialized to zero, so beta has no effect
     /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match
     /// @note The result stays on the device. Call c.copy2host(cudart) before reading it on the host or using c in a
     ///       cuSPARSE-based product, which reads the host values. Don't call c.copy2device(cudart) before that, because
@@ -404,7 +405,8 @@ namespace lahva
     /// @param cudart CUDA runtime instance.
     /// @param a Input block-diagonal matrix A
     /// @param b Input block-diagonal matrix B
-    /// @param c Input/output block-diagonal matrix C, which must not share storage with a or b
+    /// @param c Input/output block-diagonal matrix C, which must not share storage with a or b. If c has no blocks,
+    ///          it gets the blocks of the product, initialized to zero, so beta has no effect
     /// @param alpha Scalar multiplier for the matrix product (default: 1.0)
     /// @param beta Scalar multiplier for result matrix C (default: 0.0)
     /// @param Ta Operation on A (default: "N")
@@ -430,7 +432,8 @@ namespace lahva
     /// @param a Input block-diagonal matrix A
     /// @param b Input block-diagonal matrix B
     /// @param beta Scalar multiplier for result matrix C
-    /// @param c Input/output block-diagonal matrix C, which must not share storage with a or b
+    /// @param c Input/output block-diagonal matrix C, which must not share storage with a or b. If c has no blocks,
+    ///          it gets the blocks of the product, initialized to zero, so beta has no effect
     /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match
     /// @note The result stays on the device. Call c.copy2host(cudart) before reading it on the host or using c in a
     ///       cuSPARSE-based product, which reads the host values. Don't call c.copy2device(cudart) before that, because
@@ -446,7 +449,8 @@ namespace lahva
     /// @param cudart CUDA runtime instance.
     /// @param a Input block-diagonal matrix A
     /// @param b Input block-diagonal matrix B
-    /// @param c Input/output block-diagonal matrix C, which must not share storage with a or b
+    /// @param c Input/output block-diagonal matrix C, which must not share storage with a or b. If c has no blocks,
+    ///          it gets the blocks of the product, initialized to zero, so beta has no effect
     /// @param alpha Scalar multiplier for the matrix product (default: 1.0)
     /// @param beta Scalar multiplier for result matrix C (default: 0.0)
     /// @param Ta Operation on A (default: "N")

@@ -10,6 +10,7 @@
 #include "runtime.hpp"
 #include "impl/tensor/gpu/matrix.hpp"
 #include "impl/tensor/gpu/block-matrix-classes/block-matrix.hpp"
+#include <algorithm>
 #include <cstring>
 #include <map>
 
@@ -70,6 +71,10 @@ namespace lahva
             /// @param[in] cudart CUDA runtime for device allocation
             /// @return Device pointer to block column sizes array
             virtual const int* get_d_block_col_sizes(const CudaRuntime &cudart) const = 0;
+
+            /// @brief Replace all blocks with zero-initialized blocks of the given shapes
+            /// @param[in] shapes shape of each new block, in block order
+            virtual void set_block_shapes(const std::vector<Shape> &shapes) = 0;
         };
 
         /// @brief GPU-accelerated block-diagonal matrix with batched operations.
@@ -657,6 +662,32 @@ namespace lahva
                     sparse_format_ = format;
                     free_gpu_cache();
                 }
+            }
+
+            /// @brief Replace all blocks with zero-initialized blocks of the given shapes
+            /// @param[in] shapes shape of each new block, in block order
+            /// @note invalidates GPU cache
+            void set_block_shapes(const std::vector<Shape> &shapes) override {
+                free_gpu_cache();
+                this->invalidate_sparse_cache();
+
+                blocks_.clear();
+                size_t row_pos = 0, col_pos = 0;
+                for (const auto &s : shapes) {
+                    blocks_[{row_pos, col_pos}] = Matrix<T, Allocator>(s, static_cast<T>(0));
+                    row_pos += s.first;
+                    col_pos += s.second;
+                }
+
+                // As in the constructors, BSR is only used when all blocks have the same shape
+                const bool all_same_size = std::all_of(shapes.begin(), shapes.end(),
+                                                       [&](const Shape &s) { return s == shapes.front(); });
+                set_sparse_format(all_same_size ? SparseFormat::BSR : SparseFormat::CSR);
+
+                update_dimensions();
+                row_offsets_valid_ = false;
+                col_offsets_valid_ = false;
+                d_offsets_valid_ = false;
             }
 
             /// @brief Add a new block at specified index

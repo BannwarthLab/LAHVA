@@ -897,6 +897,34 @@ int test_product_block_shapes_builds_output() {
 }
 
 template <typename T>
+int test_blockdiag_times_blockdiag_output_without_blocks(const char *Ta, const char *Tb) {
+    const BlockDiagMatrix<T> A = make_blockdiag<T>({Shape{2, 3}, Shape{3, 1}}, Ta);
+    const BlockDiagMatrix<T> B = make_blockdiag<T>({Shape{3, 4}, Shape{1, 2}}, Tb);
+    BlockDiagMatrix<T> C;
+
+    MatrixMatrixProduct(Ta, Tb, static_cast<T>(2), A, B, static_cast<T>(3), C);
+
+    const std::string desc = std::string("Ta=") + Ta + " Tb=" + Tb;
+    if (C.num_blocks() != 2 || C.get_block_shape(0) != Shape{2, 4} || C.get_block_shape(1) != Shape{3, 2}) {
+        std::cerr << check_msg(get_type_name<T>(), desc + ": output got the wrong blocks") << std::endl;
+        return TEST_FAIL;
+    }
+
+    Matrix<T> expected(C.shape(), static_cast<T>(0));
+    reference_gemm(Ta, Tb, static_cast<T>(2), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(0), expected);
+    const Matrix<T> first = blockdiag_to_dense(C);
+    const int n_elements = static_cast<int>(first.shape().first * first.shape().second);
+    if (!check(first.data(), expected.data(), n_elements, check_msg(get_type_name<T>(), desc + " first product"))) return TEST_FAIL;
+
+    MatrixMatrixProduct(Ta, Tb, static_cast<T>(2), A, B, static_cast<T>(1), C);
+    reference_gemm(Ta, Tb, static_cast<T>(2), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(1), expected);
+    const Matrix<T> second = blockdiag_to_dense(C);
+    if (!check(second.data(), expected.data(), n_elements, check_msg(get_type_name<T>(), desc + " second product"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
 int test_product_block_shapes_empty() {
     const BlockDiagMatrix<T> A, B;
 
@@ -1048,6 +1076,12 @@ int main(){
     total_failures += test_product_block_shapes_empty<float>();
     total_failures += test_product_block_shapes_mismatch<double>();
     total_failures += test_product_block_shapes_mismatch<float>();
+    for (const char *Ta : {"N", "T"}) {
+        for (const char *Tb : {"N", "T"}) {
+            total_failures += test_blockdiag_times_blockdiag_output_without_blocks<double>(Ta, Tb);
+            total_failures += test_blockdiag_times_blockdiag_output_without_blocks<float>(Ta, Tb);
+        }
+    }
 
     if (total_failures > 0) {
         std::cerr << "cpu/blas/level3 tests: " << total_failures << " failures" << std::endl;

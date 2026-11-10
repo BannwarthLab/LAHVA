@@ -364,6 +364,30 @@ int test_blockdiag_ensure_on_gpu_without_blocks(const CudaRuntime& cudart) {
     return TEST_FAIL;
 }
 
+template <typename T>
+int test_blockdiag_set_block_shapes(const CudaRuntime& cudart) {
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, (T)1));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, (T)1));
+    BlockDiagMatrix<T> m(blocks);
+    const BlockDiagMatrix<T> &m_const = m;
+    m.ensure_on_gpu(cudart);
+
+    m.set_block_shapes({Shape{2, 3}, Shape{1, 1}});
+
+    if (!check((int)m.num_blocks(), 2, check_msg(get_type_name<T>(), "block count"))) return TEST_FAIL;
+    if (!check((int)m.shape().first, 3, check_msg(get_type_name<T>(), "rows"))) return TEST_FAIL;
+    if (!check((int)m.shape().second, 4, check_msg(get_type_name<T>(), "columns"))) return TEST_FAIL;
+    if (!check((T)m_const(0, 0), (T)0, check_msg(get_type_name<T>(), "old value"))) return TEST_FAIL;
+    if (!check((int)(m.get_sparse_format() == SparseFormat::CSR), 1, check_msg(get_type_name<T>(), "CSR for mixed shapes"))) return TEST_FAIL;
+
+    const GPUBlockDiagData<T> &gpu_data = m.ensure_on_gpu(cudart);
+    if (!check((int)gpu_data.num_blocks, 2, check_msg(get_type_name<T>(), "device block count"))) return TEST_FAIL;
+    if (!check((int)gpu_data.max_k, 3, check_msg(get_type_name<T>(), "device block width"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
 // Positions outside the blocks have no storage, so a write there must not show up anywhere
 template <typename T>
 int test_blockdiag_write_outside_blocks() {
@@ -868,6 +892,8 @@ int main() {
     total_failures += test_blockdiag_repeated_copy2device_frees_cache<float>(cudart);
     total_failures += test_blockdiag_write_outside_blocks<double>();
     total_failures += test_blockdiag_write_outside_blocks<float>();
+    total_failures += test_blockdiag_set_block_shapes<double>(cudart);
+    total_failures += test_blockdiag_set_block_shapes<float>(cudart);
     // GPU round-trip transfers
     total_failures += test_sparse_matrix_gpu_roundtrip_csr<double>();
     total_failures += test_sparse_matrix_gpu_roundtrip_csr<float>();

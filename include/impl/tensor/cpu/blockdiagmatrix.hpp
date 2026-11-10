@@ -55,6 +55,10 @@ namespace lahva
             //! @brief Get cumulative column offsets of all blocks.
             //! @return Const reference to vector of column offsets where offsets[i] is cumulative column position of block i
             virtual const std::vector<int>& get_col_offsets() const = 0;
+
+            //! @brief Replace all blocks with zero-initialized blocks of the given shapes.
+            //! @param[in] shapes Shape of each new block, in block order
+            virtual void set_block_shapes(const std::vector<Shape> &shapes) = 0;
     };
 
     template <class T, class Allocator = StdAllocator<T>>
@@ -374,6 +378,22 @@ namespace lahva
         //! @brief Get cumulative column offsets of all blocks (override from base class)
         //! @return Const reference to vector where offsets[i] is cumulative column position of block i
         const std::vector<int>& get_col_offsets() const override { return col_offsets_; }
+
+        //! @brief Replace all blocks with zero-initialized blocks of the given shapes (override from base class)
+        //! @param[in] shapes Shape of each new block, in block order
+        void set_block_shapes(const std::vector<Shape> &shapes) override
+        {
+            matrices.clear();
+            matrices.reserve(shapes.size());
+            for (const auto &s : shapes)
+                matrices.emplace_back(s, static_cast<T>(0));
+            n_rows_ = 0;
+            n_cols_ = 0;
+            block_sizes_.clear();
+            row_offsets_.clear();
+            col_offsets_.clear();
+            build_offsets_();
+        }
 
         //! @brief Add a new block at specified index
         //! @param[in] block The matrix to add as a new diagonal block

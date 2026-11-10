@@ -164,6 +164,8 @@ namespace lahva
         /// @param b     Block-diagonal input matrix.
         /// @param beta  Scaling factor for existing c.
         /// @param c     Block-diagonal output matrix (modified), which must not share storage with a or b.
+        ///              If c has no blocks, it gets the blocks of the product, initialized to zero,
+        ///              so beta has no effect.
         /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match.
         template <typename T>
         void MatrixMatrixProduct(const char *Ta, const char *Tb, const T alpha, const BlockDiagMatrix_<T> &a, const BlockDiagMatrix_<T> &b,
@@ -176,6 +178,8 @@ namespace lahva
         /// @param a     Block-diagonal input matrix.
         /// @param b     Block-diagonal input matrix.
         /// @param c     Block-diagonal output matrix (modified), which must not share storage with a or b.
+        ///              If c has no blocks, it gets the blocks of the product, initialized to zero,
+        ///              so beta has no effect.
         /// @param alpha Scaling factor for A*B (default: 1.0).
         /// @param beta  Scaling factor for existing c (default: 0.0).
         /// @param Ta    Transpose for A (default: "N").

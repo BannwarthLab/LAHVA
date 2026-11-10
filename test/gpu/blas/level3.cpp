@@ -2376,6 +2376,43 @@ int test_gpu_blockdiag_times_blockdiag_async_allocator(CudaRuntime& cudart) {
     return TEST_PASS;
 }
 
+template <typename T, typename OutputType>
+int test_gpu_blockdiag_times_blockdiag_output_without_blocks(CudaRuntime& cudart, const char *Ta, const char *Tb) {
+    const BlockDiagMatrix<T> A = make_blockdiag_op<T>({Shape{2, 3}, Shape{3, 1}}, Ta);
+    const BlockDiagMatrix<T> B = make_blockdiag_op<T>({Shape{3, 4}, Shape{1, 2}}, Tb);
+    OutputType C;
+
+    MatrixMatrixProduct(cudart, Ta, Tb, static_cast<T>(2), A, B, static_cast<T>(3), C);
+
+    const std::string desc = std::string("Ta=") + Ta + " Tb=" + Tb;
+    if (C.num_blocks() != 2 || C.get_block_shape(0) != Shape{2, 4} || C.get_block_shape(1) != Shape{3, 2}) {
+        std::cerr << check_msg(get_type_name<T>(), desc + ": output got the wrong blocks") << std::endl;
+        return TEST_FAIL;
+    }
+
+    MatrixMatrixProduct(cudart, Ta, Tb, static_cast<T>(2), A, B, static_cast<T>(1), C);
+    cudart.synchronize();
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    Matrix<T, CudaHostAllocator<T>> expected(C.shape(), static_cast<T>(0));
+    reference_gemm(Ta, Tb, static_cast<T>(2), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(0), expected);
+    reference_gemm(Ta, Tb, static_cast<T>(2), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(1), expected);
+
+    const OutputType &C_const = C;
+    Matrix<T, CudaHostAllocator<T>> C_dense(C.shape(), static_cast<T>(0));
+    for (size_t i = 0; i < C.shape().first; i++) {
+        for (size_t j = 0; j < C.shape().second; j++) {
+            C_dense(i, j) = C_const(i, j);
+        }
+    }
+
+    const int n_elements = static_cast<int>(C.shape().first * C.shape().second);
+    if (!check(C_dense.data(), expected.data(), n_elements, check_msg(get_type_name<T>(), desc))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
 // ============================================================================
 // Main
 // ============================================================================
@@ -2565,6 +2602,14 @@ int main(){
     total_failures += test_gpu_product_block_shapes_mismatch<float>();
     total_failures += test_gpu_blockdiag_times_blockdiag_async_allocator<double>(cudart);
     total_failures += test_gpu_blockdiag_times_blockdiag_async_allocator<float>(cudart);
+    for (const char *Ta : {"N", "T"}) {
+        for (const char *Tb : {"N", "T"}) {
+            total_failures += test_gpu_blockdiag_times_blockdiag_output_without_blocks<double, BlockDiagMatrix<double>>(cudart, Ta, Tb);
+            total_failures += test_gpu_blockdiag_times_blockdiag_output_without_blocks<float, BlockDiagMatrix<float>>(cudart, Ta, Tb);
+            total_failures += test_gpu_blockdiag_times_blockdiag_output_without_blocks<double, AsyncBlockDiagMatrix<double>>(cudart, Ta, Tb);
+            total_failures += test_gpu_blockdiag_times_blockdiag_output_without_blocks<float, AsyncBlockDiagMatrix<float>>(cudart, Ta, Tb);
+        }
+    }
 
     if (total_failures > 0) {
         std::cerr << "gpu/blas/level3 tests: " << total_failures << " failures" << std::endl;
