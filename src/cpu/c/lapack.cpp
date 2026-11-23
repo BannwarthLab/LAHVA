@@ -1,5 +1,3 @@
-#include "lapack_wrap.hpp"
-#include "impl/blas/cpu/lapack.h"
 /// @file lapack.cpp
 /// @brief CPU C-level LAPACK function implementations.
 ///
@@ -7,6 +5,9 @@
 /// matrix factorizations (LU, QR, Cholesky), and other linear algebra operations.
 
 #include <stdexcept>
+#include "impl/blas/cpu/lapack.h"
+#include "lapack_wrap.hpp"
+
 namespace lahva
 {
     namespace cpu
@@ -169,5 +170,4 @@ namespace lahva
         };
     
     } // namespace cpu
-
 } // namespace lahva

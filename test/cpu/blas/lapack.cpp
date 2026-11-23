@@ -205,9 +205,7 @@ int test_solve_pos_sys() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               check_msg(get_type_name<T>(), "A*X verification"))) {
-        return TEST_FAIL;
-    }
+               check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -240,9 +238,7 @@ int test_solve_gen_sys() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               check_msg(get_type_name<T>(), "A*X verification"))) {
-        return TEST_FAIL;
-    }
+               check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -271,9 +267,7 @@ int test_solve_gen_sys_transpose() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               check_msg(get_type_name<T>(), "A^T*X verification"))) {
-        return TEST_FAIL;
-    }
+               check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -302,9 +296,7 @@ int test_solve_gen_sys_alt_order() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               check_msg(get_type_name<T>(), "A*X verification"))) {
-        return TEST_FAIL;
-    }
+               check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -336,9 +328,7 @@ int test_solve_lower_tri() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               check_msg(get_type_name<T>(), "L*X verification"))) {
-        return TEST_FAIL;
-    }
+               check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -366,9 +356,7 @@ int test_solve_lower_tri_transpose() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               check_msg(get_type_name<T>(), "L^T*X verification"))) {
-        return TEST_FAIL;
-    }
+               check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -400,9 +388,7 @@ int test_solve_sym_sys() {
     size_t n = A_copy.shape().first;
     size_t nrhs = B_original.shape().second;
     if (!check<T, ToleranceType::LAPACK>(product.data(), B_original.data(), n*nrhs,
-               check_msg(get_type_name<T>(), "A*X verification"))) {
-        return TEST_FAIL;
-    }
+               check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -442,11 +428,110 @@ int test_invert_tri_matrix() {
 
     // Verify A_original * A = identity
     if (!check<T, ToleranceType::LAPACK>(product.data(), identity.data(), n*n,
-               check_msg(get_type_name<T>(), "A*A_inv = I verification"))) {
+               check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
+// General Matrix Inversion Tests
+// ============================================================================
+
+// Create a well-conditioned matrix whose LU factorization requires row pivoting
+template <typename T>
+void create_pivoting_matrix(Matrix<T>& A) {
+    size_t n = A.shape().first;
+    create_diagonal_dominant_matrix(A);
+    for (size_t j = 0; j < n; j++) {
+        std::swap(A(0, j), A(n - 1, j));
+    }
+}
+
+template <typename T>
+Matrix<T> identity_matrix(size_t n) {
+    Matrix<T> identity(Shape(n, n), (T)0.0);
+    for (size_t i = 0; i < n; i++) {
+        identity(i, i) = (T)1.0;
+    }
+    return identity;
+}
+
+template <typename T>
+int test_invert_matrix(size_t n) {
+
+    Shape s(n, n);
+    Matrix<T> A(s);
+    Matrix<T> A_original(s);
+
+    create_pivoting_matrix(A);
+    CopyVectors(A, A_original);
+
+    InvertMatrix(A);
+
+    Matrix<T> identity = identity_matrix<T>(n);
+
+    // Verify A_original * A^(-1) = I
+    Matrix<T> product = multiply_matrices(A_original, A, false);
+    if (!check<T, ToleranceType::LAPACK>(product.data(), identity.data(), n*n,
+               check_msg(get_type_name<T>(), "A*inv(A)"))) return TEST_FAIL;
+
+    // Verify A^(-1) * A_original = I
+    product = multiply_matrices(A, A_original, false);
+    if (!check<T, ToleranceType::LAPACK>(product.data(), identity.data(), n*n,
+               check_msg(get_type_name<T>(), "inv(A)*A"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_invert_matrix_runtime() {
+
+    Shape s(M, M);
+    Matrix<T> A(s);
+    Matrix<T> A_original(s);
+
+    create_pivoting_matrix(A);
+    CopyVectors(A, A_original);
+
+    lahva::CPURuntime rt;
+    InvertMatrix(rt, A);
+
+    // Verify A_original * A^(-1) = I
+    Matrix<T> product = multiply_matrices(A_original, A, false);
+    Matrix<T> identity = identity_matrix<T>(M);
+    if (!check<T, ToleranceType::LAPACK>(product.data(), identity.data(), M*M,
+               check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_invert_singular_matrix_throws() {
+
+    // Rank-1 matrix: every column is identical
+    Matrix<T> A(Shape(M, M), (T)1.0);
+
+    try {
+        InvertMatrix(A);
+    } catch (const std::runtime_error&) {
+        return TEST_PASS;
+    }
+    std::cerr << check_msg(get_type_name<T>(), "Singular matrix did not throw") << std::endl;
     return TEST_FAIL;
 }
 
+template <typename T>
+int test_invert_non_square_matrix_throws() {
+
+    Matrix<T> A(Shape(M, N), (T)1.0);
+
+    try {
+        InvertMatrix(A);
+    } catch (const std::runtime_error&) {
         return TEST_PASS;
+    }
+    std::cerr << check_msg(get_type_name<T>(), "Non-square matrix did not throw") << std::endl;
+    return TEST_FAIL;
 }
 
 // ============================================================================
@@ -477,9 +562,7 @@ int test_sym_eigenvalue_decomp() {
     Matrix<T> expected = multiply_matrices(A, lambda_diag, false);
 
     if (!check<T, ToleranceType::LAPACK>(product.data(), expected.data(), M*M,
-               check_msg(get_type_name<T>(), "A*V = V*Lambda verification"))) {
-        return TEST_FAIL;
-    }
+               check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -498,9 +581,8 @@ int test_sym_eigenvalue_no_vectors() {
     // Check that eigenvalues are positive (for positive definite matrix)
     for (size_t i = 0; i < eigenvalues.size(); i++) {
         if (eigenvalues[i] <= 0) {
-            std::cerr << "[" << get_type_name<T>() << "] [Eigenvalue Error] Negative eigenvalue found at index " << i
+            std::cerr << check_msg(get_type_name<T>(), "Negative eigenvalue found") << "at index " << i 
             << ": " << std::setprecision(15) << eigenvalues[i] << std::endl;
-            check_msg(get_type_name<T>(), "Negative eigenvalue found");
             return TEST_FAIL;
         }
     }
@@ -537,7 +619,7 @@ int test_c_solve_gen_sys() {
     // Verify: A_copy * B = B_original
     T* product = c_multiply_matrices(A_copy, B, n, nrhs, false);
     if (!check<T, ToleranceType::LAPACK>(product, B_original, n*nrhs,
-               check_msg(get_type_name<T>(), "A*X verification"))) {
+               check_msg(get_type_name<T>(), ""))) {
         delete[] product;
         return TEST_FAIL;
     }
@@ -653,6 +735,18 @@ int main() {
     // Triangular matrix inversion tests
     total_failures += test_invert_tri_matrix<double>();
     total_failures += test_invert_tri_matrix<float>();
+
+    // General matrix inversion tests
+    total_failures += test_invert_matrix<double>(M);
+    total_failures += test_invert_matrix<float>(M);
+    total_failures += test_invert_matrix<double>(64);
+    total_failures += test_invert_matrix<float>(64);
+    total_failures += test_invert_matrix_runtime<double>();
+    total_failures += test_invert_matrix_runtime<float>();
+    total_failures += test_invert_singular_matrix_throws<double>();
+    total_failures += test_invert_singular_matrix_throws<float>();
+    total_failures += test_invert_non_square_matrix_throws<double>();
+    total_failures += test_invert_non_square_matrix_throws<float>();
 
     // Symmetric eigenvalue decomposition tests
     total_failures += test_sym_eigenvalue_decomp<double>();

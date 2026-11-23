@@ -91,6 +91,95 @@ Matrix<T> identity_matrix(size_t n) {
 }
 
 // ============================================================================
+// General Matrix Inversion Tests
+// ============================================================================
+
+template <typename T>
+int test_invert_matrix(CudaRuntime& cudart, size_t n) {
+
+    Shape s(n, n);
+    Matrix<T> A(s, (T)0.0);
+    Matrix<T> A_original(s, (T)0.0);
+
+    create_pivoting_matrix(A);
+    create_pivoting_matrix(A_original);
+
+    InvertMatrix(cudart, A);
+
+    cudart.synchronize();
+    A.copy2host(cudart);
+
+    Matrix<T> identity = identity_matrix<T>(n);
+
+    // Verify A_original * A^(-1) = I
+    Matrix<T> product = multiply_matrices(A_original, A);
+    if (!check<T, ToleranceType::LAPACK>(product.data(), identity.data(), n*n,
+               check_msg(get_type_name<T>(), "A*inv(A)"))) return TEST_FAIL;
+
+    // Verify A^(-1) * A_original = I
+    product = multiply_matrices(A, A_original);
+    if (!check<T, ToleranceType::LAPACK>(product.data(), identity.data(), n*n,
+               check_msg(get_type_name<T>(), "inv(A)*A"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_invert_matrix_matches_cpu(CudaRuntime& cudart) {
+
+    Shape s(M, M);
+    Matrix<T> A_gpu(s, (T)0.0);
+    lahva::cpu::Matrix<T> A_cpu(s, (T)0.0);
+
+    create_pivoting_matrix(A_gpu);
+    for (size_t j = 0; j < M; j++) {
+        for (size_t i = 0; i < M; i++) {
+            A_cpu(i, j) = A_gpu(i, j);
+        }
+    }
+
+    InvertMatrix(cudart, A_gpu);
+    lahva::cpu::InvertMatrix(A_cpu);
+
+    cudart.synchronize();
+    A_gpu.copy2host(cudart);
+
+    if (!check<T, ToleranceType::LAPACK>(A_gpu.data(), A_cpu.data(), M*M,
+               check_msg(get_type_name<T>(), "GPU vs CPU"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_invert_singular_matrix_throws(CudaRuntime& cudart) {
+
+    // Rank-1 matrix: every column is identical
+    Matrix<T> A(Shape(M, M), (T)1.0);
+
+    try {
+        InvertMatrix(cudart, A);
+    } catch (const std::runtime_error&) {
+        return TEST_PASS;
+    }
+    std::cerr << check_msg(get_type_name<T>(), "Singular matrix did not throw") << std::endl;
+    return TEST_FAIL;
+}
+
+template <typename T>
+int test_invert_non_square_matrix_throws(CudaRuntime& cudart) {
+
+    Matrix<T> A(Shape(M, 2), (T)1.0);
+
+    try {
+        InvertMatrix(cudart, A);
+    } catch (const std::runtime_error&) {
+        return TEST_PASS;
+    }
+    std::cerr << check_msg(get_type_name<T>(), "Non-square matrix did not throw") << std::endl;
+    return TEST_FAIL;
+}
+
+// ============================================================================
 // Solve General Linear System Tests
 // ============================================================================
 
@@ -218,6 +307,18 @@ int test_solve_gen_sys_wrong_rhs_throws(CudaRuntime& cudart) {
 int main() {
     int total_failures = 0;
     CudaRuntime cudart;
+
+    // General matrix inversion tests
+    total_failures += test_invert_matrix<double>(cudart, M);
+    total_failures += test_invert_matrix<float>(cudart, M);
+    total_failures += test_invert_matrix<double>(cudart, 64);
+    total_failures += test_invert_matrix<float>(cudart, 64);
+    total_failures += test_invert_matrix_matches_cpu<double>(cudart);
+    total_failures += test_invert_matrix_matches_cpu<float>(cudart);
+    total_failures += test_invert_singular_matrix_throws<double>(cudart);
+    total_failures += test_invert_singular_matrix_throws<float>(cudart);
+    total_failures += test_invert_non_square_matrix_throws<double>(cudart);
+    total_failures += test_invert_non_square_matrix_throws<float>(cudart);
 
     // Solve general linear system tests
     total_failures += test_solve_gen_sys<double>(cudart, "N", M);

@@ -19,6 +19,74 @@ namespace lahva
 {
     namespace gpu
     {
+        /// @brief Computes the inverse of a general square matrix (DGETRF + DGETRS).
+        ///
+        /// Computes the LU factorization with partial pivoting of A and solves A*X = I, so that X = A^(-1).
+        /// The inverse is stored back in A on the device.
+        ///
+        /// @param cudart CUDA runtime instance.
+        /// @param a Input/output square matrix, replaced with its inverse.
+        template <typename T>
+        void InvertMatrix(CudaRuntime &cudart, Matrix_<T> &a)
+        {
+            if (a.shape().first != a.shape().second)
+            {
+                throw std::runtime_error("A should be square");
+            }
+            check_device_alloc(cudart, a);
+
+            int64_t n = static_cast<int64_t>(a.shape().first);
+            cusolverDnHandle_t handle = cudart.getcuSolverHandle();
+            cudaStream_t stream = cudart.getStream();
+            cudaDataType data = std::is_same_v<T, double> ? CUDA_R_64F : CUDA_R_32F;
+
+            cusolverDnParams_t raw_params;
+            get_cusolv_error(cusolverDnCreateParams(&raw_params));
+            std::unique_ptr<cusolverDnParams, decltype(&cusolverDnDestroyParams)> params(raw_params, &cusolverDnDestroyParams);
+
+            // Right-hand side B = I (built on the device only), overwritten with A^(-1) by getrs
+            Matrix<T> inv(Shape(n, n), cudart);
+            check_device_alloc(cudart, inv);
+            get_cuda_error(cudaMemsetAsync(inv.gpu_data(), 0, sizeof(T) * n * n, stream));
+            Vector<T> ones(n, (T)1.0);
+            inv.set_diagonal(cudart, ones);
+
+            size_t wspacedevice = 0;
+            size_t wspacehost = 0;
+            get_cusolv_error(cusolverDnXgetrf_bufferSize(handle, params.get(), n, n, data, a.gpu_data(), n, data,
+                                                         &wspacedevice, &wspacehost));
+
+            // Device-only buffers: pivot indices and getrf workspace
+            Vector<int64_t> ipiv(n, cudart);
+            check_device_alloc(cudart, ipiv);
+            Vector<T> work_device((wspacedevice + sizeof(T) - 1) / sizeof(T), cudart);
+            check_device_alloc(cudart, work_device);
+            std::vector<char> work_host(wspacehost);
+            Vector<int> info(1, 0);
+            info.copy2device(cudart);
+
+            get_cusolv_error(cusolverDnXgetrf(handle, params.get(), n, n, data, a.gpu_data(), n, ipiv.gpu_data(), data,
+                                              work_device.gpu_data(), wspacedevice, work_host.data(), wspacehost,
+                                              info.gpu_data()));
+
+            info.copy2host(cudart);
+            if (info.sum() != 0)
+            {
+                throw std::runtime_error("Failure in GETRF");
+            }
+            info.copy2device(cudart);
+            get_cusolv_error(cusolverDnXgetrs(handle, params.get(), CUBLAS_OP_N, n, n, data, a.gpu_data(), n, ipiv.gpu_data(),
+                                              data, inv.gpu_data(), n, info.gpu_data()));
+            get_cuda_error(cudaMemcpyAsync(a.gpu_data(), inv.gpu_data(), sizeof(T) * n * n, cudaMemcpyDeviceToDevice, stream));
+            info.copy2host(cudart);
+            if (info.sum() != 0)
+            {
+                throw std::runtime_error("Failure in GETRS");
+            }
+        }
+
+        template void InvertMatrix<double>(CudaRuntime &cudart, Matrix_<double> &a);
+        template void InvertMatrix<float>(CudaRuntime &cudart, Matrix_<float> &a);
 
         /// @brief Solves a general system of linear equations op(A)*X = B (GETRF + GETRS).
         ///

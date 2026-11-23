@@ -15,6 +15,18 @@ namespace lahva
     namespace gpu
     {
 
+    /// @brief Computes the inverse of a general square matrix, using cuSOLVER functions cusolverDnXgetrf and cusolverDnXgetrs (CUDA_R_64F).
+    ///
+    /// Computes the LU factorization with partial pivoting of A (getrf) and solves A*X = I (getrs),
+    /// so that X = A^(-1). The inverse is stored back in A on the device, overwriting the original
+    /// matrix. 
+    ///
+    /// @param cudart CUDA runtime instance.
+    /// @param a Input/output square GPU matrix A (Matrix_<double>), overwritten with its inverse.
+    /// @throw std::runtime_error if A is not square, or if A is singular (getrf/getrs fails).
+    template <typename T>
+    void InvertMatrix(CudaRuntime& cudart, Matrix_<T>& a);
+
     /// @brief Solves a general system of linear equations op(A)*X = B, using cuSOLVER functions cusolverDnXgetrf and cusolverDnXgetrs.
     ///
     /// Computes the LU factorization with partial pivoting of A (getrf) followed by forward/backward
