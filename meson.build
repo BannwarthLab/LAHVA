@@ -50,3 +50,4 @@ lahva_dep = declare_dependency(
 install = not (meson.is_subproject() and get_option('default_library') == 'static')
 
 subdir('test')
+subdir('examples')

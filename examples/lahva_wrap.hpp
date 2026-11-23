@@ -9,9 +9,25 @@
 
 namespace BLASwrap
 {
+    using namespace lahva;
 
 #ifdef _CUDA
+    namespace gpuBLAS
+    {
+        using namespace lahva::gpu;
+        struct gpu_BLAS
+        {
+        };
+    };
 #endif
+
+    namespace cpuBLAS
+    {
+        using namespace lahva::cpu;
+        struct cpu_BLAS
+        {
+        };
+    };
 
 #ifdef _CUDA
     template <typename blas_impl>
@@ -33,6 +49,8 @@ namespace BLASwrap
         using BlockMatrix = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, cpu::BlockMatrix<T>, gpu::BlockMatrix<T, CPUAll<T>, GPUAll<T>>>::type;
         template <typename T>
         using BlockDiagMatrix = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, cpu::BlockDiagMatrix<T>, gpu::BlockDiagMatrix<T, CPUAll<T>, GPUAll<T>>>::type;
+        template<typename high>
+        using MixedPrecisionMatrix = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, cpu::Matrix<high>, gpu::MixedPrecisionMatrix<high, CPUAll<high>, GPUAll<high>>>::type;
 
         using Timer = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, CPUTimer, GPUTimer>::type;
         using RunTime = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, CPURuntime, CudaRuntime>::type;
@@ -53,6 +71,8 @@ namespace BLASwrap
         using LowTriMatrix = typename cpu::LowTriMatrix<T, CPUAll<T>>;
         template <typename T>
         using BlockDiagMatrix = typename cpu::BlockMatrix<T, CPUAll<T>>;
+        template <typename T>
+        using MixedPrecisionMatrix = typename cpu::Matrix<T, CPUAll<T>>;
 
         using Timer = CPUTimer;
         using RunTime = CPURuntime;
