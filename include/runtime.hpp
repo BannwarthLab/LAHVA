@@ -1,5 +1,4 @@
-#ifndef LAHVA_GPU_RUNTIME_HPP
-#define LAHVA_GPU_RUNTIME_HPP
+#pragma once
 #include "const.h"
 
 #include <cuda_runtime.h>
@@ -21,18 +20,18 @@
     /// @param stat error ID
     /// @param file File in which error is raised
     /// @param line Line in which error is raised
-    void get_cuda_ERROR(cudaError_t stat, const char * file, int line);
+void get_cuda_ERROR(cudaError_t stat, const char * file, int line);
      /// @brief get error string for cublas runtime
     /// @param stat error ID
     /// @param file File in which error is raised
     /// @param line Line in which error is raised
-    void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line);
+void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line);
 
     /// @brief get error line and file of cusolver error
     /// @param stat error ID, an not be translated
     /// @param file file where error occurs
     /// @param line line where error occurs
-    void get_cusolv_ERROR(cusolverStatus_t stat, const char *file, int line);
+void get_cusolv_ERROR(cusolverStatus_t stat, const char *file, int line);
 
 namespace lahva{
     
@@ -65,6 +64,7 @@ namespace lahva{
         float critical_memory_threshold = 0.6;
         
         mutable std::shared_ptr<cudaStream_t> stream_ = std::make_shared<cudaStream_t>(cudaStreamPerThread);
+        
     public:
 
         /// @brief create Stream
@@ -179,4 +179,3 @@ namespace lahva{
         cusolverDnHandle_t *getHandlePtr() { return &handle; }
     };
 }
-#endif

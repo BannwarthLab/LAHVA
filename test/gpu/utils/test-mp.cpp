@@ -84,7 +84,7 @@ int mp_gemms()
 }
 
 int main()
-{   
+{
     int total_failures = 0;
     total_failures += mp_gemms<double>();
     total_failures += mp_gemms<float>();

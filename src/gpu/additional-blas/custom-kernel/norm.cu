@@ -112,6 +112,6 @@ namespace lahva
         template void FrobeniusKernel<double>(const CudaRuntime &cudart, const unsigned long long ndim, const double *mat, double *vec);
         template void FrobeniusKernel2<float>(const CudaRuntime &cudart, const unsigned long long ndim, const float *mat1, const float* mat2, float *vec);
         template void FrobeniusKernel2<double>(const CudaRuntime &cudart, const unsigned long long ndim, const double *mat1, const double * mat2, double *vec);
+    
     } // namespace gpu
-
 } // namespace lahva

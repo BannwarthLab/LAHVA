@@ -42,7 +42,7 @@ namespace lahva
             };
             
             LPCK_INT n = a.shape().first;
-            if (ipiv.size() != n)
+            if (static_cast<size_t>(ipiv.size()) != static_cast<size_t>(n))
             {
                 ipiv = Vector<LPCK_INT>(n);
             }
@@ -131,7 +131,7 @@ namespace lahva
             LPCK_INT n = a.shape().first;
             LPCK_INT nrhs = b.shape().second;
             CholeskyFactorization(a);
-            if (b.shape().first != n)
+            if (static_cast<size_t>(b.shape().first) != static_cast<size_t>(n))
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
@@ -179,7 +179,7 @@ namespace lahva
             LPCK_INT nrhs = b.shape().second;
             Vector<LPCK_INT> ipiv(n);
             LUFactorization(a, ipiv);
-            if (b.shape().first != n)
+            if (static_cast<size_t>(b.shape().first) != static_cast<size_t>(n))
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
@@ -205,7 +205,7 @@ namespace lahva
             LPCK_INT nrhs = b.shape().second;
             Vector<LPCK_INT> ipiv(n);
             LUFactorization(a, ipiv);
-            if (b.shape().first != n)
+            if (static_cast<size_t>(b.shape().first) != static_cast<size_t>(n))
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
@@ -230,7 +230,7 @@ namespace lahva
             LPCK_INT nrhs = b.shape().second;
             Vector<LPCK_INT> ipiv(n);
             LUFactorization(a, ipiv);
-            if (b.shape().first != n)
+            if (static_cast<size_t>(b.shape().first) != static_cast<size_t>(n))
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
@@ -257,7 +257,7 @@ namespace lahva
             };
             LPCK_INT n = a.shape().first;
             LPCK_INT nrhs = b.shape().second;
-            if (b.shape().first != n)
+            if (static_cast<size_t>(b.shape().first) != static_cast<size_t>(n))
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
@@ -280,7 +280,7 @@ namespace lahva
             LPCK_INT info = 0;
             LPCK_INT n = a.shape().first;
             LPCK_INT nrhs = b.shape().second;
-            if (b.shape().first != n)
+            if (static_cast<size_t>(b.shape().first) != static_cast<size_t>(n))
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
@@ -303,7 +303,7 @@ namespace lahva
             LPCK_INT info = 0;
             LPCK_INT n = a.shape().first;
             LPCK_INT nrhs = b.shape().second;
-            if (b.shape().first != n)
+            if (static_cast<size_t>(b.shape().first) != static_cast<size_t>(n))
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
@@ -326,7 +326,7 @@ namespace lahva
             LPCK_INT info = 0;
             LPCK_INT n = a.shape().first;
             LPCK_INT nrhs = b.shape().second;
-            if (b.shape().first != n)
+            if (static_cast<size_t>(b.shape().first) != static_cast<size_t>(n))
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
@@ -349,7 +349,7 @@ namespace lahva
             LPCK_INT info = 0;
             LPCK_INT n = a.shape().first;
             LPCK_INT nrhs = b.shape().second;
-            if (b.shape().first != n)
+            if (static_cast<size_t>(b.shape().first) != static_cast<size_t>(n))
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }
@@ -384,7 +384,7 @@ namespace lahva
             LPCK_INT info = 0;
             LPCK_INT n = a.shape().first;
             LPCK_INT nrhs = b.shape().second;
-            if (b.shape().first != n)
+            if (static_cast<size_t>(b.shape().first) != static_cast<size_t>(n))
             {
                 throw std::runtime_error("B should have as much rows as A. B(n, nrhs)");
             }

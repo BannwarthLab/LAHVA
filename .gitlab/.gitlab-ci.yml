@@ -34,7 +34,6 @@ stages:
           - "intel2023.2.0-mkl2023.2.0"
           - "intel2025.3.0-mkl2025.3.0"
         GPU:
-          - "cuda11.8"
           - "cuda12.5"
           - "cuda13.0"
       - OS: ["RL10"]

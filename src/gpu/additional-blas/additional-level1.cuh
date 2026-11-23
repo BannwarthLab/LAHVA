@@ -13,7 +13,6 @@ namespace lahva
             {
                 a[index] = func(a[index]);
             }
-        
         };
 
         // template<typename in, typename out>

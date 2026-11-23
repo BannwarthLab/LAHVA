@@ -1,5 +1,4 @@
-#ifndef LAHVA_BLAS_HPP
-#define LAHVA_BLAS_HPP
+#pragma once
 
 #include "impl/blas/cpu/level1.hpp"
 #include "impl/blas/cpu/level2.hpp"
@@ -15,5 +14,4 @@
 #include "impl/blas/gpu/additional-level2.hpp"
 #include "impl/blas/gpu/additional-level3.hpp"
 #include "impl/blas/gpu/lapack.hpp"
-#endif
 #endif

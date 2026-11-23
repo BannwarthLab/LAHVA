@@ -19,7 +19,6 @@ namespace lahva
             if (A.shape().first != x.size() || A.shape().second != y.size()) {
                 throw std::invalid_argument("OuterVectorProduct: Output matrix A has incorrect shape.");
             }
-
             OuterVectorProduct(x.size(), x.data(), incx, y.size(), y.data(), incy, alpha, A.data());
         }
 
@@ -34,7 +33,6 @@ namespace lahva
             if (A.shape().first != x.size() || A.shape().second != y.size()) {
                 throw std::invalid_argument("OuterVectorProduct: Output matrix A has incorrect shape.");
             }
-
             OuterVectorProduct(x.size(), x.data(), incx, y.size(), y.data(), incy, alpha, A.data());
         }
        
@@ -485,5 +483,5 @@ namespace lahva
 
             cblas_stpmv(major, tri, trans, unit, col, a.data(), x.data(), inx);
         };
-    }
-}
+    } // namespace cpu
+} // namespace lahva

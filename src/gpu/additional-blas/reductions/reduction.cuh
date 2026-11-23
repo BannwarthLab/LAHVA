@@ -5,25 +5,25 @@ namespace lahva
 {
     namespace gpu
     {
-    template <size_t blockSize, typename T, class op>
-    __device__ void warpReduce(volatile T *sdata, size_t tid, op func)
-    {
-        if (blockSize >= 64)
-            sdata[tid] = func(sdata[tid], sdata[tid+32]);
-        if (blockSize >= 32)
-            sdata[tid] = func(sdata[tid], sdata[tid+16]);
-        if (blockSize >= 16)
-            sdata[tid] = func(sdata[tid], sdata[tid+8]);
-        if (blockSize >= 8)
-            sdata[tid] = func(sdata[tid], sdata[tid+4]);
-        if (blockSize >= 4)
-            sdata[tid] = func(sdata[tid], sdata[tid+2]);
-        if (blockSize >= 2)
-            sdata[tid] = func(sdata[tid], sdata[tid+1]);
-    }
+        template <size_t blockSize, typename T, class op>
+        __device__ void warpReduce(volatile T *sdata, size_t tid, op func)
+        {
+            if (blockSize >= 64)
+                sdata[tid] = func(sdata[tid], sdata[tid + 32]);
+            if (blockSize >= 32)
+                sdata[tid] = func(sdata[tid], sdata[tid + 16]);
+            if (blockSize >= 16)
+                sdata[tid] = func(sdata[tid], sdata[tid + 8]);
+            if (blockSize >= 8)
+                sdata[tid] = func(sdata[tid], sdata[tid + 4]);
+            if (blockSize >= 4)
+                sdata[tid] = func(sdata[tid], sdata[tid + 2]);
+            if (blockSize >= 2)
+                sdata[tid] = func(sdata[tid], sdata[tid + 1]);
+        }
 
-    template <size_t blockSize, typename T, class op>
-    __global__ void reduceCUDA(const T *g_idata, T *g_odata, size_t n, op func)
+        template <size_t blockSize, typename T, class op>
+        __global__ void reduceCUDA(const T *g_idata, T *g_odata, size_t n, op func)
     {
         __shared__ T sdata[blockSize];
 
@@ -82,8 +82,6 @@ namespace lahva
     template <size_t blockSize, typename T, class op>
     __global__ void reduceCUDA_(const T *g_idata, T *g_odata, size_t n, op func)
     {
-        
-
         size_t tid = threadIdx.x;
         size_t i = blockIdx.x * blockSize + tid;
         size_t gridSize = blockSize * gridDim.x;
@@ -94,7 +92,7 @@ namespace lahva
         {
             sdata[tid] = g_idata[i];
             //i += gridSize;
-        
+
         // while (i < n) { sdata[tid] += g_idata[i] + g_idata[i+blockSize]; i += gridSize; }
         __syncthreads();
         //#pragma unroll
@@ -102,11 +100,10 @@ namespace lahva
             {
                 if (tid < stride)
                 {
-                    sdata[tid] = func(sdata[tid], sdata[tid+stride]);
+                    sdata[tid] = func(sdata[tid], sdata[tid + stride]);
                 }
                 __syncthreads();
             }
-
         }
         if (tid == 0)
             g_odata[blockIdx.x] = sdata[0];
@@ -138,7 +135,7 @@ namespace lahva
 
     template<typename T, class op>
     void GPUReduction(const CudaRuntime& cudart, const unsigned long long ndim, const T* dA, T* dRes, size_t blockSize, op func = op())
-    {   
+    {
         switch (blockSize)
         {
         case 1024:
@@ -209,5 +206,5 @@ namespace lahva
         }
         
     }
-    }
-} // namespace name
+    } // namespace gpu
+} // namespace lahva

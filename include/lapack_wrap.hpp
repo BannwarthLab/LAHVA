@@ -1,5 +1,4 @@
-#ifndef LAHVA_LAPACK_WRAP_HPP
-#define LAHVA_LAPACK_WRAP_HPP
+#pragma once
 
 #include <complex>
 #ifdef _WIN32
@@ -21,10 +20,7 @@
 #endif
 #ifdef _APPLE
 #define ACCELERATE_NEW_LAPACK
-typedef int64_t BLAS_INT;
 #include <Accelerate/Accelerate.h>
-
-typedef __LAPACK_int LPCK_INT;
 
 typedef CBLAS_ORDER CBLAS_LAYOUT;
 #endif
@@ -32,5 +28,3 @@ typedef CBLAS_ORDER CBLAS_LAYOUT;
 #include <mkl.h>
 typedef lapack_int LPCK_INT;
 #endif
-
-#endif // LAHVA_LAPACK_WRAP_HPP

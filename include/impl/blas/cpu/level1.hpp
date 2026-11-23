@@ -1,5 +1,4 @@
-#ifndef LAHVA_C_LEVEL1_HPP
-#define LAHVA_C_LEVEL1_HPP
+#pragma once
 #include "const.h"
 #include "linalg.hpp"
 
@@ -43,32 +42,35 @@ namespace lahva{
     int IndexMaxFromVector(const Tensor<float>& x);
     int IndexMaxFromVector(const Tensor<double>& x, const size_t ix);
     int IndexMaxFromVector(const Tensor<float>& x, const size_t ix);
-    
-    template<typename... Args>
-    void AddVectors(const CPURuntime& rt_, Args&&... args) {
-        (AddVectors(args...));                
-    }
 
-    template<typename... Args>
-    void CopyVectors(const CPURuntime& rt_, Args&&... args) {
-        (CopyVectors(args...));                
-    }
+        template <typename... Args>
+        void AddVectors(const CPURuntime &rt_, Args &&...args)
+        {
+            (AddVectors(args...));
+        }
 
-    template<typename... Args>
-    void SwapVectors(const CPURuntime& rt_, Args&&... args) {
-        (SwapVectors(args...));                
-    }
-    
-    template<typename... Args>
-    void ScaleVector(const CPURuntime& rt_, Args&&... args) {
-        (ScaleVector(args...));                
-    }
+        template <typename... Args>
+        void CopyVectors(const CPURuntime &rt_, Args &&...args)
+        {
+            (CopyVectors(args...));
+        }
 
-    template<typename... Args>
-    int IndexMaxFromVector(const CPURuntime& rt_, Args&&... args) {
-        return (IndexMaxFromVector(args...));                
-    }
-    }
-} 
+        template <typename... Args>
+        void SwapVectors(const CPURuntime &rt_, Args &&...args)
+        {
+            (SwapVectors(args...));
+        }
 
-#endif
+        template <typename... Args>
+        void ScaleVector(const CPURuntime &rt_, Args &&...args)
+        {
+            (ScaleVector(args...));
+        }
+
+        template <typename... Args>
+        int IndexMaxFromVector(const CPURuntime &rt_, Args &&...args)
+        {
+            return (IndexMaxFromVector(args...));
+        }
+    }
+}

@@ -20,9 +20,7 @@ namespace lahva
             for (size_t i = index; i < ndim; i += stride)
             {
                 b[i] = getFMA<double>(a[i], alpha, b[i]);
-                
             }
-            
         };
 
         __global__ void BetterSum(unsigned long long ndim, unsigned int nsplit, const double* alphas, const float **as, double *b)
@@ -31,7 +29,7 @@ namespace lahva
             const size_t stride = blockDim.x * gridDim.x;
             #pragma unroll
             for (size_t i = index; i < ndim; i += stride)
-            {    
+            {
                 double sum = 0.0, c = 0.0;
                 for (unsigned int j = 0; j < nsplit; j++)
                 {
@@ -43,7 +41,6 @@ namespace lahva
                 }
                 b[i] += sum;
             }
-            
         };
 
         __global__ void AddVector_(unsigned long long ndim, const double alpha, const double *a, float *b)
@@ -53,22 +50,19 @@ namespace lahva
             #pragma unroll
             for (size_t i = index; i < ndim; i += stride)
             {
-                b[i] += static_cast<float>(a[i]*alpha);
+                b[i] += static_cast<float>(a[i] * alpha);
             }
-            
-            
         };
 
-         __global__ void AddVector_(unsigned long long ndim, const double alpha, const __half *a, double *b)
+        __global__ void AddVector_(unsigned long long ndim, const double alpha, const __half *a, double *b)
         {
             int index = blockIdx.x * blockDim.x + threadIdx.x;
             const size_t stride = blockDim.x * gridDim.x;
             #pragma unroll
             for (size_t i = index; i < ndim; i += stride)
             {
-                b[i] += static_cast<double>(a[i])*alpha;
+                b[i] += static_cast<double>(a[i]) * alpha;
             }
-            
         };
 
 
@@ -83,7 +77,7 @@ namespace lahva
             check_device_alloc(cudart, a);
             check_device_alloc(cudart, b);
             unsigned long long blockSize = cudart.blockSize();
-            AddVector_<<<std::ceil(static_cast<double>(cudart.gridSize(ndim, 1))/4), blockSize, 0, cudart.getStream()>>>(ndim, alpha, a.gpu_data(), b.gpu_data());
+            AddVector_<<<std::ceil(static_cast<double>(cudart.gridSize(ndim, 1)) / 4), blockSize, 0, cudart.getStream()>>>(ndim, alpha, a.gpu_data(), b.gpu_data());
         }
 
         void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double alpha, const GPUTensor_<double>& a, GPUTensor_<float>& b)
@@ -93,7 +87,7 @@ namespace lahva
             unsigned long long blockSize = cudart.blockSize();
             AddVector_<<<cudart.gridSize(ndim, 1), blockSize, 0, cudart.getStream()>>>(ndim, alpha, a.gpu_data(), b.gpu_data());
         }
-        
+
         void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double alpha, const GPUTensor_<__half>& a, GPUTensor_<double>& b)
         {
             check_device_alloc(cudart, a);
@@ -106,7 +100,6 @@ namespace lahva
         void ApplyKernel(const CudaRuntime& cudart, GPUTensor_<T>& in, op operation)
         {
             check_device_alloc(cudart, in);
-
             ApplyKernel_<<<cudart.gridSize(in.size(), 1), cudart.blockSize(), 0, cudart.getStream()>>>(in.size(), in.gpu_data(), operation);
         }
 
@@ -133,10 +126,8 @@ namespace lahva
             check_device_alloc(cudart, res);
             unsigned long long blockSize = cudart.blockSize();
             GPUReduction<T, max_<T>>(cudart, in.size(), in.gpu_data(), res.gpu_data(), blockSize);
-            
             res.copy2host(cudart);
             cudart.synchronize();
-           
             return res[0];
         }
 
@@ -147,10 +138,8 @@ namespace lahva
             check_device_alloc(cudart, res);
             unsigned long long blockSize = cudart.blockSize();
             GPUReduction<T, min_<T>>(cudart, in.size(), in.gpu_data(), res.gpu_data(), blockSize);
-            
             res.copy2host(cudart);
             cudart.synchronize();
-            
             return res[0];
         }
 

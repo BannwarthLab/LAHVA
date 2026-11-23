@@ -294,13 +294,10 @@ int main(){
 
     total_failures += test_symv_zero_v_cpp<double>(cudart);
     total_failures += test_symv_zero_v_cpp<float>(cudart);
-
     total_failures += test_gemv_v_cpp<double>(cudart);
     total_failures += test_gemv_v_cpp<float>(cudart);
-
     total_failures += test_symv_v_cpp<double>(cudart);
     total_failures += test_symv_v_cpp<float>(cudart);
-
     total_failures += test_spmv_v_cpp<double>(cudart);
     total_failures += test_spmv_v_cpp<float>(cudart);
 

@@ -1,5 +1,4 @@
-#ifndef LAHVA_CONST_H
-#define LAHVA_CONST_H
+#pragma once
 #include <cstdint>
 #include <complex>
 #ifdef _WIN32
@@ -15,8 +14,8 @@ typedef lapack_int LPCK_INT;
 #define ACCELERATE_NEW_LAPACK
 #include <Accelerate/Accelerate.h>
 typedef CBLAS_ORDER CBLAS_LAYOUT;
-typedef int32_t BLAS_INT;
-typedef int32_t LPCK_INT; 
+typedef __LAPACK_int BLAS_INT;
+typedef __LAPACK_int LPCK_INT;
 #else
 #ifdef CBLAS_HEADER
     #include <cblas/cblas.h>
@@ -48,12 +47,12 @@ typedef int32_t LPCK_INT;
 #endif
 
 namespace lahva
-{
+{   
     static const CBLAS_LAYOUT major = CblasColMajor;
     static const CBLAS_UPLO tri = CblasLower;
     static const int l_major = CblasColMajor;
-    static char l_uplo = 'L';
-    static char l_nondiag = 'N';
+    [[maybe_unused]] static char l_uplo = 'L';
+    [[maybe_unused]] static char l_nondiag = 'N';
     static const char major_char = 'C';
 
     using Shape = std::pair<std::uint32_t, std::uint32_t>; 
@@ -104,7 +103,7 @@ namespace lahva
         BLASRuntime(){};
         virtual ~BLASRuntime(){};
     };
-
+    
     class CPURuntime : public BLASRuntime
     {
     };
@@ -113,4 +112,3 @@ namespace lahva
     static const cublasFillMode_t tri_gpu = CUBLAS_FILL_MODE_LOWER;
 #endif
 }
-#endif

@@ -592,5 +592,5 @@ namespace lahva
 
         // cblas_stpmv(cudart.handle, tri_gpu, trans, unit, col, a.data(), x.data(), inx);
         //};
-    }
-}
+    } // namespace gpu
+} // namespace lahva

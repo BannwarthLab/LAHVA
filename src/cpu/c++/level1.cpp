@@ -19,16 +19,16 @@ namespace lahva{
         \param[in] Y Vector
     */ 
     float InnerVectorProduct( const Tensor<float>& X, const Tensor<float>& Y)
-    { 
-        check_equal_size(X,Y);
-    return  InnerVectorProduct(X.size(), X.data(), Y.data());
+        {
+            check_equal_size(X, Y);
+            return InnerVectorProduct(X.size(), X.data(), Y.data());
     }
 
     // strided Vector product
     double InnerVectorProduct(const Tensor<double>& X, const size_t strideX, const Tensor<double>& Y, const size_t strideY)
-    {
-        check_equal_size(X,Y);
-    return InnerVectorProduct(X.size(), X.data(), strideX, Y.data(), strideY);
+        {
+            check_equal_size(X, Y);
+            return InnerVectorProduct(X.size(), X.data(), strideX, Y.data(), strideY);
     }
 
     float InnerVectorProduct(const Tensor<float>& X, const size_t strideX, const Tensor<float>& Y, const size_t strideY)
@@ -52,7 +52,7 @@ namespace lahva{
     float InnerVectorProduct(const CPURuntime& rt_, const Tensor<float>& X, const size_t strideX, const Tensor<float>& Y, const size_t strideY)
     {
         return InnerVectorProduct(X, strideX, Y, strideY);
-    };
+        };
 
 
     /*! Simple interface to DAXPY \f$\vec{y}=\alpha\vec{x}+\vec{y}\f$ assuming unit stride
@@ -61,9 +61,9 @@ namespace lahva{
         \param[in] a \f$\alpha\f$
     */
     void AddVectors(const double a, const Tensor<double>& x, Tensor<double>& y) {
-        check_equal_size(x,y);
+            check_equal_size(x, y);
         AddVectors(x.size(), a, x.data(), y.data());
-    }
+            }
 
     /*! Simple interface to SAXPY \f$\vec{y}=\alpha\vec{x}+\vec{y}\f$ assuming unit stride
         \param[in] x \f$\vec{x}\f$
@@ -73,7 +73,7 @@ namespace lahva{
     void AddVectors(const float a, const Tensor<float>& x, Tensor<float>& y) {
         check_equal_size(x,y);
         AddVectors(x.size(), a, x.data(), y.data());
-    }
+        }
 
 
     /*! Simple interface to DAXPY \f$\vec{y}=a\vec{x}+\vec{y}\f$ for specified stride
@@ -125,18 +125,18 @@ namespace lahva{
         \param[in,out] y \f$\vec{y}\f$
     */
     void CopyVectors(const Tensor<double>& x, Tensor<double>& y) {
-        check_equal_size(x,y);
-        CopyVectors(x.size(), x.data(), y.data());
-    }
+            check_equal_size(x, y);
+            CopyVectors(x.size(), x.data(), y.data());
+        }
 
     /*! Simple interface to SCOPY \f$\vec{y}=\vec{x}\f$ assuming unit stride
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
     void CopyVectors(const Tensor<float>& x, Tensor<float>& y) {
-        check_equal_size(x,y);
+                check_equal_size(x, y);
         CopyVectors(x.size(), x.data(), y.data());
-    }
+            }
     
     void CopyVectors(const Tensor<float>& x, Tensor<double>& y) 
     {
@@ -145,10 +145,10 @@ namespace lahva{
         {
             y.data()[i] = static_cast<double>(x.data()[i]);
         }
-    }
+        }
 
     void CopyVectors(const Tensor<double>& x, Tensor<float>& y) 
-    {
+        {
         #pragma omp parallel for shared(x,y)
         for (int i = 0; i < x.size() ; i++ )
         {
@@ -163,9 +163,9 @@ namespace lahva{
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
     void CopyVectors(const Tensor<double>& x, size_t ix, Tensor<double>& y, size_t iy) {
-        check_equal_size(x,y);
-        CopyVectors(x.size(), x.data(), ix, y.data(), iy);
-    }
+            check_equal_size(x, y);
+            CopyVectors(x.size(), x.data(), ix, y.data(), iy);
+        }
 
     /*! Simple interface to SCOPY \f$\vec{y}=\vec{x}\f$ for specified stride
         \param[in] x \f$\vec{x}\f$
@@ -177,7 +177,7 @@ namespace lahva{
         CopyVectors(x.size(), x.data(), ix, y.data(), iy);
     }
 
-    //Swap routines////////////////////////////////////////////////////////////////////
+        // Swap routines////////////////////////////////////////////////////////////////////
 
     /*! Simple interface to DSWAP \f$\vec{y}<=>\vec{x}\f$ assuming unit stride
         \param[in] x \f$\vec{x}\f$
@@ -193,9 +193,9 @@ namespace lahva{
         \param[in,out] y \f$\vec{y}\f$
     */
     void SwapVectors(Tensor<float>& x, Tensor<float>& y) {
-        check_equal_size(x,y);
-        SwapVectors(x.size(), x.data(), y.data());
-    }
+            check_equal_size(x, y);
+            SwapVectors(x.size(), x.data(), y.data());
+        }
 
 
     /*! Simple interface to DSWAP \f$\vec{y}<=>\vec{x}\f$ for specified stride
@@ -216,11 +216,11 @@ namespace lahva{
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
     void SwapVectors(Tensor<float>& x, size_t ix, Tensor<float>& y, size_t iy) {
-        check_equal_size(x,y);
-        SwapVectors(x.size(), x.data(), ix, y.data(), iy);
-    } 
+            check_equal_size(x, y);
+            SwapVectors(x.size(), x.data(), ix, y.data(), iy);
+        }
 
-    //Scale routines////////////////////////////////////////////////////////////////////
+        // Scale routines////////////////////////////////////////////////////////////////////
 
     /*! Simple interface to DSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
         \param[in, out] x \f$\vec{x}\f$
@@ -234,11 +234,11 @@ namespace lahva{
         \param[in,out] a \f$\alpha\f$
     */
     void ScaleVector(const float a, Tensor<float>& x){
-        ScaleVector(x.size(), a, x.data());
-    }
+            ScaleVector(x.size(), a, x.data());
+        }
 
     void ScaleVector(const double a, Tensor<double>& x, size_t ix){
-        ScaleVector(x.size(), a, x.data(), ix);
+            ScaleVector(x.size(), a, x.data(), ix);
     }
      /*! Simple interface to SSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
         \param[in] n size of Vectors \f$x\f$ and \f$y\f$
@@ -250,7 +250,7 @@ namespace lahva{
         ScaleVector(x.size(), a, x.data());
     }
 
-    //Extrema in Vector routines////////////////////////////////////////////////////////
+        // Extrema in Vector routines////////////////////////////////////////////////////////
     /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
         \param[in] n size of the vector \f$x\f$
         \param[in] x pointer to the input vector \f$\vec{x}\f$
@@ -265,8 +265,8 @@ namespace lahva{
         \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
     */
     int IndexMaxFromVector(const Tensor<float>& x) {
-        return IndexMaxFromVector(x.size(), x.data());
-    }
+            return IndexMaxFromVector(x.size(), x.data());
+        }
 
     /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
         \param[in] n size of the vector \f$x\f$
@@ -275,8 +275,8 @@ namespace lahva{
         \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
     */
     int IndexMaxFromVector(const Tensor<double>& x, const size_t ix) {
-        return IndexMaxFromVector(x.size(), x.data(), ix);
-    }
+            return IndexMaxFromVector(x.size(), x.data(), ix);
+        }
     /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
         \param[in] n size of the vector \f$x\f$
         \param[in] x pointer to the input vector \f$\vec{x}\f$
@@ -285,6 +285,6 @@ namespace lahva{
     */
     int IndexMaxFromVector(const Tensor<float>& x, const size_t ix) {
         return IndexMaxFromVector(x.size(), x.data(), ix);
-    }
-    }
+    } // namespace cpu
+} // namespace lahva
 }

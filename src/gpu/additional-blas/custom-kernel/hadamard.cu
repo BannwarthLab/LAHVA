@@ -43,13 +43,11 @@ namespace lahva
 
         void sHadamard(const CudaRuntime &cudart, float *vecinout, const float *vecin, size_t ndim2)
         {
-
             sElementwiseScale<<<cudart.gridSize(ndim2, 1), cudart.blockSize(), 0, cudart.getStream()>>>(vecinout, vecin, ndim2);
         }
 
         void dHadamard(const CudaRuntime &cudart, double *vecinout, const double *vecin, size_t ndim2)
         {
-
             dElementwiseScale<<<cudart.gridSize(ndim2, 1), cudart.blockSize(), 0, cudart.getStream()>>>(vecinout, vecin, ndim2);
         }
 

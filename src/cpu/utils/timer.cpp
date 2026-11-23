@@ -5,7 +5,7 @@
 #include <sstream>
 
 namespace lahva{
-void CPUTimer::push(std::string label) {
+    void CPUTimer::push(std::string label) {
         int it;
         it = find(label);
 
@@ -88,9 +88,9 @@ void CPUTimer::push(std::string label) {
 
     }
 
-std::string format_time(double time) {
-    int days, hours, mins;
-    double secs;
+    std::string format_time(double time) {
+        int days, hours, mins;
+        double secs;
     std::string str;
 
     time = time / 1000; 
@@ -108,10 +108,11 @@ std::string format_time(double time) {
     if (mins > 0) str += std::to_string(mins) + " min, ";
     str += std::to_string(secs) + " sec";
 
-    return str;
-}
+        return str;
+    }
 
-std::string format_time(float time) {
-    return format_time((double)time);
-}
-}
+    std::string format_time(float time) {
+        return format_time((double)time);
+    }
+
+} // namespace lahva

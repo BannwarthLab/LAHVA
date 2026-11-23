@@ -13,14 +13,14 @@ namespace lahva{
     /// @param alpha value by which \f$\vec{x}*\vec{y}**T\f$ is scaled
     /// @param A pointer to output matrix A of size ndimX by ndimY
     void OuterVectorProduct(const size_t ndimX, const double* x, const size_t incx, const size_t ndimY, const double* y, const size_t incy, const double alpha, double* A) {
-        BLAS_INT m = (BLAS_INT) ndimX;
-        BLAS_INT n = (BLAS_INT) ndimY;
-        BLAS_INT inx = incx;
-        BLAS_INT iny = incy;
-        BLAS_INT lda = get_leading(ndimX, ndimY);
+            BLAS_INT m = (BLAS_INT)ndimX;
+            BLAS_INT n = (BLAS_INT)ndimY;
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+            BLAS_INT lda = get_leading(ndimX, ndimY);
 
-        cblas_dger(major, m, n, alpha, x, inx, y, iny, A, lda);
-    }
+            cblas_dger(major, m, n, alpha, x, inx, y, iny, A, lda);
+        }
 
     /// @brief Simple interface to SGER \f$\mathbf{A}=alpha*\vec{x}*\vec{y}**T + A\f$
     /// @param ndimX number of elements in x
@@ -32,15 +32,15 @@ namespace lahva{
     /// @param alpha value by which \f$\vec{x}*\vec{y}**T\f$ is scaled
     /// @param A pointer to output matrix A of size ndimX by ndimY
     void OuterVectorProduct(const size_t ndimX, const float* x, const size_t incx, const size_t ndimY, const float* y, const size_t incy, const float alpha, float* A) {
-        BLAS_INT m = (BLAS_INT) ndimX;
-        BLAS_INT n = (BLAS_INT) ndimY;
-        BLAS_INT inx = incx;
-        BLAS_INT iny = incy;
-        BLAS_INT lda = get_leading(ndimX, ndimY);
+            BLAS_INT m = (BLAS_INT)ndimX;
+            BLAS_INT n = (BLAS_INT)ndimY;
+            BLAS_INT inx = incx;
+            BLAS_INT iny = incy;
+            BLAS_INT lda = get_leading(ndimX, ndimY);
 
-        cblas_sger(major, m, n, alpha, x, inx, y, iny, A, lda);
-    }
-    
+            cblas_sger(major, m, n, alpha, x, inx, y, iny, A, lda);
+        }
+
     
     
     
@@ -58,11 +58,11 @@ namespace lahva{
         @param[in,out] y pointer to the y Vector values
         @param[in] incy stride of Vector y
     */
-    void MatrixVectorProduct(const char* T, const size_t m, const size_t n, const double alpha, const double* a, 
-                             const double* x, const size_t incx, const double beta, double* y, const size_t incy)
+        void MatrixVectorProduct(const char *T, const size_t m, const size_t n, const double alpha, const double *a,
+                                 const double *x, const size_t incx, const double beta, double *y, const size_t incy)
         {
             BLAS_INT nrow = m;
-            BLAS_INT ncol = n; 
+            BLAS_INT ncol = n;
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
@@ -85,11 +85,11 @@ namespace lahva{
         @param[in] incx (optional, default 1) stride of Vector x
         @param[in] incy (optional, default 1) stride of Vector y
     */
-    void MatrixVectorProduct(const size_t m, const size_t n,  const double* a, const double* x, double* y,
-                             const char* T, const double alpha, const double beta, const size_t incx, const size_t incy)
+        void MatrixVectorProduct(const size_t m, const size_t n, const double *a, const double *x, double *y,
+                                 const char *T, const double alpha, const double beta, const size_t incx, const size_t incy)
         {
             BLAS_INT nrow = m;
-            BLAS_INT ncol = n; 
+            BLAS_INT ncol = n;
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
@@ -112,11 +112,11 @@ namespace lahva{
         @param[in,out] y pointer to the y Vector values
         @param[in] incy stride of Vector y
     */
-    void MatrixVectorProduct(const char* T, const size_t m, const size_t n, const float alpha, const float* a, 
-                             const float* x, const size_t incx, const float beta, float* y, const size_t incy)
+        void MatrixVectorProduct(const char *T, const size_t m, const size_t n, const float alpha, const float *a,
+                                 const float *x, const size_t incx, const float beta, float *y, const size_t incy)
         {
             BLAS_INT nrow = m;
-            BLAS_INT ncol = n; 
+            BLAS_INT ncol = n;
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
@@ -139,18 +139,18 @@ namespace lahva{
         @param[in] incx (optional, default 1) stride of Vector x
         @param[in] incy (optional, default 1) stride of Vector y
     */ 
-    void MatrixVectorProduct(const size_t m, const size_t n,  const float* a, const float* x, float* y,
-                             const char* T, const float alpha, const float beta, const size_t incx, const size_t incy)
+        void MatrixVectorProduct(const size_t m, const size_t n, const float *a, const float *x, float *y,
+                                 const char *T, const float alpha, const float beta, const size_t incx, const size_t incy)
         {
             BLAS_INT nrow = m;
-            BLAS_INT ncol = n; 
+            BLAS_INT ncol = n;
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             CBLAS_TRANSPOSE trans = get_trans(T);
             BLAS_INT lda = get_leading(nrow, ncol);
 
             cblas_sgemv(major, trans, nrow, ncol, alpha, a, lda, x, inx, beta, y, iny);
-        };                    
+        };
 
 
     /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ 
@@ -164,10 +164,10 @@ namespace lahva{
         @param[in,out] y pointer to the y Vector values
         @param[in] incy stride of Vector y
     */ 
-    void SymMatrixVectorProduct(const size_t n, const double alpha, const double* a, 
-                                const double* x, const size_t incx, const double beta, double* y, const size_t incy)
+        void SymMatrixVectorProduct(const size_t n, const double alpha, const double *a,
+                                    const double *x, const size_t incx, const double beta, double *y, const size_t incy)
         {
-            BLAS_INT ncol = n; 
+            BLAS_INT ncol = n;
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             BLAS_INT lda = get_leading(ncol, ncol);
@@ -186,10 +186,10 @@ namespace lahva{
         @param[in] beta (optional, default 0.0) double value by which y is scaled
         @param[in] incy (optional, default 1) stride of Vector y
     */ 
-    void SymMatrixVectorProduct(const size_t n,  const double* a, const double* x, double* y,
-                                const double alpha, const double beta, const size_t incx, const size_t incy)
+        void SymMatrixVectorProduct(const size_t n, const double *a, const double *x, double *y,
+                                    const double alpha, const double beta, const size_t incx, const size_t incy)
         {
-            BLAS_INT ncol = n; 
+            BLAS_INT ncol = n;
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             BLAS_INT lda = get_leading(ncol, ncol);
@@ -208,10 +208,10 @@ namespace lahva{
         @param[in,out] y pointer to the y Vector values
         @param[in] incy stride of Vector y
     */ 
-    void SymMatrixVectorProduct(const size_t n, const float alpha, const float* a, 
-                                const float* x, const size_t incx, const float beta, float* y, const size_t incy)
+        void SymMatrixVectorProduct(const size_t n, const float alpha, const float *a,
+                                    const float *x, const size_t incx, const float beta, float *y, const size_t incy)
         {
-            BLAS_INT ncol = n; 
+            BLAS_INT ncol = n;
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             BLAS_INT lda = get_leading(ncol, ncol);
@@ -230,15 +230,16 @@ namespace lahva{
         @param[in] beta (optional, default 0.0) float value by which y is scaled
         @param[in] incy (optional, default 1) stride of Vector y
     */ 
-    void SymMatrixVectorProduct(const size_t n,  const float* a, const float* x, float* y,
-                                const float alpha, const float beta, const size_t incx, const size_t incy)
+        void SymMatrixVectorProduct(const size_t n, const float *a, const float *x, float *y,
+                                    const float alpha, const float beta, const size_t incx, const size_t incy)
         {
-            BLAS_INT ncol = n; 
+            BLAS_INT ncol = n;
             BLAS_INT inx = incx;
             BLAS_INT iny = incy;
             BLAS_INT lda = get_leading(ncol, ncol);
 
             cblas_ssymv(major, tri, ncol, alpha, a, lda, x, inx, beta, y, iny);
         };
-    }
-}
+        
+    } // namespace cpu
+} // namespace lahva

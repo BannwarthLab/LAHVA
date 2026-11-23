@@ -135,7 +135,7 @@ if lapack_vendor == 'mkl'
   else
     error('MKL not supported for this compiler')
   endif
-  
+
   mkl_dep += cc.find_library('mkl_core')
   lib_deps += mkl_dep
 

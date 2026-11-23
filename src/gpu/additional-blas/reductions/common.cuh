@@ -8,7 +8,7 @@ namespace lahva
         
         template <typename T>
         class amax_
-        { 
+        {
         public:
             __device__ T operator()(T x, T y)
             {
@@ -40,7 +40,7 @@ namespace lahva
         public:
             __device__ float operator()(float x, float y)
             {
-                return fmaxf(x,y);
+                return fmaxf(x, y);
             }
             __device__ float ini_value()
             {
@@ -69,7 +69,7 @@ namespace lahva
         public:
             __device__ T operator()(T x, T y)
             {
-                return min(x,y);
+                return min(x, y);
             }
             __device__ T ini_value()
             {
@@ -83,7 +83,7 @@ namespace lahva
         public:
             __device__ float operator()(float x, float y)
             {
-                return min(x,y);
+                return min(x, y);
             }
             __device__ float ini_value()
             {
@@ -97,7 +97,7 @@ namespace lahva
         public:
             __device__ double operator()(double x, double y)
             {
-                return min(x,y);
+                return min(x, y);
             }
             __device__ double ini_value()
             {
@@ -114,7 +114,7 @@ namespace lahva
             {
                 return x + y;
             }
-             __device__ T ini_value()
+            __device__ T ini_value()
             {
                 return static_cast<T>(0.0);
             }
@@ -128,7 +128,7 @@ namespace lahva
             {
                 return __fadd_rn(x, y);
             }
-             __device__ float ini_value()
+            __device__ float ini_value()
             {
                 return static_cast<float>(0.0);
             }
@@ -142,7 +142,7 @@ namespace lahva
             {
                 return __dadd_rn(x, y);
             }
-             __device__ double ini_value()
+            __device__ double ini_value()
             {
                 return static_cast<double>(0.0);
             }
@@ -196,7 +196,6 @@ namespace lahva
             {
                 b[index] = func(a[index], b[index]);
             }
-        
         };
 
         template<typename T, class op>
@@ -207,9 +206,7 @@ namespace lahva
             {
                 a[index] = func(a[index], b[index]);
             }
-        
         };
        
     } // namespace gpu
-
 } // namespace lahva

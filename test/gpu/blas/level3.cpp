@@ -28,8 +28,7 @@ int test_gemm_zero_v_gpu(){
 
     Matrix<T> Mres(sres, (T)0.0);
 
-    if (!check(C.data(), Mres.data(), 50, check_msg(get_type_name<T>(), "")))
-        return TEST_FAIL;
+    if (!check(C.data(), Mres.data(), 50, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -1053,7 +1052,7 @@ int test_mp_matrix_nonbatch_gemm() {
     if (norm > 1e-5) {
         failures += 1;
     }
-
+    
     return failures;
 }
 
@@ -1139,7 +1138,7 @@ int test_mp_matrix_nonbatch_with_beta() {
     double norm = FrobeniusNorm(cudart, C, C_ref);
     if (norm > 1e-5) {
         failures += 1;
-    }
+}
 
     return failures;
 }

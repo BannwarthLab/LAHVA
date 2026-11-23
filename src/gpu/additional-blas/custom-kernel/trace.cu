@@ -16,6 +16,7 @@ namespace lahva
             // get the global id and thread id (in vector)
             unsigned long long tid = threadIdx.x;
             unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
+            
             // Each block gets its own copy in shared memory
             __shared__ double temp[THREADS_PER_BLOCK];
             double tmp = 0.0;
@@ -68,7 +69,6 @@ namespace lahva
             while (i != 0)
             {
                 if (tid < i)
-
                     temp[tid] += temp[tid + i];
 
                 __syncthreads();
@@ -86,6 +86,7 @@ namespace lahva
             // get the global id and thread id (in vector)
             unsigned long long tid = threadIdx.x;
             unsigned long long id = blockIdx.x * blockDim.x + threadIdx.x;
+            
             // Each block gets its own copy in shared memory
             __shared__ float temp[THREADS_PER_BLOCK];
             float tmp = 0.0;
@@ -138,7 +139,6 @@ namespace lahva
             while (i != 0)
             {
                 if (tid < i)
-
                     temp[tid] += temp[tid + i];
 
                 __syncthreads();
@@ -178,7 +178,7 @@ namespace lahva
                 matrix[jd * ndim + id] = avg;
             }
         }
-        
+
         __global__ static void dGetDiagonal(unsigned long long ndim, const double *matrix, double* diag)
         {
             unsigned long long id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -198,19 +198,17 @@ namespace lahva
             }
         }
 
-         __global__ static void dSetDiagonal(unsigned long long ndim, const double* diag, double *matrix)
+        __global__ static void dSetDiagonal(unsigned long long ndim, const double* diag, double *matrix)
         {
             unsigned long long id = threadIdx.x + blockIdx.x * blockDim.x;
-            
             if (id < ndim)
             {
                 matrix[id * ndim + id] = diag[id];
             }
         }
-         __global__ static void sSetDiagonal(unsigned long long ndim, const float* diag, float *matrix)
+        __global__ static void sSetDiagonal(unsigned long long ndim, const float* diag, float *matrix)
         {
             unsigned long long id = threadIdx.x + blockIdx.x * blockDim.x;
-            
             if (id < ndim)
             {
                 matrix[id * ndim + id] = diag[id];
@@ -219,7 +217,7 @@ namespace lahva
         
 
 
-        template<>        
+        template<>
         void TraceKernelDiag(const CudaRuntime &cudart, unsigned long long ndim, const float* diag, float* vec)
         {
             // Number of blocks in grid;
@@ -227,7 +225,7 @@ namespace lahva
             MatrixTraceFromDiagonal<<<gridS, cudart.blockSize(), cudart.blockSize()*sizeof(double), cudart.getStream()>>>(diag, ndim, vec);
         }
 
-        template<>        
+        template<>
         void TraceKernelDiag(const CudaRuntime &cudart, unsigned long long ndim, const double* diag, double* vec)
         {
             // Number of blocks in grid;
@@ -235,7 +233,7 @@ namespace lahva
             MatrixTraceFromDiagonal<<<gridS, cudart.blockSize(), cudart.blockSize()*sizeof(double), cudart.getStream()>>>(diag, ndim, vec);
         }
 
-        template<>        
+        template<>
         void TraceKernel(const CudaRuntime &cudart, unsigned long long ndim, const float* diag, float* vec)
         {
             // Number of blocks in grid;
@@ -243,7 +241,7 @@ namespace lahva
             MatrixTrace<<<gridS, cudart.blockSize(), cudart.blockSize()*sizeof(double), cudart.getStream()>>>(diag, ndim, vec);
         }
 
-        template<>        
+        template<>
         void TraceKernel(const CudaRuntime &cudart, unsigned long long ndim, const double* diag, double* vec)
         {
             // Number of blocks in grid;
@@ -280,9 +278,8 @@ namespace lahva
             check_device_alloc(cudart, diag);
             check_device_alloc(cudart, m);
             dGetDiagonal<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(diag.size(), m.gpu_data(), diag.gpu_data());
-
         }
-        
+
         template<>
         void GetDiagonal<float>(const CudaRuntime& cudart, const Matrix_<float>& m, GPUTensor_<float>& diag)
         {
@@ -290,7 +287,6 @@ namespace lahva
             check_device_alloc(cudart, diag);
             check_device_alloc(cudart, m);
             sGetDiagonal<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(diag.size(), m.gpu_data(), diag.gpu_data());
-
         }
 
         template<>
@@ -300,7 +296,6 @@ namespace lahva
             check_device_alloc(cudart, diag);
             check_device_alloc(cudart, m);
             dSetDiagonal<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(diag.size(), diag.gpu_data(), m.gpu_data());
-
         }
 
         template<>
@@ -310,8 +305,7 @@ namespace lahva
             check_device_alloc(cudart, diag);
             check_device_alloc(cudart, m);
             sSetDiagonal<<<gridS, cudart.blockSize(), 0, cudart.getStream()>>>(diag.size(), diag.gpu_data(), m.gpu_data());
-
         }
 
-    } // namespace Purification_kernel
-} // namespace Purification
+    } // namespace gpu
+} // namespace lahva

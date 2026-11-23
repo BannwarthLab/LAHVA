@@ -13,8 +13,8 @@ namespace lahva
                 return fabs(x);
             }
         };
-        
+
 
     } // namespace gpu
-    
+
 } // namespace lahva

@@ -1,5 +1,4 @@
-#ifndef LAHVA_ADD_LEVEL1_HPP
-#define LAHVA_ADD_LEVEL1_HPP
+#pragma once
 #include "linalg.hpp"
 #include "../../../../src/gpu/gpu-utils/utils.hpp"
 #include "kernels.cuh"
@@ -256,5 +255,4 @@ namespace lahva
         void MergeOzaki(const CudaRuntime &cudart, unsigned long long ndim, unsigned int nsplit, const double *alphas, const float **as, double *b);
     } // namespace gpu
 
-}
-#endif
+} // namespace lahva

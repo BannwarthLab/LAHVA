@@ -59,7 +59,7 @@ namespace lahva{
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
         check_device_alloc( cudart, Y);
-        
+
         float result;
         cudart.cublasSetStream_();
         cublasStatus_t istat = cublasSdot(cudart.handle, X.size(), X.gpu_data(), strideX, Y.gpu_data(), strideY, &result);
@@ -275,8 +275,8 @@ namespace lahva{
     }
 
     void ScaleVector(const CudaRuntime& cudart, const double a, GPUTensor_<double>& x, size_t ix){
-        check_device_alloc( cudart, x); 
-        
+        check_device_alloc( cudart, x);
+
         cudart.cublasSetStream_();
         cublasStatus_t istat = cublasDscal(cudart.handle, x.size(), &a, x.gpu_data(), ix);
         get_cublas_error(istat);
@@ -294,5 +294,5 @@ namespace lahva{
         cublasStatus_t istat = cublasSscal(cudart.handle, x.size(), &a, x.gpu_data(), ix);
         get_cublas_error(istat);
     }
-    }
-}
+    } // namespace gpu
+} // namespace lahva

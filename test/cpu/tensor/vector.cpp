@@ -242,7 +242,7 @@ int test_vector_destructor() {
     {
         Vector<T> v(100);
         if (v.data() == nullptr) return TEST_FAIL;
-    }
+        }
     // Destructor should deallocate - we're just checking it doesn't crash
 
     return TEST_PASS;

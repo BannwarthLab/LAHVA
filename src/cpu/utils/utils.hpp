@@ -1,7 +1,7 @@
 #pragma once
-#include "linalg.hpp"
-#include "const.h"
 #include <tuple>
+#include "const.h"
+#include "linalg.hpp"
 
 #include <assert.h>
 
@@ -10,10 +10,11 @@ namespace lahva{
     void check_equal_size(const Tensor<T>& v1, const Tensor<U>& v2){
         assert(v1.size() == v2.size());
     };
+
     namespace cpu
     {
-    
-    
+
+
 
     template<typename T>
     std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const Matrix_<T>& m, const Tensor<T>& vmult, const Tensor<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
@@ -23,12 +24,12 @@ namespace lahva{
         if (trans == CblasNoTrans) {
             assert(nrow == (BLAS_INT)vres.size());
             assert(ncol == (BLAS_INT)vmult.size());
-            
+
         }
         else {
             assert(nrow == (BLAS_INT)vmult.size());
             assert(ncol == (BLAS_INT)vres.size());
-            
+
         }
         
         return std::make_tuple(nrow, ncol);
@@ -42,12 +43,12 @@ namespace lahva{
         if (trans == CblasNoTrans) {
             assert(nrow == (BLAS_INT)vres.size());
             assert(ncol == (BLAS_INT)vmult.size());
-            
+
         }
         else {
             assert(nrow == (BLAS_INT)vmult.size());
             assert(ncol == (BLAS_INT)vres.size());
-            
+
         }
         
         return std::make_tuple(nrow, ncol);
@@ -177,5 +178,6 @@ namespace lahva{
 
     BLAS_INT get_leading(BLAS_INT nrow, BLAS_INT ncol, CBLAS_TRANSPOSE trans = CblasNoTrans);
     CBLAS_TRANSPOSE get_trans(const char* T);
-    } // namespace cpu
-}
+
+} // namespace cpu
+} // namespace lahva

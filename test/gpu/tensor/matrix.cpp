@@ -109,7 +109,6 @@ int test_gpu_matrix_move_constructor() {
     Matrix<T> m2 = std::move(m1);  // Move constructor
 
     if (!check((int)m2.shape().first, 2, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m2.shape().second, 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     // Original should be empty
@@ -192,7 +191,6 @@ int test_gpu_matrix_shape_attribute() {
     Shape s = m.shape();
 
     if (!check((int)s.first, 6, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)s.second, 8, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -233,7 +231,6 @@ int test_gpu_matrix_float_type() {
     Matrix<float> m(Shape{3, 3}, 2.5f);
 
     if (!check((int)m.shape().first, 3, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m.data()[0], 2.5f, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -248,7 +245,6 @@ int test_gpu_matrix_int_type() {
     m.data()[3] = 40;
 
     if (!check((int)m.shape().first, 2, check_msg(get_type_name<int>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m.data()[0], 10, check_msg(get_type_name<int>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -273,7 +269,6 @@ int test_gpu_matrix_copy_assignment() {
     m2 = m1;  // Copy assignment
 
     if (!check((int)m2.shape().first, 2, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m2.shape().second, 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -288,9 +283,7 @@ int test_gpu_matrix_move_assignment() {
     m2 = std::move(m1);
 
     if (!check((int)m2.shape().first, 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m2.shape().second, 4, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
-
     if (!check((int)m1.shape().first, 0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -324,9 +317,7 @@ int test_gpu_matrix_const_data_constructor() {
     Matrix<double> m(Shape{2, 3}, data);
 
     if (!check((int)m.shape().first, 2, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m.shape().second, 3, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
-
     if (!check(m.data()[0], 1.0, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -337,9 +328,7 @@ int test_gpu_matrix_initializer_list_constructor() {
     Matrix<double> m(Shape{2, 3}, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});
 
     if (!check((int)m.shape().first, 2, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m.shape().second, 3, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
-
     if (!check(m.data()[0], 1.0, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -351,7 +340,6 @@ int test_gpu_matrix_pointer_constructor() {
     Matrix<double> m(Shape{2, 3}, data, false);
 
     if (!check((int)m.shape().first, 2, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m.data()[0], 1.0, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     delete[] data;
@@ -371,9 +359,7 @@ int test_gpu_matrix_operator_access_nondiag() {
     m(2, 3) = 9.0;
 
     if (!check(m(0, 1), 5.0, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m(1, 2), 7.0, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
-
     if (!check(m(2, 3), 9.0, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -422,7 +408,6 @@ int test_gpu_matrix_col_values() {
     m(2, 1) = 6.0;
 
     if (!check(m(0, 0), 1.0, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m(2, 1), 6.0, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -472,7 +457,6 @@ int test_gpu_matrix_int_operations() {
     m.data()[3] = 40;
 
     if (!check(m.data()[0], 10, check_msg(get_type_name<int>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m.data()[3], 40, check_msg(get_type_name<int>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -581,7 +565,6 @@ int test_gpu_matrix_cudart_constructor() {
     Matrix<double> m(s, cudart);
 
     if (!check((int)m.shape().first, 5, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m.shape().second, 5, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -599,7 +582,6 @@ int test_gpu_matrix_row_major_init() {
 
     // Row-major: interpret as rows and convert to column-major
     if (!check(m_row(0, 0), 1.0, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
-
     if (!check(m_row(0, 1), 2.0, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -624,9 +606,7 @@ int test_gpu_matrix_complex_double() {
     Matrix<complex_double> m(s, complex_double(1.0, 2.0));
 
     if (!check((int)m.shape().first, 2, check_msg(get_type_name<complex_double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m.data()[0].real(), 1.0, check_msg(get_type_name<complex_double>(), "check 2"))) return TEST_FAIL;
-
     if (!check(m.data()[0].imag(), 2.0, check_msg(get_type_name<complex_double>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -638,9 +618,7 @@ int test_gpu_matrix_complex_float() {
     Matrix<complex_float> m(s, complex_float(1.5f, 2.5f));
 
     if (!check((int)m.shape().second, 2, check_msg(get_type_name<complex_float>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m.data()[0].real(), 1.5f, check_msg(get_type_name<complex_float>(), "check 2"))) return TEST_FAIL;
-
     if (!check(m.data()[0].imag(), 2.5f, check_msg(get_type_name<complex_float>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -651,7 +629,6 @@ int test_gpu_matrix_square_constructor() {
     Matrix<double> m(5);
 
     if (!check((int)m.shape().first, 5, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m.shape().second, 5, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -714,9 +691,7 @@ int test_gpu_matrix_large_matrix() {
     Matrix<double> m(s, 0.0);
 
     if (!check((int)m.shape().first, 100, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m.shape().second, 100, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
-
     if (!check((int)m.size(), 10000, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -728,12 +703,10 @@ int test_gpu_matrix_non_square() {
     Matrix<double> m(s, 1.0);
 
     if (!check((int)m.shape().first, 3, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m.shape().second, 7, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     // Test diagonal elements
     if (!check(m(0, 0), 1.0, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
-
     if (!check(m(2, 6), 1.0, check_msg(get_type_name<double>(), "check 4"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -749,9 +722,7 @@ int test_gpu_matrix_element_modification() {
     m(2, 2) = 3.5;
 
     if (!check(m(0, 0), 1.5, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m(1, 1), 2.5, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
-
     if (!check(m(2, 2), 3.5, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -771,9 +742,7 @@ int test_gpu_matrix_extensive_element_access() {
 
     // Verify random elements
     if (!check(m(0, 0), 0.0, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m(2, 3), 2.3, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
-
     if (!check(m(3, 4), 3.4, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -787,7 +756,6 @@ int test_gpu_matrix_const_access_pattern() {
     const Matrix<double>& const_m = m;
 
     if (!check(const_m(0, 0), 2.0, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(const_m(2, 2), 2.0, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -804,7 +772,6 @@ int test_gpu_matrix_diagonal_pattern() {
     }
 
     if (!check(m(0, 0), 1.0, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m(4, 4), 5.0, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     // Check off-diagonal are still zero
@@ -851,9 +818,7 @@ int test_matrix_float_precision_construction() {
     Matrix<float> m_float(Shape{3, 3}, 1.5f);
 
     if (!check((int)m_float.shape().first, 3, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m_float.shape().second, 3, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
-
     if (!check(m_float.data()[0], 1.5f, check_msg(get_type_name<float>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -864,7 +829,6 @@ int test_matrix_double_precision_construction() {
     Matrix<double> m_double(Shape{2, 2}, 2.5);
 
     if (!check((int)m_double.shape().first, 2, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m_double.data()[0], 2.5, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -880,7 +844,6 @@ int test_matrix_precision_operations() {
     m.data()[3] = 4.5f;
 
     if (!check(m.data()[0], 1.5f, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m.data()[3], 4.5f, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -893,7 +856,6 @@ int test_matrix_precision_size() {
 
     int total_size = shape.first * shape.second;
     if (!check(total_size, 20, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m.shape().first * (int)m.shape().second, 20, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -905,7 +867,6 @@ int test_matrix_precision_copy() {
     Matrix<float> m2 = m1;
 
     if (!check((int)m2.shape().first, 2, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m2.data()[0], 3.5f, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
 
     m1.data()[0] = 7.0f;
@@ -920,7 +881,6 @@ int test_matrix_precision_move() {
     Matrix<float> m2 = std::move(m1);
 
     if (!check((int)m2.shape().first, 3, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m1.shape().first, 0, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -934,7 +894,6 @@ int test_matrix_precision_assignment() {
     m2 = m1;
 
     if (!check((int)m2.shape().first, 2, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m2.data()[0], 1.5f, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -945,14 +904,12 @@ int test_matrix_precision_large_matrix() {
     Matrix<float> m(Shape{100, 100}, 1.0f);
 
     if (!check((int)m.shape().first, 100, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m.shape().second, 100, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
 
     m.data()[0] = 5.0f;
     m.data()[9999] = 7.5f;
 
     if (!check(m.data()[0], 5.0f, check_msg(get_type_name<float>(), "check 3"))) return TEST_FAIL;
-
     if (!check(m.data()[9999], 7.5f, check_msg(get_type_name<float>(), "check 4"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -967,7 +924,6 @@ int test_matrix_precision_element_access() {
     m(2, 2) = 3.3f;
 
     if (!check(m(0, 0), 1.1f, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m(2, 2), 3.3f, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -978,7 +934,6 @@ int test_matrix_precision_init_list() {
     Matrix<float> m(Shape{2, 2}, {1.0f, 2.0f, 3.0f, 4.0f});
 
     if (!check(m.data()[0], 1.0f, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m.data()[3], 4.0f, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;

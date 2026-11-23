@@ -249,7 +249,6 @@ namespace lahva
         template <typename inprec, typename outprec, typename Allocator, typename GPUAllocator>
         void SplitMatrix(const CudaRuntime &cudart, Matrix_<inprec> &in, std::vector<Matrix<outprec, Allocator, GPUAllocator>> &out, GPUTensor_<int> &coeff, int maxsplit)
         {
-            CPUTimer timer;
             unsigned long long n = in.size();
             size_t numel = std::sqrt(n);
 
@@ -270,7 +269,6 @@ namespace lahva
             {
                 check_device_alloc(cudart, out[i]);
                 assert(out[i].size() == in.size());
-                timer.push("Amax");
                 int idmax;
                 if constexpr (std::is_same<inprec, float>::value)
                 {
@@ -284,17 +282,13 @@ namespace lahva
                     get_cublas_error(cublasIdamax(cudart.handle, n, in.gpu_data(), 1, &idmax));
                 }
 
-                timer.pop();
-                timer.push("Copy");
                 inprec max;
                 get_cuda_error(cudaMemcpyAsync(&max, &in.gpu_data()[idmax - 1], sizeof(inprec), cudaMemcpyDeviceToHost, cudart.getStream()));
                 cudart.synchronize();
                 inprec mu = abs(max);
-                timer.pop();
                 int tau = ceil(log2(mu));
                 inprec sigma = scalbn(1.0, rho + tau)*0.75;
                 coeff[i] = tau;
-                timer.push("Decompose");
                 n = in.size();
                 // cudart.setblockSize(256);
                 dim3 blockSize(cudart.blockSize(), 1);
@@ -328,7 +322,6 @@ namespace lahva
                 // DecomposeMatrixKernel<inprec, outprec, 512><<<cudart.gridSize(n, 1)/computeperThread, blockSize, 0, cudart.getStream()>>>
                 ////DecomposeMatrixKernel2D<inprec,outprec><<<gridSize, blockSize, 0, cudart.getStream()>>>
                 //(n, in.gpu_data(), out[i].gpu_data(), tau, sigma);
-                timer.pop();
             }
         }
 
@@ -344,6 +337,6 @@ namespace lahva
         template void SplitMatrix<float, __half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>(const CudaRuntime &cudart, Matrix_<float> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>> &out, GPUTensor_<int> &coeff, int maxsplit);
         template void SplitMatrix<double, __half, CudaHostAllocator<__half>, CudaDeviceAllocator<__half>>(const CudaRuntime &cudart, Matrix_<double> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAllocator<__half>>> &out, GPUTensor_<int> &coeff, int maxsplit);
         template void SplitMatrix<double, __half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>(const CudaRuntime &cudart, Matrix_<double> &in, std::vector<Matrix<__half, CudaHostAllocator<__half>, CudaDeviceAsyncAllocator<__half>>> &out, GPUTensor_<int> &coeff, int maxsplit);
+    
     } // namespace gpu
-
 } // namespace lahva

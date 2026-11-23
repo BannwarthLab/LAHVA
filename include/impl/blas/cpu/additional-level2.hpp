@@ -1,7 +1,6 @@
-#ifndef LAHVA_ADD_LEVEL2_CPU_HPP
-#define LAHVA_ADD_LEVEL2_CPU_HPP
-#include "linalg.hpp"
+#pragma once
 #include "const.h"
+#include "linalg.hpp"
 
 namespace lahva
 {
@@ -24,5 +23,4 @@ namespace lahva
 
     } // namespace gpu
 
-}
-#endif
+} // namespace lahva

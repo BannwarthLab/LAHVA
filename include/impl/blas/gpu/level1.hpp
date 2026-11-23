@@ -1,5 +1,4 @@
-#ifndef LAHVA_GPU_LEVEL1_HPP
-#define LAHVA_GPU_LEVEL1_HPP
+#pragma once
 #include "const.h"
 #include "linalg.hpp"
 #include "runtime.hpp"
@@ -41,8 +40,6 @@ namespace lahva{
     template<typename inprec, typename outprec>
     void AddVectors(const CudaRuntime& cudart, const GPUTensor_<inprec>& in, GPUTensor_<outprec>& out);
 
-    }
+    } // namespace gpu
 
 } 
-
-#endif

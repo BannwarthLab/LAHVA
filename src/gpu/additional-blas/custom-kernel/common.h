@@ -1,7 +1,7 @@
 #pragma once
 #include <cmath>
-#include <typeinfo>
 #include <float.h>
+#include <typeinfo>
 
 #include "runtime.hpp"
 #include <cuda_fp16.h>
@@ -48,21 +48,25 @@ namespace lahva
             return 0;
         }
         template <>
-constexpr int32_t getEpse <int32_t> () {
-	return 31;
-}
-template <>
-constexpr int32_t getEpse <__half> () {
-	return 24;
-}
-template <>
-constexpr int32_t getEpse <float> () {
-	return 24;
-}
-template <>
-constexpr int32_t getEpse <double> () {
-	return 53;
-}
+        constexpr int32_t getEpse<int32_t>()
+        {
+            return 31;
+        }
+        template <>
+        constexpr int32_t getEpse<__half>()
+        {
+            return 24;
+        }
+        template <>
+        constexpr int32_t getEpse<float>()
+        {
+            return 24;
+        }
+        template <>
+        constexpr int32_t getEpse<double>()
+        {
+            return 53;
+        }
 
         // -------------------------------------
         // getTypeMax
@@ -150,7 +154,7 @@ constexpr int32_t getEpse <double> () {
             return __fsub_rn(val1, val2);
         }
 
-         template <typename T>
+        template <typename T>
         __device__ inline T getAdd(T val1, T val2)
         {
             return val1 + val2;
@@ -174,14 +178,12 @@ constexpr int32_t getEpse <double> () {
         {
             return 0;
         }
-       
 
         template <>
         __device__ inline double getFMA(double val1, double val2, double val3)
         {
             return __fma_rn(val1, val2, val3);
         }
-        
 
         template <>
         __device__ inline float getFMA(float val1, float val2, float val3)

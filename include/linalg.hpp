@@ -1,5 +1,4 @@
-#ifndef LAHVA_LINALG_H
-#define LAHVA_LINALG_H
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -20,5 +19,3 @@
 #include "impl/tensor/cpu/matrix.hpp"
 #include "impl/tensor/cpu/lowtrimatrix.hpp"
 #include "impl/tensor/allocators.hpp"
-
-#endif // LAHVA_LINALG_H

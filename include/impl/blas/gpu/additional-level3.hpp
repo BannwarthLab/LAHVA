@@ -1,5 +1,4 @@
-#ifndef LAHVA_ADD_LEVEL3_HPP
-#define LAHVA_ADD_LEVEL3_HPP
+#pragma once
 #include "linalg.hpp"
 #include "runtime.hpp"
 #include "impl/blas/gpu/additional-level1.hpp"
@@ -14,7 +13,7 @@ namespace lahva
 
         template<typename Allocator, typename GPUAllocator, typename All2, typename GPUAll2>
         void MPSymMatrixMatrixMultiplication(const CudaRuntime& cudart, const Vector<double, Allocator, GPUAllocator>& d1, const Matrix<float, All2, GPUAll2>& m1,
-                                             const Vector<double, Allocator, GPUAllocator>& d2, const Matrix<float, All2, GPUAll2>& m2, 
+                                             const Vector<double, Allocator, GPUAllocator>& d2, const Matrix<float, All2, GPUAll2>& m2,
                                              Vector<double, Allocator, GPUAllocator>& dout, Matrix<float, All2, GPUAll2>& mout, bool fast = false)
         {
             fast = true;
@@ -27,7 +26,7 @@ namespace lahva
 
         template<typename Allocator, typename GPUAllocator, typename All2, typename GPUAll2>
         void MPSymMatrixMatrixMultiplication(const CudaRuntime& cudart, const MPRuntime& mp_rt, const Vector<double, Allocator, GPUAllocator>& d1, const MixedPrecisionMatrix<float, All2, GPUAll2>& m1,
-                                             const Vector<double, Allocator, GPUAllocator>& d2, const MixedPrecisionMatrix<float, All2, GPUAll2>& m2, 
+                                             const Vector<double, Allocator, GPUAllocator>& d2, const MixedPrecisionMatrix<float, All2, GPUAll2>& m2,
                                              Vector<double, Allocator, GPUAllocator>& dout, Matrix<float, All2, GPUAll2>& mout)
         {
             
@@ -50,8 +49,6 @@ namespace lahva
         };
     
 
-       
+
     } // namespace gpu
-    
-}   
-#endif
+} // namespace lahva

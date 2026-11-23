@@ -17,7 +17,7 @@ namespace lahva {
             }
 
         };
-
+        
         cublasOperation_t get_trans(const char* T){
         if (std::strcmp(T,"T") == 0 or std::strcmp(T,"t") == 0)
         {
@@ -33,5 +33,5 @@ namespace lahva {
         }
     };
     } // namespace gpu
-    
-}
+
+            }

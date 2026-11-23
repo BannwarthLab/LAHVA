@@ -35,7 +35,7 @@ namespace lahva
         template <class U>
         StdAllocator(CPUAllocator<U> const &) : StdAllocator<T>{} {}
         value_type * // Use pointer if pointer is not a value_type*
-        allocate(std::size_t n) const override 
+        allocate(std::size_t n) const override
         {
             return static_cast<T*>(
             ::operator new(n * sizeof(T)));
@@ -58,15 +58,16 @@ namespace lahva
     template <typename T>
     class GPUAllocator_ : public CPUAllocator<T>
     {
-        protected:
-            mutable int device_ = -1;
+    protected:
+        mutable int device_ = -1;
+    
     public:
         virtual void operator()(T *ptr) = 0;
         virtual void H2DCopy(void *d_ptr,const void *h_ptr, const size_t buffersize) const = 0;
         virtual void D2HCopy(void *d_ptr, void *h_ptr, const size_t buffersize) const = 0;
         virtual void setStream(std::shared_ptr<cudaStream_t>& stream) const {};
         virtual void setDevice(int device) const {this->device_ = device;};
-    
+
     };
 
     template <typename T>
@@ -80,7 +81,7 @@ namespace lahva
         template <class U>
         CudaHostAllocator(CPUAllocator<U> const &) : CudaHostAllocator<T>{} {}
         value_type * // Use pointer if pointer is not a value_type*
-        allocate(std::size_t n) const override  
+        allocate(std::size_t n) const override
         {
             value_type *ptr;
             get_cuda_error(cudaMallocHost(&ptr, n * sizeof(value_type)));
@@ -111,7 +112,7 @@ namespace lahva
         template <class U>
         CudaHostAllocatorMapped(CPUAllocator<U> const &) : CudaHostAllocator<T>{} {}
         value_type * // Use pointer if pointer is not a value_type*
-        allocate(std::size_t n) const override  
+        allocate(std::size_t n) const override
         {
             value_type *ptr;
             get_cuda_error(cudaHostAlloc(&ptr, n * sizeof(value_type), cudaHostAllocMapped));
@@ -201,7 +202,7 @@ namespace lahva
         CudaDeviceAsyncAllocator(GPUAllocator_<U> const &) : CudaDeviceAsyncAllocator<T>{} {};
 
         value_type * // Use pointer if pointer is not a value_type*
-        allocate(std::size_t n) const override 
+        allocate(std::size_t n) const override
         {
             value_type *ptr;
             if (stream_)
@@ -214,7 +215,7 @@ namespace lahva
                 get_cuda_error(cudaSetDevice(this->device_));
                 get_cuda_error(cudaMalloc((void **)&ptr, n * sizeof(value_type)));
             }
-            
+
             return ptr;
         }
         void
@@ -230,7 +231,7 @@ namespace lahva
                 get_cuda_error(cudaSetDevice(this->device_));
                 get_cuda_error(cudaFree(ptr));
             }
-            
+
         }
 
         void
@@ -266,9 +267,9 @@ namespace lahva
             else
             {
                 get_cuda_error(cudaSetDevice(this->device_));
-                get_cuda_error(cudaMemcpy(d_ptr, h_ptr, buffersize, cudaMemcpyHostToDevice));    
+                get_cuda_error(cudaMemcpy(d_ptr, h_ptr, buffersize, cudaMemcpyHostToDevice));
             }
-            
+
         };
 
         void D2HCopy(void *d_ptr, void *h_ptr, const size_t buffersize) const override

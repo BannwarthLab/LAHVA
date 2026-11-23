@@ -260,7 +260,7 @@ int test_inner_v_prod_cpp(){
 
 int main(){
     int total_failures = 0;
-    
+
     total_failures += test_v_addition_c<double>();
     total_failures += test_v_addition_c<float>();
     total_failures += test_v_addition_cpp<double>();

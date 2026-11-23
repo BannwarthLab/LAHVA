@@ -1,7 +1,6 @@
-#ifndef LAHVA_C_LEVEL_3_HPP
-#define LAHVA_C_LEVEL_3_HPP
-#include "linalg.hpp"
+#pragma once
 #include "const.h"
+#include "linalg.hpp"
 
 namespace lahva{
     namespace cpu {
@@ -23,26 +22,26 @@ namespace lahva{
     void MatrixMatrixProduct(const Matrix_<complex_float>& a, const Matrix_<complex_float>& b, Matrix_<complex_float>& c,
                              const complex_float alpha = 1.0 , const complex_float beta = 0.0, const char* Ta = "N", const char* Tb = "N");
 
-    void SymMatrixMatrixProduct(const CBLAS_SIDE side, const double alpha, const Matrix_<double>& a, const Matrix_<double>& b,
-                                const double beta, Matrix_<double>& c);
+        void SymMatrixMatrixProduct(const CBLAS_SIDE side, const double alpha, const Matrix_<double> &a, const Matrix_<double> &b,
+                                    const double beta, Matrix_<double> &c);
     void SymMatrixMatrixProduct(const Matrix_<double>& a, const Matrix_<double>& b, Matrix_<double>& c,
                                 const double alpha = 1.0 , const double beta = 0.0, const CBLAS_SIDE side = CblasLeft);
-    void SymMatrixMatrixProduct(const CBLAS_SIDE side, const float alpha, const Matrix_<float>& a, const Matrix_<float>& b,
-                                const float beta, Matrix_<float>& c);
+        void SymMatrixMatrixProduct(const CBLAS_SIDE side, const float alpha, const Matrix_<float> &a, const Matrix_<float> &b,
+                                    const float beta, Matrix_<float> &c);
     void SymMatrixMatrixProduct(const Matrix_<float>& a, const Matrix_<float>& b, Matrix_<float>& c,
                                 const float alpha = 1.0 , const float beta = 0.0, const CBLAS_SIDE side = CblasLeft);
-    
-    template<typename... Args>
-    void MatrixMatrixProduct(const CPURuntime& rt_, Args&&... args) {
-        (MatrixMatrixProduct(args...));                
-    }
 
-    template<typename... Args>
-    void SymMatrixMatrixProduct(const CPURuntime& rt_, Args&&... args) {
-        (SymMatrixMatrixProduct(args...));                  
-    }
+        template <typename... Args>
+        void MatrixMatrixProduct(const CPURuntime &rt_, Args &&...args)
+        {
+            (MatrixMatrixProduct(args...));
+        }
 
+        template <typename... Args>
+        void SymMatrixMatrixProduct(const CPURuntime &rt_, Args &&...args)
+        {
+            (SymMatrixMatrixProduct(args...));
+        }
 
     }
 }
-#endif

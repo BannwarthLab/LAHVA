@@ -119,7 +119,7 @@ int test_gpu_vector_data_host_sync() {
     if (!check(host_data[0], (T)5.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
-}
+    }
 
 template <typename T>
 int test_gpu_vector_synchronization() {
@@ -225,7 +225,6 @@ int test_gpu_vector_move_assignment() {
     v2 = std::move(v1);
 
     if (!check((int)v2.size(), 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)v1.size(), 0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;

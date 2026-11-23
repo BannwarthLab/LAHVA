@@ -113,7 +113,7 @@ namespace lahva
         };
 
         template <typename T, class Allocator>
-        Vector<T, Allocator>::~Vector(){
+        Vector<T, Allocator>::~Vector() {
 
         };
 
@@ -127,5 +127,5 @@ namespace lahva
             }
         }
 
-    }
+    } // namespace cpu
 } // namespace lahva

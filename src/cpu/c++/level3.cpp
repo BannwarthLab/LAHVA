@@ -5,7 +5,7 @@ namespace lahva
 {
     namespace cpu
     {
-
+        
         void MatrixMatrixProduct(const char *Ta, const char *Tb, const double alpha, const Matrix_<double> &a,
                                  const Matrix_<double> &b, const double beta, Matrix_<double> &c)
         {
@@ -24,7 +24,7 @@ namespace lahva
 
         void MatrixMatrixProduct(const Matrix_<double> &a, const Matrix_<double> &b, Matrix_<double> &c,
                                  const double alpha, const double beta, const char *Ta, const char *Tb)
-        {
+            {
             CBLAS_TRANSPOSE transa = get_trans(Ta);
             CBLAS_TRANSPOSE transb = get_trans(Tb);
 
@@ -181,5 +181,5 @@ namespace lahva
 
             cblas_ssymm(major, side, tri, m, n, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
         };
-    }
+    } // namespace cpu
 } // namespace lahva

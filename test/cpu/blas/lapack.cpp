@@ -443,10 +443,10 @@ int test_invert_tri_matrix() {
     // Verify A_original * A = identity
     if (!check<T, ToleranceType::LAPACK>(product.data(), identity.data(), n*n,
                check_msg(get_type_name<T>(), "A*A_inv = I verification"))) {
-        return TEST_FAIL;
-    }
+    return TEST_FAIL;
+}
 
-    return TEST_PASS;
+        return TEST_PASS;
 }
 
 // ============================================================================
@@ -499,7 +499,7 @@ int test_sym_eigenvalue_no_vectors() {
     for (size_t i = 0; i < eigenvalues.size(); i++) {
         if (eigenvalues[i] <= 0) {
             std::cerr << "[" << get_type_name<T>() << "] [Eigenvalue Error] Negative eigenvalue found at index " << i
-                      << ": " << std::setprecision(15) << eigenvalues[i] << std::endl;
+            << ": " << std::setprecision(15) << eigenvalues[i] << std::endl;
             check_msg(get_type_name<T>(), "Negative eigenvalue found");
             return TEST_FAIL;
         }

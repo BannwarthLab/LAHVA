@@ -1,7 +1,6 @@
-#ifndef LAHVA_GPU_LEVEL_3_HPP
-#define LAHVA_GPU_LEVEL_3_HPP
-#include "linalg.hpp"
+#pragma once
 #include "const.h"
+#include "linalg.hpp"
 #include "runtime.hpp"
 namespace lahva{
     namespace gpu {
@@ -14,11 +13,11 @@ namespace lahva{
     void MatrixMatrixProduct(const CudaRuntime& cudart, const Matrix_<float>& a, const Matrix_<float>& b, Matrix_<float>& c,
                              const float alpha = 1.0 , const float beta = 0.0, const char* Ta = "N", const char* Tb = "N");
 
-    void MatrixMatrixProduct(const CudaRuntime& cudart, const char* Ta, const char* Tb, const complex_double alpha, const Matrix_<complex_double>& a, 
+    void MatrixMatrixProduct(const CudaRuntime& cudart, const char* Ta, const char* Tb, const complex_double alpha, const Matrix_<complex_double>& a,
                              const Matrix_<complex_double>& b, const complex_double beta, Matrix_<complex_double>& c);
     void MatrixMatrixProduct(const CudaRuntime& cudart, const Matrix_<complex_double>& a, const Matrix_<complex_double>& b, Matrix_<complex_double>& c,
                              const complex_double alpha = 1.0 , const complex_double beta = 0.0, const char* Ta = "N", const char* Tb = "N");
-    void MatrixMatrixProduct(const CudaRuntime& cudart, const char* Ta, const char* Tb, const complex_float alpha, const Matrix_<complex_float>& a, 
+    void MatrixMatrixProduct(const CudaRuntime& cudart, const char* Ta, const char* Tb, const complex_float alpha, const Matrix_<complex_float>& a,
                              const Matrix_<complex_float>& b, const complex_float beta, Matrix_<complex_float>& c);
     void MatrixMatrixProduct(const CudaRuntime& cudart, const Matrix_<complex_float>& a, const Matrix_<complex_float>& b, Matrix_<complex_float>& c,
                              const complex_float alpha = 1.0 , const complex_float beta = 0.0, const char* Ta = "N", const char* Tb = "N");
@@ -36,10 +35,9 @@ namespace lahva{
     void MatrixMatrixProductTF32(const CudaRuntime& cudart, const Matrix_<float>& a, const Matrix_<float>& b, Matrix_<float>& c,
                              const float alpha = 1.0 , const float beta = 0.0, const char* Ta = "N", const char* Tb = "N");
 
-    void MatrixMatrixProductFP16(const CudaRuntime& cudart, const char* Ta, const char* Tb, const float alpha, const Matrix_<__half>& a, const Matrix_<__half>& b,
-                             const float beta, Matrix_<float>& c);
+    void MatrixMatrixProductFP16(const CudaRuntime& cudart, const char* Ta, const char* Tb, const float alpha, const Matrix_<__half>& a, const Matrix_<__half>& b, 
+        const float beta, Matrix_<float>& c);   
     void MatrixMatrixProductFP16(const CudaRuntime& cudart, const Matrix_<__half>& a, const Matrix_<__half>& b, Matrix_<float>& c,
-                             const float alpha = 1.0 , const float beta = 0.0, const char* Ta = "N", const char* Tb = "N");
+                             const float alpha = 1.0 , const float beta = 0.0, const char* Ta = "N", const char* Tb = "N");                         
     }
-}
-#endif
+    }

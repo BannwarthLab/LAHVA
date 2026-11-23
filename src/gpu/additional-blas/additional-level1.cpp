@@ -61,4 +61,4 @@ namespace lahva{
         }
 
     } // namespace gpu
-}   
+} // namespace lahva

@@ -9,7 +9,6 @@ namespace lahva
 {
     namespace gpu
     {
-
         template <typename T>
         class GPUTensor_ : public virtual Tensor<T>
         {
@@ -45,8 +44,8 @@ namespace lahva
             {this->no_alloc= true;};
             virtual ~GPUTensor() {this->device_ptr_.get_deleter() = this->gpualloc_;};
             GPUTensor(const GPUTensor &other) : CPUTensor<T, Allocator>{other},
-                                                gpualloc_{other.get_gpuallocator()},
-                                                is_on_device_{other.is_on_device_} 
+                                          gpualloc_{other.get_gpuallocator()},
+                                          is_on_device_{other.is_on_device_}
             {
                 if (other.is_on_device_)
                 {
@@ -82,7 +81,7 @@ namespace lahva
                     }
                     this->is_on_device_ = other.is_on_device_;
                     this->gpu_buffer = other.gpu_buffer;
-                    
+
                     if (other.is_on_device_)
                     {
                         this->device_ptr_.reset(gpualloc_.allocate(this->size()));
@@ -209,7 +208,6 @@ namespace lahva
                     this->gpualloc_.setStream(cudart.getStreamPtr());
                     this->gpualloc_.H2DCopy(this->device_ptr_.get(), this->data(), this->size() * sizeof(T));
                 }
-                    
             }
 
             if (!this->device_ptr_)

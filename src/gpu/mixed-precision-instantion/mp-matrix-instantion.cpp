@@ -15,7 +15,7 @@ namespace lahva
             : Matrix<high, Allocator, GPUAllocator>(shape, alloc, gpualloc)
         {
         }
-        
+
         template <typename high, typename Allocator, typename GPUAllocator>
         template <typename split_type>
         void MixedPrecisionMatrix<high, Allocator, GPUAllocator>::split(const CudaRuntime& cudart, int maxsplit, Matrix_<high>& buffer) const 
@@ -49,7 +49,6 @@ namespace lahva
             {    
                 AddVectors(cudart, alphas[i], this->getSplitMatrix<float>(i), *this);    
             }
-            
             
         }
 

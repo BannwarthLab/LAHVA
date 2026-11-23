@@ -1,5 +1,4 @@
-#ifndef LAHVA_ADD_LEVEL1_CPU_HPP
-#define LAHVA_ADD_LEVEL1_CPU_HPP
+#pragma once
 #include <memory>
 #include <vector>
 #include <iterator>
@@ -114,7 +113,7 @@ namespace lahva
         template <typename T>
         void ApplyKernel(func_t1D<T> funcPtr, Tensor<T> &mat)
         {
-            #pragma omp parallel for collapse(1)
+#pragma omp parallel for collapse(1)
             for (size_t i = 0; i < mat.size(); i++)
             {
                 mat.data()[i] = funcPtr(mat.data()[i]);
@@ -124,7 +123,7 @@ namespace lahva
         /// define the function pointer type for the kernel, with 0 input variables
         template <typename T>
         using func_t0D = T (*)();
-        
+
         /// @brief Apply a kernel to a matrix
         /// @tparam T Numerical type of the matrix
         /// @param funcPtr Function pointer to the kernel
@@ -132,7 +131,7 @@ namespace lahva
         template <typename T>
         void ApplyKernel(func_t0D<T> funcPtr, Tensor<T> &mat)
         {
-            #pragma omp parallel for collapse(1)
+#pragma omp parallel for collapse(1)
             for (size_t i = 0; i < mat.size(); i++)
             {
                 mat.data()[i] = funcPtr();
@@ -158,10 +157,8 @@ namespace lahva
         void HadamardProduct(const CPURuntime &rt_, Args &&...args)
         {
             (HadamardProduct(args...));
-        } 
-        
+        }
 
     } // namespace gpu
 
 }
-#endif

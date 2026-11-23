@@ -40,7 +40,7 @@ namespace lahva
                 }
                 __syncthreads();
             }
-            
+
             // Thread 0 adds partial sums to overall sum
             if (tid == 0)
                 sum[blockIdx.x] = tmp_[0];
@@ -49,35 +49,37 @@ namespace lahva
         }
 
         template <size_t blockSize, typename T>
-        __global__ void Frobenius_2(const unsigned long long size, const T* A, const T* B, T* result) {
+        __global__ void Frobenius_2(const unsigned long long size, const T* A, const T* B, T* result)
+        {
         __shared__ T sharedData[blockSize]; // Adjust size based on threads per block
-        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
         T sum = 0.0f;
         if (idx < size) {
-            T diff = getSub<T>(A[idx], B[idx]);
+                T diff = getSub<T>(A[idx], B[idx]);
             sum = getFMA<T>(diff, diff, 0.0); // Compute squared difference
-        }
+            }
 
         // Store the partial sum in shared memory
-        sharedData[threadIdx.x] = sum;
+            sharedData[threadIdx.x] = sum;
         __syncthreads(); // Ensure all threads have written to shared memory
 
         // Perform reduction in shared memory
-        #pragma unroll
-        for (int stride = blockDim.x / 2; stride > 0; stride /= 2) {
-            if (threadIdx.x < stride) {
-                sharedData[threadIdx.x] = getAdd<T>(sharedData[threadIdx.x + stride], sharedData[threadIdx.x]);
-            }
+            #pragma unroll
+            for (int stride = blockDim.x / 2; stride > 0; stride /= 2)
+            {
+                if (threadIdx.x < stride)
+                {
+                    sharedData[threadIdx.x] = getAdd<T>(sharedData[threadIdx.x + stride], sharedData[threadIdx.x]);
+                }
             __syncthreads(); // Ensure all threads have completed the addition
-        }
+            }
 
         // Write the block's partial sum to global memory
         if (threadIdx.x == 0) {
-            result[blockIdx.x] = sharedData[0];
+                result[blockIdx.x] = sharedData[0];
+            }
         }
-}
 
     } // namespace gpu
-    
-}
+} // namespace lahva

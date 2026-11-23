@@ -17,7 +17,6 @@ int test_std_vector_async(CudaRuntime& cudart)
     for (int i = 0; i < 50; i++)
     {
         vecs.push_back(vec);
-
     }
     for (int i = 0; i < 50; i++)
     {
@@ -42,7 +41,6 @@ int test_std_vector_push_GPU_values(CudaRuntime& cudart)
     Vector<T> vec_tot(10, (T)1.0);
     for (int i = 0; i < 50; i++)
     {
-
         lahva::gpu::AddVectors(cudart, (T)1.0, vec_tot, vec);
         cudart.synchronize();
         vecs.push_back(vec);

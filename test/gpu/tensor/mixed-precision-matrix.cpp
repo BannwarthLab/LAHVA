@@ -14,7 +14,6 @@ int test_mp_matrix_default_constructor() {
     MixedPrecisionMatrix<T> m;
 
     if (!check((int)m.shape().first, 0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m.shape().second, 0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -27,7 +26,6 @@ int test_mp_matrix_shape_constructor() {
     MixedPrecisionMatrix<T> m(s);
 
     if (!check((int)m.shape().first, 4, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m.shape().second, 5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -65,7 +63,6 @@ int test_mp_matrix_copy_from_matrix() {
     MixedPrecisionMatrix<T> m(base);
 
     if (!check((int)m.shape().first, 3, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m.data()[0], (T)1.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -108,7 +105,6 @@ int test_mp_matrix_copy_constructor() {
     MixedPrecisionMatrix<T> m2 = m1;
 
     if (!check((int)m2.shape().first, 2, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m2.data()[0], (T)3.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -124,7 +120,6 @@ int test_mp_matrix_move_constructor() {
     MixedPrecisionMatrix<T> m2 = std::move(m1);
 
     if (!check((int)m2.shape().first, 2, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m2.data()[0], (T)2.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -245,11 +240,8 @@ int test_mp_matrix_split_matrices_initial_state() {
 
     // Check initial state of split matrices
     if (!check((int)m.split_matrices_fp16_.size(), 0, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m.split_matrices_fp32_.size(), 0, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
-
     if (!check((int)m.splitted_fp16_, 0, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
-
     if (!check((int)m.splitted_fp32_, 0, check_msg(get_type_name<double>(), "check 4"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -277,9 +269,7 @@ int test_mp_matrix_copy_constructor_copies_split_state() {
     MixedPrecisionMatrix<double> m2 = m1;
 
     if (!check((int)m2.max_split_, 4, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m2.splitted_fp16_, 1, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
-
     if (!check((int)m2.splitted_fp32_, 0, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -296,14 +286,11 @@ int test_mp_matrix_move_constructor_transfers_split_state() {
     MixedPrecisionMatrix<double> m2 = std::move(m1);
 
     if (!check((int)m2.max_split_, 3, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
     if (!check((int)m2.splitted_fp32_, 1, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     // After move, source should be reset
     if (!check((int)m1.max_split_, 0, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
-
     if (!check((int)m1.splitted_fp16_, 0, check_msg(get_type_name<double>(), "check 4"))) return TEST_FAIL;
-
     if (!check((int)m1.splitted_fp32_, 0, check_msg(get_type_name<double>(), "check 5"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -320,7 +307,6 @@ int test_mp_matrix_float_type() {
     m.data()[0] = 1.5f;
 
     if (!check((int)m.shape().first, 3, check_msg(get_type_name<float>(), "check 1"))) return TEST_FAIL;
-
     if (!check(m.data()[0], 1.5f, check_msg(get_type_name<float>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;

@@ -18,10 +18,11 @@ void get_cuda_ERROR(cudaError_t stat, const char* file, int line) {
             throw std::runtime_error("CUBLAS Error");
         }
     }
+
 namespace lahva
 {
-    CudaRuntime::CudaRuntime(bool async_copy) 
-    {  
+    CudaRuntime::CudaRuntime(bool async_copy)
+    {
         if (async_copy) this->enableAsyncCopy();
         get_GPU_wmaxMem();
         createHandle();
@@ -73,7 +74,7 @@ namespace lahva
         return availmem;
     }
 
-    CudaRuntime::CudaRuntime(size_t max_dim, size_t n_mat, bool async) : 
+    CudaRuntime::CudaRuntime(size_t max_dim, size_t n_mat, bool async) :
     CudaRuntime( n_mat * 8*max_dim*max_dim, async)
     {
         if (cudaDevice ==-1) {
@@ -98,18 +99,15 @@ namespace lahva
             }
         }
         this->blockSize_ = 512;
-        
-
     };
 
     CudaRuntime::CudaRuntime(size_t requestedMem, bool async)
-    {   
+    {
         if (async) this->enableAsyncCopy();
-        
-        check_mem(requestedMem, true);   
-    };    
+        check_mem(requestedMem, true);
+    };
 
-    CudaRuntime::CudaRuntime(CudaRuntime&& other) 
+    CudaRuntime::CudaRuntime(CudaRuntime&& other)
     {
         cudaDevice = other.cudaDevice;
         async_ = other.async_;
@@ -119,23 +117,22 @@ namespace lahva
 
         other.delete_handle = false;
         other.delete_stream = false;
-        
     }
 
-    void CudaRuntime::check_mem(size_t requestedMem, bool force_new_handle) 
+    void CudaRuntime::check_mem(size_t requestedMem, bool force_new_handle)
     {
-        if (cudaDevice == -1) 
+        if (cudaDevice == -1)
         get_GPU_wmaxMem();
-        
+
         size_t totmem, freemem;
         get_cuda_error(cudaMemGetInfo(&freemem, &totmem));
         availMem_ = freemem;
-        if (requestedMem > availMem_) 
+        if (requestedMem > availMem_)
         {
             cudaDevice = -1;
             return;
         }
-        
+
         if ((float)((float)requestedMem / (float) availMem_) > critical_memory_threshold)
         {
             critical_memory = true;
@@ -146,14 +143,13 @@ namespace lahva
             createHandle();
         }
     }
-    
+
     
     CudaRuntime::CudaRuntime(const CudaRuntime& other) : CudaRuntime(other.async_)
     {
-        
     }
 
-    CudaRuntime& CudaRuntime::operator=(const CudaRuntime& other) 
+    CudaRuntime& CudaRuntime::operator=(const CudaRuntime& other)
     {
         if (this != &other)
         {
@@ -163,7 +159,6 @@ namespace lahva
             this->createHandle();
         }
         return *this;
-        
     }
 
     CudaRuntime& CudaRuntime::operator=(CudaRuntime&& other)
@@ -180,7 +175,6 @@ namespace lahva
 
             other.delete_handle = false;
             other.delete_stream = false;
-            
         }
         return *this;
     }
@@ -189,15 +183,14 @@ namespace lahva
         cublasStatus_t stat;
         cudaError_t stat_;
         if (delete_handle) get_cublas_error(cublasDestroy(handle));
-        
+
         stat_ = cudaSetDevice(cudaDevice);
-        get_cuda_error(stat_); 
+        get_cuda_error(stat_);
         stat = cublasCreate(&handle);
         get_cublas_error(stat);
         stat = cublasGetVersion(handle, &version);
         get_cublas_error(stat);
         delete_handle = true;
-        
     }
 
     void CudaRuntime::print_cuda_version(){
@@ -205,7 +198,7 @@ namespace lahva
         cudaGetDeviceProperties(&prop, cudaDevice);
         std::cout << "Async engine count: " << prop.asyncEngineCount << std::endl;
         std::cout << "Concurrent kernels: " << prop.concurrentKernels << std::endl;
-        std::cout << "Cuda version in use: " << std::to_string(version) << "on device: "<< cudaDevice << std::endl;
+        std::cout << "Cuda version in use: " << std::to_string(version) << "on device: " << cudaDevice << std::endl;
     };
 
     void CudaRuntime::enableAsyncCopy()
@@ -220,7 +213,7 @@ namespace lahva
         if (delete_stream) get_cuda_error(cudaStreamDestroy(*stream_));
         get_cuda_error(cudaStreamCreateWithFlags(stream_.get(), streamFlag_));
         delete_stream = true;
-    }  
+    }
 
     cusolverDnHandle_t CudaRuntime::getcuSolverHandle()
     {

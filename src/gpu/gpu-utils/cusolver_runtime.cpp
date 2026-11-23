@@ -15,7 +15,7 @@ namespace lahva
 {
     cuSolverRuntime::cuSolverRuntime()
     {
-        get_cusolv_error(cusolverDnCreate(&handle));   
+        get_cusolv_error(cusolverDnCreate(&handle));
     };
 
     cuSolverRuntime::~cuSolverRuntime()

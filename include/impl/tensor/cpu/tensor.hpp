@@ -1,5 +1,4 @@
-#ifndef LAHVA_TENSOR_HPP
-#define LAHVA_TENSOR_HPP
+#pragma once
 
 #include <memory>
 #include <iterator>
@@ -32,39 +31,39 @@ namespace lahva
         T sum() const
         {
             T res = (T)0;
-            #pragma omp parallel shared(res)
+#pragma omp parallel shared(res)
             {
                 T my_part = (T)0.0;
-        
-                #pragma omp for
+
+#pragma omp for
                 for (long i = 0; i < this->size(); i++)
                 {
                     my_part += this->data()[i];
                 }
-        
-                #pragma omp critical
+
+#pragma omp critical
                 {
                     res += my_part;
                 }
             }
-            
+
             return res;
         }
 
         T sum()
         {
             T res = (T)0;
-            #pragma omp parallel shared(res)
+#pragma omp parallel shared(res)
             {
                 T my_part = (T)0.0;
-        
-                #pragma omp for
-                for (long i = 0; i < this->size(); i++)
+
+#pragma omp for
+                for (long i = 0; i < static_cast<long>(this->size()); i++)
                 {
                     my_part += this->data()[i];
                 }
-        
-                #pragma omp critical
+
+#pragma omp critical
                 {
                     res += my_part;
                 }
@@ -116,7 +115,7 @@ namespace lahva
         CPUTensor(const alloc_ptr &alloc) : alloc_{alloc} { is_owner_ = false; };
         CPUTensor() : count_{0}, data_{nullptr}, no_alloc{true}
         {
-        
+
         };
         CPUTensor(const CPUTensor &other) :  no_alloc{other.no_alloc}
         {
@@ -132,7 +131,6 @@ namespace lahva
             {
                 this->data_ = nullptr;
             }
-            
         };
 
         CPUTensor(CPUTensor &&other) : count_{other.count_}, alloc_{other.alloc_}
@@ -166,10 +164,10 @@ namespace lahva
                     this->alloc_.deallocate(this->data_, this->count_);
                 this->alloc_ = other.get_allocator();
                 count_ = other.count_;
-                this->data_ = this->alloc_.allocate(other.size());
-                this->is_owner_ = true;
-                std::copy(other.data(), other.data() + other.size(), this->data_);
-            }
+                    this->data_ = this->alloc_.allocate(other.size());
+                    this->is_owner_ = true;
+                    std::copy(other.data(), other.data() + other.size(), this->data_);
+                }
             return *this;
         };
 
@@ -195,5 +193,3 @@ namespace lahva
     };
 
 } // namespace lahva
-
-#endif

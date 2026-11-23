@@ -1,13 +1,13 @@
-#ifndef LAHVA_ADD_LEVEL2_GPU_HPP
-#define LAHVA_ADD_LEVEL2_GPU_HPP
-#include "linalg.hpp"
+#pragma once
 #include "const.h"
+#include "linalg.hpp"
 #include "runtime.hpp"
 
-namespace lahva{
+namespace lahva
+{
     namespace gpu
     {
-        
+
         template<typename T>
         void AddMatrices(const CudaRuntime& cudart, const char* Ta, const char* Tb, const T alpha, const Matrix_<T>& a, const Matrix_<T>& b,
         const T beta, Matrix_<T>& c);
@@ -22,4 +22,3 @@ namespace lahva{
     } // namespace gpu
     
 }   
-#endif
