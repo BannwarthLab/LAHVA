@@ -7,10 +7,8 @@
 #pragma once
 
 #include <memory>
-#include <iterator>
-#include <iostream>
 #include "impl/tensor/allocators.hpp"
-#include <omp.h>
+#include "impl/tensor/print.hpp"
 
 namespace lahva
 {

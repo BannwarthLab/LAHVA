@@ -507,6 +507,22 @@ namespace lahva
                 return d_block_row_sizes_.gpu_data();
             }
 
+            /// @brief Print the block matrix structure to standard output
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (one tabular per block, headers as % comments)
+            /// @note Outputs total dimensions, then each block with position and data.
+            ///       Prints the host copy only. Call copy2host() first to see results computed on the device.
+            void print(int digits = 6, double zero_tol = default_zero_tol<T>(), PrintFormat format = PrintFormat::plain) const {
+                const char *prefix = (format == PrintFormat::latex) ? "% " : "";
+                std::cout << prefix << "BlockMatrix (" << n_rows_ << " x " << n_cols_ << ")" << std::endl;
+                for (const auto& [pos, block] : blocks_) {
+                    std::cout << prefix << "Block at (" << pos.first << ", " << pos.second << ") size "
+                              << block.shape().first << " x " << block.shape().second << ":" << std::endl;
+                    block.print(digits, zero_tol, format);
+                }
+            }
+
         private:
             /// @brief Total number of rows (sum of all block rows)
             size_t n_rows_;

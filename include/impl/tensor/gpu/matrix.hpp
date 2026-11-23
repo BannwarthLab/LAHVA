@@ -6,19 +6,12 @@
 /// and mixed-precision computations with CPU matrices.
 
 #pragma once
-#include "impl/tensor/allocators.hpp"
-#include "impl/tensor/gpu/gputensor.hpp"
-#include "impl/tensor/cpu/tensor.hpp"
-#include "impl/tensor/cpu/matrix.hpp"
-#include "impl/tensor/gpu/vector.hpp"
 
 #include "impl/blas/cpu/level1.h"
-#include <initializer_list>
-#include <omp.h>
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <cassert>
+#include "impl/tensor/allocators.hpp"
+#include "impl/tensor/cpu/tensor.hpp"
+#include "impl/tensor/gpu/vector.hpp"
+
 namespace lahva
 {
     namespace gpu
@@ -227,31 +220,35 @@ namespace lahva
             /// @return Shape object with (rows, columns)
             Shape shape() const { return Shape{n_rows_, n_cols_}; }
 
-        //! prints the Matrix as string
-        void print() const;
+            /// @brief Print the host data of the matrix to stdout with right-aligned columns
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (tabular environment)
+            /// @note Prints the host copy only. Call copy2host() first to see results computed on the device.
+            void print(int digits = 6, double zero_tol = default_zero_tol<T>(), PrintFormat format = PrintFormat::plain) const
+            {
+                print(std::cout, digits, zero_tol, format);
+            }
 
-        void print(const char* file) const
+            /// @brief Print the host data of the matrix to a stream with right-aligned columns
+            /// @param[in,out] os output stream
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (tabular environment)
+            /// @note Prints the host copy only. Call copy2host() first to see results computed on the device.
+            void print(std::ostream &os, int digits = 6, double zero_tol = default_zero_tol<T>(),
+                       PrintFormat format = PrintFormat::plain) const;
+
+            /// @brief Write the host data of the matrix to a file (overwritten) with right-aligned columns
+            /// @param[in] file output filename
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (tabular environment)
+            /// @note Writes the host copy only. Call copy2host() first to see results computed on the device.
+            void print(const char *file, int digits = 6, double zero_tol = default_zero_tol<T>(),
+                       PrintFormat format = PrintFormat::plain) const
             {
-            std::ofstream os(file);
-            os.precision(10);
-            if (os.is_open())
-            {
-                for (size_t i = 0; i < n_rows_; i++)
-            {
-                for (size_t j = 0; j < n_cols_; j++)
-                {
-                    os << this->data_[this->data_id_(i, j)] << ", ";
-                }
-                os << std::endl;
-            }
-            }
-            else
-            {
-                std::cerr << "Unable to open file";
-                return;
-            }
-            os.close();
-            
+                print_detail::write_file(file, [&](std::ostream &os) { print(os, digits, zero_tol, format); });
             }
 
             /// @brief Extract diagonal from matrix (CPU operation)
@@ -460,17 +457,14 @@ namespace lahva
             return *this;
         }
 
+        /// @brief Implementation: Print the host data of the matrix to a stream with right-aligned columns
         template <typename T, class Allocator, class GPUAllocator>
-    void Matrix<T, Allocator, GPUAllocator>::print() const
+        void Matrix<T, Allocator, GPUAllocator>::print(std::ostream &os, int digits, double zero_tol, PrintFormat format) const
         {
-        for (size_t i = 0; i < n_rows_; i++)
-        {
-            for (size_t j = 0; j < n_cols_; j++)
-            {
-                std::cout << this->data_[this->data_id_(i, j)] << ", ";
-            }
-            std::cout << std::endl;
-        }
+            print_detail::write_matrix<T>(
+                os, n_rows_, n_cols_,
+                [this](size_t i, size_t j) { return this->data_[this->data_id_(i, j)]; },
+                digits, zero_tol, format);
         }
 
         /// @brief Implementation: Symmetrize matrix on CPU: M = (M + M^T)/2

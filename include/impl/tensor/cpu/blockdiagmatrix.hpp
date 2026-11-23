@@ -433,6 +433,37 @@ namespace lahva
             row_offsets_.push_back(row_offsets_.back() + block.shape().first);
         }
 
+        //! @brief Print all blocks to console, one table per block
+        //! @param[in] digits number of significant digits
+        //! @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+        //! @param[in] format PrintFormat::plain or PrintFormat::latex (one tabular per block)
+        void print(int digits = 6, double zero_tol = default_zero_tol<T>(), PrintFormat format = PrintFormat::plain) const {
+            print(std::cout, digits, zero_tol, format);
+        }
+
+        //! @brief Print all blocks to a stream, one table per block
+        //! @param[in,out] os output stream
+        //! @param[in] digits number of significant digits
+        //! @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+        //! @param[in] format PrintFormat::plain or PrintFormat::latex (one tabular per block)
+        void print(std::ostream &os, int digits = 6, double zero_tol = default_zero_tol<T>(),
+                   PrintFormat format = PrintFormat::plain) const {
+            for (size_t i=0; i < matrices.size(); i++) {
+                matrices[i].print(os, digits, zero_tol, format);
+            }
+        }
+
+        //! @brief Write all blocks to a file (overwritten), in the same layout as print()
+        //! @param[in] file File path to write block data to
+        //! @param[in] digits number of significant digits
+        //! @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+        //! @param[in] format PrintFormat::plain or PrintFormat::latex (one tabular per block)
+        void print(const char* file, int digits = 6, double zero_tol = default_zero_tol<T>(),
+                   PrintFormat format = PrintFormat::plain) const
+        {
+            print_detail::write_file(file, [&](std::ostream &os) { print(os, digits, zero_tol, format); });
+        }
+
     private:
         //! @brief Validate that block dimensions don't exceed size limits
         //! @param[in] n_rows Number of rows

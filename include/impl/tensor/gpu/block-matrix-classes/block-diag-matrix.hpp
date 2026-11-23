@@ -765,6 +765,44 @@ namespace lahva
                 d_offsets_valid_ = false;
             }
 
+            /// @brief Print the host data of all blocks to standard output
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (one tabular per block, headers as % comments)
+            /// @note Outputs header with total dimensions, then each block with position and data.
+            ///       Prints the host copy only. Call copy2host() first to see results computed on the device.
+            void print(int digits = 6, double zero_tol = default_zero_tol<T>(), PrintFormat format = PrintFormat::plain) const {
+                print(std::cout, digits, zero_tol, format);
+            }
+
+            /// @brief Print the host data of all blocks to a stream
+            /// @param[in,out] os output stream
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (one tabular per block, headers as % comments)
+            /// @note Prints the host copy only. Call copy2host() first to see results computed on the device.
+            void print(std::ostream &os, int digits = 6, double zero_tol = default_zero_tol<T>(),
+                       PrintFormat format = PrintFormat::plain) const {
+                const char *prefix = (format == PrintFormat::latex) ? "% " : "";
+                os << prefix << "BlockDiagMatrix (" << n_rows_ << " x " << n_cols_ << ")" << std::endl;
+                for (const auto &[pos, block] : blocks_) {
+                    os << prefix << "Block at (" << pos.first << ", " << pos.second << ")" << std::endl;
+                    block.print(os, digits, zero_tol, format);
+                }
+            }
+
+            /// @brief Write the host data of all blocks to a file (overwritten), in the same layout as print()
+            /// @param[in] file filename to write block data to
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (one tabular per block, headers as % comments)
+            /// @note Writes the host copy only. Call copy2host() first to see results computed on the device.
+            void print(const char* file, int digits = 6, double zero_tol = default_zero_tol<T>(),
+                       PrintFormat format = PrintFormat::plain) const
+            {
+                print_detail::write_file(file, [&](std::ostream &os) { print(os, digits, zero_tol, format); });
+            }
+
             /// @brief Get estimated GPU memory requirement for packed blocks
             size_t max_block_size() const {
                 if (blocks_.empty()) return 0;

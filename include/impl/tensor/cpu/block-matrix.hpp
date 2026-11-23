@@ -126,6 +126,20 @@ namespace lahva
                 return block_info_[idx].col;
             }
 
+            /// @brief Print the full block matrix with right-aligned columns
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (tabular environment)
+            void print(int digits = 6, double zero_tol = default_zero_tol<T>(), PrintFormat format = PrintFormat::plain) const {
+                // Call parent Matrix print if data is allocated
+                if (this->data() != nullptr && this->n_rows_ > 0 && this->n_cols_ > 0) {
+                    Matrix<T, Allocator>::print(digits, zero_tol, format);
+                } else {
+                    std::cout << "BlockMatrix: uninitialized or empty (shape=(" << this->n_rows_ << ", "
+                             << this->n_cols_ << "))" << std::endl;
+                }
+            }
+
             // ========== BlockMatrix-Specific Methods ==========
 
             /// @brief Get number of block rows (max row position + 1)
