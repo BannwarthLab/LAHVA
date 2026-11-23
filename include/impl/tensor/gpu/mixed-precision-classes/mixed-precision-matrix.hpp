@@ -8,11 +8,9 @@
 #pragma once
 
 #include "impl/tensor/allocators.hpp"
-#include "impl/tensor/gpu/gputensor.hpp"
-#include "impl/tensor/cpu/tensor.hpp"
 #include "impl/tensor/cpu/matrix.hpp"
 #include "impl/tensor/gpu/matrix.hpp"
-#include <vector>
+
 namespace lahva
 {
     namespace gpu
@@ -59,7 +57,6 @@ namespace lahva
 
             /// @brief Alignment value for rounding matrix dimensions in splits (default: 8)
             size_t mod_value_ = 8;
-
 
         public:
             using Matrix<high_prec, Allocator, GPUAllocator>::shape;
@@ -111,6 +108,8 @@ namespace lahva
             {
             };
 
+            /// @brief Copy constructor for mixed-precision matrix
+            /// @param[in] other source matrix to copy
             MixedPrecisionMatrix(const MixedPrecisionMatrix &other) :
             Matrix<high_prec, Allocator, GPUAllocator>(other),
             max_split_{other.max_split_},
@@ -119,11 +118,15 @@ namespace lahva
             splitted_fp16_{other.splitted_fp16_},
             splitted_fp32_{other.splitted_fp32_},
             split_exponents_{other.split_exponents_},
-            mod_value_{other.mod_value_}
+            mod_value_{other.mod_value_},
+            is_merged_{other.is_merged_},
+            cudart_{other.cudart_}
             {
 
             }
 
+            /// @brief Move constructor for mixed-precision matrix
+            /// @param[in] other source matrix to move from
             MixedPrecisionMatrix(MixedPrecisionMatrix &&other) :
             Matrix<high_prec, Allocator, GPUAllocator>(std::move(other)),
             max_split_{other.max_split_},
@@ -132,11 +135,15 @@ namespace lahva
             splitted_fp16_{other.splitted_fp16_},
             splitted_fp32_{other.splitted_fp32_},
             split_exponents_{std::move(other.split_exponents_)},
-            mod_value_{other.mod_value_}
+            mod_value_{other.mod_value_},
+            is_merged_{other.is_merged_},
+            cudart_{other.cudart_}
             {
                 other.splitted_fp16_ = false;
                 other.splitted_fp32_ = false;
                 other.max_split_ = 0;
+                other.is_merged_ = true;
+                other.cudart_ = nullptr;
             }
 
             /// @brief Copy assignment operator
@@ -154,6 +161,8 @@ namespace lahva
                     splitted_fp32_ = other.splitted_fp32_;
                     split_exponents_ = other.split_exponents_;
                     mod_value_ = other.mod_value_;
+                    is_merged_ = other.is_merged_;
+                    cudart_ = other.cudart_;
                 }
                 return *this;
             };
@@ -173,10 +182,14 @@ namespace lahva
                     splitted_fp32_ = other.splitted_fp32_;
                     split_exponents_ = std::move(other.split_exponents_);
                     mod_value_ = other.mod_value_;
+                    is_merged_ = other.is_merged_;
+                    cudart_ = other.cudart_;
 
                     other.splitted_fp16_ = false;
                     other.splitted_fp32_ = false;
                     other.max_split_ = 0;
+                    other.is_merged_ = true;
+                    other.cudart_ = nullptr;
                 }
                 return *this;
             };
@@ -343,6 +356,37 @@ namespace lahva
                     splitted_fp32_ = false;
                 }
             }
+
+            /// @brief Ensure runtime is captured for lazy merging
+            /// Stores the runtime pointer on first call; subsequent calls are no-ops
+            void ensure_runtime(const CudaRuntime &cudart) {
+                if (!cudart_ && !is_merged_) {
+                    cudart_ = &cudart;
+                }
+            }
+
+            /// @brief Mark the high-precision base matrix as stale (out of sync with split components)
+            void mark_stale() {
+                is_merged_ = false;
+            }
+
+            /// @brief Override data() to auto-merge if stale (matches base class signature)
+            high_prec* data() const override {
+                if (!is_merged_ && cudart_) {
+                    const_cast<MixedPrecisionMatrix*>(this)->merge(*cudart_);
+                    const_cast<MixedPrecisionMatrix*>(this)->is_merged_ = true;
+                }
+                return Matrix<high_prec, Allocator, GPUAllocator>::data();
+            }
+
+        private:
+            /// @brief Tracks whether the high-precision base matrix is in sync with split components
+            mutable bool is_merged_ = true;
+
+            /// @brief Pointer to CudaRuntime for lazy merging (captured on first operation)
+            const CudaRuntime* cudart_ = nullptr;
+
+        public:
             /// @brief Destructor implementation - base class handles memory cleanup
             ~MixedPrecisionMatrix()
             {

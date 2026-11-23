@@ -133,7 +133,7 @@ namespace lahva
         template <typename T>
         __device__ inline T getSub(T val1, T val2)
         {
-            return val1 + val2;
+            return val1 - val2;
         }
 
         template <>

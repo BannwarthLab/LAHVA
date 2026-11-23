@@ -1,7 +1,14 @@
+/// @file norm.cuh
+/// @brief GPU kernels for computing matrix norms (Frobenius and Frobenius difference).
+///
+/// Provides CUDA kernels for efficient parallel computation of Frobenius norms
+/// using parallel reduction with per-block partial sums.
+
 #pragma once
-#include "../../gpu-utils/utils.hpp"
-#include "common.h"
+#include "impl/gpu/utils.hpp"
 #include "../reductions/reduction.cuh"
+#include "common.h"
+
 namespace lahva
 {
     namespace gpu
@@ -29,7 +36,6 @@ namespace lahva
             {
                 tmp = getFMA<T>(mat[id], mat[id], (T)0.0);
             }
-            tmp_[tid] = 0;
             tmp_[tid] = tmp;
             __syncthreads();
 
@@ -65,8 +71,9 @@ namespace lahva
             __shared__ T sharedData[blockSize];
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-        T sum = 0.0f;
-        if (idx < size) {
+            T sum = 0.0;
+            if (idx < size)
+            {
                 T diff = getSub<T>(A[idx], B[idx]);
                 sum = getFMA<T>(diff, diff, 0.0);
             }

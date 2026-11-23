@@ -1,10 +1,16 @@
+/// @file additional-level1.cpp
+/// @brief GPU implementations of additional Level-1 operations (element-wise operations).
+///
+/// Implements specialized GPU kernels for element-wise tensor operations including
+/// Hadamard products (element-wise multiplication) and mixed-precision vector addition.
+
+#include "impl/gpu/utils.hpp"
+#include "add-vectors.hpp"
+#include "custom-kernel/hadamard.h"
+#include "impl/blas/gpu/additional-level1.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
-#include "impl/blas/gpu/additional-level1.hpp"
-#include "impl/blas/gpu/level1.hpp"
-#include "custom-kernel/hadamard.h"
-#include "../gpu-utils/utils.hpp"
-#include "add-vectors.hpp"
+
 namespace lahva{
     namespace gpu
     {
@@ -57,7 +63,7 @@ namespace lahva{
             check_device_alloc(cudart, vecin);
             check_device_alloc(cudart, vecout);
 
-            dHadamardcopy(cudart, vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size());            
+            dHadamard(cudart, vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size());            
         }
 
         /// @brief Computes Hadamard product (element-wise multiplication) with separate output for single-precision tensors.
@@ -76,7 +82,7 @@ namespace lahva{
             check_device_alloc(cudart, vecin);
             check_device_alloc(cudart, vecout);
 
-            sHadamardcopy(cudart, vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size());            
+            sHadamard(cudart, vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size());            
         }
 
         /// @brief Computes mixed-precision scaled vector addition: y = a*x + y (double to float).

@@ -1,5 +1,3 @@
-#include "linalg.hpp"
-#include "impl/blas/cpu/additional-level2.hpp"
 /// @file additional-level2.cpp
 /// @brief CPU C++ implementations of extended/custom Level-2 BLAS operations.
 ///
@@ -8,7 +6,9 @@
 /// for multi-threaded execution.
 
 #include "../../utils/utils.hpp"
+#include "impl/blas/cpu/additional-level2.hpp"
 #include "impl/blas/cpu/level1.hpp"
+#include "linalg.hpp"
 
 namespace lahva
 {

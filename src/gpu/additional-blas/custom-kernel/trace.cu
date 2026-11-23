@@ -1,5 +1,11 @@
+/// @file trace.cu
+/// @brief GPU kernels for matrix trace, symmetrization, and diagonal operations.
+///
+/// Provides CUDA kernels for computing matrix traces, symmetrizing matrices,
+/// and extracting/setting diagonal elements efficiently on GPU.
+
+#include "impl/gpu/utils.hpp"
 #include "impl/blas/gpu/additional-level1.hpp"
-#include "../../gpu-utils/utils.hpp"
 
 namespace lahva
 {
@@ -180,9 +186,11 @@ namespace lahva
 
             if (id < ndim && jd < ndim)
             {
-                float avg = 0.5 * (matrix[id * ndim + jd] + matrix[jd * ndim + id]);
-                matrix[id * ndim + jd] = avg;
-                matrix[jd * ndim + id] = avg;
+                float avg = 0.5 * (matrix[id + jd * ndim] + matrix[jd + id * ndim]);
+                if (id <= jd) {
+                    matrix[id + jd * ndim] = avg;
+                    matrix[jd + id * ndim] = avg;
+                }
             }
         }
         
@@ -201,9 +209,11 @@ namespace lahva
             unsigned long long jd = threadIdx.x + blockIdx.x * blockDim.x;
             if (id < ndim && jd < ndim)
             {
-                double  avg = 0.5 * (matrix[id * ndim + jd] + matrix[jd * ndim + id]);
-                matrix[id * ndim + jd] = avg;
-                matrix[jd * ndim + id] = avg;
+                double  avg = 0.5 * (matrix[id + jd * ndim] + matrix[jd + id * ndim]);
+                if (id <= jd) {
+                    matrix[id + jd * ndim] = avg;
+                    matrix[jd + id * ndim] = avg;
+                }
             }
         }
 

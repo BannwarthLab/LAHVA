@@ -41,6 +41,7 @@ int test_gpu_matrix_size_constructor() {
     if (!check((int)m.shape().second, 10, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     if (m.data() == nullptr) {  // Host data
+        std::cerr << check_msg(get_type_name<T>(), "check 3") << std::endl;
         return TEST_FAIL;
     }
 
@@ -71,10 +72,7 @@ int test_gpu_matrix_size_value_constructor() {
 
     // Verify all elements are initialized on host
     for (int i = 0; i < 4 * 6; i++) {
-        if (!check(m.data()[i], (T)2.5, check_msg(get_type_name<T>(), "check 3"))) {
-            return TEST_FAIL;
-            break;
-        }
+        if (!check(m.data()[i], (T)2.5, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
     }
 
     return TEST_PASS;
@@ -92,10 +90,7 @@ int test_gpu_matrix_copy_constructor() {
 
     // Verify data is copied
     for (int i = 0; i < 9; i++) {
-        if (!check(m2.data()[i], (T)5.0, check_msg(get_type_name<T>(), "check 3"))) {
-            return TEST_FAIL;
-            break;
-        }
+        if (!check(m2.data()[i], (T)5.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
     }
 
     return TEST_PASS;
@@ -126,15 +121,13 @@ int test_gpu_matrix_host_device_memory() {
 
     // Should have both host and device memory
     if (m.data() == nullptr) {  // Host pointer
+        std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
         return TEST_FAIL;
     }
 
     // Verify host data
     for (int i = 0; i < 10; i++) {
-        if (!check(m.data()[i], (T)2.5, check_msg(get_type_name<T>(), ""))) {
-            return TEST_FAIL;
-            break;
-        }
+        if (!check(m.data()[i], (T)2.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
     }
 
     return TEST_PASS;
@@ -209,11 +202,12 @@ int test_gpu_matrix_data_access() {
     Matrix<T> m(Shape{3, 3});
 
     if (m.data() == nullptr) {
+        std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
         return TEST_FAIL;
     }
 
     m.data()[0] = (T)5.5;
-    if (!check(m.data()[0], (T)5.5, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
+    if (!check(m.data()[0], (T)5.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -295,6 +289,7 @@ int test_gpu_matrix_destructor() {
     {
         Matrix<T> m(Shape{50, 50});
         if (m.data() == nullptr) {
+            std::cerr << check_msg(get_type_name<T>(), "check 1") << std::endl;
             return TEST_FAIL;
         }
     }
@@ -382,10 +377,7 @@ int test_gpu_matrix_row_access_pattern() {
     }
 
     for (int i = 0; i < 9; i++) {
-        if (!check(m.data()[i], i * 1.5, check_msg(get_type_name<double>(), ""))) {
-            return TEST_FAIL;
-            break;
-        }
+        if (!check(m.data()[i], i * 1.5, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
     }
 
     return TEST_PASS;
@@ -417,7 +409,7 @@ int test_gpu_matrix_owns_data() {
     Matrix<double> m(Shape{3, 3}, 1.0);
 
     if (!m.ownsData()) {
-        std::cerr << "GPU matrix should own its data\n";
+        std::cerr << check_msg(get_type_name<double>(), "") << std::endl;
         return TEST_FAIL;
     }
 
@@ -430,7 +422,7 @@ int test_gpu_matrix_ownership_ptr_false() {
     Matrix<double> m(Shape{2, 3}, data, false);
 
     if (m.ownsData()) {
-        std::cerr << "GPU matrix should not own external data\n";
+        std::cerr << check_msg(get_type_name<double>(), "") << std::endl;
         return TEST_FAIL;
     }
 
@@ -491,11 +483,9 @@ int test_symmetrize_cpu_gpu(CudaRuntime& cudart)
     gpu_mat.copy2host(cudart);
     cudart.synchronize();
 
-    if (!check(gpu_mat.data(), cpu_mat.data(), cpu_mat.size(), check_msg(get_type_name<T>(), ""))) {
-        return 1;
-    }
+    if (!check(gpu_mat.data(), cpu_mat.data(), cpu_mat.size(), check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
-    return 0;
+    return TEST_PASS;
 }
 
 template <typename T>
@@ -516,11 +506,9 @@ int test_get_diagonal_cpu_gpu(CudaRuntime& cudart)
     gpu_diag.copy2host(cudart);
     cudart.synchronize();
 
-    if (!check(gpu_diag.data(), cpu_diag.data(), cpu_diag.size(), check_msg(get_type_name<T>(), ""))) {
-        return 1;
-    }
+    if (!check(gpu_diag.data(), cpu_diag.data(), cpu_diag.size(), check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
-    return 0;
+    return TEST_PASS;
 }
 
 template <typename T>
@@ -542,11 +530,9 @@ int test_set_diagonal_cpu_gpu(CudaRuntime& cudart)
     gpu_mat.copy2host(cudart);
     cudart.synchronize();
 
-    if (!check(gpu_mat.data(), cpu_mat.data(), cpu_mat.size(), check_msg(get_type_name<T>(), ""))) {
-        return 1;
-    }
+    if (!check(gpu_mat.data(), cpu_mat.data(), cpu_mat.size(), check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
-    return 0;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -633,10 +619,7 @@ int test_gpu_matrix_square_value_constructor() {
     if (!check((int)m.shape().first, 4, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
 
     for (int i = 0; i < 16; i++) {
-        if (!check(m.data()[i], 3.14, check_msg(get_type_name<double>(), "check 2"))) {
-            return TEST_FAIL;
-            break;
-        }
+        if (!check(m.data()[i], 3.14, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
     }
 
     return TEST_PASS;
@@ -772,6 +755,7 @@ int test_gpu_matrix_owns_data_true() {
     Matrix<double> m(s, 1.0);
 
     if (!m.ownsData()) {
+        std::cerr << check_msg(get_type_name<double>(), "") << std::endl;
         return TEST_FAIL;
     }
 
@@ -787,6 +771,7 @@ int test_gpu_matrix_owns_data_false() {
     Matrix<double> m(s, data, false);
 
     if (m.ownsData()) {
+        std::cerr << check_msg(get_type_name<double>(), "") << std::endl;
         return TEST_FAIL;
     }
 

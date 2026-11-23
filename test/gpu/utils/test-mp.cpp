@@ -1,11 +1,12 @@
 #include "test_common.h"
 #include <random>
 #include <omp.h>
+#include "timer.hpp"
 
 using namespace lahva::gpu;
 using lahva::Shape;
 using lahva::CudaRuntime;
-using lahva::CPUTimer;
+using lahva::Timer;
 
 
 template <typename T>
@@ -85,7 +86,10 @@ int mp_gemms()
     {
         int n = int((i*256));
         Shape shape(n, n);
-        if (CompareGEMMS<double>(shape)) return TEST_FAIL;
+        if (CompareGEMMS<double>(shape)) {
+            std::cerr << check_msg(get_type_name<T>(), "") << std::endl;
+            return TEST_FAIL;
+        }
     }
 
     return TEST_PASS;

@@ -27,9 +27,7 @@ int test_compute_trace() {
     T trace = ComputeTrace(rt, A);
     T expected = 1.0 + 5.0 + 9.0; // 15.0
 
-    if (!check(trace, expected, check_msg(get_type_name<T>(), "Error computing trace."))) {
-        return TEST_FAIL;
-    }
+    if (!check(trace, expected, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -43,9 +41,7 @@ int test_compute_trace_vector() {
     T trace = ComputeTrace(rt, diag);
     T expected = 15.0;
 
-    if (!check(trace, expected, check_msg(get_type_name<T>(), "Error computing trace from vector."))) {
-        return TEST_FAIL;
-    }
+    if (!check(trace, expected, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -67,9 +63,7 @@ int test_frobenius_norm() {
     T norm = FrobeniusNorm(A);
     T expected = std::sqrt(1.0 + 4.0 + 4.0 + 1.0); // sqrt(10)
 
-    if (!check(norm, expected, check_msg(get_type_name<T>(), "Error computing Frobenius norm."))) {
-        return TEST_FAIL;
-    }
+    if (!check(norm, expected, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -93,9 +87,7 @@ int test_frobenius_norm_difference() {
     T norm = FrobeniusNorm(A, B);
     T expected = std::sqrt(0.0 + 1.0 + 1.0 + 0.0); // sqrt(2)
 
-    if (!check(norm, expected, check_msg(get_type_name<T>(), "Error computing Frobenius norm difference."))) {
-        return TEST_FAIL;
-    }
+    if (!check(norm, expected, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -114,9 +106,7 @@ int test_frobenius_norm_with_runtime() {
     T norm = FrobeniusNorm(rt, A);
     T expected = std::sqrt(1.0 + 4.0 + 4.0 + 1.0);
 
-    if (!check(norm, expected, check_msg(get_type_name<T>(), "Error computing Frobenius norm with runtime."))) {
-        return TEST_FAIL;
-    }
+    if (!check(norm, expected, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -144,9 +134,7 @@ int test_frobenius_inner_product() {
     T prod = FrobeniusInnerProduct(A, B);
     T expected = 1.0 * 2.0 + 2.0 * 1.0 + 3.0 * 1.0 + 4.0 * 2.0; // 15
 
-    if (!check(prod, expected, check_msg(get_type_name<T>(), "Error computing Frobenius inner product."))) {
-        return TEST_FAIL;
-    }
+    if (!check(prod, expected, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -171,9 +159,7 @@ int test_frobenius_inner_product_with_runtime() {
     T prod = FrobeniusInnerProduct(rt, A, B);
     T expected = 15.0;
 
-    if (!check(prod, expected, check_msg(get_type_name<T>(), "Error computing Frobenius inner product with runtime."))) {
-        return TEST_FAIL;
-    }
+    if (!check(prod, expected, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -200,18 +186,10 @@ int test_hadamard_product_in_place() {
 
     HadamardProduct(A, B);
 
-    if (!check(B(0, 0), (T)2.0, check_msg(get_type_name<T>(), "Hadamard product (in-place) failed."))) {
-        return TEST_FAIL;
-    }
-    if (!check(B(0, 1), (T)4.0, check_msg(get_type_name<T>(), "Hadamard product (in-place) failed."))) {
-        return TEST_FAIL;
-    }
-    if (!check(B(1, 0), (T)6.0, check_msg(get_type_name<T>(), "Hadamard product (in-place) failed."))) {
-        return TEST_FAIL;
-    }
-    if (!check(B(1, 1), (T)8.0, check_msg(get_type_name<T>(), "Hadamard product (in-place) failed."))) {
-        return TEST_FAIL;
-    }
+    if (!check(B(0, 0), (T)2.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(B(0, 1), (T)4.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(B(1, 0), (T)6.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(B(1, 1), (T)8.0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -235,9 +213,7 @@ int test_hadamard_product_output() {
     Matrix<T> C(s);
     HadamardProduct(A, B, C);
 
-    if (!check(C(0, 0), (T)2.0, check_msg(get_type_name<T>(), "Hadamard product (output) failed."))) {
-        return TEST_FAIL;
-    }
+    if (!check(C(0, 0), (T)2.0, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -252,12 +228,8 @@ int test_hadamard_product_pointer_no_increment() {
 
     HadamardProduct(n, A, B, C, false);
 
-    if (!check(C[0], (T)2.0, check_msg(get_type_name<T>(), "Hadamard product (pointer, no increment) failed."))) {
-        return TEST_FAIL;
-    }
-    if (!check(C[1], (T)4.0, check_msg(get_type_name<T>(), "Hadamard product (pointer, no increment) failed."))) {
-        return TEST_FAIL;
-    }
+    if (!check(C[0], (T)2.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C[1], (T)4.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -272,12 +244,8 @@ int test_hadamard_product_pointer_with_increment() {
 
     HadamardProduct(n, A, B, C, true);
 
-    if (!check(C[0], (T)12.0, check_msg(get_type_name<T>(), "Hadamard product (pointer, with increment) failed."))) {
-        return TEST_FAIL;
-    }
-    if (!check(C[1], (T)24.0, check_msg(get_type_name<T>(), "Hadamard product (pointer, with increment) failed."))) {
-        return TEST_FAIL;
-    }
+    if (!check(C[0], (T)12.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C[1], (T)24.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
 }

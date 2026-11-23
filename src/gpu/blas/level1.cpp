@@ -1,5 +1,3 @@
-#include "linalg.hpp"
-#include "runtime.hpp"
 /// @file level1.cpp
 /// @brief GPU-accelerated Level-1 BLAS operations implementation.
 ///
@@ -8,8 +6,10 @@
 /// inner products, vector addition, and scalar multiplication on GPU tensors.
 
 #include "../../cpu/utils/utils.hpp"
+#include "impl/gpu/utils.hpp"
 #include "impl/blas/gpu/level1.hpp"
-#include "../gpu-utils/utils.hpp"
+#include "linalg.hpp"
+#include "runtime.hpp"
 
 namespace lahva{
     namespace gpu{

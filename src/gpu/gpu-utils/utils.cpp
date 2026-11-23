@@ -1,5 +1,3 @@
-#include "utils.hpp"
-#include "runtime.hpp"
 /// @file utils.cpp
 /// @brief Implementation of GPU utility functions for BLAS operations.
 ///
@@ -7,6 +5,8 @@
 /// and tensor dimension validation.
 
 #include <string>
+#include "runtime.hpp"
+#include "impl/gpu/utils.hpp"
 
 namespace lahva {
     namespace gpu
@@ -54,6 +54,6 @@ namespace lahva {
             return CUBLAS_OP_N;
         }
     };
-    } // namespace gpu
 
+    } // namespace gpu
 } // namespace lahva

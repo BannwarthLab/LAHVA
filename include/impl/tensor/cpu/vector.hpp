@@ -6,11 +6,9 @@
 /// Vectors can be initialized from various sources and support mathematical operations.
 
 #pragma once
-#include <memory>
 
 #include "impl/tensor/cpu/tensor.hpp"
-#include <initializer_list>
-#include <omp.h>
+
 namespace lahva
 {
     namespace cpu
@@ -29,7 +27,9 @@ namespace lahva
         public:
             using size_type = std::size_t;
             using alloc_ptr = CPUAllocator<T>;
-            Vector() { this->no_alloc = true; };
+
+            /// @brief Default constructor - creates empty vector without allocation
+            Vector() {};
 
             /// @brief Allocate vector storage without initialization
             /// @param[in] count number of elements to allocate
@@ -190,7 +190,6 @@ namespace lahva
                 std::cout << std::endl;
             }
         }
-
 
     } // namespace cpu
 } // namespace lahva

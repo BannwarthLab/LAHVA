@@ -28,8 +28,18 @@ class time_record {
 
         /// @brief Elapsed time in milliseconds
         float time = 0.0;
-        cudaEvent_t startEvent = 0, stopEvent = 0;
-        std::chrono::time_point<std::chrono::high_resolution_clock> startTime, stopTime;
+
+        /// @brief CUDA event for GPU timing start
+        cudaEvent_t startEvent = 0;
+
+        /// @brief CUDA event for GPU timing stop
+        cudaEvent_t stopEvent = 0;
+
+        /// @brief CPU clock time point at start
+        std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
+
+        /// @brief CPU clock time point at stop
+        std::chrono::time_point<std::chrono::high_resolution_clock> stopTime;
 
         /// @brief Default constructor
         time_record() {};
@@ -61,7 +71,6 @@ public:
 
     /// @brief Virtual destructor
     virtual ~Timer() {};
-public:
 
     /// @brief Start a named timer
     /// @param[in] label identifier for this timing measurement
@@ -140,7 +149,6 @@ public:
 
     /// @brief Destructor
     ~CPUTimer() {};
-    public:
 
     /// @brief Start named CPU timer
     /// @param[in] label identifier for this timing measurement

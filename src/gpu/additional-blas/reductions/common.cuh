@@ -1,4 +1,3 @@
-#include "cuda_runtime.h"
 /// @file common.cuh
 /// @brief GPU reduction operation functors for custom reduction kernels.
 ///
@@ -6,6 +5,7 @@
 /// with correctly-rounded arithmetic for GPU reduction algorithms.
 
 #include <cfloat>
+#include "cuda_runtime.h"
 
 namespace lahva
 {
@@ -309,7 +309,7 @@ namespace lahva
             int index = blockIdx.x * blockDim.x + threadIdx.x;
             if (index < ndim)
             {
-                a[index] = func(a[index], b[index]);
+                a[index] = func(a[index], b);
             }
         };
        

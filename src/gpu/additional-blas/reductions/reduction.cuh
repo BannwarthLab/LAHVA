@@ -1,5 +1,11 @@
+/// @file reduction.cuh
+/// @brief GPU parallel reduction kernels with custom operations.
+///
+/// Provides highly-optimized parallel reduction algorithms using shared memory,
+/// warp-level operations, and custom reduction functors for efficient GPU aggregation.
+
 #pragma once
-#include "../../gpu-utils/utils.hpp"
+#include "impl/gpu/utils.hpp"
 
 namespace lahva
 {
@@ -123,12 +129,9 @@ namespace lahva
         if (i < n)
         {
             sdata[tid] = g_idata[i];
-            //i += gridSize;
+            __syncthreads();
 
-        // while (i < n) { sdata[tid] += g_idata[i] + g_idata[i+blockSize]; i += gridSize; }
-        __syncthreads();
-        //#pragma unroll
-        for (int stride = 1; stride > blockSize; stride *= 2)
+            for (int stride = 1; stride < blockSize; stride *= 2)
             {
                 if (tid < stride)
                 {

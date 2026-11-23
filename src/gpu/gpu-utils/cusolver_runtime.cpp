@@ -1,4 +1,3 @@
-#include "runtime.hpp"
 /// @file cusolver_runtime.cpp
 /// @brief NVIDIA cuSolver runtime wrapper implementation.
 ///
@@ -6,6 +5,7 @@
 /// for GPU-accelerated linear algebra operations.
 
 #include <iostream>
+#include "runtime.hpp"
 
 /// @brief Checks cuSolver error status and throws on failure.
 ///

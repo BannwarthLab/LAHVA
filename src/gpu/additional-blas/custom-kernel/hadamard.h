@@ -28,10 +28,25 @@ namespace lahva
         /// @param vecin Input double-precision vector.
         /// @param ndim2 Number of elements.
         void dHadamard(const CudaRuntime& cudart, double* vecinout, const double* vecin, size_t ndim2);
-        void sHadamardcopy(const CudaRuntime& cudart, float* vecout, const float* vecin1, const float* vecin2, size_t ndim2);
-        void dHadamardcopy(const CudaRuntime& cudart, double* vecout, const double* vecin1, const double* vecin2, size_t ndim2);
-        void sHadamardcopy(const CudaRuntime& cudart, float* vecout, const float* vecin1, const float* vecin2, size_t ndim2, size_t ndim);
-        void dHadamardcopy(const CudaRuntime& cudart, double* vecout, const double* vecin1, const double* vecin2, size_t ndim2, size_t ndim);
+
+        /// @brief Hadamard product with separate output for single-precision vectors: vecout = vecin1 * vecin2.
+        ///
+        /// @param cudart CUDA runtime instance.
+        /// @param vecout Output single-precision vector.
+        /// @param vecin1 First input single-precision vector.
+        /// @param vecin2 Second input single-precision vector.
+        /// @param ndim2 Number of elements.
+        void sHadamard(const CudaRuntime& cudart, float* vecout, const float* vecin1, const float* vecin2, size_t ndim2);
+
+        /// @brief Hadamard product with separate output for double-precision vectors: vecout = vecin1 * vecin2.
+        ///
+        /// @param cudart CUDA runtime instance.
+        /// @param vecout Output double-precision vector.
+        /// @param vecin1 First input double-precision vector.
+        /// @param vecin2 Second input double-precision vector.
+        /// @param ndim2 Number of elements.
+        void dHadamard(const CudaRuntime& cudart, double* vecout, const double* vecin1, const double* vecin2, size_t ndim2);
+
     } // namespace gpu
 
 } // namespace lahva

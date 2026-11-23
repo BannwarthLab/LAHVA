@@ -71,13 +71,13 @@ namespace lahva
             return trace;
         };
 
-        float ComputeTrace(const CPURuntime &cudart, const Vector_<float> &diag)
+        double ComputeTrace(const CPURuntime &cudart, const Vector_<float> &diag)
         {
-            float trace = 0;
+            double trace = 0;
 
 #pragma omp parallel for shared(diag) reduction(+ : trace)
-            for (int i = 0; i < diag.size(); i++)
-                trace += (float)diag[i];
+            for (int i = 0; i < static_cast<int>(diag.size()); i++)
+                trace += (double)diag[i];
             return trace;
         };
 
@@ -147,7 +147,7 @@ namespace lahva
             T norm = 0;
             check_equal_size(mat1, mat2);
 #pragma omp parallel for shared(mat1, mat2) reduction(+ : norm)
-            for (int i = 0; i < (mat1.size()); i++)
+            for (int i = 0; i < static_cast<int>(mat1.size()); i++)
             {
                 norm += mat1.data()[i] * mat2.data()[i];
             }

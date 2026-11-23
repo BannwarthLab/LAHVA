@@ -8,17 +8,11 @@
 // Each overload is provided for double and float precision; both precisions are documented explicitly.
 
 #pragma once
-#include <memory>
-#include <vector>
-#include <iterator>
-#include <assert.h>
-#include <iostream>
+#include "const.h"
+#include "impl/tensor/cpu/lowtrimatrix.hpp"
+#include "impl/tensor/cpu/matrix.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
 #include "impl/tensor/cpu/vector.hpp"
-#include "impl/tensor/cpu/matrix.hpp"
-#include "impl/tensor/cpu/lowtrimatrix.hpp"
-#include "impl/tensor/allocators.hpp"
-#include "const.h"
 #include "level1.h"
 
 namespace lahva
@@ -47,11 +41,14 @@ namespace lahva
         /// @return The trace (sum of diagonal elements) as a double-precision scalar.
         double ComputeTrace(const CPURuntime &cpurt, const Vector_<double> &diag);
 
-        /// @brief Compute the trace of a matrix
-        /// @param cpurt CPU Runtime instance
-        /// @param diag Vector containing the diagonal of the matrix
-        /// @return The trace of the matrix
-        float ComputeTrace(const CPURuntime &cpurt, const Vector_<float> &diag);
+        /// @brief Compute the trace of a matrix from its diagonal (single precision)
+        ///
+        /// Computes the trace from a pre-extracted diagonal vector (sum of all elements).
+        ///
+        /// @param cpurt CPU Runtime instance.
+        /// @param diag Input vector containing the diagonal elements.
+        /// @return The trace (sum of diagonal elements) as a double-precision scalar.
+        double ComputeTrace(const CPURuntime &cpurt, const Vector_<float> &diag);
 
         /// @brief Compute the Frobenius norm of a matrix
         ///
@@ -202,16 +199,6 @@ namespace lahva
             }
         };
 
-        /// @brief Runtime-dispatching overload that allows passing a CPURuntime first.
-        ///
-        /// The runtime parameter is ignored for CPU implementations but this overload
-        /// mirrors the signatures used for GPU/CUDA dispatching.
-        template <typename... Args>
-        void ApplyKernel(const CPURuntime &rt_, Args &&...args)
-        {
-            (ApplyKernel(args...));
-        }
-
         /// @brief Compute the Hadamard product in-place: Y = X .* Y
         ///
         /// Performs element-wise multiplication of X and Y, storing the result back in Y.
@@ -248,6 +235,16 @@ namespace lahva
         /// @param increment If true, accumulate into Z (Z += X.*Y); if false, assign (Z = X.*Y). Default: false.
         template <typename T>
         void HadamardProduct(const size_t ndim, const T *X, const T *Y, T *Z, bool increment = false);
+
+        /// @brief Runtime-dispatching overload that allows passing a CPURuntime first.
+        ///
+        /// The runtime parameter is ignored for CPU implementations but this overload
+        /// mirrors the signatures used for GPU/CUDA dispatching.
+        template <typename... Args>
+        void ApplyKernel(const CPURuntime &rt_, Args &&...args)
+        {
+            (ApplyKernel(args...));
+        }
 
         /// @brief Runtime-dispatching overload that allows passing a CPURuntime first.
         ///

@@ -7,17 +7,14 @@
 
 #pragma once
 
-#include "impl/tensor/allocators.hpp"
-#include "impl/tensor/cpu/tensor.hpp"
-#include "impl/tensor/cpu/vector.hpp"
+#include <algorithm>
+#include <cassert>
+#include <fstream>
+#include <iostream>
 
 #include "impl/blas/cpu/level1.h"
-#include <initializer_list>
-#include <omp.h>
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <cassert>
+#include "impl/tensor/cpu/vector.hpp"
+
 namespace lahva
 {
     namespace cpu
@@ -50,9 +47,11 @@ namespace lahva
             using alloc_ptr = CPUAllocator<T>;
 
         protected:
-        // shape in each dimension, i.e. data_ has length n_rows_*n_cols
-        size_t n_rows_;
-        size_t n_cols_;
+            /// @brief Number of rows in the matrix
+            size_t n_rows_ = 0;
+
+            /// @brief Number of columns in the matrix
+            size_t n_cols_ = 0;
 
             /// @brief Calculate linear index for matrix element in column-major storage
             /// @param[in] i row index
@@ -340,8 +339,7 @@ namespace lahva
 
         /// @brief Move constructor implementation
         template <typename T, class Allocator>
-    Matrix<T, Allocator>::Matrix(Matrix<T, Allocator> &&other) :
-    Tensor<T, Allocator>{other},
+        Matrix<T, Allocator>::Matrix(Matrix<T, Allocator> &&other) : Tensor<T, Allocator>{std::move(other)},
                                                                      n_rows_{other.n_rows_}, n_cols_{other.n_cols_}
         {
 

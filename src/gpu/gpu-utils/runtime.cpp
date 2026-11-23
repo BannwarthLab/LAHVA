@@ -1,4 +1,3 @@
-#include <cuda_runtime.h>
 /// @file runtime.cpp
 /// @brief CUDA and cuBLAS runtime management implementation.
 ///
@@ -6,10 +5,11 @@
 /// for GPU-accelerated linear algebra operations.
 
 #include <cublas_v2.h>
-#include "runtime.hpp"
+#include <cuda_runtime.h>
 #include <iostream>
-#include <string>
 #include <omp.h>
+#include <string>
+#include "runtime.hpp"
 
 /// @brief Checks CUDA error status and throws on failure.
 ///
@@ -127,8 +127,8 @@ namespace lahva
         cudaGetDeviceProperties(&deviceProp, this->cudaDevice);
         size_t n_sm = deviceProp.multiProcessorCount;
 
-        size_t best_block_size = 0;
-        int rest = -500;
+        [[maybe_unused]] size_t best_block_size = 0;
+        size_t rest = -500;
 
         for (auto i : { 512,  256, 128})
         {
@@ -326,4 +326,5 @@ namespace lahva
         }
         return this->cusolv_->getHandle();
     };
+
 } // namespace lahva

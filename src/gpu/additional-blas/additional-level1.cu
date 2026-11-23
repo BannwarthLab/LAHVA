@@ -1,5 +1,3 @@
-#include "linalg.hpp"
-#include "runtime.hpp"
 /// @file additional-level1.cu
 /// @brief GPU implementations of additional Level-1 operations (element-wise vector operations).
 ///
@@ -7,17 +5,34 @@
 /// and custom element-wise operations with optimized Kahan summation for Ozaki algorithm.
 
 #include "impl/blas/gpu/additional-level1.hpp"
-#include "../gpu-utils/utils.hpp"
-#include "reductions/reduction.cuh"
-#include "reductions/common.cuh"
 #include "additional-level1.cuh"
-#include "./additional-level1.hpp"
-#include "add-vectors.hpp"
 #include "custom-kernel/common.h"
+#include "impl/blas/gpu/additional-level1.hpp"
+#include "linalg.hpp"
+#include "reductions/common.cuh"
+#include "reductions/reduction.cuh"
+#include "runtime.hpp"
 namespace lahva
 {
     namespace gpu
     {
+        /// @brief GPU kernel for copying tensor data with optional type conversion.
+        template<typename in, typename out>
+        __global__ void CopyTensors_(unsigned long size, const in* d_in, out* d_out)
+        {
+            unsigned long idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if (idx < size)
+                d_out[idx] = d_in[idx];
+        }
+
+        /// @brief Host wrapper for type-converting tensor copy.
+        template<typename in, typename out>
+        void CopyTensors(const unsigned long size, const in* d_in, out* d_out)
+        {
+            unsigned int blockSize = 512;
+            int gridSize = (int)((size + blockSize - 1) / blockSize);
+            CopyTensors_<in, out><<<gridSize, blockSize, 0, 0>>>(size, d_in, d_out);
+        }
 
         /// @brief GPU kernel for scaled vector addition (float to double) with FMA.
         ///
@@ -258,22 +273,6 @@ namespace lahva
             res.copy2host(cudart);
             cudart.synchronize();
             return res[0];
-        }
-        /// @brief GPU kernel for copying tensor data with optional type conversion.
-        template<typename in, typename out>
-        __global__ void CopyTensors_(unsigned long size, const in* d_in, out* d_out)
-        {
-            unsigned long idx = blockIdx.x * blockDim.x + threadIdx.x;
-            if (idx < size)
-                d_out[idx] = d_in[idx];
-        }
-
-        template<typename in, typename out>
-        void CopyTensors(const unsigned long size, const in* d_in, out* d_out)
-        {
-            unsigned int blockSize = 512;
-            int gridSize = (int)ceil(((float)size/blockSize));
-            CopyTensors_<in, out><<<gridSize, blockSize, 0, 0>>>(size, d_in, d_out);
         }
 
 

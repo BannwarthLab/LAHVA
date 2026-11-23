@@ -6,13 +6,11 @@
 /// Base class for all specialized GPU tensor types (vectors, matrices, etc.).
 
 #pragma once
-#include <memory>
 
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
-#include "impl/tensor/gpu/gputensor.hpp"
 #include "runtime.hpp"
-#include "../../../src/gpu/additional-blas/additional-level1.hpp"
+
 namespace lahva
 {
     namespace gpu
@@ -35,6 +33,9 @@ namespace lahva
             virtual T *gpu_data() = 0;
         };
 
+        // Forward declaration for CopyTensors
+        template <typename in, typename out>
+        void CopyTensors(const unsigned long size, const in *d_in, out *d_out);
 
         /// @brief GPU-based tensor with dual memory management and CUDA integration
         /// Base class for GPU tensors providing automatic memory management on both CPU and GPU.
@@ -61,8 +62,10 @@ namespace lahva
             /// @param[in] alloc device (GPU) memory allocator
             Tensor(const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator())
                 : lahva::Tensor<T, Allocator>{cpualloc}, gpualloc_{alloc} {};
-            Tensor(const GPUAllocator &alloc) : lahva::Tensor<T, Allocator>{}, gpualloc_{alloc}, gpu_buffer{true} 
-            {this->no_alloc= true;};
+
+            /// @brief Construct GPU tensor with GPU allocator for device-only memory
+            /// @param[in] alloc device (GPU) memory allocator
+            Tensor(const GPUAllocator &alloc) : lahva::Tensor<T, Allocator>{}, gpualloc_{alloc}, gpu_buffer{true} {};
 
             /// @brief Destructor for GPU tensor, releases GPU memory and CPU memory (via base class)
             virtual ~Tensor() { this->device_ptr_.get_deleter() = this->gpualloc_; };
@@ -291,7 +294,7 @@ namespace lahva
             {
                 this->gpualloc_.setDevice(cudart.device_id());
                 this->gpualloc_.setStream(cudart.getStreamPtr());
-                gpualloc_.D2HCopy(this->device_ptr_.get(), this->data(), this->size() * sizeof(T));
+                gpualloc_.D2HCopy(this->gpu_data(), this->data(), this->size() * sizeof(T));
                 this->is_on_device_ = false;
                 if ((cudart.criticalMem()) && (cudart.criticalSize(this->size() * sizeof(T))))
                 {

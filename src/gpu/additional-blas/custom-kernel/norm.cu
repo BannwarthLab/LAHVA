@@ -1,7 +1,3 @@
-#include "impl/blas/gpu/additional-level1.hpp"
-#include "norm.cuh"
-#include "reductions/reduction.cuh"
-#include "reductions/common.cuh"
 /// @file norm.cu
 /// @brief Host wrappers for GPU Frobenius norm computation kernels.
 ///
@@ -10,6 +6,8 @@
 
 #include "common.h"
 #include "linalg.hpp"
+#include "norm.cuh"
+#include "reductions/common.cuh"
 
 namespace lahva
 {

@@ -1,7 +1,16 @@
+/// @file lowtrimatrix.hpp
+/// @brief CPU-based lower triangular matrix tensor implementation.
+///
+/// Provides the LowTriMatrix_ class for lower triangular matrix storage and operations on CPU.
+/// Optimized storage for lower triangular structure with BLAS compatibility.
+/// Includes specialized operations leveraging triangular matrix properties.
+
 #pragma once
-#include "impl/tensor/allocators.hpp"
-#include "impl/tensor/cpu/tensor.hpp"
-#include <omp.h>
+#include <iostream>
+#include <cassert>
+
+#include "const.h"
+#include "impl/tensor/cpu/vector.hpp"
 
 namespace lahva
 {
@@ -233,9 +242,8 @@ namespace lahva
 
         /// @brief Copy constructor implementation
         template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(const LowTriMatrix<T, Allocator> &other) : 
-    n_{other.n_}, 
-    Tensor<T, Allocator>(other)
+        LowTriMatrix<T, Allocator>::LowTriMatrix(const LowTriMatrix<T, Allocator> &other) : Tensor<T, Allocator>(other),
+                                                                                            n_{other.n_}
         {
         }
 

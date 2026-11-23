@@ -1,5 +1,3 @@
-#include "timer.hpp"
-#include <string>
 /// @file timer.cpp
 /// @brief CPU timing and performance measurement utilities implementation.
 ///
@@ -7,8 +5,8 @@
 /// timing measurements of CPU operations, useful for performance profiling and benchmarking.
 
 #include <iostream>
-#include <chrono>
 #include <sstream>
+#include "timer.hpp"
 
 namespace lahva
 {

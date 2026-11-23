@@ -10,7 +10,6 @@
 #include "linalg.hpp"
 #include "runtime.hpp"
 
-
 namespace lahva
 {
     namespace gpu
@@ -293,5 +292,4 @@ namespace lahva
     void AddVectors(const CudaRuntime& cudart, const Tensor_<inprec>& in, Tensor_<outprec>& out);
 
     } // namespace gpu
-
 } // namespace lahva

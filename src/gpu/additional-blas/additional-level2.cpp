@@ -1,7 +1,13 @@
+/// @file additional-level2.cpp
+/// @brief GPU implementations of additional Level-2 matrix operations.
+///
+/// Implements GPU versions of additional matrix operations including scaled matrix addition
+/// with optional transposition using NVIDIA's cuBLAS library.
+
+#include "impl/gpu/utils.hpp"
+#include "impl/blas/gpu/additional-level2.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
-#include "impl/blas/gpu/additional-level2.hpp"
-#include "../gpu-utils/utils.hpp"
 namespace lahva
 {
     namespace gpu

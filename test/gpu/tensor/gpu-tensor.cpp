@@ -48,10 +48,7 @@ int test_gputensor_copy_constructor() {
     if (!check((int)m2.size(), 9, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
     for (int i = 0; i < 9; i++) {
-        if (!check((double)m2.data()[i], 2.5, check_msg(get_type_name<T>(), "check 2"))) {
-            return TEST_FAIL;
-            break;
-        }
+        if (!check((double)m2.data()[i], 2.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
     }
 
     return TEST_PASS;
@@ -136,8 +133,14 @@ int test_gputensor_copy_assignment_different_size() {
 int test_gputensor_copy_assignment_self() {
     Matrix<double> m(Shape(2, 2), 2.5);
 
-    // Self-assignment (exercises line 132 check)
+    #if defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wself-assign-overloaded"
+    #endif
     m = m;
+    #if defined(__clang__)
+    #pragma GCC diagnostic pop
+    #endif
 
     if (!check((int)m.size(), 4, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
 
@@ -267,7 +270,10 @@ int test_gputensor_gpu_data_pointer(CudaRuntime& cudart) {
     cudart.synchronize();
 
     double* gpu_ptr = m.gpu_data();
-    if (gpu_ptr == nullptr) return TEST_FAIL;
+    if (gpu_ptr == nullptr) {
+        std::cerr << check_msg(get_type_name<double>(), "") << std::endl;
+        return TEST_FAIL;
+    }
 
     return TEST_PASS;
 }
@@ -280,7 +286,10 @@ int test_gputensor_const_gpu_data_pointer(CudaRuntime& cudart) {
 
     const Matrix<double>& const_m = m;
     const double* const_gpu_ptr = const_m.gpu_data();
-    if (const_gpu_ptr == nullptr) return TEST_FAIL;
+    if (const_gpu_ptr == nullptr) {
+        std::cerr << check_msg(get_type_name<double>(), "") << std::endl;
+        return TEST_FAIL;
+    }
 
     return TEST_PASS;
 }
@@ -289,16 +298,18 @@ int test_gputensor_alloc_on_device(CudaRuntime& cudart) {
     Matrix<double> m(Shape(3, 3), 1.5);
 
     // Check allocation status before copy
-    if (!m.alloc_on_device()) {
-        // Should not be on device initially
+    if (m.alloc_on_device()) {
+        std::cerr << check_msg(get_type_name<double>(), "check 1") << std::endl;
+        return TEST_FAIL;
     }
 
     m.copy2device(cudart);
     cudart.synchronize();
 
     // Check allocation status after copy
-    if (m.alloc_on_device()) {
-        // Should be on device after copy
+    if (!m.alloc_on_device()) {
+        std::cerr << check_msg(get_type_name<double>(), "check 2") << std::endl;
+        return TEST_FAIL;
     }
 
     return TEST_PASS;
@@ -311,7 +322,10 @@ int test_gputensor_vector_gpu_data(CudaRuntime& cudart) {
     cudart.synchronize();
 
     double* gpu_ptr = v.gpu_data();
-    if (gpu_ptr == nullptr) return TEST_FAIL;
+    if (gpu_ptr == nullptr) {
+        std::cerr << check_msg(get_type_name<double>(), "") << std::endl;
+        return TEST_FAIL;
+    }
 
     return TEST_PASS;
 }
@@ -324,7 +338,10 @@ int test_gputensor_vector_const_gpu_data(CudaRuntime& cudart) {
 
     const Vector<float>& const_v = v;
     const float* const_gpu_ptr = const_v.gpu_data();
-    if (const_gpu_ptr == nullptr) return TEST_FAIL;
+    if (const_gpu_ptr == nullptr) {
+        std::cerr << check_msg(get_type_name<float>(), "") << std::endl;
+        return TEST_FAIL;
+    }
 
     return TEST_PASS;
 }
@@ -336,7 +353,10 @@ int test_gputensor_lowtrimatrix_gpu_data(CudaRuntime& cudart) {
     cudart.synchronize();
 
     double* gpu_ptr = m.gpu_data();
-    if (gpu_ptr == nullptr) return TEST_FAIL;
+    if (gpu_ptr == nullptr) {
+        std::cerr << check_msg(get_type_name<double>(), "") << std::endl;
+        return TEST_FAIL;
+    }
 
     return TEST_PASS;
 }

@@ -1,9 +1,16 @@
+/// @file vector.hpp
+/// @brief GPU-based vector tensor implementation.
+///
+/// Provides the Vector_ class for 1-dimensional tensor storage and operations on the GPU.
+/// Supports dense vector operations with cuBLAS compatibility and column-major storage.
+/// Inherits from both GPU and CPU vector interfaces for mixed-precision computations.
+
 #pragma once
-#include "runtime.hpp"
-#include "impl/tensor/gpu/gputensor.hpp"
+
 #include "impl/tensor/cpu/vector.hpp"
-#include <initializer_list>
-#include <omp.h>
+#include "impl/tensor/gpu/gputensor.hpp"
+#include "runtime.hpp"
+
 namespace lahva
 {
     namespace gpu

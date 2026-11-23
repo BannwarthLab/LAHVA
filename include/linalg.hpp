@@ -1,5 +1,9 @@
-#pragma once
+/// @file linalg.hpp
+/// @brief Linear algebra tensor abstractions including vectors, matrices, and specialized matrix types.
+///
+/// This header aggregates tensor class declarations for both CPU and GPU computation.
 
+#pragma once
 #include <memory>
 #include <vector>
 #include <iterator>
@@ -18,4 +22,5 @@
 #include "impl/tensor/cpu/vector.hpp"
 #include "impl/tensor/cpu/matrix.hpp"
 #include "impl/tensor/cpu/lowtrimatrix.hpp"
+
 #include "impl/tensor/allocators.hpp"

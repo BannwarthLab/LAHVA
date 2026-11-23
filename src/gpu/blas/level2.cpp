@@ -1,7 +1,15 @@
+/// @file level2.cpp
+/// @brief GPU-accelerated Level-2 BLAS operations implementation.
+///
+/// Implements GPU versions of Level-2 BLAS operations (matrix-vector operations)
+/// using NVIDIA's cuBLAS library. Supports matrix-vector multiplication, outer products,
+/// and related operations on GPU vectors and matrices.
+
+#include "impl/gpu/utils.hpp"
+#include "impl/blas/gpu/level2.hpp"
 #include "linalg.hpp"
 #include "runtime.hpp"
-#include "impl/blas/gpu/level2.hpp"
-#include "../gpu-utils/utils.hpp"
+#include <cuda_runtime.h>
 
 namespace lahva
 {
@@ -83,7 +91,7 @@ namespace lahva
 
             cublasOperation_t trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             cublasStatus_t istat = cublasDgemv(cudart.handle, trans, nrow, ncol, &alpha, a.gpu_data(), lda, x.gpu_data(), inx, &beta, y.gpu_data(), iny);
@@ -116,7 +124,7 @@ namespace lahva
 
             cublasOperation_t trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             cublasStatus_t istat = cublasDgemv(cudart.handle, trans, nrow, ncol, &alpha, a.gpu_data(), lda, x.gpu_data(), inx, &beta, y.gpu_data(), iny);
@@ -149,7 +157,7 @@ namespace lahva
 
             cublasOperation_t trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             cublasStatus_t istat = cublasSgemv(cudart.handle, trans, nrow, ncol, &alpha, a.gpu_data(), lda, x.gpu_data(), inx, &beta, y.gpu_data(), iny);
@@ -182,7 +190,7 @@ namespace lahva
 
             cublasOperation_t trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             cublasStatus_t istat = cublasSgemv(cudart.handle, trans, nrow, ncol, &alpha, a.gpu_data(), lda, x.gpu_data(), inx, &beta, y.gpu_data(), iny);
@@ -213,7 +221,7 @@ namespace lahva
 
             cublasOperation_t trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             get_cublas_error(cublasZgemv(cudart.handle, trans, nrow, ncol, reinterpret_cast<const cuDoubleComplex*>(&alpha), 
@@ -245,7 +253,7 @@ namespace lahva
 
             cublasOperation_t trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             get_cublas_error(cublasZgemv(cudart.handle, trans, nrow, ncol, reinterpret_cast<const cuDoubleComplex*>(&alpha), 
@@ -277,7 +285,7 @@ namespace lahva
 
             cublasOperation_t trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             get_cublas_error(cublasCgemv(cudart.handle, trans, nrow, ncol, reinterpret_cast<const cuComplex*>(&alpha), 
@@ -309,7 +317,7 @@ namespace lahva
 
             cublasOperation_t trans = get_trans(T);
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, trans, incx, incy);
             size_t lda = get_leading(nrow, ncol);
             cudart.cublasSetStream_();
             get_cublas_error(cublasCgemv(cudart.handle, trans, nrow, ncol, reinterpret_cast<const cuComplex*>(&alpha), 
@@ -332,7 +340,7 @@ namespace lahva
         {
 
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, CUBLAS_OP_N, incx, incy);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -359,7 +367,7 @@ namespace lahva
                                     const double alpha, const double beta, const size_t incx, const size_t incy)
         {
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, CUBLAS_OP_N, incx, incy);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -386,7 +394,7 @@ namespace lahva
                                     const Vector_<float> &x, const size_t incx, const float beta, Vector_<float> &y, const size_t incy)
         {
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, CUBLAS_OP_N, incx, incy);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -413,7 +421,7 @@ namespace lahva
                                     const float alpha, const float beta, const size_t incx, const size_t incy)
         {
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, CUBLAS_OP_N, incx, incy);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -440,7 +448,7 @@ namespace lahva
                                     const Vector_<double> &x, const size_t incx, const double beta, Vector_<double> &y, const size_t incy)
         {
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, CUBLAS_OP_N, incx, incy);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -465,7 +473,7 @@ namespace lahva
                                     const double alpha, const double beta, const size_t incx, const size_t incy)
         {
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, CUBLAS_OP_N, incx, incy);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -491,7 +499,7 @@ namespace lahva
                                     const Vector_<float> &x, const size_t incx, const float beta, Vector_<float> &y, const size_t incy)
         {
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, CUBLAS_OP_N, incx, incy);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);
@@ -516,7 +524,7 @@ namespace lahva
                                     const float alpha, const float beta, const size_t incx, const size_t incy)
         {
             int nrow, ncol;
-            std::tie(nrow, ncol) = check_size_mv(a, x, y);
+            std::tie(nrow, ncol) = check_size_mv(a, x, y, CUBLAS_OP_N, incx, incy);
             size_t inx = incx;
             size_t iny = incy;
             check_device_alloc(cudart, a);

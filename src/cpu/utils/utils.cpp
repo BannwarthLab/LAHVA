@@ -1,5 +1,3 @@
-#include "const.h"
-#include "utils.hpp"
 /// @file utils.cpp
 /// @brief CPU utility functions for BLAS/LAPACK operations.
 ///
@@ -9,6 +7,9 @@
 
 #include <cstring>
 #include <iostream>
+#include <stdexcept>
+#include "const.h"
+#include "utils.hpp"
 
 namespace lahva
 {

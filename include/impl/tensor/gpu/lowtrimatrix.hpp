@@ -1,8 +1,15 @@
+/// @file lowtrimatrix.hpp
+/// @brief GPU-based lower triangular matrix tensor implementation.
+///
+/// Provides the LowTriMatrix_ class for lower triangular matrix storage and operations on GPU.
+/// Optimized storage for lower triangular structure with cuBLAS compatibility.
+/// Inherits from both GPU and CPU lower triangular interfaces for mixed-precision computations.
+
 #pragma once
-#include "runtime.hpp"
-#include "impl/tensor/gpu/gputensor.hpp"
+
 #include "impl/tensor/cpu/lowtrimatrix.hpp"
-#include <omp.h>
+#include "impl/tensor/gpu/gputensor.hpp"
+#include "runtime.hpp"
 
 namespace lahva
 {
@@ -248,9 +255,8 @@ namespace lahva
 
         /// @brief Copy constructor implementation
         template <typename T, class Allocator, class GPUAllocator>
-    LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(const LowTriMatrix<T, Allocator, GPUAllocator> &other) : 
-    n_{other.n_}, 
-    Tensor<T, Allocator, GPUAllocator>(static_cast<const Tensor<T, Allocator, GPUAllocator>&>(other))
+        LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(const LowTriMatrix<T, Allocator, GPUAllocator> &other) : Tensor<T, Allocator, GPUAllocator>(static_cast<const Tensor<T, Allocator, GPUAllocator> &>(other)),
+                                                                                                                        n_{other.n_}
         {
         }
 
@@ -268,8 +274,7 @@ namespace lahva
 
         /// @brief Move constructor implementation
         template <typename T, class Allocator, class GPUAllocator>
-    LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(LowTriMatrix<T, Allocator, GPUAllocator> &&other) : 
-    n_{other.n_}, Tensor<T, Allocator, GPUAllocator>{static_cast<Tensor<T, Allocator, GPUAllocator>&&>(other)}
+        LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(LowTriMatrix<T, Allocator, GPUAllocator> &&other) : Tensor<T, Allocator, GPUAllocator>{static_cast<Tensor<T, Allocator, GPUAllocator> &&>(other)}, n_{other.n_}
         {
         }
 

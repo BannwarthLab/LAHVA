@@ -256,5 +256,6 @@ namespace lahva
     /// @param Tb Operation on B (default: "N" for no transpose).
     void MatrixMatrixProductFP16(const CudaRuntime& cudart, const Matrix_<__half>& a, const Matrix_<__half>& b, Matrix_<float>& c,
                              const float alpha = 1.0 , const float beta = 0.0, const char* Ta = "N", const char* Tb = "N");                         
-    }
-    }
+
+    } // namespace gpu
+} // namespace lahva

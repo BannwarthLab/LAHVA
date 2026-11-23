@@ -6,15 +6,28 @@
 /// Each function is provided for double and float precision with GPU runtime management.
 
 #pragma once
-#include "linalg.hpp"
-#include "../../../../src/gpu/gpu-utils/utils.hpp"
+#include <vector>
 
 #include "kernels.cuh"
-#include <vector>
+#include "linalg.hpp"
+#include "impl/gpu/utils.hpp"
+
 namespace lahva
 {
     namespace gpu
     {
+        /// @brief Copy tensor data with optional type conversion on GPU.
+        ///
+        /// Copies data from source to destination GPU memory, with automatic type conversion if needed.
+        /// Implementation defined in additional-level1.cu.
+        ///
+        /// @tparam in Source data type
+        /// @tparam out Destination data type
+        /// @param size Number of elements to copy
+        /// @param d_in Pointer to source data on GPU device
+        /// @param d_out Pointer to destination data on GPU device
+        template<typename in, typename out>
+        void CopyTensors(const unsigned long size, const in* d_in, out* d_out);
 
         /// @brief Computes element-wise product (Hadamard product) of GPU tensor with itself in-place.
         ///
@@ -581,7 +594,19 @@ namespace lahva
         /// @param b Output result vector on GPU (device pointer).
         void MergeOzaki(const CudaRuntime &cudart, unsigned long long ndim, unsigned int nsplit, const double *alphas, const float **as, double *b);
 
-    } // namespace gpu
+        /// @brief GPU kernel for copying and converting tensors between types.
+        ///
+        /// Performs element-wise copy with type conversion from input to output tensor.
+        /// Supports mixed-precision conversions (e.g., double to float, float to double).
+        ///
+        /// @tparam in Input element type.
+        /// @tparam out Output element type.
+        /// @param size Number of elements to copy.
+        /// @param d_in Input device pointer.
+        /// @param d_out Output device pointer.
+        template<typename in, typename out>
+        __global__ void CopyTensors_(unsigned long size, const in* d_in, out* d_out);
 
+    } // namespace gpu
 
 } // namespace lahva

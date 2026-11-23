@@ -1,5 +1,3 @@
-#include "impl/tensor/gpu/mixed-precision-classes/mixed-precision-matrix.hpp"
-#include "impl/tensor/allocators.hpp"
 /// @file mp-matrix-instantion.cpp
 /// @brief Mixed-precision matrix template instantiation for GPU computation.
 ///
@@ -9,10 +7,12 @@
 
 #include "impl/blas/gpu/additional-level1.hpp"
 #include "impl/blas/gpu/level1.hpp"
+#include "impl/tensor/allocators.hpp"
 #include "impl/tensor/gpu/matrix.hpp"
+#include "impl/tensor/gpu/mixed-precision-classes/mixed-precision-matrix.hpp"
 #include "impl/tensor/gpu/vector.hpp"
 #include "runtime.hpp"
-#include "timer.hpp"
+
 namespace lahva
 {
     namespace gpu
@@ -105,11 +105,8 @@ namespace lahva
         template <typename high, typename Allocator, typename GPUAllocator>
         void MixedPrecisionMatrix<high, Allocator, GPUAllocator>::merge(const CudaRuntime &cudart)
         {
-            
-            for (size_t i = 0; i < max_split_ ; ++i)
-            {
-                AddVectors(cudart, 1.0, this->getSplitMatrix<float>(i), *this);
-            }
+            std::vector<high> alphas(max_split_, static_cast<high>(1.0));
+            merge(cudart, alphas.data(), static_cast<high>(0.0));
         }
 
 

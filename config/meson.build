@@ -129,6 +129,7 @@ if lapack_vendor == 'mkl'
   if cc_id == 'intel' or cc_id == 'intel-llvm'
     mkl_dep += cc.find_library('mkl_intel_lp64')
     mkl_dep += cc.find_library('mkl_tbb_thread')
+    mkl_dep += cc.find_library('intlc', required: false)
   elif cc_id == 'gcc'
     mkl_dep += cc.find_library('mkl_gf_lp64')
     mkl_dep += cc.find_library('mkl_gnu_thread')

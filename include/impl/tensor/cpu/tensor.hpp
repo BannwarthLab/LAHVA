@@ -1,3 +1,9 @@
+/// @file tensor.hpp
+/// @brief Abstract base tensor class for multi-dimensional array data structures.
+///
+/// Defines the abstract tensor interface providing common functionality for all tensor types
+/// (vectors, matrices, etc.). Includes memory management, shape information, and basic operations.
+
 #pragma once
 
 #include <memory>
@@ -5,6 +11,7 @@
 #include <iostream>
 #include "impl/tensor/allocators.hpp"
 #include <omp.h>
+
 namespace lahva
 {
 
@@ -123,7 +130,6 @@ namespace lahva
 
         /// @brief Flag indicating if this object owns the data
         bool is_owner_ = true;
-        bool no_alloc = false;
 
     public:
         /// @brief Construct CPU tensor with specified element count
@@ -146,15 +152,17 @@ namespace lahva
         /// @brief Construct CPU tensor without allocating initial memory
         /// @param[in] alloc host (CPU) memory allocator
         Tensor(const alloc_ptr &alloc) : alloc_{alloc} { is_owner_ = false; };
-        Tensor() : count_{0}, data_{nullptr}, no_alloc{true}
-        {
 
-        };
-        Tensor(const Tensor &other) :  no_alloc{other.no_alloc}
+        /// @brief Default constructor for CPU tensor
+        Tensor() : count_{0}, data_{nullptr} {};
+
+        /// @brief Copy constructor for CPU tensor
+        /// @param[in] other source tensor to copy
+        Tensor(const Tensor &other)
         {
             this->count_ = other.count_;
             this->alloc_ = other.get_allocator();
-            if (!this->no_alloc)
+            if (other.data_ != nullptr && count_ > 0)
             {
                 this->data_ = this->alloc_.allocate(other.size());
                 this->is_owner_ = true;
@@ -163,6 +171,7 @@ namespace lahva
             else
             {
                 this->data_ = nullptr;
+                this->is_owner_ = false;
             }
         };
 
@@ -214,10 +223,18 @@ namespace lahva
                     this->alloc_.deallocate(this->data_, this->count_);
                 this->alloc_ = other.get_allocator();
                 count_ = other.count_;
+                if (other.data_ != nullptr && count_ > 0)
+                {
                     this->data_ = this->alloc_.allocate(other.size());
                     this->is_owner_ = true;
                     std::copy(other.data(), other.data() + other.size(), this->data_);
                 }
+                else
+                {
+                    this->data_ = nullptr;
+                    this->is_owner_ = false;
+                }
+            }
             return *this;
         };
 

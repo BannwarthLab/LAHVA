@@ -23,8 +23,8 @@ inline T sum(int n, T *vec)
 }
 
 // Fill tensor with random values using normal distribution
-template <typename Tensor_>
-void fill_with_rd_values(Tensor_& tensor, double mean = 0.0, double stddev = 1.0e+3)
+template <typename Tensor>
+void fill_with_rd_values(Tensor& tensor, double mean = 0.0, double stddev = 1.0e+3)
 {
     std::random_device rd;
     std::minstd_rand eng(rd());

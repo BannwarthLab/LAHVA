@@ -4,6 +4,7 @@
 using namespace lahva::gpu;
 using lahva::Shape;
 using lahva::CudaRuntime;
+using lahva::CudaHostAllocator;
 #define M 10
 #define N 5
 
@@ -18,6 +19,15 @@ double *pd = vd;
 template<typename T> T* get_test_data();
 template<> double* get_test_data<double>() { return pd; }
 template<> float* get_test_data<float>() { return pf; }
+
+// MLow frees data it owns through StdAllocator, so data must not come from new[]
+template<typename T>
+T* make_lowtri_data() {
+    T* data = lahva::StdAllocator<T>().allocate(6);
+    const T values[6] = {(T)1.0, (T)4.0, (T)5.0, (T)2.0, (T)6.0, (T)3.0};
+    std::copy(values, values + 6, data);
+    return data;
+}
 
 template <typename T>
 int test_gemv_zero_v_cpp(CudaRuntime& cudart){
@@ -207,7 +217,7 @@ int test_gemv_v_cpp(CudaRuntime& cudart){
 
 template <typename T>
 int test_spmv_v_cpp(CudaRuntime& cudart){
-    T* vdtri_ = new T[6] {(T)1.0, (T)4.0, (T)5.0, (T)2.0, (T)6.0, (T)3.0};
+    T* vdtri_ = make_lowtri_data<T>();
     MLow<T> A(3, vdtri_);
     Vector<T> x({(T)1.0, (T)2.0, (T)3.0});
     Vector<T> y(3, (T)0.0);
@@ -265,15 +275,15 @@ int test_outer_product(CudaRuntime& cudart){
     try {
         Matrix<T> A(Shape(4,2),0.0);
         OuterVectorProduct(cudart, x, y, A);
+        std::cerr << check_msg(get_type_name<T>(), "check 3") << std::endl;
         return TEST_FAIL; // Should not reach here
-        std::cerr << "Error: No exception thrown for dimension mismatch in outer product test." << std::endl;
     }
     catch (std::invalid_argument& e) {
         // Expected exception caught
     }
     catch (const std::exception& e) {
+        std::cerr << check_msg(get_type_name<T>(), "check 4") << std::endl;
         return TEST_FAIL; // Unexpected exception type
-        std::cerr << "Error: Unexpected exception type caught in outer product dimension mismatch test: " << e.what() << std::endl;
     }
 
 
@@ -281,9 +291,30 @@ int test_outer_product(CudaRuntime& cudart){
     return TEST_PASS;
 }
 
-// ============================================================================
-// Main
-// ============================================================================
+template <typename T>
+int test_gemv_strided(CudaRuntime& cudart) {
+
+    Matrix<T> A(Shape{4, 4}, (T)0);
+    A(0, 0) = 1; A(1, 0) = 3; A(0, 1) = 2; A(1, 1) = 4;
+    A(2, 2) = 5; A(3, 2) = 7; A(2, 3) = 6; A(3, 3) = 8;
+
+    Vector<T> x(8, (T)0);
+    for (int i = 0; i < 4; i++) {
+        x[2 * i] = static_cast<T>(i + 1);
+    }
+    Vector<T> y(12, (T)-1);
+
+    MatrixVectorProduct(cudart, "N", (T)1.0, A, x, 2, (T)0.0, y, 3);
+    y.copy2host(cudart);
+    cudart.synchronize();
+
+    const T expected[4] = {5, 11, 39, 53};
+    for (int i = 0; i < 4; i++) {
+        if (!check(y[3 * i], expected[i], check_msg(get_type_name<T>(), "element at stride 3"))) return TEST_FAIL;
+    }
+
+    return TEST_PASS;
+}
 
 int main(){
     int total_failures = 0;
@@ -310,6 +341,10 @@ int main(){
     // Outer product tests
     total_failures += test_outer_product<double>(cudart);
     total_failures += test_outer_product<float>(cudart);
+
+    // Stride tests
+    total_failures += test_gemv_strided<double>(cudart);
+    total_failures += test_gemv_strided<float>(cudart);
 
     if (total_failures > 0) {
         std::cerr << "gpu/blas/level2 tests: " << total_failures << " failures" << std::endl;

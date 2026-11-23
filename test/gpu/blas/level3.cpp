@@ -4,14 +4,14 @@
 using namespace lahva::gpu;
 using lahva::Shape;
 using lahva::CudaRuntime;
+using lahva::CudaHostAllocator;
 
 // ============================================================================
 // Matrix-Matrix Product Tests
 // ============================================================================
 
 template <typename T>
-int test_gemm_zero_v_gpu(){
-    CudaRuntime gpu_runtime;
+int test_gemm_zero_v_gpu(CudaRuntime& cudart){
 
     Shape sres(10, 5);
     Shape sa(10, 3);
@@ -21,10 +21,10 @@ int test_gemm_zero_v_gpu(){
     Matrix<T> B(sb, (T)0.0);
     Matrix<T> C(sres, (T)1.0);
 
-    MatrixMatrixProduct(gpu_runtime, "N", "N", (T)1.0, A, B, (T)0.0, C);
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     Matrix<T> Mres(sres, (T)0.0);
 
@@ -34,8 +34,7 @@ int test_gemm_zero_v_gpu(){
 }
 
 template <typename T>
-int test_gemm_identity_v_gpu(){
-    CudaRuntime gpu_runtime;
+int test_gemm_identity_v_gpu(CudaRuntime& cudart){
 
     Shape sq(5, 5);
     Matrix<T> A(sq, (T)1.0);
@@ -46,10 +45,10 @@ int test_gemm_identity_v_gpu(){
         B.data()[i * 5 + i] = (T)1.0;
     }
 
-    MatrixMatrixProduct(gpu_runtime, "N", "N", (T)1.0, A, B, (T)0.0, C);
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 25; i++) {
         if (!check(C.data()[i], (T)1.0, check_msg(get_type_name<T>(), "")))
@@ -60,18 +59,17 @@ int test_gemm_identity_v_gpu(){
 }
 
 template <typename T>
-int test_gemm_beta_nonzero(){
-    CudaRuntime gpu_runtime;
+int test_gemm_beta_nonzero(CudaRuntime& cudart){
 
     Shape sq(3, 3);
     Matrix<T> A(sq, (T)2.0);
     Matrix<T> B(sq, (T)0.5);
     Matrix<T> C(sq, (T)10.0);
 
-    MatrixMatrixProduct(gpu_runtime, "N", "N", (T)1.0, A, B, (T)0.5, C);
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.5, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 9; i++) {
         T expected = ((T)2.0 * (T)0.5 * (T)3) + ((T)0.5 * (T)10.0);
@@ -87,8 +85,7 @@ int test_gemm_beta_nonzero(){
 // ============================================================================
 
 template <typename T>
-int test_symm_left_side(){
-    CudaRuntime gpu_runtime;
+int test_symm_left_side(CudaRuntime& cudart){
 
     Shape sq(4, 4);
     Shape sb(4, 5);
@@ -99,14 +96,14 @@ int test_symm_left_side(){
     Matrix<T> C(sc, (T)0.0);
 
     // Ensure matrices are on device
-    A.copy2device(gpu_runtime);
-    B.copy2device(gpu_runtime);
-    C.copy2device(gpu_runtime);
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
 
-    SymMatrixMatrixProduct(gpu_runtime, CUBLAS_SIDE_LEFT, (T)1.0, A, B, (T)0.0, C);
+    SymMatrixMatrixProduct(cudart, CUBLAS_SIDE_LEFT, (T)1.0, A, B, (T)0.0, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 20; i++) {
         T expected = (T)1.0 * (T)4.0 * (T)2.0;
@@ -122,8 +119,7 @@ int test_symm_left_side(){
 // ============================================================================
 
 template <typename T>
-int test_gemm_alt_param_order(){
-    CudaRuntime gpu_runtime;
+int test_gemm_alt_param_order(CudaRuntime& cudart){
 
     Shape sres(10, 5);
     Shape sa(10, 3);
@@ -134,10 +130,10 @@ int test_gemm_alt_param_order(){
     Matrix<T> C(sres, (T)1.0);
 
     // Call with alternate parameter order: A, B, C, alpha, beta, Ta, Tb
-    MatrixMatrixProduct(gpu_runtime, A, B, C, (T)1.0, (T)0.0, "N", "N");
+    MatrixMatrixProduct(cudart, A, B, C, (T)1.0, (T)0.0, "N", "N");
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     Matrix<T> Mres(sres, (T)0.0);
 
@@ -148,8 +144,7 @@ int test_gemm_alt_param_order(){
 }
 
 template <typename T>
-int test_gemm_alt_with_alpha(){
-    CudaRuntime gpu_runtime;
+int test_gemm_alt_with_alpha(CudaRuntime& cudart){
 
     Shape sq(4, 4);
     Matrix<T> A(sq, (T)1.0);
@@ -157,16 +152,15 @@ int test_gemm_alt_with_alpha(){
     Matrix<T> C(sq, (T)0.0);
 
     // Call with alternate parameter order and alpha scaling
-    MatrixMatrixProduct(gpu_runtime, A, B, C, (T)2.5, (T)0.0, "N", "N");
+    MatrixMatrixProduct(cudart, A, B, C, (T)2.5, (T)0.0, "N", "N");
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 16; i++) {
         T expected = (T)2.5 * (T)4.0;
         if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
@@ -174,8 +168,7 @@ int test_gemm_alt_with_alpha(){
 }
 
 template <typename T>
-int test_gemm_alt_with_beta(){
-    CudaRuntime gpu_runtime;
+int test_gemm_alt_with_beta(CudaRuntime& cudart){
 
     Shape sq(3, 3);
     Matrix<T> A(sq, (T)2.0);
@@ -183,16 +176,15 @@ int test_gemm_alt_with_beta(){
     Matrix<T> C(sq, (T)10.0);
 
     // Call with alternate parameter order and beta
-    MatrixMatrixProduct(gpu_runtime, A, B, C, (T)1.0, (T)0.5, "N", "N");
+    MatrixMatrixProduct(cudart, A, B, C, (T)1.0, (T)0.5, "N", "N");
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 9; i++) {
         T expected = ((T)2.0 * (T)0.5 * (T)3) + ((T)0.5 * (T)10.0);
         if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
@@ -204,8 +196,7 @@ int test_gemm_alt_with_beta(){
 // ============================================================================
 
 template <typename T>
-int test_symm_right_side(){
-    CudaRuntime gpu_runtime;
+int test_symm_right_side(CudaRuntime& cudart){
 
     Shape sq(5, 5);
 
@@ -213,20 +204,19 @@ int test_symm_right_side(){
     Matrix<T> B(sq, (T)2.0);
     Matrix<T> C(sq, (T)0.0);
 
-    A.copy2device(gpu_runtime);
-    B.copy2device(gpu_runtime);
-    C.copy2device(gpu_runtime);
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
 
-    SymMatrixMatrixProduct(gpu_runtime, CUBLAS_SIDE_RIGHT, (T)1.0, A, B, (T)0.0, C);
+    SymMatrixMatrixProduct(cudart, CUBLAS_SIDE_RIGHT, (T)1.0, A, B, (T)0.0, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 25; i++) {
         T expected = (T)2.0 * (T)5.0 * (T)1.5;
         if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
@@ -238,8 +228,7 @@ int test_symm_right_side(){
 // ============================================================================
 
 template <typename T>
-int test_gemm_large_sizes(){
-    CudaRuntime gpu_runtime;
+int test_gemm_large_sizes(CudaRuntime& cudart){
 
     Shape sres(32, 32);
     Shape sa(32, 16);
@@ -249,16 +238,15 @@ int test_gemm_large_sizes(){
     Matrix<T> B(sb, (T)1.5);
     Matrix<T> C(sres, (T)0.0);
 
-    MatrixMatrixProduct(gpu_runtime, "N", "N", (T)1.0, A, B, (T)0.0, C);
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 1024; i++) {
         T expected = (T)0.75 * (T)16.0 * (T)1.5;
         if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
@@ -266,8 +254,7 @@ int test_gemm_large_sizes(){
 }
 
 template <typename T>
-int test_gemm_alt_large(){
-    CudaRuntime gpu_runtime;
+int test_gemm_alt_large(CudaRuntime& cudart){
 
     Shape sres(32, 32);
     Shape sa(32, 16);
@@ -277,16 +264,15 @@ int test_gemm_alt_large(){
     Matrix<T> B(sb, (T)1.5);
     Matrix<T> C(sres, (T)0.0);
 
-    MatrixMatrixProduct(gpu_runtime, A, B, C, (T)1.0, (T)0.0, "N", "N");
+    MatrixMatrixProduct(cudart, A, B, C, (T)1.0, (T)0.0, "N", "N");
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 1024; i++) {
         T expected = (T)0.75 * (T)16.0 * (T)1.5;
         if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
@@ -294,24 +280,22 @@ int test_gemm_alt_large(){
 }
 
 template <typename T>
-int test_gemm_alpha_scale(){
-    CudaRuntime gpu_runtime;
+int test_gemm_alpha_scale(CudaRuntime& cudart){
 
     Shape sq(4, 4);
     Matrix<T> A(sq, (T)1.0);
     Matrix<T> B(sq, (T)1.0);
     Matrix<T> C(sq, (T)0.0);
 
-    MatrixMatrixProduct(gpu_runtime, "N", "N", (T)2.5, A, B, (T)0.0, C);
+    MatrixMatrixProduct(cudart, "N", "N", (T)2.5, A, B, (T)0.0, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 16; i++) {
         T expected = (T)2.5 * (T)4.0;
         if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
@@ -323,8 +307,7 @@ int test_gemm_alpha_scale(){
 // ============================================================================
 
 template <typename T>
-int test_symm_alt_order(){
-    CudaRuntime gpu_runtime;
+int test_symm_alt_order(CudaRuntime& cudart){
 
     Shape sq(4, 4);
     Shape sb(4, 5);
@@ -334,20 +317,19 @@ int test_symm_alt_order(){
     Matrix<T> B(sb, (T)2.0);
     Matrix<T> C(sc, (T)0.0);
 
-    A.copy2device(gpu_runtime);
-    B.copy2device(gpu_runtime);
-    C.copy2device(gpu_runtime);
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
 
-    SymMatrixMatrixProduct(gpu_runtime, A, B, C, (T)1.0, (T)0.0, CUBLAS_SIDE_LEFT);
+    SymMatrixMatrixProduct(cudart, A, B, C, (T)1.0, (T)0.0, CUBLAS_SIDE_LEFT);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 20; i++) {
         T expected = (T)1.0 * (T)4.0 * (T)2.0;
         if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
@@ -355,28 +337,26 @@ int test_symm_alt_order(){
 }
 
 template <typename T>
-int test_symm_alt_order_right(){
-    CudaRuntime gpu_runtime;
+int test_symm_alt_order_right(CudaRuntime& cudart){
 
     Shape sq(5, 5);
     Matrix<T> A(sq, (T)1.5);
     Matrix<T> B(sq, (T)2.0);
     Matrix<T> C(sq, (T)0.0);
 
-    A.copy2device(gpu_runtime);
-    B.copy2device(gpu_runtime);
-    C.copy2device(gpu_runtime);
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
 
-    SymMatrixMatrixProduct(gpu_runtime, A, B, C, (T)1.0, (T)0.0, CUBLAS_SIDE_RIGHT);
+    SymMatrixMatrixProduct(cudart, A, B, C, (T)1.0, (T)0.0, CUBLAS_SIDE_RIGHT);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 25; i++) {
         T expected = (T)2.0 * (T)5.0 * (T)1.5;
         if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
@@ -387,8 +367,7 @@ int test_symm_alt_order_right(){
 // TF32 Variant Tests (single precision only - kept as-is)
 // ============================================================================
 
-int test_dgemm_tf32_zero(){
-    CudaRuntime gpu_runtime;
+int test_dgemm_tf32_zero(CudaRuntime& cudart){
 
     Shape sres(10, 5);
     Shape sa(10, 3);
@@ -398,10 +377,10 @@ int test_dgemm_tf32_zero(){
     Matrix<float> B(sb, 0.0f);
     Matrix<float> C(sres, 1.0f);
 
-    MatrixMatrixProductTF32(gpu_runtime, "N", "N", 1.0f, A, B, 0.0f, C);
+    MatrixMatrixProductTF32(cudart, "N", "N", 1.0f, A, B, 0.0f, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     Matrix<float> Mres(sres, 0.0f);
 
@@ -412,8 +391,7 @@ int test_dgemm_tf32_zero(){
     return TEST_PASS;
 }
 
-int test_dgemm_tf32_identity(){
-    CudaRuntime gpu_runtime;
+int test_dgemm_tf32_identity(CudaRuntime& cudart){
 
     Shape sq(5, 5);
     Matrix<float> A(sq, 1.0f);
@@ -424,10 +402,10 @@ int test_dgemm_tf32_identity(){
         B.data()[i * 5 + i] = 1.0f;
     }
 
-    MatrixMatrixProductTF32(gpu_runtime, "N", "N", 1.0f, A, B, 0.0f, C);
+    MatrixMatrixProductTF32(cudart, "N", "N", 1.0f, A, B, 0.0f, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 25; i++) {
         if (!check(C.data()[i], 1.0f, check_msg(get_type_name<float>(), ""))) {
@@ -439,8 +417,7 @@ int test_dgemm_tf32_identity(){
     return TEST_PASS;
 }
 
-int test_dgemm_tf32_alt_param(){
-    CudaRuntime gpu_runtime;
+int test_dgemm_tf32_alt_param(CudaRuntime& cudart){
 
     Shape sres(10, 5);
     Shape sa(10, 3);
@@ -451,10 +428,10 @@ int test_dgemm_tf32_alt_param(){
     Matrix<float> C(sres, 1.0f);
 
     // Call with alternate parameter order
-    MatrixMatrixProductTF32(gpu_runtime, A, B, C, 1.0f, 0.0f, "N", "N");
+    MatrixMatrixProductTF32(cudart, A, B, C, 1.0f, 0.0f, "N", "N");
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     Matrix<float> Mres(sres, 0.0f);
 
@@ -465,56 +442,51 @@ int test_dgemm_tf32_alt_param(){
     return TEST_PASS;
 }
 
-int test_dgemm_tf32_with_alpha(){
-    CudaRuntime gpu_runtime;
+int test_dgemm_tf32_with_alpha(CudaRuntime& cudart){
 
     Shape sq(4, 4);
     Matrix<float> A(sq, 1.0f);
     Matrix<float> B(sq, 1.0f);
     Matrix<float> C(sq, 0.0f);
 
-    MatrixMatrixProductTF32(gpu_runtime, "N", "N", 2.5f, A, B, 0.0f, C);
+    MatrixMatrixProductTF32(cudart, "N", "N", 2.5f, A, B, 0.0f, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 16; i++) {
         float expected = 2.5f * 4.0f;
         if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
     return TEST_PASS;
 }
 
-int test_tf32_alt_with_beta(){
-    CudaRuntime gpu_runtime;
+int test_tf32_alt_with_beta(CudaRuntime& cudart){
 
     Shape sq(3, 3);
     Matrix<float> A(sq, 2.0f);
     Matrix<float> B(sq, 0.5f);
     Matrix<float> C(sq, 10.0f);
 
-    MatrixMatrixProductTF32(gpu_runtime, A, B, C, 1.0f, 0.5f, "N", "N");
+    MatrixMatrixProductTF32(cudart, A, B, C, 1.0f, 0.5f, "N", "N");
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 9; i++) {
         float expected = (2.0f * 0.5f * 3) + (0.5f * 10.0f);
         if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
     return TEST_PASS;
 }
 
-int test_tf32_large_matrices(){
-    CudaRuntime gpu_runtime;
+int test_tf32_large_matrices(CudaRuntime& cudart){
 
     Shape sres(32, 32);
     Shape sa(32, 16);
@@ -524,16 +496,15 @@ int test_tf32_large_matrices(){
     Matrix<float> B(sb, 1.5f);
     Matrix<float> C(sres, 0.0f);
 
-    MatrixMatrixProductTF32(gpu_runtime, "N", "N", 1.0f, A, B, 0.0f, C);
+    MatrixMatrixProductTF32(cudart, "N", "N", 1.0f, A, B, 0.0f, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 1024; i++) {
         float expected = 0.75f * 16.0f * 1.5f;
         if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
@@ -545,29 +516,27 @@ int test_tf32_large_matrices(){
 // ============================================================================
 
 template <typename T>
-int test_complex_gemm_basic(){
-    CudaRuntime gpu_runtime;
+int test_complex_gemm_basic(CudaRuntime& cudart){
 
     Shape sq(2, 2);
     Matrix<T> A(sq, T(1.0, 0.0));
     Matrix<T> B(sq, T(1.0, 0.0));
     Matrix<T> C(sq, T(0.0, 0.0));
 
-    A.copy2device(gpu_runtime);
-    B.copy2device(gpu_runtime);
-    C.copy2device(gpu_runtime);
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
 
-    MatrixMatrixProduct(gpu_runtime, "N", "N", T(1.0, 0.0), A, B, T(0.0, 0.0), C);
+    MatrixMatrixProduct(cudart, "N", "N", T(1.0, 0.0), A, B, T(0.0, 0.0), C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 4; i++) {
         T expected(2.0, 0.0);
         if (!check(C.data()[i].real(), expected.real(), check_msg(get_type_name<T>(), "check 1")) ||
             !check(C.data()[i].imag(), expected.imag(), check_msg(get_type_name<T>(), "check 2"))) {
             return TEST_FAIL;
-            break;
         }
     }
 
@@ -575,29 +544,27 @@ int test_complex_gemm_basic(){
 }
 
 template <typename T>
-int test_complex_gemm_alt_order(){
-    CudaRuntime gpu_runtime;
+int test_complex_gemm_alt_order(CudaRuntime& cudart){
 
     Shape sq(2, 2);
     Matrix<T> A(sq, T(1.0, 0.0));
     Matrix<T> B(sq, T(1.0, 0.0));
     Matrix<T> C(sq, T(0.0, 0.0));
 
-    A.copy2device(gpu_runtime);
-    B.copy2device(gpu_runtime);
-    C.copy2device(gpu_runtime);
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
 
-    MatrixMatrixProduct(gpu_runtime, A, B, C, T(1.0, 0.0), T(0.0, 0.0), "N", "N");
+    MatrixMatrixProduct(cudart, A, B, C, T(1.0, 0.0), T(0.0, 0.0), "N", "N");
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 4; i++) {
         T expected(2.0, 0.0);
         if (!check(C.data()[i].real(), expected.real(), check_msg(get_type_name<T>(), "check 1")) ||
             !check(C.data()[i].imag(), expected.imag(), check_msg(get_type_name<T>(), "check 2"))) {
             return TEST_FAIL;
-            break;
         }
     }
 
@@ -605,29 +572,27 @@ int test_complex_gemm_alt_order(){
 }
 
 template <typename T>
-int test_complex_gemm_with_beta(){
-    CudaRuntime gpu_runtime;
+int test_complex_gemm_with_beta(CudaRuntime& cudart){
 
     Shape sq(2, 2);
     Matrix<T> A(sq, T(1.0, 0.0));
     Matrix<T> B(sq, T(1.0, 0.0));
     Matrix<T> C(sq, T(2.0, 0.0));
 
-    A.copy2device(gpu_runtime);
-    B.copy2device(gpu_runtime);
-    C.copy2device(gpu_runtime);
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
 
-    MatrixMatrixProduct(gpu_runtime, "N", "N", T(1.0, 0.0), A, B, T(0.5, 0.0), C);
+    MatrixMatrixProduct(cudart, "N", "N", T(1.0, 0.0), A, B, T(0.5, 0.0), C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 4; i++) {
         T expected(2.0 + 0.5 * 2.0, 0.0);
         if (!check(C.data()[i].real(), expected.real(), check_msg(get_type_name<T>(), "check 1")) ||
             !check(C.data()[i].imag(), expected.imag(), check_msg(get_type_name<T>(), "check 2"))) {
             return TEST_FAIL;
-            break;
         }
     }
 
@@ -638,112 +603,104 @@ int test_complex_gemm_with_beta(){
 // FP16 Mixed Precision Tests
 // ============================================================================
 
-int test_fp16_basic(){
-    CudaRuntime gpu_runtime;
+int test_fp16_basic(CudaRuntime& cudart){
 
     Shape sq(2, 2);
     Matrix<__half> A(sq, __half(1.0f));
     Matrix<__half> B(sq, __half(1.0f));
     Matrix<float> C(sq, 0.0f);
 
-    A.copy2device(gpu_runtime);
-    B.copy2device(gpu_runtime);
-    C.copy2device(gpu_runtime);
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
 
-    MatrixMatrixProductFP16(gpu_runtime, "N", "N", 1.0f, A, B, 0.0f, C);
+    MatrixMatrixProductFP16(cudart, "N", "N", 1.0f, A, B, 0.0f, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 4; i++) {
         float expected = 2.0f;
         if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
     return TEST_PASS;
 }
 
-int test_fp16_alt_order(){
-    CudaRuntime gpu_runtime;
+int test_fp16_alt_order(CudaRuntime& cudart){
 
     Shape sq(2, 2);
     Matrix<__half> A(sq, __half(1.0f));
     Matrix<__half> B(sq, __half(1.0f));
     Matrix<float> C(sq, 0.0f);
 
-    A.copy2device(gpu_runtime);
-    B.copy2device(gpu_runtime);
-    C.copy2device(gpu_runtime);
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
 
-    MatrixMatrixProductFP16(gpu_runtime, A, B, C, 1.0f, 0.0f, "N", "N");
+    MatrixMatrixProductFP16(cudart, A, B, C, 1.0f, 0.0f, "N", "N");
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 4; i++) {
         float expected = 2.0f;
         if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
     return TEST_PASS;
 }
 
-int test_fp16_with_alpha(){
-    CudaRuntime gpu_runtime;
+int test_fp16_with_alpha(CudaRuntime& cudart){
 
     Shape sq(3, 3);
     Matrix<__half> A(sq, __half(1.0f));
     Matrix<__half> B(sq, __half(1.0f));
     Matrix<float> C(sq, 0.0f);
 
-    A.copy2device(gpu_runtime);
-    B.copy2device(gpu_runtime);
-    C.copy2device(gpu_runtime);
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
 
-    MatrixMatrixProductFP16(gpu_runtime, "N", "N", 2.5f, A, B, 0.0f, C);
+    MatrixMatrixProductFP16(cudart, "N", "N", 2.5f, A, B, 0.0f, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 9; i++) {
         float expected = 2.5f * 3.0f;
         if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
     return TEST_PASS;
 }
 
-int test_fp16_with_beta(){
-    CudaRuntime gpu_runtime;
+int test_fp16_with_beta(CudaRuntime& cudart){
 
     Shape sq(2, 2);
     Matrix<__half> A(sq, __half(1.0f));
     Matrix<__half> B(sq, __half(1.0f));
     Matrix<float> C(sq, 5.0f);
 
-    A.copy2device(gpu_runtime);
-    B.copy2device(gpu_runtime);
-    C.copy2device(gpu_runtime);
+    A.copy2device(cudart);
+    B.copy2device(cudart);
+    C.copy2device(cudart);
 
-    MatrixMatrixProductFP16(gpu_runtime, "N", "N", 1.0f, A, B, 0.5f, C);
+    MatrixMatrixProductFP16(cudart, "N", "N", 1.0f, A, B, 0.5f, C);
 
-    gpu_runtime.synchronize();
-    C.copy2host(gpu_runtime);
+    cudart.synchronize();
+    C.copy2host(cudart);
 
     for (int i = 0; i < 4; i++) {
         float expected = 2.0f + 0.5f * 5.0f;
         if (!check(C.data()[i], expected, check_msg(get_type_name<float>(), ""))) {
             return TEST_FAIL;
-            break;
         }
     }
 
@@ -771,14 +728,12 @@ void fill_random_mp(Matrix<T>& m) {
 }
 
 template <typename T>
-int test_mp_matrix_gemm_basic() {
-    int failures = 0;
-    CudaRuntime cudart(false);
+int test_mp_matrix_gemm_basic(CudaRuntime& cudart) {
 
     Shape shape(8, 8);
     MixedPrecisionMatrix<T> A(shape);
     MixedPrecisionMatrix<T> B(shape);
-    Matrix<T> C(shape);
+    MixedPrecisionMatrix<T> C(shape);
 
     fill_random_mp(A);
     fill_random_mp(B);
@@ -792,7 +747,11 @@ int test_mp_matrix_gemm_basic() {
     C.copy2device(cudart);
     cudart.synchronize();
 
-    MatrixMatrixProduct(cudart, A, B, C, (T)1.0, (T)0.0);
+    MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
+    mp_rt.fast_mode = true;
+
+    MatrixMatrixProduct(cudart, mp_rt, A, B, C, (T)1.0, (T)0.0);
     cudart.synchronize();
     C.copy2host(cudart);
     cudart.synchronize();
@@ -803,16 +762,14 @@ int test_mp_matrix_gemm_basic() {
     }
 
     if (sum < 1e-10) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
-int test_mp_matrix_copy_to_device() {
-    int failures = 0;
-    CudaRuntime cudart(false);
+int test_mp_matrix_copy_to_device(CudaRuntime& cudart) {
 
     Shape shape(4, 4);
     MixedPrecisionMatrix<T> m(shape);
@@ -830,21 +787,19 @@ int test_mp_matrix_copy_to_device() {
 
 
     if (!check(m.data()[0], (T)2.5, check_msg(get_type_name<T>(), ""))) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
-int test_mp_matrix_scaling_operation() {
-    int failures = 0;
-    CudaRuntime cudart(false);
+int test_mp_matrix_scaling_operation(CudaRuntime& cudart) {
 
     Shape shape(4, 4);
     MixedPrecisionMatrix<T> A(shape);
     MixedPrecisionMatrix<T> B(shape);
-    Matrix<T> C(shape);
+    MixedPrecisionMatrix<T> C(shape);
 
     fill_random_mp(A);
     fill_random_mp(B);
@@ -858,7 +813,11 @@ int test_mp_matrix_scaling_operation() {
     C.copy2device(cudart);
     cudart.synchronize();
 
-    MatrixMatrixProduct(cudart, A, B, C, (T)0.5, (T)0.0);
+    MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
+    mp_rt.fast_mode = true;
+
+    MatrixMatrixProduct(cudart, mp_rt, A, B, C, (T)0.5, (T)0.0);
     cudart.synchronize();
     C.copy2host(cudart);
     cudart.synchronize();
@@ -869,21 +828,19 @@ int test_mp_matrix_scaling_operation() {
     }
 
     if (sum < 1e-10) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
-int test_mp_matrix_accumulation() {
-    int failures = 0;
-    CudaRuntime cudart(false);
+int test_mp_matrix_accumulation(CudaRuntime& cudart) {
 
     Shape shape(4, 4);
     MixedPrecisionMatrix<T> A(shape);
     MixedPrecisionMatrix<T> B(shape);
-    Matrix<T> C(shape);
+    MixedPrecisionMatrix<T> C(shape);
 
     fill_random_mp(A);
     fill_random_mp(B);
@@ -897,7 +854,11 @@ int test_mp_matrix_accumulation() {
     C.copy2device(cudart);
     cudart.synchronize();
 
-    MatrixMatrixProduct(cudart, A, B, C, (T)1.0, (T)1.0);
+    MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
+    mp_rt.fast_mode = true;
+
+    MatrixMatrixProduct(cudart, mp_rt, A, B, C, (T)1.0, (T)1.0);
     cudart.synchronize();
     C.copy2host(cudart);
     cudart.synchronize();
@@ -908,21 +869,19 @@ int test_mp_matrix_accumulation() {
     }
 
     if (sum <= 16.0) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
-int test_mp_matrix_identity_multiplication() {
-    int failures = 0;
-    CudaRuntime cudart(false);
+int test_mp_matrix_identity_multiplication(CudaRuntime& cudart) {
 
     Shape shape(4, 4);
     MixedPrecisionMatrix<T> I(shape);
     MixedPrecisionMatrix<T> A(shape);
-    Matrix<T> C(shape);
+    MixedPrecisionMatrix<T> C(shape);
 
     for (size_t i = 0; i < I.size(); i++) {
         I.data()[i] = (T)0.0;
@@ -942,7 +901,11 @@ int test_mp_matrix_identity_multiplication() {
     C.copy2device(cudart);
     cudart.synchronize();
 
-    MatrixMatrixProduct(cudart, I, A, C, (T)1.0, (T)0.0);
+    MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
+    mp_rt.fast_mode = true;
+
+    MatrixMatrixProduct(cudart, mp_rt, I, A, C, (T)1.0, (T)0.0);
     cudart.synchronize();
     C.copy2host(cudart);
     cudart.synchronize();
@@ -956,22 +919,20 @@ int test_mp_matrix_identity_multiplication() {
     }
 
     if (!close) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
-int test_mp_matrix_transpose_consistency() {
-    int failures = 0;
-    CudaRuntime cudart(false);
+int test_mp_matrix_transpose_consistency(CudaRuntime& cudart) {
 
     Shape shape(4, 4);
     MixedPrecisionMatrix<T> A(shape);
     MixedPrecisionMatrix<T> B(shape);
-    Matrix<T> C1(shape);
-    Matrix<T> C2(shape);
+    MixedPrecisionMatrix<T> C1(shape);
+    MixedPrecisionMatrix<T> C2(shape);
 
     fill_random_mp(A);
     fill_random_mp(B);
@@ -987,10 +948,14 @@ int test_mp_matrix_transpose_consistency() {
     C2.copy2device(cudart);
     cudart.synchronize();
 
-    MatrixMatrixProduct(cudart, A, B, C1, (T)1.0, (T)0.0);
+    MPRuntime mp_rt;
+    mp_rt.nsplits_FP32 = 4;
+    mp_rt.fast_mode = true;
+
+    MatrixMatrixProduct(cudart, mp_rt, A, B, C1, (T)1.0, (T)0.0);
     cudart.synchronize();
 
-    MatrixMatrixProduct(cudart, B, A, C2, (T)1.0, (T)0.0, "T", "T");
+    MatrixMatrixProduct(cudart, mp_rt, B, A, C2, (T)1.0, (T)0.0, "T", "T");
     cudart.synchronize();
 
     C1.copy2host(cudart);
@@ -1007,16 +972,14 @@ int test_mp_matrix_transpose_consistency() {
     }
 
     if (!consistent) {
-        failures += 1;
+        return TEST_FAIL;
     }
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
-int test_mp_matrix_nonbatch_gemm() {
-    int failures = 0;
-    CudaRuntime cudart(false);
+int test_mp_matrix_nonbatch_gemm(CudaRuntime& cudart) {
     MPRuntime mp_rt;
     mp_rt.nsplits_FP32 = 4;
     mp_rt.fast_mode = false;
@@ -1046,18 +1009,14 @@ int test_mp_matrix_nonbatch_gemm() {
     C_ref.copy2host(cudart);
     cudart.synchronize();
 
-    double norm = FrobeniusNorm(cudart, C, C_ref);
-    if (norm > 1e-5) {
-        failures += 1;
-    }
     
-    return failures;
+    if (!check(C.data(), C_ref.data(), C.size(), check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
+
+    return TEST_PASS;
 }
 
 template <typename T>
-int test_mp_matrix_nonbatch_with_alpha() {
-    int failures = 0;
-    CudaRuntime cudart(false);
+int test_mp_matrix_nonbatch_with_alpha(CudaRuntime& cudart) {
     MPRuntime mp_rt;
     mp_rt.nsplits_FP32 = 4;
     mp_rt.fast_mode = false;
@@ -1087,18 +1046,13 @@ int test_mp_matrix_nonbatch_with_alpha() {
     C_ref.copy2host(cudart);
     cudart.synchronize();
 
-    double norm = FrobeniusNorm(cudart, C, C_ref);
-    if (norm > 1e-5) {
-        failures += 1;
-    }
+    if (!check(C.data(), C_ref.data(), C.size(), check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
-    return failures;
+    return TEST_PASS;
 }
 
 template <typename T>
-int test_mp_matrix_nonbatch_with_beta() {
-    int failures = 0;
-    CudaRuntime cudart(false);
+int test_mp_matrix_nonbatch_with_beta(CudaRuntime& cudart) {
     MPRuntime mp_rt;
     mp_rt.nsplits_FP32 = 4;
     mp_rt.fast_mode = false;
@@ -1133,12 +1087,9 @@ int test_mp_matrix_nonbatch_with_beta() {
     C_ref.copy2host(cudart);
     cudart.synchronize();
 
-    double norm = FrobeniusNorm(cudart, C, C_ref);
-    if (norm > 1e-5) {
-        failures += 1;
-}
+    if (!check(C.data(), C_ref.data(), C.size(), check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
-    return failures;
+    return TEST_PASS;
 }
 
 // ============================================================================
@@ -1147,86 +1098,81 @@ int test_mp_matrix_nonbatch_with_beta() {
 
 int main(){
     int total_failures = 0;
+    CudaRuntime cudart;
 
     // General matrix-matrix product tests
-    total_failures += test_gemm_zero_v_gpu<double>();
-    total_failures += test_gemm_zero_v_gpu<float>();
-    total_failures += test_gemm_identity_v_gpu<double>();
-    total_failures += test_gemm_identity_v_gpu<float>();
-    total_failures += test_gemm_beta_nonzero<double>();
-    total_failures += test_gemm_beta_nonzero<float>();
-    total_failures += test_gemm_alpha_scale<double>();
-    total_failures += test_gemm_alpha_scale<float>();
+    total_failures += test_gemm_zero_v_gpu<double>(cudart);
+    total_failures += test_gemm_zero_v_gpu<float>(cudart);
+    total_failures += test_gemm_identity_v_gpu<double>(cudart);
+    total_failures += test_gemm_identity_v_gpu<float>(cudart);
+    total_failures += test_gemm_beta_nonzero<double>(cudart);
+    total_failures += test_gemm_beta_nonzero<float>(cudart);
+    total_failures += test_gemm_alpha_scale<double>(cudart);
+    total_failures += test_gemm_alpha_scale<float>(cudart);
 
     // Symmetric matrix product tests - LEFT side
-    total_failures += test_symm_left_side<double>();
-    total_failures += test_symm_left_side<float>();
+    total_failures += test_symm_left_side<double>(cudart);
+    total_failures += test_symm_left_side<float>(cudart);
 
     // Symmetric matrix product tests - RIGHT side
-    total_failures += test_symm_right_side<double>();
-    total_failures += test_symm_right_side<float>();
+    total_failures += test_symm_right_side<double>(cudart);
+    total_failures += test_symm_right_side<float>(cudart);
 
     // Alternative parameter order tests for general matrix product
-    total_failures += test_gemm_alt_param_order<double>();
-    total_failures += test_gemm_alt_param_order<float>();
-    total_failures += test_gemm_alt_with_alpha<double>();
-    total_failures += test_gemm_alt_with_alpha<float>();
-    total_failures += test_gemm_alt_with_beta<double>();
-    total_failures += test_gemm_alt_with_beta<float>();
+    total_failures += test_gemm_alt_param_order<double>(cudart);
+    total_failures += test_gemm_alt_param_order<float>(cudart);
+    total_failures += test_gemm_alt_with_alpha<double>(cudart);
+    total_failures += test_gemm_alt_with_alpha<float>(cudart);
+    total_failures += test_gemm_alt_with_beta<double>(cudart);
+    total_failures += test_gemm_alt_with_beta<float>(cudart);
 
     // Symmetric matrix product tests - alternative parameter order
-    total_failures += test_symm_alt_order<double>();
-    total_failures += test_symm_alt_order<float>();
-    total_failures += test_symm_alt_order_right<double>();
-    total_failures += test_symm_alt_order_right<float>();
+    total_failures += test_symm_alt_order<double>(cudart);
+    total_failures += test_symm_alt_order<float>(cudart);
+    total_failures += test_symm_alt_order_right<double>(cudart);
+    total_failures += test_symm_alt_order_right<float>(cudart);
 
     // TF32 precision tests (single precision only)
-    total_failures += test_dgemm_tf32_zero();
-    total_failures += test_dgemm_tf32_identity();
-    total_failures += test_dgemm_tf32_alt_param();
-    total_failures += test_dgemm_tf32_with_alpha();
-    total_failures += test_tf32_alt_with_beta();
-    total_failures += test_tf32_large_matrices();
+    total_failures += test_dgemm_tf32_zero(cudart);
+    total_failures += test_dgemm_tf32_identity(cudart);
+    total_failures += test_dgemm_tf32_alt_param(cudart);
+    total_failures += test_dgemm_tf32_with_alpha(cudart);
+    total_failures += test_tf32_alt_with_beta(cudart);
+    total_failures += test_tf32_large_matrices(cudart);
 
     // Extended coverage tests - larger matrices
-    total_failures += test_gemm_large_sizes<double>();
-    total_failures += test_gemm_large_sizes<float>();
-    total_failures += test_gemm_alt_large<double>();
-    total_failures += test_gemm_alt_large<float>();
+    total_failures += test_gemm_large_sizes<double>(cudart);
+    total_failures += test_gemm_large_sizes<float>(cudart);
+    total_failures += test_gemm_alt_large<double>(cudart);
+    total_failures += test_gemm_alt_large<float>(cudart);
 
     // Complex number tests
-    total_failures += test_complex_gemm_basic<complex_double>();
-    total_failures += test_complex_gemm_alt_order<complex_double>();
-    total_failures += test_complex_gemm_basic<complex_float>();
-    total_failures += test_complex_gemm_alt_order<complex_float>();
-    total_failures += test_complex_gemm_with_beta<complex_double>();
-    total_failures += test_complex_gemm_with_beta<complex_float>();
+    total_failures += test_complex_gemm_basic<complex_double>(cudart);
+    total_failures += test_complex_gemm_alt_order<complex_double>(cudart);
+    total_failures += test_complex_gemm_basic<complex_float>(cudart);
+    total_failures += test_complex_gemm_alt_order<complex_float>(cudart);
+    total_failures += test_complex_gemm_with_beta<complex_double>(cudart);
+    total_failures += test_complex_gemm_with_beta<complex_float>(cudart);
 
     // FP16 mixed precision tests
-    total_failures += test_fp16_basic();
-    total_failures += test_fp16_alt_order();
-    total_failures += test_fp16_with_alpha();
-    total_failures += test_fp16_with_beta();
+    total_failures += test_fp16_basic(cudart);
+    total_failures += test_fp16_alt_order(cudart);
+    total_failures += test_fp16_with_alpha(cudart);
+    total_failures += test_fp16_with_beta(cudart);
 
     // MixedPrecisionMatrix operational tests
-    total_failures += test_mp_matrix_gemm_basic<double>();
-    total_failures += test_mp_matrix_gemm_basic<float>();
-    total_failures += test_mp_matrix_copy_to_device<double>();
-    total_failures += test_mp_matrix_copy_to_device<float>();
-    total_failures += test_mp_matrix_scaling_operation<double>();
-    total_failures += test_mp_matrix_scaling_operation<float>();
-    total_failures += test_mp_matrix_accumulation<double>();
-    total_failures += test_mp_matrix_accumulation<float>();
-    total_failures += test_mp_matrix_identity_multiplication<double>();
-    total_failures += test_mp_matrix_identity_multiplication<float>();
-    total_failures += test_mp_matrix_transpose_consistency<double>();
-    total_failures += test_mp_matrix_transpose_consistency<float>();
-    total_failures += test_mp_matrix_nonbatch_gemm<double>();
-    total_failures += test_mp_matrix_nonbatch_gemm<float>();
-    total_failures += test_mp_matrix_nonbatch_with_alpha<double>();
-    total_failures += test_mp_matrix_nonbatch_with_alpha<float>();
-    total_failures += test_mp_matrix_nonbatch_with_beta<double>();
-    total_failures += test_mp_matrix_nonbatch_with_beta<float>();
+    total_failures += test_mp_matrix_gemm_basic<double>(cudart);
+    total_failures += test_mp_matrix_gemm_basic<float>(cudart);
+    total_failures += test_mp_matrix_copy_to_device<double>(cudart);
+    total_failures += test_mp_matrix_copy_to_device<float>(cudart);
+    total_failures += test_mp_matrix_scaling_operation<double>(cudart);
+    total_failures += test_mp_matrix_scaling_operation<float>(cudart);
+    total_failures += test_mp_matrix_accumulation<double>(cudart);
+    total_failures += test_mp_matrix_accumulation<float>(cudart);
+    total_failures += test_mp_matrix_identity_multiplication<double>(cudart);
+    total_failures += test_mp_matrix_identity_multiplication<float>(cudart);
+    total_failures += test_mp_matrix_transpose_consistency<double>(cudart);
+    total_failures += test_mp_matrix_transpose_consistency<float>(cudart);
 
     if (total_failures > 0) {
         std::cerr << "gpu/blas/level3 tests: " << total_failures << " failures" << std::endl;
@@ -1235,4 +1181,4 @@ int main(){
 
     std::cout << "All gpu/blas/level3 tests passed!" << std::endl;
     return TEST_PASS;
-}
+};

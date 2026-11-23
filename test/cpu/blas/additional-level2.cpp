@@ -17,18 +17,11 @@ int test_add_matrices()
     AddMatrices(A, B, C, (T) 1.0, (T) 1.0);
 
     Matrix<T> res(A.shape(),{8.0, 10.0, 12.0, 14.0, 16.0, 18.0});
-    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 1"))))
-    {
-        return TEST_FAIL;
-    }
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 1")))) return TEST_FAIL;
 
     AddMatrices("N", "N", (T)1.0, A, (T)1.0, B, C);
 
-    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 2"))))
-    {
-        return TEST_FAIL;
-    }
-
+    if (!(check(C.data(), res.data(), res.size(), check_msg(get_type_name<T>(), "check 2")))) return TEST_FAIL;
     return TEST_PASS;
 }
 

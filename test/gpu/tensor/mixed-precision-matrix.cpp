@@ -168,7 +168,14 @@ int test_mp_matrix_self_assignment() {
     MixedPrecisionMatrix<T> m(s);
     m.data()[0] = (T)1.5;
 
+    #if defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wself-assign-overloaded"
+    #endif
     m = m;
+    #if defined(__clang__)
+    #pragma GCC diagnostic pop
+    #endif
 
     if (!check(m.data()[0], (T)1.5, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
@@ -211,6 +218,7 @@ int test_mp_matrix_get_split_exponent() {
     // Test that getSplitExponent throws when out of range
     try {
         m.getSplitExponent(0);
+        std::cerr << check_msg("int", "") << std::endl;
         return TEST_FAIL;  // Should have thrown
     } catch (const std::out_of_range&) {
         // Expected
