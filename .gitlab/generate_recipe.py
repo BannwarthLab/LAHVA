@@ -52,16 +52,6 @@ LAPACK_CONFIG = {
 
 GPU_CONFIG = {
     "none": {},
-    "cuda11.8": {
-        "packages": "cuda-compiler-11-8 cuda-cudart-devel-11-8 libcusolver-devel-11-8 libcublas-devel-11-8 libcusparse-devel-11-8",
-        "env": {
-            "PATH": "/usr/local/cuda-11.8/bin${PATH:+:${PATH}}",
-            "CPATH": "/usr/local/cuda-11.8/targets/x86_64-linux/include:$CPATH",
-            "LD_LIBRARY_PATH": "/usr/local/cuda-11.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}",
-            "LIBRARY_PATH": "/usr/local/cuda-11.8/lib64:/usr/local/cuda-11.8/targets/x86_64-linux/lib:$LIBRARY_PATH",
-            "CUDA_HOME": "/usr/local/cuda-11.8",
-        },
-    },
     "cuda12.5": {
         "packages": "cuda-compiler-12-5 cuda-cudart-devel-12-5 libcusolver-devel-12-5 libcublas-devel-12-5 libcusparse-devel-12-5 libnvjitlink-devel-12-5",
         "env": {

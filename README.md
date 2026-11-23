@@ -294,7 +294,7 @@ LAHVA has a comprehensive continuous integration test suite running on multiple 
 - Operating Systems: Rocky Linux 9, 10
 - Compilers: GCC, Intel oneAPI (2023.2, 2025.3)
 - BLAS Libraries: OpenBLAS, Intel MKL (2023.2, 2025.3)
-- CUDA Versions: 11.8, 12.5, 13.0 (Rocky Linux 9); 13.0 (Rocky Linux 10)
+- CUDA Versions: 12.5, 13.0 (Rocky Linux 9); 13.0 (Rocky Linux 10)
 
 > **Note:** LAHVA GPU support is NVIDIA-only using CUDA, cuBLAS, and cuSOLVER. There are no plans to extend support to other GPU manufacturers (such as AMD and Intel).
 
