@@ -7,15 +7,15 @@
 /// CUDA device state and configuration for use in linear algebra operations.
 
 #pragma once
+#include <cuda_runtime.h>
+#include <cusparse.h>
+#include <cusolverDn.h>
+#include <iostream>
+#include <limits>
+#include <memory>
+#include <mutex>
 
 #include "const.h"
-#include <cuda_runtime.h>
-#include <cusolverDn.h>
-#include <memory>
-#include <iostream>
-
-#include <cmath>
-#include <limits>
 
 /// @brief Default number of threads per block for CUDA kernel launches.
 #define THREADS_PER_BLOCK 512
@@ -31,6 +31,10 @@
 /// @brief Macro to capture cuSOLVER error with file and line information.
 /// @param arg cuSOLVER error status to check.
 #define get_cusolv_error(arg) get_cusolv_ERROR(arg, __FILE__, __LINE__);
+
+/// @brief Macro to capture cuSPARSE error with file and line information.
+/// @param arg cuSPARSE error status to check.
+#define get_cusparse_error(arg) get_cusparse_ERROR(arg, __FILE__, __LINE__);
 
 /// @brief Print CUDA runtime error message with file and line information.
 /// @param stat CUDA error status from a runtime call.
@@ -50,11 +54,18 @@ void get_cublas_ERROR(cublasStatus_t stat, const char* file, int line);
 /// @param line Line number in the source file where the error occurred.
 void get_cusolv_ERROR(cusolverStatus_t stat, const char *file, int line);
 
+/// @brief Print cuSPARSE error message with file and line information.
+/// @param stat cuSPARSE error status from a sparse operation.
+/// @param file Source file where the error occurred.
+/// @param line Line number in the source file where the error occurred.
+void get_cusparse_ERROR(cusparseStatus_t stat, const char* file, int line);
+
 namespace lahva{
     
     
     // Forward declaration
     class cuSolverRuntime;
+    class cuSparseRuntime;
 
     /// @brief GPU runtime for CUDA-accelerated BLAS and LAPACK operations.
     ///
@@ -95,6 +106,13 @@ namespace lahva{
         /// @brief Shared pointer to cuSOLVER runtime for dense solver operations.
         /// Lazily initialized on first access via getcuSolverHandle().
         std::shared_ptr<cuSolverRuntime> cusolv_;
+        
+        /// @brief Shared pointer to cuSPARSE runtime for sparse matrix operations.
+        /// Lazily initialized on first access via getcuSparseHandle().
+        mutable std::shared_ptr<cuSparseRuntime> cusparse_;
+
+        /// @brief Guards the lazy creation of cusparse_, so that threads can share a const runtime.
+        mutable std::once_flag cusparse_once_;
         
         /// @brief Flag indicating whether the cuBLAS handle should be deleted by destructor.
         bool delete_handle = false;
@@ -165,6 +183,10 @@ namespace lahva{
         /// @brief Retrieve or create the cuSOLVER dense handle.
         /// @return cusolverDnHandle_t for GPU linear algebra solver operations.
         cusolverDnHandle_t getcuSolverHandle();
+
+        /// @brief Retrieve or create the cuSPARSE handle.
+        /// @return cusparseHandle_t for GPU sparse matrix operations.
+        cusparseHandle_t getcuSparseHandle() const;
 
         /// @brief Check if runtime is configured for asynchronous operations.
         /// @return True if async copy and stream-based execution are enabled.
@@ -310,5 +332,35 @@ namespace lahva{
         /// @brief Retrieve a pointer to the cuSOLVER dense handle.
         /// @return Pointer to the cusolverDnHandle_t managed by this runtime.
         cusolverDnHandle_t *getHandlePtr() { return &handle; }
+    };
+
+    /// @brief GPU cuSPARSE runtime for sparse matrix operations.
+    ///
+    /// Manages cuSPARSE handle lifecycle and provides stream management for
+    /// GPU-accelerated sparse linear algebra operations.
+    class cuSparseRuntime
+    {
+    private:
+        /// @brief Sparse matrix handle for GPU sparse linear algebra operations.
+        cusparseHandle_t handle = NULL;
+
+    public:
+        /// @brief Constructor initializing the cuSPARSE handle.
+        cuSparseRuntime();
+
+        /// @brief Destructor releasing the cuSPARSE handle.
+        ~cuSparseRuntime();
+
+        /// @brief Associate the sparse handle with a specific CUDA stream.
+        /// @param stream CUDA stream to use for all sparse operations.
+        void setStream(const cudaStream_t& stream);
+
+        /// @brief Retrieve the cuSPARSE handle.
+        /// @return The cusparseHandle_t managed by this runtime.
+        cusparseHandle_t getHandle() { return handle; };
+
+        /// @brief Retrieve a pointer to the cuSPARSE handle.
+        /// @return Pointer to the cusparseHandle_t managed by this runtime.
+        cusparseHandle_t *getHandlePtr() { return &handle; }
     };
 }

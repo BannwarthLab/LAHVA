@@ -1093,6 +1093,1327 @@ int test_mp_matrix_nonbatch_with_beta(CudaRuntime& cudart) {
 }
 
 // ============================================================================
+// GPU BlockDiagMatrix GEMM Tests
+// ============================================================================
+
+template <typename T>
+int test_gpu_blockdiag_gemm_simple(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> A(blocks);
+    A.set_sparse_format(SparseFormat::CSR);
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{4, 3});
+    for (int i = 0; i < 12; i++) {
+        B.data()[i] = static_cast<T>(i + 1);
+    }
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{4, 3}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)5.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), (T)17.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(0, 2), (T)29.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(C(2, 0), (T)39.0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+    if (!check(C(3, 2), (T)173.0, check_msg(get_type_name<T>(), "check 5"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemm_simple_bsr(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> A(blocks);
+    A.set_sparse_format(SparseFormat::BSR);
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{4, 3});
+    for (int i = 0; i < 12; i++) {
+        B.data()[i] = static_cast<T>(i + 1);
+    }
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{4, 3}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)5.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), (T)17.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(0, 2), (T)29.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(C(2, 0), (T)39.0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+    if (!check(C(3, 2), (T)173.0, check_msg(get_type_name<T>(), "check 5"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemm_with_beta(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{2, 2}, (T)1);
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)2);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)2.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)8.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)10.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemm_with_beta_bsr(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+    A.set_sparse_format(SparseFormat::BSR);
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{2, 2}, (T)1);
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)2);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)2.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)8.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)10.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemm_scaling(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{2, 2}, (T)1);
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)2.0, A, B, (T)0.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)8.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)12.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemm_scaling_bsr(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+    A.set_sparse_format(SparseFormat::BSR);
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{2, 2}, (T)1);
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)2.0, A, B, (T)0.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)8.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)12.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemm_bsr_transpose_a(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> A(blocks);
+    A.set_sparse_format(SparseFormat::BSR);
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{4, 3});
+    for (int i = 0; i < 12; i++) {
+        B.data()[i] = static_cast<T>(i + 1);
+    }
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{4, 3}, (T)0);
+
+    MatrixMatrixProduct(cudart, "T", "N", (T)1.0, A, B, (T)0.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)7.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 0), (T)10.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemm_bsr_transpose_b(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    BlockDiagMatrix<T> B(blocks);
+    B.set_sparse_format(SparseFormat::BSR);
+
+    Matrix<T, CudaHostAllocator<T>> A(Shape{2, 2});
+    A.data()[0] = 1; A.data()[1] = 2;
+    A.data()[2] = 3; A.data()[3] = 4;
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "T", (T)1.0, A, B, (T)0.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)7.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), (T)15.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(1, 0), (T)10.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)22.0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockmatrix_mixed_sizes(CudaRuntime& cudart) {
+
+    BlockMatrix<T> A;
+    Matrix<T, CudaHostAllocator<T>> block1(Shape{2, 2}, {1, 3, 2, 4});
+    Matrix<T, CudaHostAllocator<T>> block2(Shape{3, 3}, {5, 7, 9, 6, 8, 10, 11, 12, 13});
+    A.set_block(0, 0, block1);
+    A.set_block(2, 2, block2);
+
+    if (A.get_sparse_format() != SparseFormat::CSR) {
+        return TEST_FAIL;
+    }
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{5, 2});
+    for (int i = 0; i < 10; i++) {
+        B.data()[i] = static_cast<T>(i + 1);
+    }
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{5, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)5.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), (T)20.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(3, 1), (T)248.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemm_varying_blocks(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{1, 1}, {2}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{3, 2});
+    for (int i = 0; i < 6; i++) {
+        B.data()[i] = static_cast<T>(i + 1);
+    }
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{3, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)2.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 0), (T)11.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(2, 1), (T)34.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemm_transpose_a(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 3}, {1, 3, 5, 2, 4, 6}));
+    BlockDiagMatrix<T> A(blocks);
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{2, 2});
+    B.data()[0] = 1; B.data()[1] = 2;
+    B.data()[2] = 3; B.data()[3] = 4;
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{3, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "T", "N", (T)1.0, A, B, (T)0.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)7.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), (T)15.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(1, 0), (T)9.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(C(2, 1), (T)36.0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemm_transpose_b(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{3, 2});
+    for (int i = 0; i < 6; i++) {
+        B.data()[i] = static_cast<T>(i + 1);
+    }
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 3}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "T", (T)1.0, A, B, (T)0.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)9.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), (T)12.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(1, 2), (T)33.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_gemm_transpose_both(CudaRuntime& cudart) {
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 3}, {1, 3, 5, 2, 4, 6}));
+    BlockDiagMatrix<T> A(blocks);
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{2, 2});
+    B.data()[0] = 1; B.data()[1] = 2;
+    B.data()[2] = 3; B.data()[3] = 4;
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{3, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "T", "T", (T)1.0, A, B, (T)0.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)10.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), (T)14.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(2, 1), (T)32.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
+// GPU BlockMatrix (non-diagonal) GEMM Tests
+// ============================================================================
+
+template <typename T>
+int test_gpu_blockmatrix_simple(CudaRuntime& cudart) {
+
+    BlockMatrix<T> A;
+    Matrix<T, CudaHostAllocator<T>> block1(Shape{2, 2}, {1, 3, 2, 4});
+    Matrix<T, CudaHostAllocator<T>> block2(Shape{2, 2}, {5, 7, 6, 8});
+    A.set_block(0, 0, block1);  // Top-left
+    A.set_block(2, 2, block2);  // Bottom-right
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{4, 3});
+    for (int i = 0; i < 12; i++) {
+        B.data()[i] = static_cast<T>(i + 1);
+    }
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{4, 3}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)5.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), (T)17.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(2, 0), (T)39.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockmatrix_const_runtime(const CudaRuntime& cudart) {
+
+    BlockMatrix<T> A;
+    Matrix<T, CudaHostAllocator<T>> block1(Shape{2, 2}, {1, 3, 2, 4});
+    Matrix<T, CudaHostAllocator<T>> block2(Shape{2, 2}, {5, 7, 6, 8});
+    A.set_block(0, 0, block1);  // Top-left
+    A.set_block(2, 2, block2);  // Bottom-right
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{4, 3});
+    for (int i = 0; i < 12; i++) {
+        B.data()[i] = static_cast<T>(i + 1);
+    }
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{4, 3}, (T)0);
+
+    // Convenience overload, which forwards to the explicit one with a const runtime
+    MatrixMatrixProduct(cudart, A, B, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)5.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), (T)17.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(2, 0), (T)39.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockmatrix_sparse_layout(CudaRuntime& cudart) {
+
+    // Create a sparse block matrix with non-contiguous blocks
+    BlockMatrix<T> A;
+    Matrix<T, CudaHostAllocator<T>> block1(Shape{2, 2}, {1, 2, 3, 4});
+    Matrix<T, CudaHostAllocator<T>> block2(Shape{2, 2}, {5, 6, 7, 8});
+    Matrix<T, CudaHostAllocator<T>> block3(Shape{2, 2}, {9, 10, 11, 12});
+    A.set_block(0, 0, block1);  // Top-left
+    A.set_block(0, 3, block2);  // Top-right (gap between)
+    A.set_block(3, 2, block3);  // Bottom-middle (gap in both dimensions)
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{5, 3}, (T)1);
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{5, 3}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)16.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)20.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(3, 0), (T)20.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(C(2, 0), (T)0.0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
+// GPU BlockMatrix (A is dense, B is sparse) Tests
+// ============================================================================
+
+template <typename T>
+int test_gpu_dense_times_blockdiag_simple(CudaRuntime& cudart) {
+
+    Matrix<T, CudaHostAllocator<T>> A(Shape{3, 4});
+    for (int i = 0; i < 12; i++) {
+        A.data()[i] = static_cast<T>(i + 1);
+    }
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> B(blocks);
+    B.set_sparse_format(SparseFormat::CSR);
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{3, 4}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)13.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 2), (T)105.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(2, 0), (T)21.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+
+
+
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_dense_times_blockdiag_simple_bsr(CudaRuntime& cudart) {
+
+    Matrix<T, CudaHostAllocator<T>> A(Shape{3, 4});
+    for (int i = 0; i < 12; i++) {
+        A.data()[i] = static_cast<T>(i + 1);
+    }
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> B(blocks);
+    B.set_sparse_format(SparseFormat::BSR);
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{3, 4}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)13.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 2), (T)105.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(2, 0), (T)21.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_dense_times_blockdiag_with_beta(CudaRuntime& cudart) {
+
+    Matrix<T, CudaHostAllocator<T>> A(Shape{2, 2}, (T)1);
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+    BlockDiagMatrix<T> B(blocks);
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)2);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)2.0, C);
+
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)7.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)11.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_dense_times_blockdiag_with_beta_bsr(CudaRuntime& cudart) {
+
+    Matrix<T, CudaHostAllocator<T>> A(Shape{2, 2}, (T)1);
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+    BlockDiagMatrix<T> B(blocks);
+    B.set_sparse_format(SparseFormat::BSR);
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)2);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)2.0, C);
+
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)7.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)11.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_dense_times_blockdiag_scaling(CudaRuntime& cudart) {
+
+    Matrix<T, CudaHostAllocator<T>> A(Shape{2, 2}, (T)1);
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+    BlockDiagMatrix<T> B(blocks);
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)2.0, A, B, (T)0.0, C);
+
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)6.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)14.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_dense_times_blockdiag_scaling_bsr(CudaRuntime& cudart) {
+
+    Matrix<T, CudaHostAllocator<T>> A(Shape{2, 2}, (T)1);
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 2, 3, 4}));
+    BlockDiagMatrix<T> B(blocks);
+    B.set_sparse_format(SparseFormat::BSR);
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)2.0, A, B, (T)0.0, C);
+
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)6.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)14.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_dense_times_blockmatrix_simple(CudaRuntime& cudart) {
+
+    Matrix<T, CudaHostAllocator<T>> A(Shape{2, 2}, (T)1);
+
+    BlockMatrix<T> B;
+    Matrix<T, CudaHostAllocator<T>> block(Shape{2, 2}, {1, 2, 3, 4});
+    B.set_block(0, 0, block);
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)3.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)7.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_dense_times_blockmatrix_with_alpha(CudaRuntime& cudart) {
+
+    Matrix<T, CudaHostAllocator<T>> A(Shape{2, 2}, (T)1);
+    BlockMatrix<T> B;
+    Matrix<T, CudaHostAllocator<T>> block(Shape{2, 2}, {1, 2, 3, 4});
+    B.set_block(0, 0, block);
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)2.5, A, B, (T)0.0, C);
+
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)7.5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)17.5, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_dense_times_blockmatrix_with_beta(CudaRuntime& cudart) {
+
+    Matrix<T, CudaHostAllocator<T>> A(Shape{2, 2}, (T)1);
+    BlockMatrix<T> B;
+    Matrix<T, CudaHostAllocator<T>> block(Shape{2, 2}, {1, 2, 3, 4});
+    B.set_block(0, 0, block);
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)3);
+
+    MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.5, C);
+
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    T expected_00 = (T)1 + (T)2 + (T)0.5 * (T)3;
+    T expected_11 = (T)3 + (T)4 + (T)0.5 * (T)3;
+
+    if (!check(C(0, 0), expected_00, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(1, 1), expected_11, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_dense_times_blockmatrix_transpose_a(CudaRuntime& cudart) {
+    Matrix<T, CudaHostAllocator<T>> A(Shape{3, 2}, {1, 2, 3, 4, 5, 6});
+
+    BlockMatrix<T> B;
+    Matrix<T, CudaHostAllocator<T>> block(Shape{3, 2}, {1, 0, 0, 0, 1, 0});
+    B.set_block(0, 0, block);
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "T", "N", (T)1.0, A, B, (T)0.0, C);
+
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)1.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), (T)2.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(1, 0), (T)4.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)5.0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_dense_times_blockmatrix_transpose_b(CudaRuntime& cudart) {
+    Matrix<T, CudaHostAllocator<T>> A(Shape{2, 4}, {1, 2, 3, 4, 5, 6, 7, 8});
+
+    BlockMatrix<T> B;
+    Matrix<T, CudaHostAllocator<T>> block_a(Shape{2, 2}, {1, 0, 0, 1});
+    Matrix<T, CudaHostAllocator<T>> block_b(Shape{2, 2}, {0, 1, 1, 0});
+    B.set_block(0, 0, block_a);
+    B.set_block(0, 2, block_b);
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "N", "T", (T)1.0, A, B, (T)0.0, C);
+
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)8.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), (T)8.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(1, 0), (T)10.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)10.0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_dense_times_blockmatrix_transpose_both(CudaRuntime& cudart) {
+    Matrix<T, CudaHostAllocator<T>> A(Shape{2, 2}, {1, 2, 3, 4});
+
+    BlockMatrix<T> B;
+    Matrix<T, CudaHostAllocator<T>> block(Shape{2, 2}, {1, 3, 2, 4});
+    B.set_block(0, 0, block);
+
+    Matrix<T, CudaHostAllocator<T>> C(Shape{2, 2}, (T)0);
+
+    MatrixMatrixProduct(cudart, "T", "T", (T)1.0, A, B, (T)0.0, C);
+
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    if (!check(C(0, 0), (T)5.0, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(C(0, 1), (T)11.0, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(C(1, 0), (T)11.0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+    if (!check(C(1, 1), (T)25.0, check_msg(get_type_name<T>(), "check 4"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
+// GPU sparse representation caching across repeated products
+// ============================================================================
+
+// Checks C == op(A) * B against a host reference, where A is sparse (op = transpose if trans_a)
+template <typename T>
+bool check_sparse_dense_product(const BlockMatrix_<T> &A, const Matrix<T, CudaHostAllocator<T>> &B,
+                                const Matrix<T, CudaHostAllocator<T>> &C, bool trans_a, const std::string &msg) {
+    size_t inner = trans_a ? A.shape().first : A.shape().second;
+    for (size_t i = 0; i < C.shape().first; ++i) {
+        for (size_t j = 0; j < C.shape().second; ++j) {
+            T ref = 0;
+            for (size_t l = 0; l < inner; ++l) {
+                ref += (trans_a ? A(l, i) : A(i, l)) * B(l, j);
+            }
+            if (!check(C(i, j), ref, msg)) return false;
+        }
+    }
+    return true;
+}
+
+// Checks C == A * op(B) against a host reference, where B is sparse (op = transpose if trans_b)
+template <typename T>
+bool check_dense_sparse_product(const Matrix<T, CudaHostAllocator<T>> &A, const BlockMatrix_<T> &B,
+                                const Matrix<T, CudaHostAllocator<T>> &C, bool trans_b, const std::string &msg) {
+    size_t inner = A.shape().second;
+    for (size_t i = 0; i < C.shape().first; ++i) {
+        for (size_t j = 0; j < C.shape().second; ++j) {
+            T ref = 0;
+            for (size_t l = 0; l < inner; ++l) {
+                ref += A(i, l) * (trans_b ? B(j, l) : B(l, j));
+            }
+            if (!check(C(i, j), ref, msg)) return false;
+        }
+    }
+    return true;
+}
+
+template <typename T>
+int test_gpu_blockmatrix_cached_repeated_product(CudaRuntime& cudart) {
+
+    BlockMatrix<T> A;
+    A.set_block(0, 0, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    A.set_block(2, 3, Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    const BlockMatrix<T> &Aref = A;
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{5, 3});
+    for (int i = 0; i < 15; i++) {
+        B.data()[i] = static_cast<T>(i + 1);
+    }
+
+    for (int rep = 0; rep < 3; ++rep) {
+        Matrix<T, CudaHostAllocator<T>> C(Shape{4, 3}, (T)0);
+        MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+        C.copy2host(cudart);
+        cudart.synchronize();
+        if (!check_sparse_dense_product(Aref, B, C, false, check_msg(get_type_name<T>(), "repeated product"))) return TEST_FAIL;
+    }
+    if (!check((int)A.sparse_build_count(), 1, check_msg(get_type_name<T>(), "repeated products should build once"))) return TEST_FAIL;
+
+    // Changing values refreshes the cached data without a rebuild
+    A.get_block(0, 0)(1, 1) = (T)-3;
+    {
+        Matrix<T, CudaHostAllocator<T>> C(Shape{4, 3}, (T)0);
+        MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+        C.copy2host(cudart);
+        cudart.synchronize();
+        if (!check_sparse_dense_product(Aref, B, C, false, check_msg(get_type_name<T>(), "after value change"))) return TEST_FAIL;
+    }
+    if (!check((int)A.sparse_build_count(), 1, check_msg(get_type_name<T>(), "value change should not rebuild"))) return TEST_FAIL;
+    if (!check((int)A.sparse_values_refresh_count(), 1, check_msg(get_type_name<T>(), "value change should refresh once"))) return TEST_FAIL;
+
+    // Adding a block rebuilds the cached data
+    A.set_block(0, 2, Matrix<T, CudaHostAllocator<T>>(Shape{2, 1}, {10, 20}));
+    {
+        Matrix<T, CudaHostAllocator<T>> C(Shape{4, 3}, (T)0);
+        MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+        C.copy2host(cudart);
+        cudart.synchronize();
+        if (!check_sparse_dense_product(Aref, B, C, false, check_msg(get_type_name<T>(), "after adding a block"))) return TEST_FAIL;
+    }
+    if (!check((int)A.sparse_build_count(), 2, check_msg(get_type_name<T>(), "new block should rebuild"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_cached_alternating_transpose(CudaRuntime& cudart) {
+
+    // Uniform blocks prefer BSR; the transposed product falls back to CSR
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> A(blocks);
+    A.set_sparse_format(SparseFormat::BSR);
+    const BlockDiagMatrix<T> &Aref = A;
+
+    Matrix<T, CudaHostAllocator<T>> B(Shape{4, 2});
+    for (int i = 0; i < 8; i++) {
+        B.data()[i] = static_cast<T>(i + 1);
+    }
+
+    for (int rep = 0; rep < 2; ++rep) {
+        for (bool trans : {false, true}) {
+            Matrix<T, CudaHostAllocator<T>> C(Shape{4, 2}, (T)0);
+            MatrixMatrixProduct(cudart, trans ? "T" : "N", "N", (T)1.0, A, B, (T)0.0, C);
+            C.copy2host(cudart);
+            cudart.synchronize();
+            if (!check_sparse_dense_product(Aref, B, C, trans, check_msg(get_type_name<T>(), trans ? "transposed product" : "product"))) return TEST_FAIL;
+        }
+    }
+    if (!check((int)A.sparse_build_count(), 2, check_msg(get_type_name<T>(), "BSR and CSR should each be built once"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_dense_times_blockdiag_cached(CudaRuntime& cudart) {
+
+    Matrix<T, CudaHostAllocator<T>> A(Shape{3, 4});
+    for (int i = 0; i < 12; i++) {
+        A.data()[i] = static_cast<T>(i + 1);
+    }
+
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T, CudaHostAllocator<T>>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> B(blocks);
+    const BlockDiagMatrix<T> &Bref = B;
+
+    for (int rep = 0; rep < 2; ++rep) {
+        for (bool trans : {false, true}) {
+            Matrix<T, CudaHostAllocator<T>> C(Shape{3, 4}, (T)0);
+            MatrixMatrixProduct(cudart, "N", trans ? "T" : "N", (T)1.0, A, B, (T)0.0, C);
+            C.copy2host(cudart);
+            cudart.synchronize();
+            if (!check_dense_sparse_product(A, Bref, C, trans, check_msg(get_type_name<T>(), "dense x sparse product"))) return TEST_FAIL;
+        }
+    }
+    size_t builds = B.sparse_build_count();
+
+    B += (T)1;
+    {
+        Matrix<T, CudaHostAllocator<T>> C(Shape{3, 4}, (T)0);
+        MatrixMatrixProduct(cudart, "N", "N", (T)1.0, A, B, (T)0.0, C);
+        C.copy2host(cudart);
+        cudart.synchronize();
+        if (!check_dense_sparse_product(A, Bref, C, false, check_msg(get_type_name<T>(), "after value change"))) return TEST_FAIL;
+    }
+    if (!check((int)B.sparse_build_count(), (int)builds, check_msg(get_type_name<T>(), "value change should not rebuild"))) return TEST_FAIL;
+    if (!check((int)B.sparse_values_refresh_count(), 1, check_msg(get_type_name<T>(), "value change should refresh once"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
+// BlockDiagMatrix GEMM with Transposes and Rectangular Blocks
+// ============================================================================
+
+template <typename T>
+BlockDiagMatrix<T> make_blockdiag(const std::vector<Shape> &shapes) {
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    T value = static_cast<T>(1);
+    for (const Shape &shape : shapes) {
+        Matrix<T, CudaHostAllocator<T>> block(shape);
+        for (size_t i = 0; i < shape.first; i++) {
+            for (size_t j = 0; j < shape.second; j++) {
+                block(i, j) = value++;
+            }
+        }
+        blocks.push_back(block);
+    }
+    return BlockDiagMatrix<T>(blocks);
+}
+
+template <typename T>
+Matrix<T, CudaHostAllocator<T>> blockdiag_to_dense(const BlockDiagMatrix<T> &a) {
+    Matrix<T, CudaHostAllocator<T>> dense(a.shape(), static_cast<T>(0));
+    for (size_t b = 0; b < a.num_blocks(); b++) {
+        Shape shape = a.get_block_shape(b);
+        for (size_t i = 0; i < shape.first; i++) {
+            for (size_t j = 0; j < shape.second; j++) {
+                dense(a.get_row_offsets()[b] + i, a.get_col_offsets()[b] + j) = a.get_block(b)(i, j);
+            }
+        }
+    }
+    return dense;
+}
+
+inline Shape op_shape(const Shape &shape, const char *trans) {
+    return (trans[0] == 'N') ? shape : Shape{shape.second, shape.first};
+}
+
+template <typename T>
+Matrix<T, CudaHostAllocator<T>> make_filled_matrix(const Shape &shape) {
+    Matrix<T, CudaHostAllocator<T>> mat(shape);
+    for (size_t i = 0; i < shape.first * shape.second; i++) {
+        mat.data()[i] = static_cast<T>(1 + (i * 7) % 11);
+    }
+    return mat;
+}
+
+// Naive reference, independent of BLAS: C = alpha * op(A) * op(B) + beta * C
+template <typename T>
+void reference_gemm(const char *Ta, const char *Tb, const T alpha, const Matrix<T, CudaHostAllocator<T>> &a,
+                    const Matrix<T, CudaHostAllocator<T>> &b, const T beta, Matrix<T, CudaHostAllocator<T>> &c) {
+    const size_t k = op_shape(a.shape(), Ta).second;
+    for (size_t i = 0; i < c.shape().first; i++) {
+        for (size_t j = 0; j < c.shape().second; j++) {
+            T sum = static_cast<T>(0);
+            for (size_t l = 0; l < k; l++) {
+                const T a_il = (Ta[0] == 'N') ? a(i, l) : a(l, i);
+                const T b_lj = (Tb[0] == 'N') ? b(l, j) : b(j, l);
+                sum += a_il * b_lj;
+            }
+            c(i, j) = alpha * sum + beta * c(i, j);
+        }
+    }
+}
+
+template <typename T>
+int check_blockdiag_times_dense(CudaRuntime& cudart, const char *Ta, const char *Tb, const BlockDiagMatrix<T> &A) {
+    const Shape op_a = op_shape(A.shape(), Ta);
+    const size_t n_cols = 4;
+
+    const Matrix<T, CudaHostAllocator<T>> B = make_filled_matrix<T>(op_shape(Shape{op_a.second, n_cols}, Tb));
+    Matrix<T, CudaHostAllocator<T>> C(Shape{op_a.first, n_cols}, static_cast<T>(1));
+    Matrix<T, CudaHostAllocator<T>> expected(Shape{op_a.first, n_cols}, static_cast<T>(1));
+
+    MatrixMatrixProduct(cudart, Ta, Tb, static_cast<T>(2), A, B, static_cast<T>(3), C);
+    cudart.synchronize();
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    reference_gemm(Ta, Tb, static_cast<T>(2), blockdiag_to_dense(A), B, static_cast<T>(3), expected);
+
+    const std::string desc = std::string("Ta=") + Ta + " Tb=" + Tb;
+    if (!check(C.data(), expected.data(), static_cast<int>(op_a.first * n_cols), check_msg(get_type_name<T>(), desc))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int check_dense_times_blockdiag(CudaRuntime& cudart, const char *Ta, const char *Tb, const BlockDiagMatrix<T> &B) {
+    const Shape op_b = op_shape(B.shape(), Tb);
+    const size_t n_rows = 4;
+
+    const Matrix<T, CudaHostAllocator<T>> A = make_filled_matrix<T>(op_shape(Shape{n_rows, op_b.first}, Ta));
+    Matrix<T, CudaHostAllocator<T>> C(Shape{n_rows, op_b.second}, static_cast<T>(1));
+    Matrix<T, CudaHostAllocator<T>> expected(Shape{n_rows, op_b.second}, static_cast<T>(1));
+
+    MatrixMatrixProduct(cudart, Ta, Tb, static_cast<T>(2), A, B, static_cast<T>(3), C);
+    cudart.synchronize();
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    reference_gemm(Ta, Tb, static_cast<T>(2), A, blockdiag_to_dense(B), static_cast<T>(3), expected);
+
+    const std::string desc = std::string("Ta=") + Ta + " Tb=" + Tb;
+    if (!check(C.data(), expected.data(), static_cast<int>(n_rows * op_b.second), check_msg(get_type_name<T>(), desc))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// Row and column offsets differ between the blocks, so swapping them changes the result.
+// The blocks are not all the same shape, so this uses CSR.
+template <typename T>
+int test_gpu_blockdiag_gemm_mixed_rectangular_blocks(CudaRuntime& cudart) {
+    const BlockDiagMatrix<T> M_ = make_blockdiag<T>({Shape{2, 3}, Shape{3, 1}, Shape{1, 2}, Shape{1, 2}});
+
+    for (const char *Ta : {"N", "T"}) {
+        for (const char *Tb : {"N", "T"}) {
+            if (check_blockdiag_times_dense(cudart, Ta, Tb, M_) != TEST_PASS) return TEST_FAIL;
+            if (check_dense_times_blockdiag(cudart, Ta, Tb, M_) != TEST_PASS) return TEST_FAIL;
+        }
+    }
+    return TEST_PASS;
+}
+
+// The blocks are all the same shape, which defaults to BSR, but cuSPARSE only supports square BSR blocks
+template <typename T>
+int test_gpu_blockdiag_gemm_uniform_rectangular_blocks(CudaRuntime& cudart) {
+    const BlockDiagMatrix<T> M_ = make_blockdiag<T>({Shape{2, 3}, Shape{2, 3}, Shape{2, 3}});
+
+    for (const char *Ta : {"N", "T"}) {
+        for (const char *Tb : {"N", "T"}) {
+            if (check_blockdiag_times_dense(cudart, Ta, Tb, M_) != TEST_PASS) return TEST_FAIL;
+            if (check_dense_times_blockdiag(cudart, Ta, Tb, M_) != TEST_PASS) return TEST_FAIL;
+        }
+    }
+    return TEST_PASS;
+}
+
+// For real values "C" must give the same result as "T". The blocks are square and not
+// symmetric, so skipping the transpose would change the result but not the shapes.
+template <typename T>
+int test_gpu_blockdiag_gemm_conjugate_transpose(CudaRuntime& cudart) {
+    const BlockDiagMatrix<T> M_ = make_blockdiag<T>({Shape{2, 2}, Shape{3, 3}});
+
+    if (check_blockdiag_times_dense(cudart, "C", "N", M_) != TEST_PASS) return TEST_FAIL;
+    if (check_blockdiag_times_dense(cudart, "N", "C", M_) != TEST_PASS) return TEST_FAIL;
+    if (check_dense_times_blockdiag(cudart, "C", "N", M_) != TEST_PASS) return TEST_FAIL;
+    if (check_dense_times_blockdiag(cudart, "N", "C", M_) != TEST_PASS) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
+// BlockDiagMatrix times BlockDiagMatrix GEMM Tests
+// ============================================================================
+
+template <typename T>
+BlockDiagMatrix<T> make_blockdiag_op(const std::vector<Shape> &shapes, const char *trans) {
+    std::vector<Shape> stored;
+    for (const Shape &shape : shapes) {
+        stored.push_back(op_shape(shape, trans));
+    }
+    return make_blockdiag<T>(stored);
+}
+
+// Compares C = 2 * op(A) * op(B) + 3 * C with a naive product of the densified matrices.
+// The shapes are those of op(A) and op(B), so that they conform for every transpose option.
+template <typename T>
+int check_blockdiag_times_blockdiag(CudaRuntime& cudart, const char *Ta, const char *Tb, const std::vector<Shape> &op_a_shapes, const std::vector<Shape> &op_b_shapes) {
+    std::vector<Shape> c_shapes;
+    for (size_t i = 0; i < op_a_shapes.size(); i++) {
+        c_shapes.push_back(Shape{op_a_shapes[i].first, op_b_shapes[i].second});
+    }
+
+    const BlockDiagMatrix<T> A = make_blockdiag_op<T>(op_a_shapes, Ta);
+    const BlockDiagMatrix<T> B = make_blockdiag_op<T>(op_b_shapes, Tb);
+    if (product_block_shapes(Ta, Tb, A, B) != c_shapes) {
+        std::cerr << check_msg(get_type_name<T>(), "product_block_shapes returned the wrong shapes") << std::endl;
+        return TEST_FAIL;
+    }
+    BlockDiagMatrix<T> C(c_shapes, static_cast<T>(1));
+    Matrix<T, CudaHostAllocator<T>> expected = blockdiag_to_dense(C);
+
+    MatrixMatrixProduct(cudart, Ta, Tb, static_cast<T>(2), A, B, static_cast<T>(3), C);
+    cudart.synchronize();
+    C.copy2host(cudart);
+
+    reference_gemm(Ta, Tb, static_cast<T>(2), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(3), expected);
+
+    const Matrix<T, CudaHostAllocator<T>> C_dense = blockdiag_to_dense(C);
+    const Shape s = C_dense.shape();
+    const std::string desc = std::string("Ta=") + Ta + " Tb=" + Tb;
+    if (!check(C_dense.data(), expected.data(), static_cast<int>(s.first * s.second), check_msg(get_type_name<T>(), desc))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// Runs of equal shapes, a lone block, and rectangular blocks whose row and column offsets differ.
+// The padding differs between A, B and C, so this also needs each matrix's own stride and leading dimension.
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_mixed_shapes(CudaRuntime& cudart, const char *Ta, const char *Tb) {
+    return check_blockdiag_times_blockdiag<T>(cudart, Ta, Tb,
+        {Shape{2, 3}, Shape{2, 3}, Shape{3, 1}, Shape{1, 2}, Shape{1, 2}},
+        {Shape{3, 4}, Shape{3, 4}, Shape{1, 2}, Shape{2, 2}, Shape{2, 2}});
+}
+
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_uniform(CudaRuntime& cudart, const char *Ta, const char *Tb) {
+    return check_blockdiag_times_blockdiag<T>(cudart, Ta, Tb,
+        {Shape{2, 3}, Shape{2, 3}, Shape{2, 3}},
+        {Shape{3, 2}, Shape{3, 2}, Shape{3, 2}});
+}
+
+// All blocks of A have the same shape, so only B can end a run of equal shapes
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_run_ended_by_b(CudaRuntime& cudart) {
+    return check_blockdiag_times_blockdiag<T>(cudart, "N", "N",
+        {Shape{2, 2}, Shape{2, 2}, Shape{2, 2}},
+        {Shape{2, 3}, Shape{2, 1}, Shape{2, 1}});
+}
+
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_convenience(CudaRuntime& cudart) {
+    const BlockDiagMatrix<T> A = make_blockdiag<T>({Shape{2, 2}, Shape{3, 3}});
+    const BlockDiagMatrix<T> B = make_blockdiag<T>({Shape{2, 2}, Shape{3, 3}});
+    BlockDiagMatrix<T> C(std::vector<Shape>{Shape{2, 2}, Shape{3, 3}}, static_cast<T>(1));
+    Matrix<T, CudaHostAllocator<T>> expected(C.shape(), static_cast<T>(0));
+
+    MatrixMatrixProduct(cudart, A, B, C);
+    cudart.synchronize();
+    C.copy2host(cudart);
+
+    reference_gemm("N", "N", static_cast<T>(1), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(0), expected);
+
+    const Matrix<T, CudaHostAllocator<T>> C_dense = blockdiag_to_dense(C);
+    if (!check(C_dense.data(), expected.data(), 25, check_msg(get_type_name<T>(), "default arguments"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// The first result is only on the device when it is used as input and when it is accumulated into,
+// so this fails if the operation uploads stale host values
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_chained(CudaRuntime& cudart) {
+    const std::vector<Shape> shapes{Shape{2, 2}, Shape{3, 3}, Shape{3, 3}};
+    const BlockDiagMatrix<T> A = make_blockdiag<T>(shapes);
+    const BlockDiagMatrix<T> B = make_blockdiag<T>(shapes);
+    BlockDiagMatrix<T> AB(shapes, static_cast<T>(0));
+    BlockDiagMatrix<T> ABA(shapes, static_cast<T>(0));
+
+    MatrixMatrixProduct(cudart, "N", "N", static_cast<T>(1), A, B, static_cast<T>(0), AB);
+    MatrixMatrixProduct(cudart, "N", "N", static_cast<T>(1), AB, A, static_cast<T>(0), ABA);
+    MatrixMatrixProduct(cudart, "N", "N", static_cast<T>(1), A, B, static_cast<T>(1), AB);
+    cudart.synchronize();
+    AB.copy2host(cudart);
+    ABA.copy2host(cudart);
+
+    const Matrix<T, CudaHostAllocator<T>> A_dense = blockdiag_to_dense(A);
+    const Matrix<T, CudaHostAllocator<T>> B_dense = blockdiag_to_dense(B);
+    Matrix<T, CudaHostAllocator<T>> AB_once(A.shape(), static_cast<T>(0));
+    Matrix<T, CudaHostAllocator<T>> ABA_expected(A.shape(), static_cast<T>(0));
+    Matrix<T, CudaHostAllocator<T>> AB_twice(A.shape(), static_cast<T>(0));
+    reference_gemm("N", "N", static_cast<T>(1), A_dense, B_dense, static_cast<T>(0), AB_once);
+    reference_gemm("N", "N", static_cast<T>(1), AB_once, A_dense, static_cast<T>(0), ABA_expected);
+    reference_gemm("N", "N", static_cast<T>(2), A_dense, B_dense, static_cast<T>(0), AB_twice);
+
+    const Matrix<T, CudaHostAllocator<T>> AB_dense = blockdiag_to_dense(AB);
+    const Matrix<T, CudaHostAllocator<T>> ABA_dense = blockdiag_to_dense(ABA);
+    if (!check(ABA_dense.data(), ABA_expected.data(), 64, check_msg(get_type_name<T>(), "result used as input"))) return TEST_FAIL;
+    if (!check(AB_dense.data(), AB_twice.data(), 64, check_msg(get_type_name<T>(), "accumulated into result"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_empty(CudaRuntime& cudart) {
+    const BlockDiagMatrix<T> A, B;
+    BlockDiagMatrix<T> C;
+
+    MatrixMatrixProduct(cudart, "N", "N", static_cast<T>(1), A, B, static_cast<T>(0), C);
+
+    if (!check(static_cast<T>(C.num_blocks()), static_cast<T>(0), check_msg(get_type_name<T>(), "no blocks"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int check_blockdiag_times_blockdiag_throws(CudaRuntime& cudart, const char *Ta, const std::vector<Shape> &a_shapes, const std::vector<Shape> &b_shapes, const std::vector<Shape> &c_shapes) {
+    const BlockDiagMatrix<T> A = make_blockdiag<T>(a_shapes);
+    const BlockDiagMatrix<T> B = make_blockdiag<T>(b_shapes);
+    BlockDiagMatrix<T> C(c_shapes, static_cast<T>(0));
+
+    try {
+        MatrixMatrixProduct(cudart, Ta, "N", static_cast<T>(1), A, B, static_cast<T>(0), C);
+    } catch (const std::invalid_argument &) {
+        return TEST_PASS;
+    }
+    std::cerr << "MatrixMatrixProduct did not reject mismatched block-diagonal matrices" << std::endl;
+    return TEST_FAIL;
+}
+
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_mismatch(CudaRuntime& cudart) {
+    // Different partitions with the same total size
+    if (check_blockdiag_times_blockdiag_throws<T>(cudart, "N", {Shape{2, 2}, Shape{2, 2}}, {Shape{1, 1}, Shape{3, 3}}, {Shape{2, 1}, Shape{2, 3}}) != TEST_PASS) return TEST_FAIL;
+    // Different block counts
+    if (check_blockdiag_times_blockdiag_throws<T>(cudart, "N", {Shape{2, 2}}, {Shape{2, 2}, Shape{2, 2}}, {Shape{2, 2}}) != TEST_PASS) return TEST_FAIL;
+    // Output block with the wrong shape
+    if (check_blockdiag_times_blockdiag_throws<T>(cudart, "N", {Shape{2, 3}}, {Shape{3, 2}}, {Shape{3, 3}}) != TEST_PASS) return TEST_FAIL;
+    // Only conforms when A is not transposed
+    if (check_blockdiag_times_blockdiag_throws<T>(cudart, "T", {Shape{2, 3}}, {Shape{3, 2}}, {Shape{2, 2}}) != TEST_PASS) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// An output matrix built from the returned shapes must be accepted by the product
+template <typename T>
+int test_gpu_product_block_shapes_builds_output(CudaRuntime& cudart) {
+    const BlockDiagMatrix<T> A = make_blockdiag<T>({Shape{2, 3}, Shape{3, 1}});
+    const BlockDiagMatrix<T> B = make_blockdiag<T>({Shape{2, 4}, Shape{3, 2}});
+
+    BlockDiagMatrix<T> C(product_block_shapes("T", "N", A, B), static_cast<T>(0));
+    Matrix<T, CudaHostAllocator<T>> expected(C.shape(), static_cast<T>(0));
+
+    MatrixMatrixProduct(cudart, "T", "N", static_cast<T>(1), A, B, static_cast<T>(0), C);
+    cudart.synchronize();
+    C.copy2host(cudart);
+
+    reference_gemm("T", "N", static_cast<T>(1), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(0), expected);
+
+    const Matrix<T, CudaHostAllocator<T>> C_dense = blockdiag_to_dense(C);
+    const Shape s = C_dense.shape();
+    if (!check(C_dense.data(), expected.data(), static_cast<int>(s.first * s.second), check_msg(get_type_name<T>(), "built from the shapes"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int test_gpu_product_block_shapes_empty() {
+    const BlockDiagMatrix<T> A, B;
+
+    if (!product_block_shapes("N", "N", A, B).empty()) {
+        std::cerr << check_msg(get_type_name<T>(), "expected no shapes") << std::endl;
+        return TEST_FAIL;
+    }
+
+    return TEST_PASS;
+}
+
+template <typename T>
+int check_gpu_product_block_shapes_throws(const char *Ta, const std::vector<Shape> &a_shapes, const std::vector<Shape> &b_shapes) {
+    const BlockDiagMatrix<T> A = make_blockdiag<T>(a_shapes);
+    const BlockDiagMatrix<T> B = make_blockdiag<T>(b_shapes);
+
+    try {
+        product_block_shapes(Ta, "N", A, B);
+    } catch (const std::invalid_argument &) {
+        return TEST_PASS;
+    }
+    std::cerr << check_msg(get_type_name<T>(), "product_block_shapes did not reject mismatched matrices") << std::endl;
+    return TEST_FAIL;
+}
+
+template <typename T>
+int test_gpu_product_block_shapes_mismatch() {
+    // Different partitions with the same total size
+    if (check_gpu_product_block_shapes_throws<T>("N", {Shape{2, 2}, Shape{2, 2}}, {Shape{1, 1}, Shape{3, 3}}) != TEST_PASS) return TEST_FAIL;
+    // Different block counts
+    if (check_gpu_product_block_shapes_throws<T>("N", {Shape{2, 2}}, {Shape{2, 2}, Shape{2, 2}}) != TEST_PASS) return TEST_FAIL;
+    // Only conforms when A is not transposed
+    if (check_gpu_product_block_shapes_throws<T>("T", {Shape{2, 3}}, {Shape{3, 2}}) != TEST_PASS) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template <typename T>
+using AsyncBlockDiagMatrix = BlockDiagMatrix<T, CudaHostAllocator<T>, lahva::CudaDeviceAsyncAllocator<T>>;
+
+template <typename T>
+AsyncBlockDiagMatrix<T> to_async_allocator(const BlockDiagMatrix<T> &a) {
+    std::vector<Matrix<T, CudaHostAllocator<T>>> blocks;
+    for (size_t b = 0; b < a.num_blocks(); b++) {
+        blocks.push_back(a.get_block(b));
+    }
+    return AsyncBlockDiagMatrix<T>(blocks);
+}
+
+// The operations must not depend on the allocators, also when they differ between the matrices.
+// The result with the default allocators is covered by the tests above.
+template <typename T>
+int test_gpu_blockdiag_times_blockdiag_async_allocator(CudaRuntime& cudart) {
+    const BlockDiagMatrix<T> A = make_blockdiag<T>({Shape{2, 3}, Shape{3, 1}});
+    const BlockDiagMatrix<T> B = make_blockdiag<T>({Shape{2, 4}, Shape{3, 2}});
+    const AsyncBlockDiagMatrix<T> A_async = to_async_allocator(A);
+    const AsyncBlockDiagMatrix<T> B_async = to_async_allocator(B);
+
+    const std::vector<Shape> shapes = product_block_shapes<T>("T", "N", A_async, B_async);
+
+    BlockDiagMatrix<T> C_default(shapes, static_cast<T>(0));
+    MatrixMatrixProduct(cudart, "T", "N", static_cast<T>(2), A, B, static_cast<T>(0), C_default);
+
+    AsyncBlockDiagMatrix<T> C_async(shapes, static_cast<T>(0));
+    MatrixMatrixProduct(cudart, "T", "N", static_cast<T>(2), A_async, B_async, static_cast<T>(0), C_async);
+
+    AsyncBlockDiagMatrix<T> C_mixed(shapes, static_cast<T>(0));
+    MatrixMatrixProduct(cudart, "T", "N", static_cast<T>(2), A, B_async, static_cast<T>(0), C_mixed);
+
+    cudart.synchronize();
+    C_default.copy2host(cudart);
+    C_async.copy2host(cudart);
+    C_mixed.copy2host(cudart);
+
+    for (size_t b = 0; b < shapes.size(); b++) {
+        const int n_elements = static_cast<int>(shapes[b].first * shapes[b].second);
+        if (!check(C_async.get_block(b).data(), C_default.get_block(b).data(), n_elements, check_msg(get_type_name<T>(), "async allocators"))) return TEST_FAIL;
+        if (!check(C_mixed.get_block(b).data(), C_default.get_block(b).data(), n_elements, check_msg(get_type_name<T>(), "mixed allocators"))) return TEST_FAIL;
+    }
+
+    return TEST_PASS;
+}
+
+template <typename T, typename OutputType>
+int test_gpu_blockdiag_times_blockdiag_output_without_blocks(CudaRuntime& cudart, const char *Ta, const char *Tb) {
+    const BlockDiagMatrix<T> A = make_blockdiag_op<T>({Shape{2, 3}, Shape{3, 1}}, Ta);
+    const BlockDiagMatrix<T> B = make_blockdiag_op<T>({Shape{3, 4}, Shape{1, 2}}, Tb);
+    OutputType C;
+
+    MatrixMatrixProduct(cudart, Ta, Tb, static_cast<T>(2), A, B, static_cast<T>(3), C);
+
+    const std::string desc = std::string("Ta=") + Ta + " Tb=" + Tb;
+    if (C.num_blocks() != 2 || C.get_block_shape(0) != Shape{2, 4} || C.get_block_shape(1) != Shape{3, 2}) {
+        std::cerr << check_msg(get_type_name<T>(), desc + ": output got the wrong blocks") << std::endl;
+        return TEST_FAIL;
+    }
+
+    MatrixMatrixProduct(cudart, Ta, Tb, static_cast<T>(2), A, B, static_cast<T>(1), C);
+    cudart.synchronize();
+    C.copy2host(cudart);
+    cudart.synchronize();
+
+    Matrix<T, CudaHostAllocator<T>> expected(C.shape(), static_cast<T>(0));
+    reference_gemm(Ta, Tb, static_cast<T>(2), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(0), expected);
+    reference_gemm(Ta, Tb, static_cast<T>(2), blockdiag_to_dense(A), blockdiag_to_dense(B), static_cast<T>(1), expected);
+
+    const OutputType &C_const = C;
+    Matrix<T, CudaHostAllocator<T>> C_dense(C.shape(), static_cast<T>(0));
+    for (size_t i = 0; i < C.shape().first; i++) {
+        for (size_t j = 0; j < C.shape().second; j++) {
+            C_dense(i, j) = C_const(i, j);
+        }
+    }
+
+    const int n_elements = static_cast<int>(C.shape().first * C.shape().second);
+    if (!check(C_dense.data(), expected.data(), n_elements, check_msg(get_type_name<T>(), desc))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
 // Main
 // ============================================================================
 
@@ -1173,6 +2494,122 @@ int main(){
     total_failures += test_mp_matrix_identity_multiplication<float>(cudart);
     total_failures += test_mp_matrix_transpose_consistency<double>(cudart);
     total_failures += test_mp_matrix_transpose_consistency<float>(cudart);
+
+    // BlockDiagMatrix GEMM tests
+    total_failures += test_gpu_blockdiag_gemm_simple<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_simple_bsr<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_with_beta<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_with_beta_bsr<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_scaling<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_scaling_bsr<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_bsr_transpose_a<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_bsr_transpose_b<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_varying_blocks<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_simple<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_simple_bsr<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_with_beta<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_with_beta_bsr<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_scaling<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_scaling_bsr<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_bsr_transpose_a<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_bsr_transpose_b<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_varying_blocks<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_transpose_a<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_transpose_b<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_transpose_both<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_transpose_a<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_transpose_b<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_transpose_both<float>(cudart);
+
+    // BlockMatrix GEMM tests - double precision
+    total_failures += test_gpu_blockmatrix_simple<double>(cudart);
+    total_failures += test_gpu_blockmatrix_sparse_layout<double>(cudart);
+    total_failures += test_gpu_blockmatrix_mixed_sizes<double>(cudart);
+    total_failures += test_gpu_blockmatrix_simple<float>(cudart);
+    total_failures += test_gpu_blockmatrix_sparse_layout<float>(cudart);
+    total_failures += test_gpu_blockmatrix_mixed_sizes<float>(cudart);
+    total_failures += test_gpu_blockmatrix_const_runtime<double>(cudart);
+    total_failures += test_gpu_blockmatrix_const_runtime<float>(cudart);
+
+    // Dense times BlockDiagMatrix tests (A is dense, B is sparse)
+    total_failures += test_gpu_dense_times_blockdiag_simple<double>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_simple_bsr<double>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_with_beta<double>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_with_beta_bsr<double>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_scaling<double>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_scaling_bsr<double>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_simple<float>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_simple_bsr<float>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_with_beta<float>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_with_beta_bsr<float>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_scaling<float>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_scaling_bsr<float>(cudart);
+
+    // Dense times BlockMatrix tests (A is dense, B is sparse)
+    total_failures += test_gpu_dense_times_blockmatrix_simple<double>(cudart);
+    total_failures += test_gpu_dense_times_blockmatrix_with_alpha<double>(cudart);
+    total_failures += test_gpu_dense_times_blockmatrix_with_beta<double>(cudart);
+    total_failures += test_gpu_dense_times_blockmatrix_transpose_a<double>(cudart);
+    total_failures += test_gpu_dense_times_blockmatrix_transpose_b<double>(cudart);
+    total_failures += test_gpu_dense_times_blockmatrix_transpose_both<double>(cudart);
+    total_failures += test_gpu_dense_times_blockmatrix_simple<float>(cudart);
+    total_failures += test_gpu_dense_times_blockmatrix_with_alpha<float>(cudart);
+    total_failures += test_gpu_dense_times_blockmatrix_with_beta<float>(cudart);
+    total_failures += test_gpu_dense_times_blockmatrix_transpose_a<float>(cudart);
+    total_failures += test_gpu_dense_times_blockmatrix_transpose_b<float>(cudart);
+    total_failures += test_gpu_dense_times_blockmatrix_transpose_both<float>(cudart);
+
+    // Sparse representation caching
+    total_failures += test_gpu_blockmatrix_cached_repeated_product<double>(cudart);
+    total_failures += test_gpu_blockmatrix_cached_repeated_product<float>(cudart);
+    total_failures += test_gpu_blockdiag_cached_alternating_transpose<double>(cudart);
+    total_failures += test_gpu_blockdiag_cached_alternating_transpose<float>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_cached<double>(cudart);
+    total_failures += test_gpu_dense_times_blockdiag_cached<float>(cudart);
+
+    // BlockDiagMatrix GEMM with transposes and rectangular blocks
+    total_failures += test_gpu_blockdiag_gemm_mixed_rectangular_blocks<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_mixed_rectangular_blocks<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_uniform_rectangular_blocks<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_uniform_rectangular_blocks<float>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_conjugate_transpose<double>(cudart);
+    total_failures += test_gpu_blockdiag_gemm_conjugate_transpose<float>(cudart);
+
+    // BlockDiagMatrix times BlockDiagMatrix GEMM tests
+    for (const char *Ta : {"N", "T", "C"}) {
+        for (const char *Tb : {"N", "T", "C"}) {
+            total_failures += test_gpu_blockdiag_times_blockdiag_mixed_shapes<double>(cudart, Ta, Tb);
+            total_failures += test_gpu_blockdiag_times_blockdiag_mixed_shapes<float>(cudart, Ta, Tb);
+            total_failures += test_gpu_blockdiag_times_blockdiag_uniform<double>(cudart, Ta, Tb);
+            total_failures += test_gpu_blockdiag_times_blockdiag_uniform<float>(cudart, Ta, Tb);
+        }
+    }
+    total_failures += test_gpu_blockdiag_times_blockdiag_run_ended_by_b<double>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_run_ended_by_b<float>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_convenience<double>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_convenience<float>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_chained<double>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_chained<float>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_empty<double>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_empty<float>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_mismatch<double>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_mismatch<float>(cudart);
+    total_failures += test_gpu_product_block_shapes_builds_output<double>(cudart);
+    total_failures += test_gpu_product_block_shapes_builds_output<float>(cudart);
+    total_failures += test_gpu_product_block_shapes_empty<double>();
+    total_failures += test_gpu_product_block_shapes_empty<float>();
+    total_failures += test_gpu_product_block_shapes_mismatch<double>();
+    total_failures += test_gpu_product_block_shapes_mismatch<float>();
+    total_failures += test_gpu_blockdiag_times_blockdiag_async_allocator<double>(cudart);
+    total_failures += test_gpu_blockdiag_times_blockdiag_async_allocator<float>(cudart);
+    for (const char *Ta : {"N", "T"}) {
+        for (const char *Tb : {"N", "T"}) {
+            total_failures += test_gpu_blockdiag_times_blockdiag_output_without_blocks<double, BlockDiagMatrix<double>>(cudart, Ta, Tb);
+            total_failures += test_gpu_blockdiag_times_blockdiag_output_without_blocks<float, BlockDiagMatrix<float>>(cudart, Ta, Tb);
+            total_failures += test_gpu_blockdiag_times_blockdiag_output_without_blocks<double, AsyncBlockDiagMatrix<double>>(cudart, Ta, Tb);
+            total_failures += test_gpu_blockdiag_times_blockdiag_output_without_blocks<float, AsyncBlockDiagMatrix<float>>(cudart, Ta, Tb);
+        }
+    }
 
     if (total_failures > 0) {
         std::cerr << "gpu/blas/level3 tests: " << total_failures << " failures" << std::endl;

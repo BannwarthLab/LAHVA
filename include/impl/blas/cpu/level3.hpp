@@ -82,6 +82,116 @@ namespace lahva
             MatrixMatrixProduct(Ta, Tb, (T)alpha, a, b, (T)beta, c);
         };
 
+        /// @brief Block-diagonal matrix multiply: C = alpha * op(A) * op(B) + beta * C
+        ///
+        /// Performs C = alpha * op(A) * op(B) + beta * C where A is block-diagonal,
+        /// and op(X) is X, X^T, or X^H depending on transpose flags.
+        ///
+        /// @param Ta    Transpose for A: "N" (none), "T" (transpose), "C" (conjugate-transpose).
+        /// @param Tb    Transpose for B: "N" (none), "T" (transpose), "C" (conjugate-transpose).
+        /// @param alpha Scaling factor for op(A)*op(B).
+        /// @param a     Block-diagonal input matrix.
+        /// @param b     Dense input matrix.
+        /// @param beta  Scaling factor for existing c.
+        /// @param c     Output matrix (modified).
+        template <typename T>
+        void MatrixMatrixProduct(const char *Ta, const char *Tb, const T alpha, const BlockDiagMatrix_<T> &a, const Matrix_<T> &b,
+                                 const T beta, Matrix_<T> &c);
+
+        /// @brief Block-diagonal multiply with default parameters, convenience overload.
+        ///
+        /// Performs C = alpha * op(A) * op(B) + beta * C with defaults: Ta="N", Tb="N".
+        ///
+        /// @param a     Block-diagonal input matrix.
+        /// @param b     Dense input matrix.
+        /// @param c     Output matrix (modified).
+        /// @param alpha Scaling factor for A*B (default: 1.0).
+        /// @param beta  Scaling factor for existing c (default: 0.0).
+        /// @param Ta    Transpose for A (default: "N").
+        /// @param Tb    Transpose for B (default: "N").
+        template <typename T, typename Scalar = T, typename Scalar2 = T>
+        void MatrixMatrixProduct(const BlockDiagMatrix_<T> &a, const Matrix_<T> &b, Matrix_<T> &c,
+                                const Scalar alpha = 1.0, const Scalar2 beta = 0.0, const char *Ta = "N", const char *Tb = "N")
+        {
+            MatrixMatrixProduct(Ta, Tb, (T)alpha, a, b, (T)beta, c);
+        };
+
+        /// @brief Block-diagonal matrix multiply: C = alpha * op(A) * op(B) + beta * C
+        ///
+        /// Performs C = alpha * op(A) * op(B) + beta * C where B is block-diagonal,
+        /// and op(X) is X, X^T, or X^H depending on transpose flags.
+        ///
+        /// @param Ta    Transpose for A: "N" (none), "T" (transpose), "C" (conjugate-transpose).
+        /// @param Tb    Transpose for B: "N" (none), "T" (transpose), "C" (conjugate-transpose).
+        /// @param alpha Scaling factor for op(A)*op(B).
+        /// @param a     Block-diagonal input matrix.
+        /// @param b     Dense input matrix.
+        /// @param beta  Scaling factor for existing c.
+        /// @param c     Output matrix (modified).
+        template <typename T>
+        void MatrixMatrixProduct(const char *Ta, const char *Tb, const T alpha, const Matrix_<T> &a, const BlockDiagMatrix_<T> &b,
+                                 const T beta, Matrix_<T> &c);
+
+        /// @brief Block-diagonal multiply with default parameters, convenience overload.
+        ///
+        /// Performs C = alpha * op(A) * op(B) + beta * C with defaults: Ta="N", Tb="N".
+        ///
+        /// @param a     Block-diagonal input matrix.
+        /// @param b     Dense input matrix.
+        /// @param c     Output matrix (modified).
+        /// @param alpha Scaling factor for A*B (default: 1.0).
+        /// @param beta  Scaling factor for existing c (default: 0.0).
+        /// @param Ta    Transpose for A (default: "N").
+        /// @param Tb    Transpose for B (default: "N").
+        template <typename T, typename Scalar = T, typename Scalar2 = T>
+        void MatrixMatrixProduct(const Matrix_<T> &a, const BlockDiagMatrix_<T> &b, Matrix_<T> &c,
+                                const Scalar alpha = 1.0, const Scalar2 beta = 0.0, const char *Ta = "N", const char *Tb = "N")
+        {
+            MatrixMatrixProduct(Ta, Tb, (T)alpha, a, b, (T)beta, c);
+        };
+
+        /// @brief Block-diagonal times block-diagonal multiply: C = alpha * op(A) * op(B) + beta * C
+        ///
+        /// Multiplies matching blocks, so that the result stays block-diagonal and off-diagonal blocks cost nothing.
+        /// Block i of op(A) must have as many columns as block i of op(B) has rows, and block i of C must have the
+        /// shape of their product.
+        ///
+        /// @tparam T Numeric element type (double or float).
+        /// @param Ta    Transpose for A: "N" (none), "T" (transpose), "C" (conjugate-transpose).
+        /// @param Tb    Transpose for B: "N" (none), "T" (transpose), "C" (conjugate-transpose).
+        /// @param alpha Scaling factor for op(A)*op(B).
+        /// @param a     Block-diagonal input matrix.
+        /// @param b     Block-diagonal input matrix.
+        /// @param beta  Scaling factor for existing c.
+        /// @param c     Block-diagonal output matrix (modified), which must not share storage with a or b.
+        ///              If c has no blocks, it gets the blocks of the product, initialized to zero,
+        ///              so beta has no effect.
+        /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match.
+        template <typename T>
+        void MatrixMatrixProduct(const char *Ta, const char *Tb, const T alpha, const BlockDiagMatrix_<T> &a, const BlockDiagMatrix_<T> &b,
+                                 const T beta, BlockDiagMatrix_<T> &c);
+
+        /// @brief Block-diagonal times block-diagonal multiply with default parameters, convenience overload.
+        ///
+        /// Performs C = alpha * op(A) * op(B) + beta * C with defaults: Ta="N", Tb="N".
+        ///
+        /// @param a     Block-diagonal input matrix.
+        /// @param b     Block-diagonal input matrix.
+        /// @param c     Block-diagonal output matrix (modified), which must not share storage with a or b.
+        ///              If c has no blocks, it gets the blocks of the product, initialized to zero,
+        ///              so beta has no effect.
+        /// @param alpha Scaling factor for A*B (default: 1.0).
+        /// @param beta  Scaling factor for existing c (default: 0.0).
+        /// @param Ta    Transpose for A (default: "N").
+        /// @param Tb    Transpose for B (default: "N").
+        /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match.
+        template <typename T, typename Scalar = T, typename Scalar2 = T>
+        void MatrixMatrixProduct(const BlockDiagMatrix_<T> &a, const BlockDiagMatrix_<T> &b, BlockDiagMatrix_<T> &c,
+                                const Scalar alpha = 1.0, const Scalar2 beta = 0.0, const char *Ta = "N", const char *Tb = "N")
+        {
+            MatrixMatrixProduct(Ta, Tb, (T)alpha, a, b, (T)beta, c);
+        };
+
         /// @brief Symmetric matrix-matrix multiply (double precision), wrapper to BLAS function dsymm.
         ///
         /// Performs C = alpha * A * B + beta * C when `side == CblasLeft`, or

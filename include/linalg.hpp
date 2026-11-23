@@ -4,23 +4,28 @@
 /// This header aggregates tensor class declarations for both CPU and GPU computation.
 
 #pragma once
-#include <memory>
-#include <vector>
-#include <iterator>
 #include <assert.h>
 #include <iostream>
-#include "impl/tensor/cpu/tensor.hpp"
-#ifdef _CUDA
-#include <cuda_fp16.h>
-#include "impl/tensor/gpu/vector.hpp"
-#include "impl/tensor/gpu/matrix.hpp"
-#include "impl/tensor/gpu/lowtrimatrix.hpp"
-#include "impl/tensor/gpu/mixed-precision-classes/mixed-precision-matrix.hpp"
-#include "impl/mp-runtime.hpp"
-
-#endif
-#include "impl/tensor/cpu/vector.hpp"
-#include "impl/tensor/cpu/matrix.hpp"
-#include "impl/tensor/cpu/lowtrimatrix.hpp"
+#include <iterator>
+#include <memory>
+#include <vector>
 
 #include "impl/tensor/allocators.hpp"
+#include "impl/tensor/cpu/lowtrimatrix.hpp"
+#include "impl/tensor/cpu/matrix.hpp"
+#include "impl/tensor/cpu/tensor.hpp"
+#include "impl/tensor/cpu/vector.hpp"
+#include "impl/tensor/cpu/blockdiagmatrix.hpp"
+#include "impl/tensor/cpu/block-matrix.hpp"
+
+#ifdef _CUDA
+#include <cuda_fp16.h>
+#include "impl/mp-runtime.hpp"
+#include "impl/tensor/gpu/lowtrimatrix.hpp"
+#include "impl/tensor/gpu/matrix.hpp"
+#include "impl/tensor/gpu/vector.hpp"
+#include "impl/tensor/gpu/mixed-precision-classes/mixed-precision-matrix.hpp"
+#include "impl/tensor/gpu/block-matrix-classes/sparse-matrix.hpp"
+#include "impl/tensor/gpu/block-matrix-classes/block-matrix.hpp"
+#include "impl/tensor/gpu/block-matrix-classes/block-diag-matrix.hpp"
+#endif

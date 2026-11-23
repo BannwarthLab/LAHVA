@@ -54,6 +54,36 @@ test('gpu-tensor-mixed-precision-matrix',
   ),
 )
 
+# Sparsematrix type tests
+test('gpu-tensor-sparsematrix',
+  executable(
+    'lahva-gpu-tensor-sparsematrix',
+    sources: files('tensor/sparse-matrix.cpp'),
+    dependencies: [lahva_dep, gpu_test_utils_dep],
+    link_language: 'cpp',
+  ),
+)
+
+# Blockmatrix type tests
+test('gpu-tensor-blockmatrix',
+  executable(
+    'lahva-gpu-tensor-blockmatrix',
+    sources: files('tensor/block-matrix.cpp'),
+    dependencies: [lahva_dep, gpu_test_utils_dep],
+    link_language: 'cpp',
+  ),
+)
+
+# Blockdiag type tests
+test('gpu-tensor-blockdiagmatrix',
+  executable(
+    'lahva-gpu-tensor-blockdiagmatrix',
+    sources: files('tensor/block-diag-matrix.cpp'),
+    dependencies: [lahva_dep, gpu_test_utils_dep],
+    link_language: 'cpp',
+  ),
+)
+
 # GPU miscellaneous tests
 test('gpu-utils-misc',
   executable(

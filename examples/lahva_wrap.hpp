@@ -6,23 +6,12 @@
 #ifdef _CUDA
 #include <runtime.hpp>
 #endif
-namespace lahva
+
+namespace BLASwrap
 {
 
 #ifdef _CUDA
-    namespace gpu
-    {
-        struct gpu_BLAS{
-    
-        };
-    };
 #endif
-    namespace cpu
-    {
-        struct cpu_BLAS{
-            
-        };
-    };
 
 #ifdef _CUDA
     template <typename blas_impl>
@@ -40,6 +29,11 @@ namespace lahva
         using Matrix = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, cpu::Matrix<T>, gpu::Matrix<T, CPUAll<T>, GPUAll<T>>>::type;
         template <typename T>
         using LowTriMatrix = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, cpu::LowTriMatrix<T>, gpu::LowTriMatrix<T, CPUAll<T>, GPUAll<T>>>::type;
+        template <typename T>
+        using BlockMatrix = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, cpu::BlockMatrix<T>, gpu::BlockMatrix<T, CPUAll<T>, GPUAll<T>>>::type;
+        template <typename T>
+        using BlockDiagMatrix = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, cpu::BlockDiagMatrix<T>, gpu::BlockDiagMatrix<T, CPUAll<T>, GPUAll<T>>>::type;
+
         using Timer = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, CPUTimer, GPUTimer>::type;
         using RunTime = typename std::conditional<std::is_same<blas_impl, cpuBLAS::cpu_BLAS>::value, CPURuntime, CudaRuntime>::type;
     };
@@ -57,6 +51,9 @@ namespace lahva
         using Matrix = typename cpu::Matrix<T, CPUAll<T>>;
         template <typename T>
         using LowTriMatrix = typename cpu::LowTriMatrix<T, CPUAll<T>>;
+        template <typename T>
+        using BlockDiagMatrix = typename cpu::BlockMatrix<T, CPUAll<T>>;
+
         using Timer = CPUTimer;
         using RunTime = CPURuntime;
     };

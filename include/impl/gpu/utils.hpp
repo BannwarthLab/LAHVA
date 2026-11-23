@@ -111,6 +111,68 @@ namespace lahva
             return std::make_tuple(nrow, ncol);
         };
 
+        /// @brief Validates tensor shapes for block matrix-vector multiplication.
+        ///
+        /// Checks that the block matrix and vector dimensions are compatible for matrix-vector product.
+        /// Assertions verify that dimensions match considering optional transposition of the matrix.
+        ///
+        /// @tparam T Tensor element type.
+        /// @param m Input block matrix.
+        /// @param vmult Vector to multiply (must match matrix column count or row count if transposed).
+        /// @param vres Result vector (must match matrix row count or column count if transposed).
+        /// @param trans Optional transpose operation on matrix (default: CUBLAS_OP_N for no transpose).
+        /// @return Tuple of (nrow, ncol) dimensions of the matrix.
+        template <typename T>
+        std::tuple<size_t, size_t> check_size_mv(const BlockMatrix_<T> &m, const Tensor_<T> &vmult, const Tensor_<T> &vres, cublasOperation_t trans = CUBLAS_OP_N)
+        {
+            Shape s = m.shape();
+            size_t nrow = s.first;
+            size_t ncol = s.second;
+            if (trans == CUBLAS_OP_N)
+            {
+                assert(nrow == vres.size());
+                assert(ncol == vmult.size());
+            }
+            else
+            {
+                assert(nrow == vmult.size());
+                assert(ncol == vres.size());
+            }
+
+            return std::make_tuple(nrow, ncol);
+        };
+
+        /// @brief Validates tensor shapes for block matrix-vector multiplication with cuSPARSE operation type.
+        ///
+        /// Checks that the block matrix and vector dimensions are compatible for sparse matrix-vector product.
+        /// Assertions verify that dimensions match considering optional transposition of the matrix.
+        ///
+        /// @tparam T Tensor element type.
+        /// @param m Input block matrix.
+        /// @param vmult Vector to multiply (must match matrix column count or row count if transposed).
+        /// @param vres Result vector (must match matrix row count or column count if transposed).
+        /// @param trans Optional transpose operation on matrix (default: CUSPARSE_OPERATION_NON_TRANSPOSE for no transpose).
+        /// @return Tuple of (nrow, ncol) dimensions of the matrix.
+        template <typename T>
+        std::tuple<size_t, size_t> check_size_mv(const BlockMatrix_<T> &m, const Tensor_<T> &vmult, const Tensor_<T> &vres, cusparseOperation_t trans)
+        {
+            Shape s = m.shape();
+            size_t nrow = s.first;
+            size_t ncol = s.second;
+            if (trans == CUSPARSE_OPERATION_NON_TRANSPOSE)
+            {
+                assert(nrow == vres.size());
+                assert(ncol == vmult.size());
+            }
+            else
+            {
+                assert(nrow == vmult.size());
+                assert(ncol == vres.size());
+            }
+
+            return std::make_tuple(nrow, ncol);
+        };
+
         /// @brief Calculates leading dimension for column-major matrix storage.
         ///
         /// Computes the leading dimension (row stride) for cuBLAS operations considering
@@ -130,6 +192,16 @@ namespace lahva
         /// @param T Transposition character: 'N' (no transpose), 'T' (transpose), 'C' (conjugate transpose).
         /// @return cuBLAS operation type (CUBLAS_OP_N, CUBLAS_OP_T, or CUBLAS_OP_C).
         cublasOperation_t get_trans(const char *T);
+
+
+        /// @brief Converts character transposition flag to cuSPARSE operation type.
+        ///
+        /// Translates string transposition indicators ('N', 'T') to corresponding
+        /// cuSPARSE operation types for use in sparse matrix operations.
+        ///
+        /// @param T Transposition character: 'N' (no transpose), 'T' (transpose).
+        /// @return cuSPARSE operation type (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
+        cusparseOperation_t get_cusparse_trans(const char *T);
 
         /// @brief Converts C++ type to corresponding CUDA data type.
         ///
@@ -162,6 +234,31 @@ namespace lahva
                 throw std::invalid_argument("get_cuda_datatype: unsupported type");
             }
         };
+
+        /// @brief Flips the transposition flag for cuSPARSE operations.
+        ///
+        /// Converts between transpose and non-transpose operations for use in sparse matrix operations.
+        ///
+        /// @param op cuSPARSE operation type to flip.
+        /// @return Flipped cuSPARSE operation type.
+        cusparseOperation_t flip_cusparse_trans(cusparseOperation_t op);
+
+        /// @return cuSPARSE operation type (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
+        cusparseOperation_t get_cusparse_trans(const char *T);
+
+        /// @brief Block shapes of C = op(A) * op(B) for block-diagonal matrices A and B.
+        ///
+        /// Use the result to construct an output matrix for the block-diagonal MatrixMatrixProduct.
+        ///
+        /// @tparam T Numeric element type (double or float).
+        /// @param Ta Operation on A: "N" (no transpose), "T" (transpose), "C" (conjugate transpose).
+        /// @param Tb Operation on B: "N" (no transpose), "T" (transpose), "C" (conjugate transpose).
+        /// @param a Input block-diagonal matrix.
+        /// @param b Input block-diagonal matrix.
+        /// @return Shape of each block of C, in block order.
+        /// @throws std::invalid_argument if the blocks of op(A) and op(B) cannot be multiplied.
+        template <typename T>
+        std::vector<Shape> product_block_shapes(const char *Ta, const char *Tb, const BlockDiagMatrix_<T> &a, const BlockDiagMatrix_<T> &b);
 
         /// @brief Validates tensor shapes for matrix-matrix multiplication operation.
         ///
@@ -300,6 +397,143 @@ namespace lahva
 
         return std::make_tuple(nrowc, ncolc);
     };
+
+    /// @brief Validates dimensions for sparse-dense matrix multiplication (sparse A * dense B).
+    ///
+    /// Checks that sparse matrix A and dense matrix B have compatible dimensions for
+    /// C = alpha*op(A)*op(B) + beta*C operation, where A is a BlockMatrix.
+    /// Assertions verify dimension compatibility considering optional transposition.
+    ///
+    /// @tparam T Element type for matrices.
+    /// @param sparse_a Sparse block matrix (first operand).
+    /// @param dense_b Dense matrix (second operand).
+    /// @param dense_c Dense output matrix.
+    /// @param OpA Sparse operation on A (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
+    /// @param OpB Sparse operation on B (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
+    /// @return Tuple of (M, N, m, k) where:
+    ///         - M, N are result matrix dimensions
+    ///         - m, k are original sparse matrix dimensions
+    template <typename T>
+    std::tuple<int64_t, int64_t, int64_t, int64_t> check_size_sparse_dense(
+        const BlockMatrix_<T> &sparse_a,
+        const Matrix_<T> &dense_b,
+        const Matrix_<T> &dense_c,
+        cusparseOperation_t OpA,
+        cusparseOperation_t OpB)
+    {
+        int64_t rows_A = static_cast<int64_t>(sparse_a.shape().first);
+        int64_t cols_A = static_cast<int64_t>(sparse_a.shape().second);
+        int64_t rows_B = static_cast<int64_t>(dense_b.shape().first);
+        int64_t cols_B = static_cast<int64_t>(dense_b.shape().second);
+
+        bool transA = (OpA == CUSPARSE_OPERATION_TRANSPOSE);
+        bool transB = (OpB == CUSPARSE_OPERATION_TRANSPOSE);
+
+        int64_t M = transA ? cols_A : rows_A;
+        int64_t N = transB ? rows_B : cols_B;
+
+        assert((transA ? rows_A : cols_A) == (transB ? cols_B : rows_B));
+        assert(static_cast<int64_t>(dense_c.shape().first) == M);
+        assert(static_cast<int64_t>(dense_c.shape().second) == N);
+
+        int64_t m = rows_A;
+        int64_t k = cols_A;
+
+        return std::make_tuple(M, N, m, k);
+    };
+
+    /// @brief Validates dimensions for dense-sparse matrix multiplication (dense A * sparse B).
+    ///
+    /// Checks that dense matrix A and sparse matrix B have compatible dimensions for
+    /// C = alpha*op(A)*op(B) + beta*C operation, where B is a BlockMatrix.
+    /// Assertions verify dimension compatibility considering optional transposition.
+    ///
+    /// @tparam T Element type for matrices.
+    /// @param dense_a Dense matrix (first operand).
+    /// @param sparse_b Sparse block matrix (second operand).
+    /// @param dense_c Dense output matrix.
+    /// @param OpA Operation on A (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
+    /// @param OpB Operation on B (CUSPARSE_OPERATION_NON_TRANSPOSE or CUSPARSE_OPERATION_TRANSPOSE).
+    /// @return Tuple of (M, N, m, k) where:
+    ///         - M, N are result matrix dimensions
+    ///         - m, k are original sparse matrix dimensions
+    template <typename T>
+    std::tuple<int64_t, int64_t, int64_t, int64_t> check_size_dense_sparse(
+        const Matrix_<T> &dense_a,
+        const BlockMatrix_<T> &sparse_b,
+        const Matrix_<T> &dense_c,
+        cusparseOperation_t OpA,
+        cusparseOperation_t OpB)
+    {
+        int64_t rows_A = static_cast<int64_t>(dense_a.shape().first);
+        int64_t cols_A = static_cast<int64_t>(dense_a.shape().second);
+        int64_t rows_B = static_cast<int64_t>(sparse_b.shape().first);
+        int64_t cols_B = static_cast<int64_t>(sparse_b.shape().second);
+
+        bool transA = (OpA == CUSPARSE_OPERATION_TRANSPOSE);
+        bool transB = (OpB == CUSPARSE_OPERATION_TRANSPOSE);
+
+        int64_t M = transA ? cols_A : rows_A;
+        int64_t N = transB ? rows_B : cols_B;
+
+        assert((transA ? rows_A : cols_A) == (transB ? cols_B : rows_B));
+        assert(static_cast<int64_t>(dense_c.shape().first) == M);
+        assert(static_cast<int64_t>(dense_c.shape().second) == N);
+
+        int64_t m = rows_B;
+        int64_t k = cols_B;
+
+        return std::make_tuple(M, N, m, k);
+    };
+
+        /// @brief Packs block vector from scattered to padded layout on device.
+        ///
+        /// Launches GPU kernel to gather a vector into the padded block layout used by batched
+        /// block operations. Reads the device copy of the vector, which holds the results of
+        /// earlier GPU operations.
+        ///
+        /// @tparam T Floating point type (float or double).
+        /// @param[in] cudart CUDA runtime context for stream and block size configuration.
+        /// @param[in] src Device pointer to input vector in scattered layout [total_size].
+        /// @param[out] dst Device pointer to padded block vector [num_blocks * max_size]; padding is left untouched.
+        /// @param[in] d_offsets Device array of starting positions for each block [num_blocks].
+        /// @param[in] d_block_sizes Device array of actual block sizes [num_blocks].
+        /// @param[in] max_size Maximum block size (padding size for uniform blocks).
+        /// @param[in] num_blocks Number of blocks to pack.
+        template <typename T>
+        void pack_vector(
+            const CudaRuntime &cudart,
+            const T *src,
+            T *dst,
+            const int *d_offsets,
+            const int *d_block_sizes,
+            size_t max_size,
+            int num_blocks);
+
+        /// @brief Unpacks block vector from padded to scattered layout on device.
+        ///
+        /// Launches GPU kernel to redistribute padded block vector back to original layout.
+        /// Used after batched block operations to restore vector layout for further computation.
+        /// Each block is stored contiguously in padded format with fixed size `max_size` on the GPU,
+        /// and is scattered back to its original position based on offset and block size information.
+        ///
+        /// @tparam T Floating point type (float or double).
+        /// @param[in] cudart CUDA runtime context for stream and block size configuration.
+        /// @param[in] src Device pointer to padded block vector [num_blocks * max_size].
+        /// @param[out] dst Device pointer to output vector in scattered layout [total_size].
+        /// @param[in] d_offsets Device array of starting positions for each block [num_blocks].
+        /// @param[in] d_block_sizes Device array of actual block sizes [num_blocks].
+        /// @param[in] max_size Maximum block size (padding size for uniform blocks).
+        /// @param[in] num_blocks Number of blocks to unpack.
+        template <typename T>
+        void unpack_vector(
+            const CudaRuntime &cudart,
+            const T *src,
+            T *dst,
+            const int *d_offsets,
+            const int *d_block_sizes,
+            size_t max_size,
+            int num_blocks);
 
     } // namespace gpu
 } // namespace lahva

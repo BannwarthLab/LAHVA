@@ -5,6 +5,7 @@
 /// for GPU-accelerated linear algebra operations.
 
 #include <cublas_v2.h>
+#include <cusparse.h>
 #include <cuda_runtime.h>
 #include <iostream>
 #include <omp.h>
@@ -325,6 +326,22 @@ namespace lahva
             cusolv_->setStream(this->getStream());
         }
         return this->cusolv_->getHandle();
+    };
+
+    /// @brief Gets or creates cuSPARSE handle for sparse matrix operations.
+    ///
+    /// Lazily constructs cuSPARSE runtime on first call, associating it with
+    /// the CUDA stream from this runtime for proper synchronization.
+    ///
+    /// @return cuSPARSE handle for sparse matrix operations.
+    cusparseHandle_t CudaRuntime::getcuSparseHandle() const
+    {
+        std::call_once(cusparse_once_, [this]()
+        {
+            cusparse_ = std::make_shared<cuSparseRuntime>();
+            cusparse_->setStream(this->getStream());
+        });
+        return this->cusparse_->getHandle();
     };
 
 } // namespace lahva

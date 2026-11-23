@@ -466,6 +466,191 @@ int test_ger(){
 }
 
 // ============================================================================
+// BlockDiagMatrix GEMV Tests
+// ============================================================================
+
+template<typename T>
+int test_blockdiag_gemv_simple() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {5, 7, 6, 8}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T> x(4);
+    x[0] = static_cast<T>(1);
+    x[1] = static_cast<T>(2);
+    x[2] = static_cast<T>(3);
+    x[3] = static_cast<T>(4);
+
+    Vector<T> y(4, static_cast<T>(0));
+
+    MatrixVectorProduct(static_cast<T>(1), A, x, static_cast<T>(0), y);
+
+    if (!check(y[0], static_cast<T>(5), check_msg(get_type_name<T>(), "y[0] should be 5"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(11), check_msg(get_type_name<T>(), "y[1] should be 11"))) return TEST_FAIL;
+    if (!check(y[2], static_cast<T>(39), check_msg(get_type_name<T>(), "y[2] should be 39"))) return TEST_FAIL;
+    if (!check(y[3], static_cast<T>(53), check_msg(get_type_name<T>(), "y[3] should be 53"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template<typename T>
+int test_blockdiag_gemv_with_beta() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {1, 2, 3, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T> x(2, static_cast<T>(1));
+    Vector<T> y(2, static_cast<T>(2));
+
+    MatrixVectorProduct(static_cast<T>(1), A, x, static_cast<T>(2), y);
+
+    if (!check(y[0], static_cast<T>(8), check_msg(get_type_name<T>(), "y[0] should be 8"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(10), check_msg(get_type_name<T>(), "y[1] should be 10"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template<typename T>
+int test_blockdiag_gemv_varying_blocks() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{1, 1}, {2}));
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {1, 2, 3, 4}));
+    blocks.push_back(Matrix<T>(Shape{1, 1}, {3}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T> x(4);
+    x[0] = static_cast<T>(1);
+    x[1] = static_cast<T>(2);
+    x[2] = static_cast<T>(3);
+    x[3] = static_cast<T>(4);
+
+    Vector<T> y(4, static_cast<T>(0));
+
+    MatrixVectorProduct(static_cast<T>(1), A, x, static_cast<T>(0), y);
+
+    if (!check(y[0], static_cast<T>(2), check_msg(get_type_name<T>(), "y[0] should be 2"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(11), check_msg(get_type_name<T>(), "y[1] should be 11"))) return TEST_FAIL;
+    if (!check(y[2], static_cast<T>(16), check_msg(get_type_name<T>(), "y[2] should be 16"))) return TEST_FAIL;
+    if (!check(y[3], static_cast<T>(12), check_msg(get_type_name<T>(), "y[3] should be 12"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template<typename T>
+int test_blockdiag_gemv_transpose() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {1, 3, 2, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T> x(2);
+    x[0] = static_cast<T>(1);
+    x[1] = static_cast<T>(2);
+
+    Vector<T> y(2, static_cast<T>(0));
+
+    MatrixVectorProduct(A, x, y, "T");
+
+    if (!check(y[0], static_cast<T>(7), check_msg(get_type_name<T>(), "y[0] should be 7"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(10), check_msg(get_type_name<T>(), "y[1] should be 10"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template<typename T>
+int test_blockdiag_gemv_transpose_with_alpha_beta() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {2, 6, 4, 8}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T> x(2);
+    x[0] = static_cast<T>(1);
+    x[1] = static_cast<T>(2);
+
+    Vector<T> y(2, static_cast<T>(1));
+
+    MatrixVectorProduct(A, x, y, "T", static_cast<T>(0.5), static_cast<T>(2));
+
+    if (!check(y[0], static_cast<T>(9), check_msg(get_type_name<T>(), "y[0] should be 9"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(12), check_msg(get_type_name<T>(), "y[1] should be 12"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template<typename T>
+int test_blockdiag_gemv_no_transpose() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {1, 3, 2, 4}));
+
+    BlockDiagMatrix<T> A(blocks);
+
+    Vector<T> x(2);
+    x[0] = static_cast<T>(1);
+    x[1] = static_cast<T>(2);
+
+    Vector<T> y(2, static_cast<T>(0));
+
+    MatrixVectorProduct(A, x, y, "N");
+
+    if (!check(y[0], static_cast<T>(5), check_msg(get_type_name<T>(), "y[0] should be 5"))) return TEST_FAIL;
+    if (!check(y[1], static_cast<T>(11), check_msg(get_type_name<T>(), "y[1] should be 11"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// Row and column offsets differ between the blocks, so swapping them changes the result
+template<typename T>
+int test_blockdiag_gemv_multi_block_transpose(const char *Ta) {
+    std::vector<Matrix<T>> blocks;
+    T value = static_cast<T>(1);
+    for (const Shape &shape : {Shape{2, 3}, Shape{3, 1}, Shape{1, 2}, Shape{1, 2}}) {
+        Matrix<T> block(shape);
+        for (size_t i = 0; i < shape.first; i++) {
+            for (size_t j = 0; j < shape.second; j++) {
+                block(i, j) = value++;
+            }
+        }
+        blocks.push_back(block);
+    }
+    BlockDiagMatrix<T> A(blocks);
+
+    const bool trans = Ta[0] != 'N';
+    const size_t n_in = trans ? A.shape().first : A.shape().second;
+    const size_t n_out = trans ? A.shape().second : A.shape().first;
+
+    Vector<T> x(n_in);
+    for (size_t i = 0; i < n_in; i++) {
+        x[i] = static_cast<T>(i + 1);
+    }
+    Vector<T> y(n_out, static_cast<T>(1));
+
+    // Naive reference, independent of BLAS: y = 2 * op(A) * x + 3 * y
+    std::vector<T> expected(n_out, static_cast<T>(3));
+    for (size_t b = 0; b < A.num_blocks(); b++) {
+        Shape shape = A.get_block_shape(b);
+        for (size_t i = 0; i < shape.first; i++) {
+            for (size_t j = 0; j < shape.second; j++) {
+                const size_t row = A.get_row_offsets()[b] + i;
+                const size_t col = A.get_col_offsets()[b] + j;
+                expected[trans ? col : row] += static_cast<T>(2) * A.get_block(b)(i, j) * x[trans ? row : col];
+            }
+        }
+    }
+
+    MatrixVectorProduct(Ta, static_cast<T>(2), A, x, 1, static_cast<T>(3), y, 1);
+
+    const std::string desc = std::string("Ta=") + Ta;
+    if (!check(y.data(), expected.data(), static_cast<int>(n_out), check_msg(get_type_name<T>(), desc))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+// ============================================================================
 // Stride Tests, where the vectors are longer than the matrix dimensions
 // ============================================================================
 
@@ -485,6 +670,21 @@ Vector<T> make_strided_input() {
         x[2 * i] = static_cast<T>(i + 1);
     }
     return x;
+}
+
+template<typename T>
+int test_blockdiag_gemv_strided() {
+    std::vector<Matrix<T>> blocks;
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {1, 3, 2, 4}));
+    blocks.push_back(Matrix<T>(Shape{2, 2}, {5, 7, 6, 8}));
+    BlockDiagMatrix<T> A(blocks);
+
+    const Vector<T> x = make_strided_input<T>();
+    Vector<T> y(12, static_cast<T>(-1));
+
+    MatrixVectorProduct("N", static_cast<T>(1), A, x, 2, static_cast<T>(0), y, 3);
+
+    return check_strided_gemv_result(y);
 }
 
 template<typename T>
@@ -582,6 +782,28 @@ int main(){
     // Outer product tests
     total_failures += test_ger<double>();
     total_failures += test_ger<float>();
+
+    // BlockDiagMatrix GEMV tests
+    total_failures += test_blockdiag_gemv_simple<double>();
+    total_failures += test_blockdiag_gemv_simple<float>();
+    total_failures += test_blockdiag_gemv_with_beta<double>();
+    total_failures += test_blockdiag_gemv_with_beta<float>();
+    total_failures += test_blockdiag_gemv_varying_blocks<double>();
+    total_failures += test_blockdiag_gemv_varying_blocks<float>();
+    total_failures += test_blockdiag_gemv_transpose<double>();
+    total_failures += test_blockdiag_gemv_transpose<float>();
+    total_failures += test_blockdiag_gemv_transpose_with_alpha_beta<double>();
+    total_failures += test_blockdiag_gemv_transpose_with_alpha_beta<float>();
+    total_failures += test_blockdiag_gemv_no_transpose<double>();
+    total_failures += test_blockdiag_gemv_no_transpose<float>();
+    for (const char *Ta : {"N", "T", "C"}) {
+        total_failures += test_blockdiag_gemv_multi_block_transpose<double>(Ta);
+        total_failures += test_blockdiag_gemv_multi_block_transpose<float>(Ta);
+    }
+
+    // Stride tests
+    total_failures += test_blockdiag_gemv_strided<double>();
+    total_failures += test_blockdiag_gemv_strided<float>();
     total_failures += test_gemv_strided<double>();
     total_failures += test_gemv_strided<float>();
     total_failures += test_symv_strided<double>();

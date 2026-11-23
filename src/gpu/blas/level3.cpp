@@ -541,5 +541,281 @@ namespace lahva
             MatrixMatrixProductFP16(cudart, Ta, Tb, alpha, a, b, beta, c);
         };
 
+        // Double precision implementation
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                                 const double alpha, const BlockMatrix_<double> &a,
+                                 const Matrix_<double> &b, const double beta, Matrix_<double> &c)
+        {
+            MatrixMatrixProduct_sparse_dense(cudart, Ta, Tb, alpha, a, b, beta, c);
+        }
+
+        // Float precision implementation
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                                 const float alpha, const BlockMatrix_<float> &a,
+                                 const Matrix_<float> &b, const float beta, Matrix_<float> &c)
+        {
+            MatrixMatrixProduct_sparse_dense(cudart, Ta, Tb, alpha, a, b, beta, c);
+        }
+
+
+        template <typename T>
+        void MatrixMatrixProduct_sparse_dense(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                                 const T alpha, const BlockMatrix_<T> &a,
+                                 const Matrix_<T> &b, const T beta, Matrix_<T> &c)
+        {
+
+            check_device_alloc(cudart, b);
+            check_device_alloc(cudart, c);
+
+            cusparseOperation_t OpA = get_cusparse_trans(Ta);
+            cusparseOperation_t OpB = get_cusparse_trans(Tb);
+
+            int64_t M, N, m, k;
+            std::tie(M, N, m, k) = check_size_sparse_dense(a, b, c, OpA, OpB);
+
+            if ( a.num_blocks() == 0) throw std::invalid_argument("MatrixMatrixProduct: sparse matrix a has no non-zero blocks");
+
+            SparseFormat format_to_use = a.get_sparse_format();
+            if (OpA == CUSPARSE_OPERATION_TRANSPOSE)
+            {
+                format_to_use = SparseFormat::CSR;
+            }
+
+            cudaDataType_t precision = get_cuda_datatype<T>();
+
+            const SparseMatrix<T> &sparse = a.get_sparse(cudart, format_to_use, precision);
+            cusparseSpMatDescr_t mat_a = sparse.get_descriptor();
+
+            cusparseHandle_t handle = cudart.getcuSparseHandle();
+            cusparseDnMatDescr_t mat_b = nullptr;
+            get_cusparse_error(cusparseCreateDnMat(&mat_b, b.shape().first, b.shape().second, b.shape().first,
+                                                   b.gpu_data(), precision, CUSPARSE_ORDER_COL));
+            cusparseDnMatDescr_t mat_c = nullptr;
+            get_cusparse_error(cusparseCreateDnMat(&mat_c, M, N, M,
+                                                   c.gpu_data(), precision, CUSPARSE_ORDER_COL));
+
+            size_t workspace_size = 0;
+            get_cusparse_error(cusparseSpMM_bufferSize(handle, OpA, OpB,
+                                                       &alpha, mat_a, mat_b, &beta, mat_c,
+                                                       precision, CUSPARSE_SPMM_ALG_DEFAULT, &workspace_size));
+            void *workspace = sparse.get_workspace(workspace_size);
+
+            get_cusparse_error(cusparseSpMM(handle, OpA, OpB,
+                                            &alpha, mat_a, mat_b, &beta, mat_c,
+                                            precision, CUSPARSE_SPMM_ALG_DEFAULT, workspace));
+
+            cudart.synchronize();
+
+            get_cusparse_error(cusparseDestroyDnMat(mat_b));
+            get_cusparse_error(cusparseDestroyDnMat(mat_c));
+        }
+
+        // Double precision implementation
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                                 const double alpha, const Matrix_<double> &a,
+                                 const BlockMatrix_<double> &b, const double beta, Matrix_<double> &c)
+        {
+            MatrixMatrixProduct_dense_sparse(cudart, Ta, Tb, alpha, a, b, beta, c);
+        }
+
+        // Float precision implementation
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                                 const float alpha, const Matrix_<float> &a,
+                                 const BlockMatrix_<float> &b, const float beta, Matrix_<float> &c)
+        {
+            MatrixMatrixProduct_dense_sparse(cudart, Ta, Tb, alpha, a, b, beta, c);
+        }
+
+        template <typename T>
+        void MatrixMatrixProduct_dense_sparse(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                                 const T alpha, const Matrix_<T> &a,
+                                 const BlockMatrix_<T> &b, const T beta, Matrix_<T> &c)
+        {
+            check_device_alloc(cudart, a);
+            check_device_alloc(cudart, c);
+
+            if ( b.num_blocks() == 0) throw std::invalid_argument("MatrixMatrixProduct: sparse matrix b has no non-zero blocks");
+
+            cusparseOperation_t userOpA = get_cusparse_trans(Ta);
+            cusparseOperation_t userOpB = get_cusparse_trans(Tb);
+
+            int64_t M, N, m, k;
+            std::tie(M, N, m, k) = check_size_dense_sparse(a, b, c, userOpA, userOpB);
+
+            // We flip the operations because cusparseSpMM expects the sparse matrix to be the first argument, and the dense matrix to be the second argument.
+            cusparseOperation_t cusparse_opA = flip_cusparse_trans(userOpB);
+            cusparseOperation_t cusparse_opB = flip_cusparse_trans(userOpA);
+
+            // BSR doesn't support transposed operations, so fall back to CSR if needed
+            SparseFormat format_to_use = b.get_sparse_format();
+            if (cusparse_opA == CUSPARSE_OPERATION_TRANSPOSE && format_to_use == SparseFormat::BSR)
+            {
+                format_to_use = SparseFormat::CSR;
+            }
+
+            cudaDataType_t precision = get_cuda_datatype<T>();
+            const SparseMatrix<T> &sparse = b.get_sparse(cudart, format_to_use, precision);
+
+            int64_t rows_A = static_cast<int64_t>(a.shape().first);
+            int64_t cols_A = static_cast<int64_t>(a.shape().second);
+
+            cusparseSpMatDescr_t mat_b = sparse.get_descriptor();
+
+            T *a_gpu = a.gpu_data();
+            T *c_gpu = c.gpu_data();
+
+            cusparseHandle_t handle = cudart.getcuSparseHandle();
+            cusparseDnMatDescr_t mat_a = nullptr;
+            get_cusparse_error(cusparseCreateDnMat(&mat_a, rows_A, cols_A, rows_A,
+                                                   (void *)a_gpu, precision, CUSPARSE_ORDER_COL));
+            cusparseDnMatDescr_t mat_c = nullptr;
+            get_cusparse_error(cusparseCreateDnMat(&mat_c, N, M, M,
+                                                   (void *)c_gpu, precision, CUSPARSE_ORDER_ROW));
+
+            size_t workspace_size = 0;
+            get_cusparse_error(cusparseSpMM_bufferSize(handle, cusparse_opA, cusparse_opB,
+                                                       &alpha, mat_b, mat_a, &beta, mat_c,
+                                                       precision, CUSPARSE_SPMM_ALG_DEFAULT, &workspace_size));
+
+            void *workspace = sparse.get_workspace(workspace_size);
+
+            get_cusparse_error(cusparseSpMM(handle, cusparse_opA, cusparse_opB,
+                                            &alpha, mat_b, mat_a, &beta, mat_c,
+                                            precision, CUSPARSE_SPMM_ALG_DEFAULT, workspace));
+
+            cudart.synchronize();
+
+            get_cusparse_error(cusparseDestroyDnMat(mat_a));
+            get_cusparse_error(cusparseDestroyDnMat(mat_c));
+        }
+
+        /// @brief Block-diagonal times block-diagonal product using cuBLAS strided batched GEMM.
+        ///
+        /// Performs C = alpha * op(A) * op(B) + beta * C on the padded block storage of the matrices. Each run of
+        /// consecutive blocks with identical dimensions is one batch using the true block dimensions, so the padding
+        /// is not part of the computation.
+        ///
+        /// @tparam T Numeric element type (double or float).
+        /// @param cudart CUDA runtime instance.
+        /// @param Ta Operation on A: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param Tb Operation on B: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param alpha Scalar multiplier for the matrix product.
+        /// @param a Input block-diagonal matrix.
+        /// @param b Input block-diagonal matrix.
+        /// @param beta Scalar multiplier for result matrix C.
+        /// @param c Input/output block-diagonal matrix, which must not share storage with a or b. If c has no blocks,
+        ///          it gets the blocks of the product, initialized to zero, so beta has no effect.
+        /// @throws std::invalid_argument if the block counts or block shapes of a, b and c do not match.
+        template <typename T>
+        void MatrixMatrixProduct_blockdiag(const CudaRuntime &cudart, const char *Ta, const char *Tb, const T alpha, const BlockDiagMatrix_<T> &a,
+                                 const BlockDiagMatrix_<T> &b, const T beta, BlockDiagMatrix_<T> &c)
+        {
+            cublasOperation_t transa = get_trans(Ta);
+            cublasOperation_t transb = get_trans(Tb);
+
+            // An output without blocks gets the blocks of the product
+            if (c.num_blocks() == 0 && a.num_blocks() > 0) {
+                c.set_block_shapes(product_block_shapes(Ta, Tb, a, b));
+            }
+
+            const size_t num_blocks = a.num_blocks();
+            if (b.num_blocks() != num_blocks || c.num_blocks() != num_blocks) {
+                throw std::invalid_argument("MatrixMatrixProduct: block-diagonal matrices must have the same number of blocks");
+            }
+
+            // Looking up a shape by index walks the block map, so get them all at once
+            const std::vector<size_t> a_rows = a.get_block_rows(), a_cols = a.get_block_cols();
+            const std::vector<size_t> b_rows = b.get_block_rows(), b_cols = b.get_block_cols();
+            const std::vector<size_t> c_rows = c.get_block_rows(), c_cols = c.get_block_cols();
+            const std::vector<size_t> &op_a_rows = (transa != CUBLAS_OP_N) ? a_cols : a_rows;
+            const std::vector<size_t> &op_a_cols = (transa != CUBLAS_OP_N) ? a_rows : a_cols;
+            const std::vector<size_t> &op_b_rows = (transb != CUBLAS_OP_N) ? b_cols : b_rows;
+            const std::vector<size_t> &op_b_cols = (transb != CUBLAS_OP_N) ? b_rows : b_cols;
+
+            if (op_a_cols != op_b_rows || c_rows != op_a_rows || c_cols != op_b_cols) {
+                throw std::invalid_argument("MatrixMatrixProduct: block shapes of block-diagonal matrices do not match");
+            }
+
+            if (num_blocks == 0) return;
+
+            const auto &gpu_a = a.ensure_on_gpu(cudart);
+            const auto &gpu_b = b.ensure_on_gpu(cudart);
+            const auto &gpu_c = c.ensure_on_gpu(cudart);
+            const long long stride_a = gpu_a.padded_stride;
+            const long long stride_b = gpu_b.padded_stride;
+            const long long stride_c = gpu_c.padded_stride;
+
+            cudart.cublasSetStream_();
+
+            size_t start = 0;
+            while (start < num_blocks) {
+                // Find consecutive blocks with same dimensions, which also fixes the shape of C
+                size_t end = start + 1;
+                while (end < num_blocks && op_a_rows[end] == op_a_rows[start] && op_a_cols[end] == op_a_cols[start] &&
+                       op_b_cols[end] == op_b_cols[start]) {
+                    ++end;
+                }
+
+                const int m = op_a_rows[start];
+                const int n = op_b_cols[start];
+                const int k = op_a_cols[start];
+                const int count = end - start;
+
+                cublasStatus_t istat;
+                if constexpr (std::is_same_v<T, double>) {
+                    istat = cublasDgemmStridedBatched(
+                        cudart.handle, transa, transb, m, n, k, &alpha,
+                        gpu_a.d_data + start * stride_a, gpu_a.max_m, stride_a,
+                        gpu_b.d_data + start * stride_b, gpu_b.max_m, stride_b, &beta,
+                        gpu_c.d_data + start * stride_c, gpu_c.max_m, stride_c, count);
+                } else {
+                    istat = cublasSgemmStridedBatched(
+                        cudart.handle, transa, transb, m, n, k, &alpha,
+                        gpu_a.d_data + start * stride_a, gpu_a.max_m, stride_a,
+                        gpu_b.d_data + start * stride_b, gpu_b.max_m, stride_b, &beta,
+                        gpu_c.d_data + start * stride_c, gpu_c.max_m, stride_c, count);
+                }
+                get_cublas_error(istat);
+
+                start = end;
+            }
+        }
+
+        /// @brief Computes block-diagonal times block-diagonal product C = alpha * op(A) * op(B) + beta * C (double precision).
+        ///
+        /// @param cudart CUDA runtime instance.
+        /// @param Ta Operation on A: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param Tb Operation on B: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param alpha Scalar multiplier for the matrix product.
+        /// @param a Input block-diagonal matrix.
+        /// @param b Input block-diagonal matrix.
+        /// @param beta Scalar multiplier for result matrix C.
+        /// @param c Input/output block-diagonal matrix, which must not share storage with a or b. If c has no blocks,
+        ///          it gets the blocks of the product, initialized to zero, so beta has no effect.
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                                 const double alpha, const BlockDiagMatrix_<double> &a,
+                                 const BlockDiagMatrix_<double> &b, const double beta, BlockDiagMatrix_<double> &c)
+        {
+            MatrixMatrixProduct_blockdiag(cudart, Ta, Tb, alpha, a, b, beta, c);
+        }
+
+        /// @brief Computes block-diagonal times block-diagonal product C = alpha * op(A) * op(B) + beta * C (single precision).
+        ///
+        /// @param cudart CUDA runtime instance.
+        /// @param Ta Operation on A: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param Tb Operation on B: "N" (no transpose), "T" (transpose) or "C" (conjugate transpose).
+        /// @param alpha Scalar multiplier for the matrix product.
+        /// @param a Input block-diagonal matrix.
+        /// @param b Input block-diagonal matrix.
+        /// @param beta Scalar multiplier for result matrix C.
+        /// @param c Input/output block-diagonal matrix, which must not share storage with a or b. If c has no blocks,
+        ///          it gets the blocks of the product, initialized to zero, so beta has no effect.
+        void MatrixMatrixProduct(const CudaRuntime &cudart, const char *Ta, const char *Tb,
+                                 const float alpha, const BlockDiagMatrix_<float> &a,
+                                 const BlockDiagMatrix_<float> &b, const float beta, BlockDiagMatrix_<float> &c)
+        {
+            MatrixMatrixProduct_blockdiag(cudart, Ta, Tb, alpha, a, b, beta, c);
+        }
+
     }
 } // namespace lahva

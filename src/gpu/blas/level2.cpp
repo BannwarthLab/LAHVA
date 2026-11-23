@@ -325,6 +325,165 @@ namespace lahva
                                          inx, reinterpret_cast<const cuComplex*>(&beta), reinterpret_cast<cuComplex*>(y.gpu_data()), iny));
         };
 
+        template <typename T>
+        void MatrixVectorProduct_blockdiag(const CudaRuntime& cudart, const char* ta, const T alpha, const BlockDiagMatrix_<T>& a,
+                                const Vector_<T>& x, const T beta, Vector_<T>& y)
+        {
+            cublasOperation_t transa = get_trans(ta);
+            check_size_mv(a, x, y, transa);
+            int num_blocks = a.num_blocks();
+
+            const auto& gpu_a_data = a.ensure_on_gpu(cudart);
+            size_t max_m = gpu_a_data.max_m;
+            size_t max_k = gpu_a_data.max_k;
+            long long padded_stride_a = gpu_a_data.padded_stride;
+            T *d_a = reinterpret_cast<T*>(gpu_a_data.d_data);
+
+            size_t lda = max_m;
+            size_t incx = 1;
+            size_t incy = 1;
+
+            // x and y follow op(A): transposing swaps its rows and columns
+            const bool is_trans = transa != CUBLAS_OP_N;
+            const size_t x_stride = is_trans ? max_m : max_k;
+            const size_t y_stride = is_trans ? max_k : max_m;
+            const int *d_x_offsets = is_trans ? a.get_d_row_offsets(cudart) : a.get_d_col_offsets(cudart);
+            const int *d_x_sizes = is_trans ? a.get_d_block_row_sizes(cudart) : a.get_d_block_col_sizes(cudart);
+            const int *d_y_offsets = is_trans ? a.get_d_col_offsets(cudart) : a.get_d_row_offsets(cudart);
+            const int *d_y_sizes = is_trans ? a.get_d_block_col_sizes(cudart) : a.get_d_block_row_sizes(cudart);
+
+            check_device_alloc(cudart, x);
+            check_device_alloc(cudart, y);
+
+            // Packed from the device copies, which hold the results of earlier GPU operations.
+            // The padding has to stay zero, because the padded parts of A multiply it.
+            Vector<T> x_packed(x_stride * num_blocks, (T)0);
+            x_packed.copy2device(cudart);
+            pack_vector(cudart, x.gpu_data(), x_packed.gpu_data(), d_x_offsets, d_x_sizes, x_stride, num_blocks);
+            T *d_x = x_packed.gpu_data();
+
+            Vector<T> y_packed(y_stride * num_blocks, (T)0);
+            y_packed.copy2device(cudart);
+            pack_vector(cudart, y.gpu_data(), y_packed.gpu_data(), d_y_offsets, d_y_sizes, y_stride, num_blocks);
+            T *d_y = y_packed.gpu_data();
+
+            cudart.cublasSetStream_();
+            cublasStatus_t istat;
+            if (std::is_same<T, double>::value) {
+                istat = cublasDgemvStridedBatched(
+                    cudart.handle, transa, max_m, max_k, (const double*)&alpha,
+                    (const double*)d_a, lda, padded_stride_a,
+                    (const double*)d_x, incx, x_stride,
+                    (const double*)&beta, (double*)d_y, incy, y_stride, num_blocks);
+            } else {
+                istat = cublasSgemvStridedBatched(
+                    cudart.handle, transa, max_m, max_k, (const float*)&alpha,
+                    (const float*)d_a, lda, padded_stride_a,
+                    (const float*)d_x, incx, x_stride,
+                    (const float*)&beta, (float*)d_y, incy, y_stride, num_blocks);
+            }
+            get_cublas_error(istat);
+
+            unpack_vector(cudart, y_packed.gpu_data(), y.gpu_data(), d_y_offsets, d_y_sizes, y_stride, num_blocks);
+        }
+
+        /// @brief Computes batched matrix-vector product for block-diagonal matrices \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ (double precision).
+        ///
+        /// Performs batched matrix-vector multiplication on block-diagonal matrices supporting optional transposition.
+        /// Computes \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$, \f$\vec{y}=alpha*\mathbf{A}^T*\vec{x}+beta*\vec{y}\f$, or \f$\vec{y}=alpha*conj(\mathbf{A}^T)*\vec{x}+beta*\vec{y}\f$.
+        /// The operation is performed using CUDA's strided batch GEMV on GPU-resident blocks.
+        ///
+        /// @param cudart CUDA runtime instance.
+        /// @param ta Transposition character: 'N' (no transpose), 'T' (transpose), 'C' (conjugate transpose).
+        /// @param alpha Scalar factor for the matrix-vector product.
+        /// @param a Input block-diagonal matrix with double-precision blocks.
+        /// @param x Input double-precision vector matching the column structure of a.
+        /// @param beta Scalar factor for vector y.
+        /// @param y Input/output double-precision vector, replaced with result.
+        void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const double alpha, const BlockDiagMatrix_<double>& a,
+                                const Vector_<double>& x, const double beta, Vector_<double>& y)
+        {
+            MatrixVectorProduct_blockdiag(cudart, ta, alpha, a, x, beta, y);
+        }
+
+        /// @brief Computes batched matrix-vector product for block-diagonal matrices \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$ (single precision).
+        ///
+        /// Performs batched matrix-vector multiplication on block-diagonal matrices supporting optional transposition.
+        /// Computes \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$, \f$\vec{y}=alpha*\mathbf{A}^T*\vec{x}+beta*\vec{y}\f$, or \f$\vec{y}=alpha*conj(\mathbf{A}^T)*\vec{x}+beta*\vec{y}\f$.
+        /// The operation is performed using CUDA's strided batch GEMV on GPU-resident blocks.
+        ///
+        /// @param cudart CUDA runtime instance.
+        /// @param ta Transposition character: 'N' (no transpose), 'T' (transpose), 'C' (conjugate transpose).
+        /// @param alpha Scalar factor for the matrix-vector product.
+        /// @param a Input block-diagonal matrix with single-precision blocks.
+        /// @param x Input single-precision vector matching the column structure of a.
+        /// @param beta Scalar factor for vector y.
+        /// @param y Input/output single-precision vector, replaced with result.
+        void MatrixVectorProduct(const CudaRuntime& cudart, const char* ta, const float alpha, const BlockDiagMatrix_<float>& a,
+                                const Vector_<float>& x, const float beta, Vector_<float>& y)
+        {
+            MatrixVectorProduct_blockdiag(cudart, ta, alpha, a, x, beta, y);
+        }
+
+        /// @brief Sparse matrix-vector product with BlockMatrix via cuSPARSE.
+        ///
+        /// Performs sparse matrix-vector multiplication \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
+        /// or \f$\vec{y}=alpha*\mathbf{A}^T*\vec{x}+beta*\vec{y}\f$ using cuSPARSE operations.
+        /// The BlockMatrix is converted to sparse format (BSR for uniform blocks, CSR for non-uniform blocks).
+        ///
+        /// @tparam T Numeric element type (float or double).
+        /// @param cudart CUDA runtime instance.
+        /// @param ta Transposition character: 'N' (no transpose), 'T' (transpose).
+        /// @param alpha Scalar factor for the matrix-vector product.
+        /// @param a Input block-structured sparse matrix.
+        /// @param x Input vector to multiply (size must match matrix columns or rows if transposed).
+        /// @param beta Scalar factor for vector y.
+        /// @param y Input/output vector, replaced with result (size must match matrix rows or columns if transposed).
+        template <typename T>
+        void MatrixVectorProduct_sparse(const CudaRuntime &cudart, const char* ta, const T alpha, const BlockMatrix_<T>& a,
+                                const Vector_<T>& x, const T beta, Vector_<T>& y)
+        {
+            cusparseOperation_t op = get_cusparse_trans(ta);
+            check_size_mv(a, x, y, op);
+
+            check_device_alloc(cudart, x);
+            check_device_alloc(cudart, y);
+
+            cudaDataType_t precision = get_cuda_datatype<T>();
+
+            // Sparse representation is cached on a; only rebuilt or re-uploaded when a has changed
+            const SparseMatrix<T> &sparse = a.get_sparse(cudart, a.get_sparse_format(), precision);
+
+            cusparseSpMatDescr_t mat_a = sparse.get_descriptor();
+
+            // Create dense vector descriptors
+            cusparseDnVecDescr_t vec_x_descr, vec_y_descr;
+            get_cusparse_error(cusparseCreateDnVec(&vec_x_descr, x.size(), x.gpu_data(), precision));
+            get_cusparse_error(cusparseCreateDnVec(&vec_y_descr, y.size(), y.gpu_data(), precision));
+
+            // Allocate work buffer
+            cusparseHandle_t sparseHandle = cudart.getcuSparseHandle();
+            size_t bufferSize = 0;
+            get_cusparse_error(cusparseSpMV_bufferSize(sparseHandle, op, &alpha, mat_a, vec_x_descr,
+                                                        &beta, vec_y_descr, precision, CUSPARSE_SPMV_ALG_DEFAULT, &bufferSize));
+
+            void *buffer = sparse.get_workspace(bufferSize);
+
+            // Perform multiplication
+            get_cusparse_error(cusparseSpMV(sparseHandle, op, &alpha, mat_a, vec_x_descr,
+                                           &beta, vec_y_descr, precision, CUSPARSE_SPMV_ALG_DEFAULT, buffer));
+
+            // Cleanup (mat_a and the work buffer are owned by the cached sparse matrix)
+            get_cusparse_error(cusparseDestroyDnVec(vec_x_descr));
+            get_cusparse_error(cusparseDestroyDnVec(vec_y_descr));
+        }
+
+        // Explicit template instantiations
+        template void MatrixVectorProduct_sparse<float>(const CudaRuntime&, const char*, float, const BlockMatrix_<float>&, const Vector_<float>&, float, Vector_<float>&);
+        template void MatrixVectorProduct_sparse<double>(const CudaRuntime&, const char*, double, const BlockMatrix_<double>&, const Vector_<double>&, double, Vector_<double>&);
+        template void MatrixVectorProduct_blockdiag<float>(const CudaRuntime&, const char*, float, const BlockDiagMatrix_<float>&, const Vector_<float>&, float, Vector_<float>&);
+        template void MatrixVectorProduct_blockdiag<double>(const CudaRuntime&, const char*, double, const BlockDiagMatrix_<double>&, const Vector_<double>&, double, Vector_<double>&);
+
         /*! @brief Simple interface to DSYMV performing \f$\vec{y}=alpha*\mathbf{A}*\vec{x}+beta*\vec{y}\f$
         for specified stride
             @param[in] alpha double value by which A*x is scaled
