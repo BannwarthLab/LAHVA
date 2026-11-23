@@ -3,7 +3,7 @@ version = "0.2.0"
 license = "MIT-license"
 maintainer = ["@psteinbach", "@markheezen", "@christoph.bannwarth"]
 author = ["Pit Steinbach", "Mark Heezen", "Christoph Bannwarth"]
-description = "Linear Algebra on Heterogenous/Vectorized Architecture"
+description = "Linear Algebra on Heterogeneous/Vectorized Architecture"
 keywords = ["LAHVA", "gpu", "linear algebra"]
 copyright = "Copyright 2026 P. Steinbach, M. Heezen, C. Bannwarth"
 

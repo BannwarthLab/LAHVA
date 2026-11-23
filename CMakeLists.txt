@@ -5,7 +5,7 @@ project(
   "lahva"
   LANGUAGES "C" "CXX"
   VERSION "0.2.0"
-  DESCRIPTION "Linear Algebra on Heterogenous/Vectorized Architecture"
+  DESCRIPTION "Linear Algebra on Heterogeneous/Vectorized Architecture"
 )
 
 set(CMAKE_CXX_STANDARD 17)
