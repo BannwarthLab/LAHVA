@@ -173,30 +173,32 @@ namespace lahva
             /// @return number of rows/columns of the Matrix
             Shape shape() const { return Shape{n_rows_, n_cols_}; }
 
-            /// prints the Matrix as string
-            void print() const;
-
-            void print(const char *file) const
+            /// @brief Print the matrix to stdout with right-aligned columns
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (tabular environment)
+            void print(int digits = 6, double zero_tol = default_zero_tol<T>(), PrintFormat format = PrintFormat::plain) const
             {
-                std::ofstream os(file);
-                os.precision(10);
-                if (os.is_open())
-                {
-                    for (size_t i = 0; i < n_rows_; i++)
-                    {
-                        for (size_t j = 0; j < n_cols_; j++)
-                        {
-                            os << this->data_[this->data_id_(i, j)] << ", ";
-                        }
-                        os << std::endl;
-                    }
-                }
-                else
-                {
-                    std::cerr << "Unable to open file";
-                    return;
-                }
-                os.close();
+                print(std::cout, digits, zero_tol, format);
+            }
+
+            /// @brief Print the matrix to a stream with right-aligned columns
+            /// @param[in,out] os output stream
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (tabular environment)
+            void print(std::ostream &os, int digits = 6, double zero_tol = default_zero_tol<T>(),
+                       PrintFormat format = PrintFormat::plain) const;
+
+            /// @brief Write the matrix to a file (overwritten) with right-aligned columns
+            /// @param[in] file output filename
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (tabular environment)
+            void print(const char *file, int digits = 6, double zero_tol = default_zero_tol<T>(),
+                       PrintFormat format = PrintFormat::plain) const
+            {
+                print_detail::write_file(file, [&](std::ostream &os) { print(os, digits, zero_tol, format); });
             }
 
             Vector<T, Allocator> get_diagonal() const;
@@ -390,18 +392,14 @@ namespace lahva
             return *this;
         }
 
-        /// @brief Implementation: Print matrix to stdout in row-major order
+        /// @brief Implementation: Print matrix to a stream with right-aligned columns
         template <typename T, class Allocator>
-        void Matrix<T, Allocator>::print() const
+        void Matrix<T, Allocator>::print(std::ostream &os, int digits, double zero_tol, PrintFormat format) const
         {
-            for (size_t i = 0; i < n_rows_; i++)
-            {
-                for (size_t j = 0; j < n_cols_; j++)
-                {
-                    std::cout << this->data_[this->data_id_(i, j)] << ", ";
-                }
-                std::cout << std::endl;
-            }
+            print_detail::write_matrix<T>(
+                os, n_rows_, n_cols_,
+                [this](size_t i, size_t j) { return this->data_[this->data_id_(i, j)]; },
+                digits, zero_tol, format);
         }
 
         /// @brief Implementation: Symmetrize matrix on CPU: M = (M + M^T)/2

@@ -154,8 +154,11 @@ namespace lahva
             /// @return shape with equal rows and columns
             Shape shape() const { return Shape(n_, n_); }
 
-            /// @brief Print lower triangular portion to stdout
-            void print() const;
+            /// @brief Print the lower triangle to stdout with right-aligned columns
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (tabular environment, upper triangle left empty)
+            void print(int digits = 6, double zero_tol = default_zero_tol<T>(), PrintFormat format = PrintFormat::plain) const;
 
             /// @brief Extract diagonal elements into new vector
             /// @return vector containing diagonal elements
@@ -307,18 +310,14 @@ namespace lahva
             return this->data_[data_id_(i, j)];
         }
 
-        /// @brief Implementation: Print lower triangular portion to stdout
+        /// @brief Implementation: Print lower triangle to stdout with right-aligned columns
         template <typename T, class Allocator>
-        void LowTriMatrix<T, Allocator>::print() const
+        void LowTriMatrix<T, Allocator>::print(int digits, double zero_tol, PrintFormat format) const
         {
-            for (size_t i = 0; i < n_; i++)
-            {
-                for (size_t j = 0; j <= i; j++)
-                {
-                    std::cout << this->data_[data_id_(i, j)] << ", ";
-                }
-                std::cout << std::endl;
-            }
+            print_detail::write_matrix<T>(
+                std::cout, n_, n_,
+                [this](size_t i, size_t j) { return this->data_[data_id_(i, j)]; },
+                digits, zero_tol, format, /*lower_only=*/true);
         }
 
         /// @brief Implementation: Extract diagonal elements into new vector

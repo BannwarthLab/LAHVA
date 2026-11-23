@@ -114,8 +114,14 @@ namespace lahva
             /// @return pointer to one past the last element
             T *end() const { return &(this->data_[this->count_]); };
 
-            /// @brief Print vector contents to standard output
-            void print() const;
+            /// @brief Print the host data of the vector to stdout as a right-aligned column
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |v_i| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (tabular environment)
+            /// @param[in] show_index print the 0-based index before each element
+            /// @note Prints the host copy only. Call copy2host() first to see results computed on the device.
+            void print(int digits = 6, double zero_tol = default_zero_tol<T>(), PrintFormat format = PrintFormat::plain,
+                       bool show_index = false) const;
         };
 
         /// @brief Implementation: Allocate vector storage without initialization
@@ -203,15 +209,11 @@ namespace lahva
 
         };
 
-        /// @brief Implementation: Print vector elements to stdout with line breaks
+        /// @brief Implementation: Print the host data of the vector to stdout as a right-aligned column
         template <typename T, class Allocator, class GPUAllocator>
-        void Vector<T, Allocator, GPUAllocator>::print() const
+        void Vector<T, Allocator, GPUAllocator>::print(int digits, double zero_tol, PrintFormat format, bool show_index) const
         {
-            for (size_t i = 0; i < this->size(); i++)
-            {
-                std::cout << this->data()[i] << ", ";
-                std::cout << std::endl;
-            }
+            print_detail::write_vector<T>(std::cout, this->data(), this->size(), digits, zero_tol, format, show_index);
         }
 
     } // namespace gpu

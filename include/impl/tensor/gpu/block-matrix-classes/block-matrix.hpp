@@ -508,18 +508,18 @@ namespace lahva
             }
 
             /// @brief Print the block matrix structure to standard output
-            /// @note Outputs total dimensions, then each block with position and data
-            void print() const {
-                std::cout << "BlockMatrix (" << n_rows_ << " x " << n_cols_ << ")" << std::endl;
+            /// @param[in] digits number of significant digits
+            /// @param[in] zero_tol entries with |a_ij| < zero_tol are printed as 0 (default: machine epsilon of T)
+            /// @param[in] format PrintFormat::plain or PrintFormat::latex (one tabular per block, headers as % comments)
+            /// @note Outputs total dimensions, then each block with position and data.
+            ///       Prints the host copy only. Call copy2host() first to see results computed on the device.
+            void print(int digits = 6, double zero_tol = default_zero_tol<T>(), PrintFormat format = PrintFormat::plain) const {
+                const char *prefix = (format == PrintFormat::latex) ? "% " : "";
+                std::cout << prefix << "BlockMatrix (" << n_rows_ << " x " << n_cols_ << ")" << std::endl;
                 for (const auto& [pos, block] : blocks_) {
-                    std::cout << "Block at (" << pos.first << ", " << pos.second << ") size "
+                    std::cout << prefix << "Block at (" << pos.first << ", " << pos.second << ") size "
                               << block.shape().first << " x " << block.shape().second << ":" << std::endl;
-                    for (size_t i = 0; i < block.shape().first; i++) {
-                        for (size_t j = 0; j < block.shape().second; j++) {
-                            std::cout << std::setw(5) << (int)block(i, j) << " ";
-                        }
-                        std::cout << std::endl;
-                    }
+                    block.print(digits, zero_tol, format);
                 }
             }
 

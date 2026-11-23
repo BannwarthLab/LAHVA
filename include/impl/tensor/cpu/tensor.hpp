@@ -8,6 +8,7 @@
 
 #include <memory>
 #include "impl/tensor/allocators.hpp"
+#include "impl/tensor/print.hpp"
 
 namespace lahva
 {
