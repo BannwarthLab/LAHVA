@@ -1,3 +1,10 @@
+/// @file additional-level1.cpp
+/// @brief CPU C++ implementations of extended/custom Level-1 BLAS operations.
+///
+/// Implements additional vector and trace operations beyond standard BLAS Level-1,
+/// including trace computation with optional OpenMP parallelization. Provides type-specific
+/// implementations for double, float, and complex types.
+
 #include "impl/blas/cpu/additional-level1.hpp"
 #ifdef W_OPENMP
 #include <omp.h>
@@ -8,11 +15,15 @@ namespace lahva
 {
     namespace cpu
     {
-        /// @brief
-        /// @param cudart
-        /// @param matrix
-        /// @param use_diag
-        /// @return
+        /// @brief Compute the trace of a double-precision matrix
+        ///
+        /// Computes the trace of a matrix (sum of diagonal elements): trace(A) = sum(A_ii).
+        /// If use_diag is true, computes the trace from a pre-extracted diagonal vector.
+        ///
+        /// @param cudart CPU Runtime instance.
+        /// @param matrix Input matrix.
+        /// @param use_diag If true, compute trace from diagonal; if false, compute from full matrix. Default: false.
+        /// @return The trace of the matrix as a double-precision scalar.
         template <>
         double ComputeTrace<double>(const CPURuntime &cudart, const Matrix_<double> &matrix, bool use_diag)
         {
@@ -23,6 +34,15 @@ namespace lahva
             return trace;
         };
 
+        /// @brief Compute the trace of a single-precision matrix
+        ///
+        /// Computes the trace of a matrix (sum of diagonal elements): trace(A) = sum(A_ii).
+        /// If use_diag is true, computes the trace from a pre-extracted diagonal vector.
+        ///
+        /// @param cudart CPU Runtime instance.
+        /// @param matrix Input matrix.
+        /// @param use_diag If true, compute trace from diagonal; if false, compute from full matrix. Default: false.
+        /// @return The trace of the matrix as a double-precision scalar.
         template <>
         double ComputeTrace<float>(const CPURuntime &cudart, const Matrix_<float> &matrix, bool use_diag)
         {
@@ -34,6 +54,13 @@ namespace lahva
             return trace;
         };
 
+        /// @brief Compute the trace of a matrix from its diagonal vector
+        ///
+        /// Computes the trace from a pre-extracted diagonal vector (sum of all elements).
+        ///
+        /// @param cudart CPU Runtime instance.
+        /// @param diag Input vector containing the diagonal elements.
+        /// @return The trace (sum of diagonal elements) as a double-precision scalar.
         double ComputeTrace(const CPURuntime &cudart, const Vector_<double> &diag)
         {
             double trace = 0;
@@ -54,6 +81,13 @@ namespace lahva
             return trace;
         };
 
+        /// @brief Compute the Frobenius norm of a tensor/matrix
+        ///
+        /// Computes the Frobenius norm: ||A||_F = sqrt(sum(a_ij^2)).
+        ///
+        /// @tparam T Numerical element type (double, float).
+        /// @param mat Input tensor/matrix.
+        /// @return The Frobenius norm of the matrix.
         template <typename T>
         T FrobeniusNorm(const Tensor_<T> &mat)
         {
@@ -67,6 +101,14 @@ namespace lahva
             return norm;
         }
 
+        /// @brief Compute the Frobenius norm of the difference of two tensors/matrices
+        ///
+        /// Computes the Frobenius norm of (mat - mat2): ||mat - mat2||_F = sqrt(sum((mat_ij - mat2_ij)^2)).
+        ///
+        /// @tparam T Numerical element type (double, float).
+        /// @param mat First input tensor/matrix.
+        /// @param mat2 Second input tensor/matrix.
+        /// @return The Frobenius norm of the difference.
         template <typename T>
         T FrobeniusNorm(const Tensor_<T> &mat, const Tensor_<T> &mat2)
         {
@@ -81,12 +123,24 @@ namespace lahva
             return norm;
         }
 
+        /// @brief Runtime-dispatching overload for symmetric multiply (CPURuntime first).
+        ///
+        /// The runtime parameter is ignored for CPU implementations but this overload
+        /// mirrors the signatures used for GPU/CUDA dispatching.
         template <typename T>
         T FrobeniusNorm(const CPURuntime &rt, const Tensor_<T> &mat)
         {
             return FrobeniusNorm(mat);
         };
 
+        /// @brief Compute the Frobenius inner product of two matrices
+        ///
+        /// Computes the Frobenius inner product: <A, B> = sum(a_ij * b_ij) = trace(A^T * B).
+        ///
+        /// @tparam T Numerical element type (double, float).
+        /// @param mat1 First input matrix.
+        /// @param mat2 Second input matrix.
+        /// @return The Frobenius inner product of the two matrices.
         template <typename T>
         T FrobeniusInnerProduct(const Matrix_<T> &mat1, const Matrix_<T> &mat2)
         {
@@ -99,13 +153,23 @@ namespace lahva
             }
             return norm;
         }
-
+        /// @brief Runtime-dispatching overload for symmetric multiply (CPURuntime first).
+        ///
+        /// The runtime parameter is ignored for CPU implementations but this overload
+        /// mirrors the signatures used for GPU/CUDA dispatching.
         template <typename T>
         T FrobeniusInnerProduct(const CPURuntime &rt, const Matrix_<T> &mat1, const Matrix_<T> &mat2)
         {
             return FrobeniusInnerProduct(mat1, mat2);
         };
 
+        /// @brief Compute the Hadamard (element-wise) product of two tensors, storing result in second tensor
+        ///
+        /// Performs in-place element-wise multiplication: B = A ⊙ B (Hadamard product).
+        ///
+        /// @tparam T Numerical element type (double, float).
+        /// @param A First input tensor (not modified).
+        /// @param B Second input tensor (overwritten with the element-wise product).
         template <typename T>
         void HadamardProduct(const Tensor_<T> &A, Tensor_<T> &B)
         {
@@ -117,6 +181,14 @@ namespace lahva
             }
         }
 
+        /// @brief Compute the Hadamard (element-wise) product of two tensors, storing result in third tensor
+        ///
+        /// Performs element-wise multiplication: C = A ⊙ B (Hadamard product).
+        ///
+        /// @tparam T Numerical element type (double, float).
+        /// @param A First input tensor (not modified).
+        /// @param B Second input tensor (not modified).
+        /// @param C Output tensor to store the element-wise product (overwritten).
         template <typename T>
         void HadamardProduct(const Tensor_<T> &A, const Tensor_<T> &B, Tensor_<T> &C)
         {
@@ -129,6 +201,16 @@ namespace lahva
             }
         }
 
+        /// @brief Compute the Hadamard (element-wise) product of two pointer-based arrays
+        ///
+        /// Performs element-wise multiplication: C = A ⊙ B (Hadamard product) or C += A ⊙ B if increment is true.
+        ///
+        /// @tparam T Numerical element type (double, float).
+        /// @param ndim Number of elements in arrays A, B, and C.
+        /// @param A Pointer to first input array.
+        /// @param B Pointer to second input array.
+        /// @param C Pointer to output array (overwritten or incremented).
+        /// @param increment If true, performs C += A ⊙ B; if false, performs C = A ⊙ B. Default: false.
         template <typename T>
         void HadamardProduct(const size_t ndim, const T *A, const T *B, T *C, bool increment)
         {
@@ -151,16 +233,19 @@ namespace lahva
             }
         }
 
+        //// Explicit template instantiations
         template float FrobeniusNorm<float>(const Tensor_<float> &mat);
         template double FrobeniusNorm<double>(const Tensor_<double> &mat);
         template float FrobeniusNorm<float>(const Tensor_<float> &mat, const Tensor_<float> &mat2);
         template double FrobeniusNorm<double>(const Tensor_<double> &mat, const Tensor_<double> &mat2);
         template double FrobeniusNorm<double>(const CPURuntime &rt, const Tensor_<double> &mat);
         template float FrobeniusNorm<float>(const CPURuntime &rt, const Tensor_<float> &mat);
+        //
         template float FrobeniusInnerProduct<float>(const Matrix_<float> &mat1, const Matrix_<float> &mat2);
         template double FrobeniusInnerProduct<double>(const Matrix_<double> &mat1, const Matrix_<double> &mat2);
         template double FrobeniusInnerProduct<double>(const CPURuntime &rt, const Matrix_<double> &mat1, const Matrix_<double> &mat2);
         template float FrobeniusInnerProduct<float>(const CPURuntime &rt, const Matrix_<float> &mat1, const Matrix_<float> &mat2);
+        //
         template void HadamardProduct(const Tensor_<double> &A, Tensor_<double> &B);
         template void HadamardProduct(const Tensor_<float> &A, Tensor_<float> &B);
         template void HadamardProduct(const Tensor_<double> &A, const Tensor_<double> &B, Tensor_<double> &C);

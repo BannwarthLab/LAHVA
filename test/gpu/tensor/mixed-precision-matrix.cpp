@@ -238,7 +238,6 @@ int test_mp_matrix_split_matrices_initial_state() {
     Shape s(4, 4);
     MixedPrecisionMatrix<double> m(s);
 
-    // Check initial state of split matrices
     if (!check((int)m.split_matrices_fp16_.size(), 0, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
     if (!check((int)m.split_matrices_fp32_.size(), 0, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
     if (!check((int)m.splitted_fp16_, 0, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
@@ -252,7 +251,6 @@ int test_mp_matrix_split_exponents_initial_state() {
     Shape s(3, 3);
     MixedPrecisionMatrix<double> m(s);
 
-    // Check initial exponents vector
     if (!check((int)m.split_exponents_.size(), 0, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -287,8 +285,6 @@ int test_mp_matrix_move_constructor_transfers_split_state() {
 
     if (!check((int)m2.max_split_, 3, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
     if (!check((int)m2.splitted_fp32_, 1, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
-
-    // After move, source should be reset
     if (!check((int)m1.max_split_, 0, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
     if (!check((int)m1.splitted_fp16_, 0, check_msg(get_type_name<double>(), "check 4"))) return TEST_FAIL;
     if (!check((int)m1.splitted_fp32_, 0, check_msg(get_type_name<double>(), "check 5"))) return TEST_FAIL;

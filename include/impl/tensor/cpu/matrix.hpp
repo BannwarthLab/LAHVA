@@ -1,8 +1,16 @@
+/// @file matrix.hpp
+/// @brief CPU-based matrix tensor implementation.
+///
+/// Provides the Matrix_ class for 2-dimensional tensor storage and operations on CPU.
+/// Supports dense matrix operations with BLAS compatibility, column-major storage,
+/// and specialized matrix views. Includes I/O operations and mathematical utilities.
+
 #pragma once
 
 #include "impl/tensor/allocators.hpp"
 #include "impl/tensor/cpu/tensor.hpp"
 #include "impl/tensor/cpu/vector.hpp"
+
 #include "impl/blas/cpu/level1.h"
 #include <initializer_list>
 #include <omp.h>
@@ -21,23 +29,21 @@ namespace lahva
         public:
             virtual Shape shape() const = 0;
 
-            //! @param[in] i row index
-            //! @param[in] j column index
-            //! @return reference to Matrix element i,j
+            /// @param[in] i row index
+            /// @param[in] j column index
+            /// @return reference to Matrix element i,j
             virtual T &operator()(size_t i, size_t j) = 0;
-            //! @param[in] i row index
-            //! @param[in] j column index
-            //! @return reference to Matrix element i,j
+
+            /// @param[in] i row index
+            /// @param[in] j column index
+            /// @return reference to Matrix element i,j
             virtual const T &operator()(size_t i, size_t j) const = 0;
         };
 
-
-    //! @brief slim wrapper around a float or double array to allow easy acces with
-    //!        two indeces using the () operator.
-    //!
-    //! If NDEBUG is **not** defined, range checks are performed.  d
-    //! The data is stored in column-major order in a 1D array.
-    //!
+        /// @brief Matrix wrapper
+        /// If NDEBUG is **not** defined, range checks are performed.
+        /// The data is stored in column-major order in a 1D array.
+        ///
         template <class T, class Allocator = StdAllocator<T>>
         class Matrix : virtual public Tensor<T, Allocator>, virtual public Matrix_<T>
         {
@@ -48,86 +54,124 @@ namespace lahva
         size_t n_rows_;
         size_t n_cols_;
 
-        // indicates whether the Matrix object owns the data and consequently is
-        // responsible for freeing it
-
+            /// @brief Calculate linear index for matrix element in column-major storage
+            /// @param[in] i row index
+            /// @param[in] j column index
+            /// @return linear index in 1D storage array
+            /// @note Range checks deactivated if NDEBUG is defined
             inline size_t data_id_(size_t i, size_t j) const
             {
-            // deactivated if NDEBUG is defined
                 assert(i < this->n_rows_ && j < this->n_cols_);
-
-            // range checks are perfomred in constructor and above (if in debug mode)
                 return i + j * n_rows_;
             }
 
-        // length of the array data_
+            /// @brief Calculate total size needed for matrix storage
+            /// @param[in] n_rows number of rows
+            /// @param[in] n_cols number of columns
+            /// @return number of elements needed: n_rows * n_cols
             inline size_t data_size_(size_t n_rows, size_t n_cols)
             {
                 return n_rows * n_cols;
             }
 
-        // raises an error, if the shape is not valid
-        // Vector uses size_t as shape, so the check shape function has to be able
-        // to deal with that
+            /// @brief Validate matrix dimensions
+            /// @param[in] rows number of rows to validate
+            /// @param[in] cols number of columns to validate
+            /// @throws std::out_of_range if dimensions exceed maximum size
             inline void check_size_(size_t, size_t);
 
         public:
             Matrix() {};
-        //! construct a square Matrix with dimensions n x n
-        //! It is not guaranteed that the values will be initialized
+
+            /// @brief Allocate square matrix without initialization
+            /// @param[in] n matrix dimension (n x n)
+            /// @param[in] alloc allocator instance for memory management
             Matrix(size_t n, const alloc_ptr &alloc = Allocator());
             template <typename U>
             Matrix(size_t n, const std::shared_ptr<CPUAllocator<U>> &alloc)
                 : Matrix<T, Allocator>{n, Allocator(*alloc)} {};
-        //! construct a square n x n Matrix initialized with value val
+
+            /// @brief Allocate square matrix initialized with uniform value
+            /// @param[in] n matrix dimension (n x n)
+            /// @param[in] val initialization value for all elements
+            /// @param[in] alloc allocator instance for memory management
             Matrix(size_t n, T val, const alloc_ptr &alloc = Allocator());
             template <typename U>
             Matrix(size_t n, T val, const std::shared_ptr<CPUAllocator<U>> &alloc)
                 : Matrix<T, Allocator>{n, val, Allocator(*alloc)} {};
-        //! construct a Matrix with dimensions shape.first x shape.second
-        //! It is not guaranteed that the values will be initialized!
+
+            /// @brief Allocate matrix with specified shape without initialization
+            /// @param[in] shape dimensions (rows, columns)
+            /// @param[in] alloc allocator instance for memory management
             Matrix(const Shape &shape, const alloc_ptr &alloc = Allocator());
+
+            /// @brief Allocate and initialize matrix from initializer list
+            /// @param[in] shape dimensions (rows, columns)
+            /// @param[in] init initializer list with element values
+            /// @param[in] row_major if true, init is in row-major order; column-major if false
+            /// @param[in] alloc allocator instance for memory management
             Matrix(const Shape &shape, std::initializer_list<T> init, bool row_major = false, const alloc_ptr &alloc = Allocator());
             template <typename U>
             Matrix(const Shape &shape, const std::shared_ptr<CPUAllocator<U>> &alloc)
                 : Matrix<T, Allocator>{shape, Allocator(*alloc)} {};
-        //! construct a Matrix of shape with initial values val
+
+            /// @brief Allocate matrix with specified shape initialized with uniform value
+            /// @param[in] shape dimensions (rows, columns)
+            /// @param[in] val initialization value for all elements
+            /// @param[in] alloc allocator instance for memory management
             Matrix(const Shape &shape, T val, const alloc_ptr &alloc = Allocator());
             template <typename U>
             Matrix(const Shape &shape, T val, const std::shared_ptr<CPUAllocator<U>> &alloc)
                 : Matrix<T, Allocator>{shape, val, Allocator(*alloc)} {};
-        //! construct a Matrix by giving ownership of the raw data
-        //! note: the data needs to be in the format defined by data_id_()
-        //! @param take_ownership if false, the data will not be freed, when the
-        //!                       Matrix object is destructed. Use with care!
+
+            /// @brief Wrap existing data pointer with optional ownership
+            /// @param[in] shape dimensions (rows, columns)
+            /// @param[in] data pointer to matrix data in column-major storage format
+            /// @param[in] take_ownership if true, matrix will free data on destruction; if false, external code is responsible
+            /// @param[in] alloc allocator instance for memory management
+            /// @note data must be in column-major format as defined by data_id_()
             Matrix(const Shape &shape, T *data, bool take_ownership = true, const alloc_ptr &alloc = Allocator());
             template <typename U>
             Matrix(const Shape &shape, T *data, bool take_ownership = true, const std::shared_ptr<CPUAllocator<U>> &alloc = Allocator())
                 : Matrix<T, Allocator>{shape, data, take_ownership, Allocator(*alloc)} {};
+
+            /// @brief Copy data from const pointer into newly allocated matrix
+            /// @param[in] shape dimensions (rows, columns)
+            /// @param[in] data pointer to read-only matrix data
+            /// @param[in] alloc allocator instance for memory management
             Matrix(const Shape &shape, const T *data, const alloc_ptr &alloc = Allocator());
             template <typename U>
             Matrix(const Shape &shape, T *data, const std::shared_ptr<CPUAllocator<U>> &alloc)
                 : Matrix<T, Allocator>{shape, data, Allocator(*alloc)} {};
 
+            /// @brief Copy constructor
             Matrix(const Matrix &);
+
+            /// @brief Move constructor
             Matrix(Matrix &&);
+
+            /// @brief Copy assignment operator
             Matrix &operator=(const Matrix &);
+
+            /// @brief Move assignment operator
             Matrix &operator=(Matrix &&);
+
+            /// @brief Destructor - deallocates matrix data if owned
             virtual ~Matrix();
 
-        //! @param[in] i row index
-        //! @param[in] j column index
-        //! @return reference to Matrix element i,j
+            /// @param[in] i row index
+            /// @param[in] j column index
+            /// @return reference to Matrix element i,j
             T &operator()(size_t i, size_t j);
-        //! @param[in] i row index
-        //! @param[in] j column index
-        //! @return reference to Matrix element i,j
+            /// @param[in] i row index
+            /// @param[in] j column index
+            /// @return reference to Matrix element i,j
             const T &operator()(size_t i, size_t j) const;
 
-        //! @brief in-place, scalar addition
+            /// @brief in-place, scalar addition
             Matrix &operator+=(T val);
 
-        //! @return number of rows/columns of the Matrix
+            /// @return number of rows/columns of the Matrix
             Shape shape() const { return Shape{n_rows_, n_cols_}; }
 
         //! prints the Matrix as string
@@ -184,6 +228,7 @@ namespace lahva
             bool ownsData() { return this->is_owner_; };
         };
 
+        /// @brief Implementation: Validate matrix dimensions against SIZE_MAX
         template <typename T, class Allocator>
         void Matrix<T, Allocator>::check_size_(size_t n_rows,
                                                size_t n_cols)
@@ -202,12 +247,14 @@ namespace lahva
             }
         }
 
+        /// @brief Implementation: Allocate matrix storage without initialization
         template <typename T, class Allocator>
         Matrix<T, Allocator>::Matrix(const Shape &shape, const alloc_ptr &alloc) : Tensor<T, Allocator>{shape.first * shape.second, alloc}, n_rows_{shape.first}, n_cols_{shape.second}
         {
             check_size_(shape.first, shape.second);
         }
 
+        /// @brief Implementation: Wrap existing data pointer with optional ownership
         template <typename T, class Allocator>
         Matrix<T, Allocator>::Matrix(const Shape &shape, T *data, bool take_ownership, const alloc_ptr &alloc) : Tensor<T, Allocator>{alloc}, n_rows_{shape.first}, n_cols_{shape.second}
         {
@@ -216,13 +263,14 @@ namespace lahva
             this->is_owner_ = take_ownership;
         }
 
-
+        /// @brief Implementation: Allocate and fill matrix with uniform value
         template <typename T, class Allocator>
         Matrix<T, Allocator>::Matrix(const Shape &shape, T val, const alloc_ptr &alloc) : Matrix(shape, alloc)
         {
             std::fill(this->data_, this->data_ + data_size_(n_rows_, n_cols_), val);
         }
 
+        /// @brief Implementation: Initialize from initializer list with optional row/column major conversion
         template <typename T, class Allocator>
         Matrix<T, Allocator>::Matrix(const Shape &shape, std::initializer_list<T> init, bool row_major, const alloc_ptr &alloc) : Matrix(shape, alloc)
         {
@@ -245,35 +293,37 @@ namespace lahva
             }
         };
 
-
+        /// @brief Implementation: Create square matrix from dimension
         template <typename T, class Allocator>
-    Matrix<T, Allocator>::Matrix(size_t n, const alloc_ptr &alloc) : 
-    Matrix<T, Allocator>::Matrix(Shape(n, n), alloc) 
-    {}
+        Matrix<T, Allocator>::Matrix(size_t n, const alloc_ptr &alloc) : Matrix<T, Allocator>::Matrix(Shape(n, n), alloc)
+        {
+        }
 
+        /// @brief Implementation: Create square matrix with uniform value
         template <typename T, class Allocator>
-    Matrix<T, Allocator>::Matrix(size_t n, T val, const alloc_ptr &alloc) : 
-    Matrix<T, Allocator>::Matrix(Shape(n, n), val, alloc) {}
+        Matrix<T, Allocator>::Matrix(size_t n, T val, const alloc_ptr &alloc) : Matrix<T, Allocator>::Matrix(Shape(n, n), val, alloc) {}
 
-     template <typename T, class Allocator>
-    Matrix<T, Allocator>::Matrix(const Shape &shape, const T *data, const alloc_ptr &alloc) : 
-    Matrix<T, Allocator>::Matrix(shape, alloc)
+        /// @brief Implementation: Copy from const data pointer
+        template <typename T, class Allocator>
+        Matrix<T, Allocator>::Matrix(const Shape &shape, const T *data, const alloc_ptr &alloc) : Matrix<T, Allocator>::Matrix(shape, alloc)
         {
             std::copy(data, data + this->data_size_(n_rows_, n_cols_), this->data_);
         };
 
+        /// @brief Destructor implementation
         template <typename T, class Allocator>
         Matrix<T, Allocator>::~Matrix()
         {
         }
 
-    // copy operations
+        /// @brief Copy constructor implementation
         template <typename T, class Allocator>
         Matrix<T, Allocator>::Matrix(const Matrix<T, Allocator> &other) : Tensor<T, Allocator>{other},
                                                                           n_rows_{other.n_rows_}, n_cols_{other.n_cols_}
         {
         }
 
+        /// @brief Copy assignment operator implementation
         template <typename T, class Allocator>
         Matrix<T, Allocator> &Matrix<T, Allocator>::operator=(const Matrix<T, Allocator> &other)
         {
@@ -288,7 +338,7 @@ namespace lahva
             return *this;
         }
 
-    // move operations
+        /// @brief Move constructor implementation
         template <typename T, class Allocator>
     Matrix<T, Allocator>::Matrix(Matrix<T, Allocator> &&other) :
     Tensor<T, Allocator>{other},
@@ -299,6 +349,7 @@ namespace lahva
             other.n_cols_ = 0;
         }
 
+        /// @brief Move assignment operator implementation
         template <typename T, class Allocator>
         Matrix<T, Allocator> &Matrix<T, Allocator>::operator=(Matrix<T, Allocator> &&other)
         {
@@ -315,18 +366,21 @@ namespace lahva
             return *this;
         }
 
+        /// @brief Implementation: Element access operator
         template <typename T, class Allocator>
         T &Matrix<T, Allocator>::operator()(size_t i, size_t j)
         {
             return this->data_[this->data_id_(i, j)];
         }
 
+        /// @brief Implementation: Const element access operator
         template <typename T, class Allocator>
         const T &Matrix<T, Allocator>::operator()(size_t i, size_t j) const
         {
             return this->data_[this->data_id_(i, j)];
         }
 
+        /// @brief Implementation: In-place scalar addition to all elements
         template <typename T, class Allocator>
         Matrix<T, Allocator> &Matrix<T, Allocator>::operator+=(T val)
         {
@@ -352,8 +406,7 @@ namespace lahva
         }
         }
 
-    //! @param A Matrix to symmetrize
-    //! @return (A+A^T)/2
+        /// @brief Implementation: Symmetrize matrix on CPU: M = (M + M^T)/2
         template <typename T, class Allocator>
         void Matrix<T, Allocator>::symmetrize()
         {
@@ -371,6 +424,7 @@ namespace lahva
             }
         }
 
+        /// @brief Implementation: Extract diagonal with stride stepping
         template <typename T, class Allocator>
         Vector<T, Allocator> Matrix<T, Allocator>::get_diagonal() const
         {
@@ -382,6 +436,7 @@ namespace lahva
             return diag;
         }
 
+        /// @brief Implementation: Set diagonal with stride stepping
         template <typename T, class Allocator>
         void Matrix<T, Allocator>::set_diagonal(const Vector<T, Allocator> &diag)
         {

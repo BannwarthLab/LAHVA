@@ -6,7 +6,7 @@ using lahva::Shape;
 using lahva::CudaRuntime;
 
 // ============================================================================
-// GPU Level 3 BLAS - Matrix-Matrix Product Tests
+// Matrix-Matrix Product Tests
 // ============================================================================
 
 template <typename T>
@@ -83,7 +83,7 @@ int test_gemm_beta_nonzero(){
 }
 
 // ============================================================================
-// GPU Level 3 BLAS - Symmetric Matrix Product Tests
+// Symmetric Matrix Product Tests
 // ============================================================================
 
 template <typename T>
@@ -118,7 +118,7 @@ int test_symm_left_side(){
 }
 
 // ============================================================================
-// GPU Level 3 BLAS - Alternative Parameter Order Tests
+// Alternative Parameter Order Tests
 // ============================================================================
 
 template <typename T>
@@ -200,16 +200,14 @@ int test_gemm_alt_with_beta(){
 }
 
 // ============================================================================
-// GPU Level 3 BLAS - SymMatrixMatrixProduct SIDE_RIGHT Tests
+// SymMatrixMatrixProduct SIDE_RIGHT Tests
 // ============================================================================
 
 template <typename T>
 int test_symm_right_side(){
     CudaRuntime gpu_runtime;
 
-    // For SIDE_RIGHT with check_size_mm compatibility: use square matrices
-    // A is symmetric (n x n), B is (n x n), C is (n x n)
-    Shape sq(5, 5);      // A: 5x5 symmetric, B: 5x5, C: 5x5
+    Shape sq(5, 5);
 
     Matrix<T> A(sq, (T)1.5);
     Matrix<T> B(sq, (T)2.0);
@@ -225,7 +223,7 @@ int test_symm_right_side(){
     C.copy2host(gpu_runtime);
 
     for (int i = 0; i < 25; i++) {
-        T expected = (T)2.0 * (T)5.0 * (T)1.5;  // B * A: (5x5) * (5x5) = each element = 2.0 * 5 * 1.5
+        T expected = (T)2.0 * (T)5.0 * (T)1.5;
         if (!check(C.data()[i], expected, check_msg(get_type_name<T>(), ""))) {
             return TEST_FAIL;
             break;
@@ -236,7 +234,7 @@ int test_symm_right_side(){
 }
 
 // ============================================================================
-// GPU Level 3 BLAS - Extended Coverage Tests
+// Extended Coverage Tests
 // ============================================================================
 
 template <typename T>
@@ -321,7 +319,7 @@ int test_gemm_alpha_scale(){
 }
 
 // ============================================================================
-// GPU Level 3 BLAS - SymMatrixMatrixProduct Alternative Order Tests
+// SymMatrixMatrixProduct Alternative Order Tests
 // ============================================================================
 
 template <typename T>
@@ -386,7 +384,7 @@ int test_symm_alt_order_right(){
 }
 
 // ============================================================================
-// GPU Level 3 BLAS - TF32 Variant Tests (single precision only - kept as-is)
+// TF32 Variant Tests (single precision only - kept as-is)
 // ============================================================================
 
 int test_dgemm_tf32_zero(){
@@ -543,7 +541,7 @@ int test_tf32_large_matrices(){
 }
 
 // ============================================================================
-// GPU Level 3 BLAS - Complex Number Tests (ZGEMM, CGEMM)
+// Complex Number Tests (ZGEMM, CGEMM)
 // ============================================================================
 
 template <typename T>
@@ -637,7 +635,7 @@ int test_complex_gemm_with_beta(){
 }
 
 // ============================================================================
-// GPU Level 3 BLAS - FP16 Mixed Precision Tests
+// FP16 Mixed Precision Tests
 // ============================================================================
 
 int test_fp16_basic(){
@@ -753,7 +751,7 @@ int test_fp16_with_beta(){
 }
 
 // ============================================================================
-// MixedPrecisionMatrix Operational Tests (GEMM-based)
+// MixedPrecisionMatrix Operational Tests
 // ============================================================================
 
 template <typename T>

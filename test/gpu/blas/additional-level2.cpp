@@ -4,6 +4,10 @@ using namespace lahva::gpu;
 using lahva::Shape;
 using lahva::CudaRuntime;
 
+// ============================================================================
+// Matrix Addition Tests
+// ============================================================================
+
 template<typename T>
 int test_add_matrices(CudaRuntime& cudart)
 {
@@ -114,6 +118,8 @@ int test_add_matrices_transposed(CudaRuntime& cudart)
 int main(){
     int total_failures = 0;
     CudaRuntime cudart;
+
+    // Matrix addition tests
     total_failures += test_add_matrices<double>(cudart);
     total_failures += test_add_matrices_transposed<double>(cudart);
     total_failures += test_add_matrices<float>(cudart);

@@ -5,6 +5,17 @@ namespace lahva
 {
     namespace gpu
     {
+        /// @brief Device-level warp reduction for final synchronization step.
+        ///
+        /// Reduces values within a warp (32 threads) using the warp shuffle approach.
+        /// Assumes block size is power of 2. Only threads < 32 should call this.
+        ///
+        /// @tparam blockSize CUDA block size (compile-time for unrolling).
+        /// @tparam T Data type for reduction.
+        /// @tparam op Binary reduction operation functor.
+        /// @param sdata Shared memory array containing values to reduce.
+        /// @param tid Thread ID within block.
+        /// @param func Reduction operation functor.
         template <size_t blockSize, typename T, class op>
         __device__ void warpReduce(volatile T *sdata, size_t tid, op func)
         {
@@ -22,6 +33,19 @@ namespace lahva
                 sdata[tid] = func(sdata[tid], sdata[tid + 1]);
         }
 
+        /// @brief GPU kernel for parallel reduction of array elements.
+        ///
+        /// Reduces input array using parallel reduction within blocks and across grid.
+        /// Produces per-block partial sums that can be further reduced.
+        /// Block size must be power of 2 and template parameter.
+        ///
+        /// @tparam blockSize CUDA block size (template parameter for optimization).
+        /// @tparam T Data type for reduction.
+        /// @tparam op Binary reduction operation functor.
+        /// @param g_idata Input array.
+        /// @param g_odata Output array of per-block partial sums.
+        /// @param n Number of elements to reduce.
+        /// @param func Reduction operation functor.
         template <size_t blockSize, typename T, class op>
         __global__ void reduceCUDA(const T *g_idata, T *g_odata, size_t n, op func)
     {
@@ -37,7 +61,6 @@ namespace lahva
             sdata[tid] = func(sdata[tid], g_idata[i]);
             i += gridSize;
         }
-        // while (i < n) { sdata[tid] += g_idata[i] + g_idata[i+blockSize]; i += gridSize; }
         __syncthreads();
 
         if (blockSize >= 1024)
@@ -79,6 +102,15 @@ namespace lahva
             g_odata[blockIdx.x] = sdata[0];
     }
 
+    /// @brief Alternative GPU kernel for parallel reduction (unused/experimental).
+    ///
+    /// @tparam blockSize CUDA block size.
+    /// @tparam T Data type for reduction.
+    /// @tparam op Binary reduction operation functor.
+    /// @param g_idata Input array.
+    /// @param g_odata Output array.
+    /// @param n Number of elements.
+    /// @param func Reduction operation.
     template <size_t blockSize, typename T, class op>
     __global__ void reduceCUDA_(const T *g_idata, T *g_odata, size_t n, op func)
     {
@@ -109,6 +141,20 @@ namespace lahva
             g_odata[blockIdx.x] = sdata[0];
     }
 
+    /// @brief Host-level reduction driver with multi-level GPU reduction.
+    ///
+    /// Performs multi-pass reduction: repeatedly calls reduceCUDA kernel
+    /// until result fits in a single block, then does final reduction.
+    /// Block size is a template parameter for optimal compilation.
+    ///
+    /// @tparam blockSize CUDA block size (template parameter for optimization).
+    /// @tparam T Data type for reduction.
+    /// @tparam op Binary reduction operation functor.
+    /// @param cudart CUDA runtime instance.
+    /// @param ndim Number of input elements.
+    /// @param dA Input array on device.
+    /// @param dRes Output array on device (also used as scratch space).
+    /// @param func Reduction operation functor.
     template <size_t blockSize, typename T, class op>
     void GPUReduction_(const CudaRuntime &cudart, const unsigned long long ndim, const T* dA, T* dRes, op func)
     {
@@ -118,7 +164,7 @@ namespace lahva
 
         T *tmp = dRes;
 
-        const T *from = dA; //input data
+        const T *from = dA;
 
         do
         {
@@ -127,12 +173,24 @@ namespace lahva
             from = tmp;
             n = blocksPerGrid;
         } while (n > blockSize);
-        //reduce tmp
         if (n > 1)
             reduceCUDA<blockSize><<<1, blockSize, 0, cudart.getStream()>>>(tmp, tmp, n, func);
 
     }
 
+    /// @brief Host dispatcher for GPU reduction with runtime block size selection.
+    ///
+    /// Selects and launches appropriate block-size-specialized GPU reduction kernel.
+    /// Supports various block sizes from 1 to 1024 threads.
+    ///
+    /// @tparam T Data type for reduction.
+    /// @tparam op Binary reduction operation functor.
+    /// @param cudart CUDA runtime instance.
+    /// @param ndim Number of input elements.
+    /// @param dA Input array on device.
+    /// @param dRes Output array on device (also used as scratch space).
+    /// @param blockSize CUDA block size for kernel launch (must match a supported case).
+    /// @param func Reduction operation functor (default-constructed if not provided).
     template<typename T, class op>
     void GPUReduction(const CudaRuntime& cudart, const unsigned long long ndim, const T* dA, T* dRes, size_t blockSize, op func = op())
     {

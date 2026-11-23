@@ -38,7 +38,6 @@ int test_gpu_vector_size_value_constructor() {
 
     if (!check((int)v.size(), 5, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
 
-    // Verify all elements are initialized on host
     for (int i = 0; i < 5; i++) {
         if (!check(v.data()[i], (T)3.5, check_msg(get_type_name<T>(), "check 2"))) {
             return TEST_FAIL;
@@ -185,7 +184,8 @@ int test_gpu_vector_type_int() {
     if (!check((int)v.size(), 5, check_msg(get_type_name<int>(), "check 1"))) return TEST_FAIL;
 
     int expected[] = {1, 2, 3, 4, 5};
-    // Verify individual int values due to ambiguous check overload
+
+
     for (int i = 0; i < 5; i++) {
         if (!check(v.data()[i], expected[i], check_msg(get_type_name<int>(), "check 2"))) {
             return TEST_FAIL;

@@ -4,6 +4,10 @@
 using namespace lahva::gpu;
 using lahva::CudaRuntime;
 
+// ============================================================================
+// Vector Operation Tests
+// ============================================================================
+
 template <typename T>
 int test_v_addition_cpp(CudaRuntime& cudart){
 
@@ -162,6 +166,8 @@ int main(){
     CudaRuntime cudart;
 
     int total_failures = 0;
+
+    // Vector operation tests
     total_failures += test_v_addition_cpp<double>(cudart);
     total_failures += test_v_addition_cpp<float>(cudart);
     total_failures += test_v_addition_and_scale_cpp<double>(cudart);

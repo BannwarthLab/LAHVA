@@ -3,6 +3,10 @@
 
 using namespace lahva::cpu;
 
+// ============================================================================
+// C-Level Vector Operation Tests
+// ============================================================================
+
 template <typename T>
 int test_v_addition_c(){
 
@@ -117,6 +121,10 @@ int test_scale_v_c(){
 
     return TEST_PASS;
 };
+
+// ============================================================================
+// C++ Wrapper Vector Operation Tests
+// ============================================================================
 
 template <typename T>
 int test_v_addition_cpp(){
@@ -261,8 +269,11 @@ int test_inner_v_prod_cpp(){
 int main(){
     int total_failures = 0;
 
+    // C-level vector operation tests
     total_failures += test_v_addition_c<double>();
     total_failures += test_v_addition_c<float>();
+
+    // C++ wrapper vector operation tests
     total_failures += test_v_addition_cpp<double>();
     total_failures += test_v_addition_cpp<float>();
     total_failures += test_v_addition_and_scale_c<double>();

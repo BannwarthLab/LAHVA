@@ -1,3 +1,11 @@
+/// @file lapack_wrap.hpp
+/// @brief LAPACK library wrapper with platform-specific type definitions and includes.
+///
+/// This header provides a unified interface to different LAPACK implementations
+/// (MKL, Accelerate, OpenBLAS, Netlib) by conditionally including the appropriate
+/// headers and defining consistent integer type aliases (LPCK_INT) used throughout
+/// the library for LAPACK function calls.
+
 #pragma once
 
 #include <complex>

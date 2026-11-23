@@ -100,6 +100,8 @@ int test_add_matrices_transposed()
 
 int main(){
     int total_failures = 0;
+
+    // Matrix addition tests
     total_failures += test_add_matrices<double>();
     total_failures += test_add_matrices_transposed<double>();
     total_failures += test_add_matrices<float>();

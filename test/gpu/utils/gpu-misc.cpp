@@ -6,13 +6,15 @@ using lahva::GPUTimer;
 template <typename T>
 using Vector = lahva::gpu::Vector<T, lahva::CudaHostAllocator<T>, lahva::CudaDeviceAsyncAllocator<T>>;
 
+// ============================================================================
+// Async Vector and GPU Timer Tests
+// ============================================================================
+
 template <typename T>
 int test_std_vector_async(CudaRuntime& cudart)
 {
     std::vector<Vector<T>> vecs;
     Vector<T> vec = Vector<T>(10, (T)1.0);
-    // we create empty vectors without streams
-    //vecs.resize(10);
     Vector<T> vec_tot(10, (T)0.0);
     for (int i = 0; i < 50; i++)
     {
@@ -36,8 +38,7 @@ int test_std_vector_push_GPU_values(CudaRuntime& cudart)
 {
     std::vector<Vector<T>> vecs;
     Vector<T> vec = Vector<T>(10, (T)0.0);
-    // we create empty vectors without streams
-    //vecs.resize(10);
+
     Vector<T> vec_tot(10, (T)1.0);
     for (int i = 0; i < 50; i++)
     {
@@ -135,6 +136,7 @@ int main()
     int total_failures = 0;
     CudaRuntime cudart = CudaRuntime();
 
+    // Async vector and GPU timer tests without stream
     total_failures += test_std_vector_async<double>(cudart);
     total_failures += test_std_vector_async<float>(cudart);
     total_failures += test_GPUTimer_stdConst<double>(cudart);
@@ -142,6 +144,7 @@ int main()
     total_failures += test_GPUTimer<double>(cudart);
     total_failures += test_GPUTimer<float>(cudart);
 
+    // Async vector and GPU timer tests with stream
     cudart.createStream();
 
     total_failures += test_std_vector_async<double>(cudart);

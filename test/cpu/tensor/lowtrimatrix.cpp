@@ -23,11 +23,8 @@ int test_lowtrimatrix_size_value_constructor() {
 
     if (!check((int)m.size(), 10, check_msg(get_type_name<T>(), "Size+value constructor packed size n*(n+1)/2 = 4*5/2 = 10"))) return TEST_FAIL;
 
-    // For packed lower triangular format with n=4:
-    // Storage: n*(n+1)/2 = 4*5/2 = 10 elements
     int packed_size = 4 * 5 / 2;
 
-    // Verify all elements are initialized
     for (int i = 0; i < packed_size; i++) {
         if (!check((double)m.data()[i], 3.5, check_msg(get_type_name<T>(), "All elements should be initialized"))) return TEST_FAIL;
     }
@@ -42,10 +39,8 @@ int test_lowtrimatrix_copy_constructor() {
 
     if (!check((int)m2.size(), (int)m1.size(), check_msg(get_type_name<T>(), "Copy constructor should copy packed size"))) return TEST_FAIL;
 
-    // Packed size: 3*4/2 = 6
     int packed_size = 3 * 4 / 2;
 
-    // Verify data is copied
     for (int i = 0; i < packed_size; i++) {
         if (!check((double)m2.data()[i], 2.5, check_msg(get_type_name<T>(), "Copy constructor should copy data"))) return TEST_FAIL;
     }

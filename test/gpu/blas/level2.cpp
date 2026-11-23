@@ -289,9 +289,11 @@ int main(){
     int total_failures = 0;
     CudaRuntime cudart;
 
+    // Basic GEMV tests
     total_failures += test_gemv_zero_v_cpp<double>(cudart);
     total_failures += test_gemv_zero_v_cpp<float>(cudart);
 
+    // SymV tests
     total_failures += test_symv_zero_v_cpp<double>(cudart);
     total_failures += test_symv_zero_v_cpp<float>(cudart);
     total_failures += test_gemv_v_cpp<double>(cudart);
@@ -301,9 +303,11 @@ int main(){
     total_failures += test_spmv_v_cpp<double>(cudart);
     total_failures += test_spmv_v_cpp<float>(cudart);
 
+    // Complex GEMV tests
     total_failures += test_complex_gemv_zero_v_cpp<complex_double>(cudart);
     total_failures += test_complex_gemv_zero_v_cpp<complex_float>(cudart);
 
+    // Outer product tests
     total_failures += test_outer_product<double>(cudart);
     total_failures += test_outer_product<float>(cudart);
 

@@ -63,7 +63,6 @@ int test_gputensor_copy_constructor_device_allocated(CudaRuntime& cudart) {
     m1.copy2device(cudart);
     cudart.synchronize();
 
-    // Copy a device-allocated matrix (exercises line 100-104)
     Matrix<double> m2 = m1;
 
     if (!check((int)m2.size(), 4, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
@@ -90,8 +89,6 @@ int test_gputensor_move_constructor() {
     Matrix<T> m2 = std::move(m1);
 
     if (!check((int)m2.size(), 9, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
-
-    // Move constructor may not clear the source, just verify it was moved
     if (!check((int)m2.size(), m1_size_before, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -129,7 +126,6 @@ int test_gputensor_copy_assignment_different_size() {
     Matrix<double> m1(Shape(3, 3), 1.5);
     Matrix<double> m2(Shape(2, 2), 0.0);
 
-    // Assignment with different sizes (exercises line 130-145)
     m2 = m1;
 
     if (!check((int)m2.size(), 9, check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
@@ -202,8 +198,6 @@ int test_gputensor_vector_move_constructor() {
     Vector<double> v2 = std::move(v1);
 
     if (!check((int)v2.size(), 5, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
-    // Verify the data was transferred
     if (!check(v2.data()[0], 3.5, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -243,8 +237,6 @@ int test_gputensor_lowtrimatrix_move_constructor() {
     LowTriMatrix<double> m2 = std::move(m1);
 
     if (!check((int)m2.size(), 6, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
-
-    // Verify the data was transferred
     if (!check(m2.data()[0], 1.5, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
 
     return TEST_PASS;

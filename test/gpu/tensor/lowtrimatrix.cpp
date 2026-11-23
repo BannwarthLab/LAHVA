@@ -86,9 +86,6 @@ int test_gpu_lowtrimatrix_move_constructor() {
         return TEST_FAIL;
     }
 
-    // Note: Move constructor doesn't clear source in this implementation
-    // and may not transfer the pointer either - allocator determines behavior
-
     return TEST_PASS;
 }
 
@@ -185,8 +182,6 @@ int test_gpu_lowtrimatrix_move_assignment() {
 
     if (!check((int)m2.size(), 10, check_msg(get_type_name<T>(), ""))) return TEST_FAIL;
 
-    // Note: Move assignment doesn't clear source in this implementation
-
     return TEST_PASS;
 }
 
@@ -226,7 +221,6 @@ int test_gpu_lowtrimatrix_destructor() {
             return TEST_FAIL;
         }
     }
-    // Destructor should deallocate
 
     return TEST_PASS;
 }
@@ -280,13 +274,9 @@ int test_gpu_lowtrimatrix_assign_after_construct() {
 int test_gpu_lowtrimatrix_element_access() {
 
     LowTriMatrix<double> m(3, 0.0);
-
-    // Set diagonal elements
     m(0, 0) = 1.5;
     m(1, 1) = 2.5;
     m(2, 2) = 3.5;
-
-    // Set lower triangular elements
     m(1, 0) = 1.0;
     m(2, 0) = 2.0;
     m(2, 1) = 2.5;
@@ -379,7 +369,6 @@ int test_gpu_lowtrimatrix_full_lower_access() {
         }
     }
 
-    // Verify some elements
     if (!check(m(0, 0), 0.0, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
     if (!check(m(2, 1), 2.1, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
     if (!check(m(3, 2), 3.2, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;

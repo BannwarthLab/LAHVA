@@ -337,7 +337,6 @@ int test_c_symm_with_beta_right() {
 int main(){
     int total_failures = 0;
 
-    // C++ wrapper tests (Matrix<T> interface)
     // Basic GEMM tests with double and float
     total_failures += test_gemm_zero_v_cpp<double>();
     total_failures += test_gemm_zero_v_cpp<float>();

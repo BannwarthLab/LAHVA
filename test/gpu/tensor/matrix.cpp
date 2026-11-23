@@ -110,8 +110,6 @@ int test_gpu_matrix_move_constructor() {
 
     if (!check((int)m2.shape().first, 2, check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
     if (!check((int)m2.shape().second, 3, check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
-
-    // Original should be empty
     if (!check((int)m1.shape().first, 0, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -146,8 +144,6 @@ template <typename T>
 int test_gpu_matrix_data_host_sync() {
 
     Matrix<T> m(Shape{3, 3});
-
-    // Initialize host data
     for (int i = 0; i < 9; i++) {
         m.data()[i] = (T)(i + 1);
     }
@@ -302,7 +298,6 @@ int test_gpu_matrix_destructor() {
             return TEST_FAIL;
         }
     }
-    // Destructor should deallocate both host and device memory
 
     return TEST_PASS;
 }
@@ -577,10 +572,8 @@ int test_gpu_matrix_row_major_init() {
     Matrix<double> m_col(s, init, false);
     Matrix<double> m_row(s, init, true);
 
-    // Column-major: elements 0,1,2,3,4,5 stored as columns
-    if (!check(m_col.data()[0], 1.0, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
 
-    // Row-major: interpret as rows and convert to column-major
+    if (!check(m_col.data()[0], 1.0, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
     if (!check(m_row(0, 0), 1.0, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
     if (!check(m_row(0, 1), 2.0, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
 
@@ -594,7 +587,6 @@ int test_gpu_matrix_scalar_addition() {
 
     Matrix<double>& result = (m += 2.5);
 
-    // Check all elements increased by 2.5
     if (!check(m.data(), result.data(), m.size(), check_msg(get_type_name<double>(), ""))) return TEST_FAIL;
 
     return TEST_PASS;
@@ -704,8 +696,6 @@ int test_gpu_matrix_non_square() {
 
     if (!check((int)m.shape().first, 3, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
     if (!check((int)m.shape().second, 7, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
-
-    // Test diagonal elements
     if (!check(m(0, 0), 1.0, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
     if (!check(m(2, 6), 1.0, check_msg(get_type_name<double>(), "check 4"))) return TEST_FAIL;
 
@@ -733,14 +723,12 @@ int test_gpu_matrix_extensive_element_access() {
     Shape s(4, 5);
     Matrix<double> m(s, 0.0);
 
-    // Access every element in column-major order
     for (int j = 0; j < 5; j++) {
         for (int i = 0; i < 4; i++) {
             m(i, j) = i + j * 0.1;
         }
     }
 
-    // Verify random elements
     if (!check(m(0, 0), 0.0, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
     if (!check(m(2, 3), 2.3, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
     if (!check(m(3, 4), 3.4, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
@@ -773,8 +761,6 @@ int test_gpu_matrix_diagonal_pattern() {
 
     if (!check(m(0, 0), 1.0, check_msg(get_type_name<double>(), "check 1"))) return TEST_FAIL;
     if (!check(m(4, 4), 5.0, check_msg(get_type_name<double>(), "check 2"))) return TEST_FAIL;
-
-    // Check off-diagonal are still zero
     if (!check(m(0, 1), 0.0, check_msg(get_type_name<double>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;

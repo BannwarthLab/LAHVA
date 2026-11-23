@@ -1,9 +1,20 @@
+/// @file level1.hpp
+/// @brief C++-style BLAS Level-1 operations (vector-vector operations).
+//
+// Level-1 BLAS-like operations (vector * vector) - C++ template declarations
+// These functions are C++-style wrappers operating on Tensor_<> objects
+// They provide convenient overloads for different scalar types and
+// dispatch to optimized CPU BLAS kernels. Each overload is provided for double and float
+// precision; both precisions are documented explicitly.
+
 #pragma once
 #include "const.h"
 #include "linalg.hpp"
 
-namespace lahva{
-    namespace cpu{
+namespace lahva
+{
+    namespace cpu
+    {
     double InnerVectorProduct(const Tensor_<double>& X, const Tensor_<double>& Y);
     float InnerVectorProduct(const Tensor_<float>& X, const Tensor_<float>& Y);
     double InnerVectorProduct(const Tensor_<double>& X, const size_t strideX, const Tensor_<double>& Y, const size_t strideY);
@@ -43,30 +54,50 @@ namespace lahva{
     int IndexMaxFromVector(const Tensor_<double>& x, const size_t ix);
     int IndexMaxFromVector(const Tensor_<float>& x, const size_t ix);
 
+        /// @brief Runtime-dispatching overload that allows passing a CPURuntime first.
+        ///
+        /// The runtime parameter is ignored for CPU implementations but this overload
+        /// mirrors the signatures used for GPU/CUDA dispatching.
         template <typename... Args>
         void AddVectors(const CPURuntime &rt_, Args &&...args)
         {
             (AddVectors(args...));
         }
 
+        /// @brief Runtime-dispatching overload that allows passing a CPURuntime first.
+        ///
+        /// The runtime parameter is ignored for CPU implementations but this overload
+        /// mirrors the signatures used for GPU/CUDA dispatching.
         template <typename... Args>
         void CopyVectors(const CPURuntime &rt_, Args &&...args)
         {
             (CopyVectors(args...));
         }
 
+        /// @brief Runtime-dispatching overload that allows passing a CPURuntime first.
+        ///
+        /// The runtime parameter is ignored for CPU implementations but this overload
+        /// mirrors the signatures used for GPU/CUDA dispatching.
         template <typename... Args>
         void SwapVectors(const CPURuntime &rt_, Args &&...args)
         {
             (SwapVectors(args...));
         }
 
+        /// @brief Runtime-dispatching overload that allows passing a CPURuntime first.
+        ///
+        /// The runtime parameter is ignored for CPU implementations but this overload
+        /// mirrors the signatures used for GPU/CUDA dispatching.
         template <typename... Args>
         void ScaleVector(const CPURuntime &rt_, Args &&...args)
         {
             (ScaleVector(args...));
         }
 
+        /// @brief Runtime-dispatching overload that allows passing a CPURuntime first.
+        ///
+        /// The runtime parameter is ignored for CPU implementations but this overload
+        /// mirrors the signatures used for GPU/CUDA dispatching.
         template <typename... Args>
         int IndexMaxFromVector(const CPURuntime &rt_, Args &&...args)
         {

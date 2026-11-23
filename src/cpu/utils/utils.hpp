@@ -1,3 +1,6 @@
+/// @file utils.hpp
+/// @brief CPU utility functions for tensor and matrix dimension validation.
+
 #pragma once
 #include <tuple>
 #include "const.h"
@@ -6,6 +9,16 @@
 #include <assert.h>
 
 namespace lahva{
+    /// @brief Check that two tensors have equal size.
+    ///
+    /// Asserts that the total number of elements in v1 equals the total number
+    /// of elements in v2. This is used to validate tensor arguments in operations
+    /// that require operands of compatible dimensions.
+    ///
+    /// @tparam T Element type of first tensor.
+    /// @tparam U Element type of second tensor.
+    /// @param v1 First tensor to check.
+    /// @param v2 Second tensor to check.
     template<typename T, typename U>
     void check_equal_size(const Tensor_<T>& v1, const Tensor_<U>& v2){
         assert(v1.size() == v2.size());
@@ -176,7 +189,25 @@ namespace lahva{
         return std::make_tuple(nrow, ncol);
     };
 
+    /// @brief Compute the leading dimension for BLAS column-major storage.
+    ///
+    /// Determines the leading dimension (memory stride between columns) for a matrix
+    /// stored in column-major order. For non-transposed matrices, this is the number
+    /// of rows. For transposed matrices, this is the number of columns.
+    ///
+    /// @param nrow Number of rows in the original matrix.
+    /// @param ncol Number of columns in the original matrix.
+    /// @param trans Transpose flag indicating the actual storage layout (default: CblasNoTrans).
+    /// @return Leading dimension value for use with CBLAS routines.
     BLAS_INT get_leading(BLAS_INT nrow, BLAS_INT ncol, CBLAS_TRANSPOSE trans = CblasNoTrans);
+
+    /// @brief Convert character transpose flag to CBLAS_TRANSPOSE enumeration.
+    ///
+    /// Translates a character representation of transpose operation to the corresponding
+    /// CBLAS_TRANSPOSE enum value: "N" -> CblasNoTrans, "T" -> CblasTrans, "C" -> CblasConjTrans.
+    ///
+    /// @param T Character string "N" (no transpose), "T" (transpose), or "C" (conjugate transpose).
+    /// @return Corresponding CBLAS_TRANSPOSE enumeration value.
     CBLAS_TRANSPOSE get_trans(const char* T);
 
 } // namespace cpu

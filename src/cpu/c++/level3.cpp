@@ -1,5 +1,12 @@
 #include "linalg.hpp"
 #include "impl/blas/cpu/level3.hpp"
+/// @file level3.cpp
+/// @brief CPU C++ template implementations of Level-3 BLAS operations.
+///
+/// Provides C++ template functions for Level-3 BLAS matrix-matrix operations including
+/// matrix multiplication. Supports optional transposition and scalar factors. Functions
+/// accept Matrix<T> types and forward to lower-level pointer-based CBLAS GEMM routines.
+
 #include "../utils/utils.hpp"
 namespace lahva
 {
@@ -134,6 +141,21 @@ namespace lahva
             cblas_cgemm(major, transa, transb, m, n, k, &alpha, a.data(), lda, b.data(), ldb, &beta, c.data(), ldc);
         };
 
+
+    /// @brief Symmetric matrix-matrix multiply (double precision).
+    ///
+    /// Performs C = alpha * A * B + beta * C when `side == CblasLeft`, or
+    /// C = alpha * B * A + beta * C when `side == CblasRight`. Matrix A is
+    /// assumed to be symmetric and stored according to the project's triangular
+    /// convention (see `tri` in `const.h`). This wrapper adapts Matrix_<double>
+    /// to the cblas_dsymm call.
+    ///
+    /// @param side  Side on which the symmetric matrix A appears (CblasLeft/CblasRight).
+    /// @param alpha Scaling factor for the product involving A.
+    /// @param a     Symmetric matrix A (Matrix_<double>).
+    /// @param b     Matrix B (Matrix_<double>).
+    /// @param beta  Scaling factor for existing contents of C.
+    /// @param c     Output matrix C (Matrix_<double>), receives the result.
         void SymMatrixMatrixProduct(const CBLAS_SIDE side, const double alpha, const Matrix_<double> &a, const Matrix_<double> &b,
                                     const double beta, Matrix_<double> &c)
         {
@@ -156,6 +178,17 @@ namespace lahva
             cblas_dsymm(major, side, tri, m, n, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
         };
 
+    /// @brief Symmetric matrix-matrix multiply (single precision).
+    ///
+    /// Float variant of SymMatrixMatrixProduct. Performs the same operation
+    /// as the double-precision variant but calls cblas_ssymm under the hood.
+    ///
+    /// @param side  Side on which the symmetric matrix A appears (CblasLeft/CblasRight).
+    /// @param alpha Scaling factor for the product involving A (float).
+    /// @param a     Symmetric matrix A (Matrix_<float>).
+    /// @param b     Matrix B (Matrix_<float>).
+    /// @param beta  Scaling factor for existing contents of C (float).
+    /// @param c     Output matrix C (Matrix_<float>), receives the result.
         void SymMatrixMatrixProduct(const CBLAS_SIDE side, const float alpha, const Matrix_<float> &a, const Matrix_<float> &b,
                                     const float beta, Matrix_<float> &c)
         {
@@ -181,5 +214,6 @@ namespace lahva
 
             cblas_ssymm(major, side, tri, m, n, alpha, a.data(), lda, b.data(), ldb, beta, c.data(), ldc);
         };
+
     } // namespace cpu
 } // namespace lahva

@@ -8,6 +8,10 @@ using lahva::CudaRuntime;
 template<typename T>
 using MyMatrix = Matrix<T, lahva::CudaHostAllocator<T>, lahva::CudaDeviceAsyncAllocator<T>>;
 
+// ============================================================================
+// Frobenius Norm Tests
+// ============================================================================
+
 template <typename T>
 int test_Frobenius_norm(const CudaRuntime& cudart)
 {
@@ -85,6 +89,10 @@ int test_Frobenius_norm2_diff(const CudaRuntime& cudart)
     return 0;
 };
 
+// ============================================================================
+// Hadamard Product Tests
+// ============================================================================
+
 template <typename T>
 int test_HadamardProduct(const CudaRuntime& cudart)
 {
@@ -135,12 +143,16 @@ int test_HadamardProduct(const CudaRuntime& cudart)
 int main(){
     int total_failures = 0;
     CudaRuntime cudart;
+
+    // Frobenius norm tests
     total_failures += test_Frobenius_norm<double>(cudart);
     total_failures += test_Frobenius_norm<float>(cudart);
     total_failures += test_Frobenius_norm2<double>(cudart);
     total_failures += test_Frobenius_norm2<float>(cudart);
     total_failures += test_Frobenius_norm2_diff<double>(cudart);
     total_failures += test_Frobenius_norm2_diff<float>(cudart);
+
+    // Hadamard product tests
     total_failures += test_HadamardProduct<double>(cudart);
     total_failures += test_HadamardProduct<float>(cudart);
 
