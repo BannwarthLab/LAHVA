@@ -9,7 +9,7 @@ namespace lahva
     {
 
         template <typename T>
-    class LowTriMatrix_ : virtual public Tensor<T>
+        class LowTriMatrix_ : virtual public Tensor_<T>
         {
         public:
             virtual Shape shape() const = 0;
@@ -25,7 +25,7 @@ namespace lahva
         };
 
         template <class T, class Allocator = StdAllocator<T>>
-    class LowTriMatrix : virtual public CPUTensor<T, Allocator>, virtual public LowTriMatrix_<T>
+        class LowTriMatrix : virtual public Tensor<T, Allocator>, virtual public LowTriMatrix_<T>
         {
             using alloc_ptr = CPUAllocator<T>;
 
@@ -123,8 +123,7 @@ namespace lahva
         }
 
         template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(size_t size, const alloc_ptr& alloc ) : 
-    CPUTensor<T, Allocator>{data_size_(size), alloc}, n_{size}                                     
+        LowTriMatrix<T, Allocator>::LowTriMatrix(size_t size, const alloc_ptr &alloc) : Tensor<T, Allocator>{data_size_(size), alloc}, n_{size}
         {
             check_size_(size);
         }
@@ -170,7 +169,7 @@ namespace lahva
     
         template <typename T, class Allocator>
         LowTriMatrix<T, Allocator>::LowTriMatrix(size_t n, T *data, bool take_ownership, const alloc_ptr &cpualloc)
-    :  CPUTensor<T, Allocator>{cpualloc}, n_{n}
+            : Tensor<T, Allocator>{cpualloc}, n_{n}
         {
             this->data_ = data;
             this->count_ = data_size_(n);
@@ -186,7 +185,7 @@ namespace lahva
         template <typename T, class Allocator>
     LowTriMatrix<T, Allocator>::LowTriMatrix(const LowTriMatrix<T, Allocator> &other) : 
     n_{other.n_}, 
-    CPUTensor<T, Allocator>(other)
+    Tensor<T, Allocator>(other)
         {
         }
 
@@ -195,7 +194,7 @@ namespace lahva
         {
             if (this != &other)
             {
-            CPUTensor<T, Allocator>::operator=(other);
+                Tensor<T, Allocator>::operator=(other);
                 n_ = other.size();
             }
             return *this;
@@ -203,8 +202,7 @@ namespace lahva
 
     // move operations
         template <typename T, class Allocator>
-    LowTriMatrix<T, Allocator>::LowTriMatrix(LowTriMatrix<T, Allocator> &&other) noexcept :
-    CPUTensor<T, Allocator>{std::move(other)}, n_{other.n_}
+        LowTriMatrix<T, Allocator>::LowTriMatrix(LowTriMatrix<T, Allocator> &&other) noexcept : Tensor<T, Allocator>{std::move(other)}, n_{other.n_}
         {
         }
 
@@ -213,7 +211,7 @@ namespace lahva
         {
             if (this != &other)
             {
-            CPUTensor<T, Allocator>::operator=(std::move(other));
+                Tensor<T, Allocator>::operator=(std::move(other));
                 n_ = other.size();
                 other.n_ = 0;
             }

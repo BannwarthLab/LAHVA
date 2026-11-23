@@ -11,7 +11,7 @@ namespace lahva{
         \param[in] X Vector
         \param[in] Y Vector
     */ 
-    double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<double>& X, const GPUTensor_<double>& Y)
+    double InnerVectorProduct(const CudaRuntime& cudart, const Tensor_<double>& X, const Tensor_<double>& Y)
     {   
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
@@ -27,7 +27,7 @@ namespace lahva{
         \param[in] X Vector
         \param[in] Y Vector
     */ 
-    float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<float>& X, const GPUTensor_<float>& Y)
+    float InnerVectorProduct(const CudaRuntime& cudart, const Tensor_<float>& X, const Tensor_<float>& Y)
     { 
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
@@ -41,7 +41,7 @@ namespace lahva{
     }
 
     // strided Vector product
-    double InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<double>& X, const size_t strideX, const GPUTensor_<double>& Y, const size_t strideY)
+    double InnerVectorProduct(const CudaRuntime& cudart, const Tensor_<double>& X, const size_t strideX, const Tensor_<double>& Y, const size_t strideY)
     {
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
@@ -54,7 +54,7 @@ namespace lahva{
         return result;
     }
 
-    float InnerVectorProduct(const CudaRuntime& cudart, const GPUTensor_<float>& X, const size_t strideX, const GPUTensor_<float>& Y, const size_t strideY)
+    float InnerVectorProduct(const CudaRuntime& cudart, const Tensor_<float>& X, const size_t strideX, const Tensor_<float>& Y, const size_t strideY)
     {
         check_equal_size(X,Y);
         check_device_alloc( cudart, X);
@@ -73,7 +73,7 @@ namespace lahva{
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
     */
-    void AddVectors(const CudaRuntime& cudart, const double a, const GPUTensor_<double>& x, GPUTensor_<double>& y) {
+    void AddVectors(const CudaRuntime& cudart, const double a, const Tensor_<double>& x, Tensor_<double>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -87,7 +87,7 @@ namespace lahva{
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
     */
-    void AddVectors(const CudaRuntime& cudart, const float a, const GPUTensor_<float>& x, GPUTensor_<float>& y) {
+    void AddVectors(const CudaRuntime& cudart, const float a, const Tensor_<float>& x, Tensor_<float>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -104,7 +104,7 @@ namespace lahva{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void AddVectors(const CudaRuntime& cudart, const double a, const GPUTensor_<double>& x, size_t ix, GPUTensor_<double>& y, size_t iy) {
+    void AddVectors(const CudaRuntime& cudart, const double a, const Tensor_<double>& x, size_t ix, Tensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -120,7 +120,7 @@ namespace lahva{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void AddVectors(const CudaRuntime& cudart, const float a, const GPUTensor_<float>& x, size_t ix, GPUTensor_<float>& y, size_t iy) {
+    void AddVectors(const CudaRuntime& cudart, const float a, const Tensor_<float>& x, size_t ix, Tensor_<float>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -135,7 +135,7 @@ namespace lahva{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<double>& x, GPUTensor_<double>& y) {
+    void CopyVectors(const CudaRuntime& cudart, const Tensor_<double>& x, Tensor_<double>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -148,7 +148,7 @@ namespace lahva{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<float>& x, GPUTensor_<float>& y) {
+    void CopyVectors(const CudaRuntime& cudart, const Tensor_<float>& x, Tensor_<float>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y);
@@ -164,7 +164,7 @@ namespace lahva{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<double>& x, size_t ix, GPUTensor_<double>& y, size_t iy) {
+    void CopyVectors(const CudaRuntime& cudart, const Tensor_<double>& x, size_t ix, Tensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -179,7 +179,7 @@ namespace lahva{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void CopyVectors(const CudaRuntime& cudart, const GPUTensor_<float>& x, size_t ix, GPUTensor_<float>& y, size_t iy) {
+    void CopyVectors(const CudaRuntime& cudart, const Tensor_<float>& x, size_t ix, Tensor_<float>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -194,7 +194,7 @@ namespace lahva{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void SwapVectors(const CudaRuntime& cudart, GPUTensor_<double>& x, GPUTensor_<double>& y) {
+    void SwapVectors(const CudaRuntime& cudart, Tensor_<double>& x, Tensor_<double>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -207,7 +207,7 @@ namespace lahva{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void SwapVectors(const CudaRuntime& cudart, GPUTensor_<float>& x, GPUTensor_<float>& y) {
+    void SwapVectors(const CudaRuntime& cudart, Tensor_<float>& x, Tensor_<float>& y) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -223,7 +223,7 @@ namespace lahva{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void SwapVectors(const CudaRuntime& cudart, GPUTensor_<double>& x, size_t ix, GPUTensor_<double>& y, size_t iy) {
+    void SwapVectors(const CudaRuntime& cudart, Tensor_<double>& x, size_t ix, Tensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -239,7 +239,7 @@ namespace lahva{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void SwapVectors(const CudaRuntime& cudart, GPUTensor_<float>& x, size_t ix, GPUTensor_<float>& y, size_t iy) {
+    void SwapVectors(const CudaRuntime& cudart, Tensor_<float>& x, size_t ix, Tensor_<float>& y, size_t iy) {
         check_equal_size(x,y);
         check_device_alloc( cudart, x);
         check_device_alloc( cudart, y); 
@@ -255,7 +255,7 @@ namespace lahva{
         \param[in, out] x \f$\vec{x}\f$
         \param[in,out] a \f$\alpha\f$
     */
-    void ScaleVector(const CudaRuntime& cudart, const double a, GPUTensor_<double>& x) {
+    void ScaleVector(const CudaRuntime& cudart, const double a, Tensor_<double>& x) {
         check_device_alloc( cudart, x); 
         
         cudart.cublasSetStream_();
@@ -266,7 +266,7 @@ namespace lahva{
         \param[in, out] x \f$\vec{x}\f$
         \param[in,out] a \f$\alpha\f$
     */
-    void ScaleVector(const CudaRuntime& cudart, const float a, GPUTensor_<float>& x){
+    void ScaleVector(const CudaRuntime& cudart, const float a, Tensor_<float>& x){
         check_device_alloc( cudart, x); 
         
         cudart.cublasSetStream_();
@@ -274,7 +274,7 @@ namespace lahva{
         get_cublas_error(istat);
     }
 
-    void ScaleVector(const CudaRuntime& cudart, const double a, GPUTensor_<double>& x, size_t ix){
+    void ScaleVector(const CudaRuntime& cudart, const double a, Tensor_<double>& x, size_t ix){
         check_device_alloc( cudart, x);
 
         cudart.cublasSetStream_();
@@ -287,7 +287,7 @@ namespace lahva{
         \param[in,out] a \f$\alpha\f$
         stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
     */
-    void ScaleVector(const CudaRuntime& cudart, const float a, GPUTensor_<float>& x, size_t ix){
+    void ScaleVector(const CudaRuntime& cudart, const float a, Tensor_<float>& x, size_t ix){
         check_device_alloc( cudart, x); 
         
         cudart.cublasSetStream_();

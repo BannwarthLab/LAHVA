@@ -20,7 +20,7 @@ namespace lahva
     
     
         template <typename T>
-    class Matrix_ : public virtual GPUTensor_<T>, public virtual cpu::Matrix_<T>
+        class Matrix_ : public virtual Tensor_<T>, public virtual cpu::Matrix_<T>
         {
         public:
             virtual Shape shape() const = 0;
@@ -40,10 +40,10 @@ namespace lahva
         void SymmetrizeMatrix(const CudaRuntime &cudart, Matrix_<T> &m);
 
         template <typename T>
-        void GetDiagonal(const CudaRuntime& cudart, const Matrix_<T>& m, GPUTensor_<T>& diag);
+        void GetDiagonal(const CudaRuntime &cudart, const Matrix_<T> &m, Tensor_<T> &diag);
 
         template <typename T>
-        void SetDiagonal(const CudaRuntime& cudart, const GPUTensor_<T>& diag, Matrix_<T>& m);
+        void SetDiagonal(const CudaRuntime &cudart, const Tensor_<T> &diag, Matrix_<T> &m);
 
 
     //! @brief slim wrapper around a float or double array to allow easy acces with
@@ -53,7 +53,7 @@ namespace lahva
     //! The data is stored in column-major order in a 1D array.
     //!
         template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAsyncAllocator<T>>
-    class Matrix : public GPUTensor<T, Allocator, GPUAllocator>, public virtual Matrix_<T>
+        class Matrix : public Tensor<T, Allocator, GPUAllocator>, public virtual Matrix_<T>
         {
             using alloc_ptr = Allocator;
             using gpualloc_ptr = GPUAllocator;
@@ -88,7 +88,7 @@ namespace lahva
             inline void check_size_(size_t, size_t);
 
         public:
-        Matrix() : GPUTensor<T, Allocator, GPUAllocator>{} {};
+            Matrix() : Tensor<T, Allocator, GPUAllocator>{} {};
         //! construct a square Matrix with dimensions n x n
         //! It is not guaranteed that the values will be initialized
             Matrix(size_t n, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator());
@@ -197,8 +197,7 @@ namespace lahva
         }
 
         template <typename T, class Allocator, class GPUAllocator>
-    Matrix<T, Allocator, GPUAllocator>::Matrix(const Shape &shape, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
-    GPUTensor<T, Allocator, GPUAllocator>{shape.first*shape.second, alloc, gpualloc}, 
+        Matrix<T, Allocator, GPUAllocator>::Matrix(const Shape &shape, const alloc_ptr &alloc, const gpualloc_ptr &gpualloc) : Tensor<T, Allocator, GPUAllocator>{shape.first * shape.second, alloc, gpualloc},
                                                                                                                                n_rows_{shape.first}, n_cols_{shape.second}
         {
             this->check_size_(shape.first, shape.second);
@@ -226,8 +225,7 @@ namespace lahva
         };
 
         template <typename T, class Allocator, class GPUAllocator>
-    Matrix<T, Allocator, GPUAllocator>::Matrix(const Shape &shape, const CudaRuntime &cudart, const gpualloc_ptr &gpualloc) : 
-    GPUTensor<T, Allocator, GPUAllocator>{gpualloc},
+        Matrix<T, Allocator, GPUAllocator>::Matrix(const Shape &shape, const CudaRuntime &cudart, const gpualloc_ptr &gpualloc) : Tensor<T, Allocator, GPUAllocator>{gpualloc},
                                                                                                                                   n_rows_{shape.first}, n_cols_{shape.second}
         {
             check_size_(shape.first, shape.second);
@@ -237,8 +235,7 @@ namespace lahva
         }
 
         template <typename T, class Allocator, class GPUAllocator>
-    Matrix<T, Allocator, GPUAllocator>::Matrix(const Shape &shape, T *data, bool take_ownership, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
-    GPUTensor<T, Allocator, GPUAllocator>{alloc, gpualloc}, n_rows_{shape.first}, n_cols_{shape.second}
+        Matrix<T, Allocator, GPUAllocator>::Matrix(const Shape &shape, T *data, bool take_ownership, const alloc_ptr &alloc, const gpualloc_ptr &gpualloc) : Tensor<T, Allocator, GPUAllocator>{alloc, gpualloc}, n_rows_{shape.first}, n_cols_{shape.second}
         {
             this->data_ = data;
             this->count_ = n_rows_ * n_cols_;
@@ -273,8 +270,7 @@ namespace lahva
 
     // copy operations
         template <typename T, class Allocator, class GPUAllocator>
-    Matrix<T, Allocator, GPUAllocator>::Matrix(const Matrix<T, Allocator, GPUAllocator> &other) : 
-    GPUTensor<T, Allocator, GPUAllocator>{other}, 
+        Matrix<T, Allocator, GPUAllocator>::Matrix(const Matrix<T, Allocator, GPUAllocator> &other) : Tensor<T, Allocator, GPUAllocator>{other},
                                                                                                       n_rows_{other.n_rows_}, n_cols_{other.n_cols_}
         {
         }
@@ -284,7 +280,7 @@ namespace lahva
         {
             if (this != &other)
             {
-            GPUTensor<T, Allocator, GPUAllocator>::operator=(other);
+                Tensor<T, Allocator, GPUAllocator>::operator=(other);
 
                 n_rows_ = other.n_rows_;
                 n_cols_ = other.n_cols_;
@@ -295,8 +291,7 @@ namespace lahva
 
     // move operations
         template <typename T, class Allocator, class GPUAllocator>
-    Matrix<T, Allocator, GPUAllocator>::Matrix(Matrix<T, Allocator, GPUAllocator> &&other) : 
-    GPUTensor<T, Allocator, GPUAllocator>{other},
+        Matrix<T, Allocator, GPUAllocator>::Matrix(Matrix<T, Allocator, GPUAllocator> &&other) : Tensor<T, Allocator, GPUAllocator>{other},
                                                                                                  n_rows_{other.n_rows_}, n_cols_{other.n_cols_}
         {
 
@@ -309,7 +304,7 @@ namespace lahva
         {
             if (this != &other)
             {
-            GPUTensor<T, Allocator, GPUAllocator>::operator=(std::move(other));
+                Tensor<T, Allocator, GPUAllocator>::operator=(std::move(other));
 
                 n_rows_ = other.n_rows_;
                 n_cols_ = other.n_cols_;

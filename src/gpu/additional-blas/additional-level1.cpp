@@ -9,7 +9,7 @@ namespace lahva{
     namespace gpu
     {
         template<>
-        void HadamardProduct<double>(const CudaRuntime& cudart, const GPUTensor_<double>& vecin, GPUTensor_<double>& vecinout)
+        void HadamardProduct<double>(const CudaRuntime& cudart, const Tensor_<double>& vecin, Tensor_<double>& vecinout)
         {   
             check_device_alloc(cudart, vecinout);
             check_device_alloc(cudart, vecin);
@@ -17,7 +17,7 @@ namespace lahva{
         }
 
         template<>
-        void HadamardProduct<float>(const CudaRuntime& cudart, const GPUTensor_<float>& vecin, GPUTensor_<float>& vecinout)
+        void HadamardProduct<float>(const CudaRuntime& cudart, const Tensor_<float>& vecin, Tensor_<float>& vecinout)
         {   
             check_device_alloc(cudart, vecinout);
             check_device_alloc(cudart, vecin);
@@ -28,7 +28,7 @@ namespace lahva{
 
 
         template<>
-        void HadamardProduct<double>(const CudaRuntime& cudart, const GPUTensor_<double>& vecin, const GPUTensor_<double>& vecin2, GPUTensor_<double>& vecout)
+        void HadamardProduct<double>(const CudaRuntime& cudart, const Tensor_<double>& vecin, const Tensor_<double>& vecin2, Tensor_<double>& vecout)
         {
             check_device_alloc(cudart, vecin2);
             check_device_alloc(cudart, vecin);
@@ -38,7 +38,7 @@ namespace lahva{
         }
 
         template<>
-        void HadamardProduct<float>(const CudaRuntime& cudart, const GPUTensor_<float>& vecin, const GPUTensor_<float>& vecin2, GPUTensor_<float>& vecout)
+        void HadamardProduct<float>(const CudaRuntime& cudart, const Tensor_<float>& vecin, const Tensor_<float>& vecin2, Tensor_<float>& vecout)
         {
             check_device_alloc(cudart, vecin2);
             check_device_alloc(cudart, vecin);
@@ -47,13 +47,13 @@ namespace lahva{
             sHadamardcopy(cudart, vecout.gpu_data(), vecin.gpu_data(), vecin2.gpu_data(), vecout.size());            
         }
 
-        void AddVectors(const CudaRuntime& cudart, double a, const GPUTensor_<double>& x, GPUTensor_<float>& y)
+        void AddVectors(const CudaRuntime& cudart, double a, const Tensor_<double>& x, Tensor_<float>& y)
         {
             check_device_alloc(cudart, x);
             check_device_alloc(cudart, y);
             AddVector(cudart, x.size(), a, x, y);
         }
-        void AddVectors(const CudaRuntime& cudart, double a, const GPUTensor_<float>& x, GPUTensor_<double>& y)
+        void AddVectors(const CudaRuntime& cudart, double a, const Tensor_<float>& x, Tensor_<double>& y)
         {
             check_device_alloc(cudart, x);
             check_device_alloc(cudart, y);

@@ -10,7 +10,7 @@ namespace lahva{
         \param[in] X Vector
         \param[in] Y Vector
     */ 
-    double InnerVectorProduct(const Tensor<double>& X, const Tensor<double>& Y)
+    double InnerVectorProduct(const Tensor_<double>& X, const Tensor_<double>& Y)
     {   check_equal_size(X,Y);
         return InnerVectorProduct(X.size(), X.data(), Y.data());}
 
@@ -18,38 +18,38 @@ namespace lahva{
         \param[in] X Vector
         \param[in] Y Vector
     */ 
-    float InnerVectorProduct( const Tensor<float>& X, const Tensor<float>& Y)
+    float InnerVectorProduct( const Tensor_<float>& X, const Tensor_<float>& Y)
         {
             check_equal_size(X, Y);
             return InnerVectorProduct(X.size(), X.data(), Y.data());
     }
 
     // strided Vector product
-    double InnerVectorProduct(const Tensor<double>& X, const size_t strideX, const Tensor<double>& Y, const size_t strideY)
+    double InnerVectorProduct(const Tensor_<double>& X, const size_t strideX, const Tensor_<double>& Y, const size_t strideY)
         {
             check_equal_size(X, Y);
             return InnerVectorProduct(X.size(), X.data(), strideX, Y.data(), strideY);
     }
 
-    float InnerVectorProduct(const Tensor<float>& X, const size_t strideX, const Tensor<float>& Y, const size_t strideY)
+    float InnerVectorProduct(const Tensor_<float>& X, const size_t strideX, const Tensor_<float>& Y, const size_t strideY)
     {
         check_equal_size(X,Y);
     return InnerVectorProduct(X.size(), X.data(), strideX, Y.data(), strideY);
     }
 
-    double InnerVectorProduct(const CPURuntime& rt_, const Tensor<double>& X, const Tensor<double>& Y)
+    double InnerVectorProduct(const CPURuntime& rt_, const Tensor_<double>& X, const Tensor_<double>& Y)
     {
         return InnerVectorProduct(X, Y);
     };
-    float InnerVectorProduct(const CPURuntime& rt_, const Tensor<float>& X, const Tensor<float>& Y)
+    float InnerVectorProduct(const CPURuntime& rt_, const Tensor_<float>& X, const Tensor_<float>& Y)
     {
         return InnerVectorProduct(X, Y);
     };
-    double InnerVectorProduct(const CPURuntime& rt_, const Tensor<double>& X, const size_t strideX, const Tensor<double>& Y, const size_t strideY)
+    double InnerVectorProduct(const CPURuntime& rt_, const Tensor_<double>& X, const size_t strideX, const Tensor_<double>& Y, const size_t strideY)
     {
         return InnerVectorProduct(X, strideX, Y, strideY);
     };
-    float InnerVectorProduct(const CPURuntime& rt_, const Tensor<float>& X, const size_t strideX, const Tensor<float>& Y, const size_t strideY)
+    float InnerVectorProduct(const CPURuntime& rt_, const Tensor_<float>& X, const size_t strideX, const Tensor_<float>& Y, const size_t strideY)
     {
         return InnerVectorProduct(X, strideX, Y, strideY);
         };
@@ -60,7 +60,7 @@ namespace lahva{
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
     */
-    void AddVectors(const double a, const Tensor<double>& x, Tensor<double>& y) {
+    void AddVectors(const double a, const Tensor_<double>& x, Tensor_<double>& y) {
             check_equal_size(x, y);
         AddVectors(x.size(), a, x.data(), y.data());
             }
@@ -70,7 +70,7 @@ namespace lahva{
         \param[in,out] y \f$\vec{y}\f$
         \param[in] a \f$\alpha\f$
     */
-    void AddVectors(const float a, const Tensor<float>& x, Tensor<float>& y) {
+    void AddVectors(const float a, const Tensor_<float>& x, Tensor_<float>& y) {
         check_equal_size(x,y);
         AddVectors(x.size(), a, x.data(), y.data());
         }
@@ -83,7 +83,7 @@ namespace lahva{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void AddVectors(const double a, const Tensor<double>& x, size_t ix, Tensor<double>& y, size_t iy) {
+    void AddVectors(const double a, const Tensor_<double>& x, size_t ix, Tensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         AddVectors(x.size(), a, x.data(), ix, y.data(), iy);
     }
@@ -95,12 +95,12 @@ namespace lahva{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void AddVectors(const float a, const Tensor<float>& x, size_t ix, Tensor<float>& y, size_t iy) {
+    void AddVectors(const float a, const Tensor_<float>& x, size_t ix, Tensor_<float>& y, size_t iy) {
         check_equal_size(x,y);
         AddVectors(x.size(), a, x.data(), ix, y.data(), iy);
     }
 
-    void AddVectors(const double a, const Tensor<double>& x, Tensor<float>& y) {
+    void AddVectors(const double a, const Tensor_<double>& x, Tensor_<float>& y) {
         check_equal_size(x,y);
         #pragma omp parallel for shared(x,y)
         for (int i = 0; i < x.size() ; i++ )
@@ -109,7 +109,7 @@ namespace lahva{
         }
     }
 
-    void AddVectors(const double a, const Tensor<float>& x, Tensor<double>& y) {
+    void AddVectors(const double a, const Tensor_<float>& x, Tensor_<double>& y) {
         check_equal_size(x,y);
         #pragma omp parallel for shared(x,y)
         for (int i = 0; i < x.size() ; i++ )
@@ -124,7 +124,7 @@ namespace lahva{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void CopyVectors(const Tensor<double>& x, Tensor<double>& y) {
+    void CopyVectors(const Tensor_<double>& x, Tensor_<double>& y) {
             check_equal_size(x, y);
             CopyVectors(x.size(), x.data(), y.data());
         }
@@ -133,12 +133,12 @@ namespace lahva{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void CopyVectors(const Tensor<float>& x, Tensor<float>& y) {
+    void CopyVectors(const Tensor_<float>& x, Tensor_<float>& y) {
                 check_equal_size(x, y);
         CopyVectors(x.size(), x.data(), y.data());
             }
     
-    void CopyVectors(const Tensor<float>& x, Tensor<double>& y) 
+    void CopyVectors(const Tensor_<float>& x, Tensor_<double>& y) 
     {
         #pragma omp parallel for shared(x, y)
         for (int i = 0; i < x.size() ; i++ )
@@ -147,7 +147,7 @@ namespace lahva{
         }
         }
 
-    void CopyVectors(const Tensor<double>& x, Tensor<float>& y) 
+    void CopyVectors(const Tensor_<double>& x, Tensor_<float>& y) 
         {
         #pragma omp parallel for shared(x,y)
         for (int i = 0; i < x.size() ; i++ )
@@ -162,7 +162,7 @@ namespace lahva{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void CopyVectors(const Tensor<double>& x, size_t ix, Tensor<double>& y, size_t iy) {
+    void CopyVectors(const Tensor_<double>& x, size_t ix, Tensor_<double>& y, size_t iy) {
             check_equal_size(x, y);
             CopyVectors(x.size(), x.data(), ix, y.data(), iy);
         }
@@ -173,7 +173,7 @@ namespace lahva{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void CopyVectors(const Tensor<float>& x, size_t ix, Tensor<float>& y, size_t iy) {
+    void CopyVectors(const Tensor_<float>& x, size_t ix, Tensor_<float>& y, size_t iy) {
         CopyVectors(x.size(), x.data(), ix, y.data(), iy);
     }
 
@@ -183,7 +183,7 @@ namespace lahva{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void SwapVectors(Tensor<double>& x, Tensor<double>& y) {
+    void SwapVectors(Tensor_<double>& x, Tensor_<double>& y) {
         check_equal_size(x,y);
         SwapVectors(x.size(), x.data(), y.data());
     }
@@ -192,7 +192,7 @@ namespace lahva{
         \param[in] x \f$\vec{x}\f$
         \param[in,out] y \f$\vec{y}\f$
     */
-    void SwapVectors(Tensor<float>& x, Tensor<float>& y) {
+    void SwapVectors(Tensor_<float>& x, Tensor_<float>& y) {
             check_equal_size(x, y);
             SwapVectors(x.size(), x.data(), y.data());
         }
@@ -204,7 +204,7 @@ namespace lahva{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void SwapVectors(Tensor<double>& x, size_t ix, Tensor<double>& y, size_t iy) {
+    void SwapVectors(Tensor_<double>& x, size_t ix, Tensor_<double>& y, size_t iy) {
         check_equal_size(x,y);
         SwapVectors(x.size(), x.data(), ix, y.data(), iy);
     }
@@ -215,7 +215,7 @@ namespace lahva{
         \param[in] incx stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \param[in] incy stride of \f$\vec{y}\f$ : \f$\vec{y}_i=y[i*incy]\f$
     */
-    void SwapVectors(Tensor<float>& x, size_t ix, Tensor<float>& y, size_t iy) {
+    void SwapVectors(Tensor_<float>& x, size_t ix, Tensor_<float>& y, size_t iy) {
             check_equal_size(x, y);
             SwapVectors(x.size(), x.data(), ix, y.data(), iy);
         }
@@ -226,18 +226,18 @@ namespace lahva{
         \param[in, out] x \f$\vec{x}\f$
         \param[in,out] a \f$\alpha\f$
     */
-    void ScaleVector(const double a, Tensor<double>& x) {
+    void ScaleVector(const double a, Tensor_<double>& x) {
         ScaleVector(x.size(), a, x.data());
     }
      /*! Simple interface to SSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
         \param[in, out] x \f$\vec{x}\f$
         \param[in,out] a \f$\alpha\f$
     */
-    void ScaleVector(const float a, Tensor<float>& x){
+    void ScaleVector(const float a, Tensor_<float>& x){
             ScaleVector(x.size(), a, x.data());
         }
 
-    void ScaleVector(const double a, Tensor<double>& x, size_t ix){
+    void ScaleVector(const double a, Tensor_<double>& x, size_t ix){
             ScaleVector(x.size(), a, x.data(), ix);
     }
      /*! Simple interface to SSCAL \f$\vec{x}=\alpha\vec{x}\f$ assuming unit stride
@@ -246,7 +246,7 @@ namespace lahva{
         \param[in,out] a \f$\alpha\f$
         stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
     */
-    void ScaleVector(const float a, Tensor<float>& x, size_t ix){
+    void ScaleVector(const float a, Tensor_<float>& x, size_t ix){
         ScaleVector(x.size(), a, x.data());
     }
 
@@ -256,7 +256,7 @@ namespace lahva{
         \param[in] x pointer to the input vector \f$\vec{x}\f$
         \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
     */
-    int IndexMaxFromVector(const Tensor<double>& x) {
+    int IndexMaxFromVector(const Tensor_<double>& x) {
         return IndexMaxFromVector(x.size(), x.data());
     }
     /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
@@ -264,7 +264,7 @@ namespace lahva{
         \param[in] x pointer to the input vector \f$\vec{x}\f$
         \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
     */
-    int IndexMaxFromVector(const Tensor<float>& x) {
+    int IndexMaxFromVector(const Tensor_<float>& x) {
             return IndexMaxFromVector(x.size(), x.data());
         }
 
@@ -274,7 +274,7 @@ namespace lahva{
         \param[in] ix stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
     */
-    int IndexMaxFromVector(const Tensor<double>& x, const size_t ix) {
+    int IndexMaxFromVector(const Tensor_<double>& x, const size_t ix) {
             return IndexMaxFromVector(x.size(), x.data(), ix);
         }
     /*! Computes the index \f$\i\f$ of the element with the maximum absolute value in double vector \f$x\f$.
@@ -283,7 +283,7 @@ namespace lahva{
         \param[in] ix stride of \f$\vec{x}\f$ : \f$\vec{x}_i=x[i*incx]\f$
         \return Index (1-based) of the element with the maximum absolute value in \f$x\f$.
     */
-    int IndexMaxFromVector(const Tensor<float>& x, const size_t ix) {
+    int IndexMaxFromVector(const Tensor_<float>& x, const size_t ix) {
         return IndexMaxFromVector(x.size(), x.data(), ix);
     } // namespace cpu
 } // namespace lahva

@@ -11,7 +11,7 @@ namespace lahva
     /// @brief Abstract base class for tensor
     /// @tparam T type of values to be stored in tensor
     template <typename T>
-    class Tensor
+    class Tensor_
     {
     public:
         /// @brief return size of Tensor
@@ -86,7 +86,7 @@ namespace lahva
     };
 
     template <typename T, typename Allocator = StdAllocator<T>>
-    class CPUTensor : virtual public Tensor<T>
+    class Tensor : virtual public Tensor_<T>
     {
         using alloc_ptr = CPUAllocator<T>;
 
@@ -99,7 +99,7 @@ namespace lahva
         bool no_alloc = false;
 
     public:
-        CPUTensor(size_t count, const alloc_ptr &alloc = Allocator()) : count_{count}, alloc_{alloc}
+        Tensor(size_t count, const alloc_ptr &alloc = Allocator()) : count_{count}, alloc_{alloc}
         {
             if (count_ > 0)
             {
@@ -112,12 +112,12 @@ namespace lahva
                 data_ = nullptr;
             }
         };
-        CPUTensor(const alloc_ptr &alloc) : alloc_{alloc} { is_owner_ = false; };
-        CPUTensor() : count_{0}, data_{nullptr}, no_alloc{true}
+        Tensor(const alloc_ptr &alloc) : alloc_{alloc} { is_owner_ = false; };
+        Tensor() : count_{0}, data_{nullptr}, no_alloc{true}
         {
 
         };
-        CPUTensor(const CPUTensor &other) :  no_alloc{other.no_alloc}
+        Tensor(const Tensor &other) :  no_alloc{other.no_alloc}
         {
             this->count_ = other.count_;
             this->alloc_ = other.get_allocator();
@@ -133,7 +133,7 @@ namespace lahva
             }
         };
 
-        CPUTensor(CPUTensor &&other) : count_{other.count_}, alloc_{other.alloc_}
+        Tensor(Tensor &&other) : count_{other.count_}, alloc_{other.alloc_}
         {
 
             this->data_ = other.data_;
@@ -143,7 +143,7 @@ namespace lahva
             other.count_ = 0;
         };
 
-        virtual ~CPUTensor()
+        virtual ~Tensor()
         {
             if (is_owner_)
             {
@@ -156,7 +156,7 @@ namespace lahva
         size_t size() const override { return count_; };
         size_t size() override { return count_; };
 
-        CPUTensor<T, Allocator> &operator=(const CPUTensor<T, Allocator> &other)
+        Tensor<T, Allocator> &operator=(const Tensor<T, Allocator> &other)
         {
             if (this != &other)
             {
@@ -171,7 +171,7 @@ namespace lahva
             return *this;
         };
 
-        CPUTensor<T, Allocator> &operator=(CPUTensor &&other)
+        Tensor<T, Allocator> &operator=(Tensor &&other)
         {
             if (this != &other)
             {

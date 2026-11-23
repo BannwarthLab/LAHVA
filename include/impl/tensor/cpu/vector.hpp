@@ -9,12 +9,12 @@ namespace lahva
     {
 
         template <typename T>
-        class Vector_ : public virtual Tensor<T>
+        class Vector_ : public virtual Tensor_<T>
         {
         };
 
         template <class T, class Allocator = StdAllocator<T>>
-        class Vector : public CPUTensor<T, Allocator>, virtual public Vector_<T>
+        class Vector : public Tensor<T, Allocator>, virtual public Vector_<T>
         {
 
         public:
@@ -53,7 +53,7 @@ namespace lahva
         // Vector class
         ///////////////////////////////////////////////////////////////////////////
         template <typename T, class Allocator>
-        Vector<T, Allocator>::Vector(size_type count, const alloc_ptr &alloc) : CPUTensor<T, Allocator>{count, alloc} {};
+        Vector<T, Allocator>::Vector(size_type count, const alloc_ptr &alloc) : Tensor<T, Allocator>{count, alloc} {};
 
         template <typename T, class Allocator>
         Vector<T, Allocator>::Vector(size_type count, const T &value, const alloc_ptr &alloc) : Vector{count, alloc}
@@ -62,7 +62,7 @@ namespace lahva
         };
 
         template <typename T, class Allocator>
-        Vector<T, Allocator>::Vector(size_type count, T *ptr, bool take_ownership, const alloc_ptr &alloc) : CPUTensor<T, Allocator>{}
+        Vector<T, Allocator>::Vector(size_type count, T *ptr, bool take_ownership, const alloc_ptr &alloc) : Tensor<T, Allocator>{}
         {
             this->data_ = ptr;
             this->is_owner_ = take_ownership;
@@ -76,18 +76,18 @@ namespace lahva
         };
 
         template <typename T, class Allocator>
-        Vector<T, Allocator>::Vector(const Vector &x) : CPUTensor<T, Allocator>{x}
+        Vector<T, Allocator>::Vector(const Vector &x) : Tensor<T, Allocator>{x}
         {
         };
 
         template <typename T, class Allocator>
-        Vector<T, Allocator>::Vector(Vector &&x) noexcept : CPUTensor<T, Allocator>{std::move(x)}
+        Vector<T, Allocator>::Vector(Vector &&x) noexcept : Tensor<T, Allocator>{std::move(x)}
         {
         };
 
         template <class T, class Allocator>
         Vector<T, Allocator>::Vector(std::initializer_list<T> init, const alloc_ptr &alloc)
-            : Vector_<T>(), CPUTensor<T, Allocator>(init.size(), alloc)
+            : Vector_<T>(), Tensor<T, Allocator>(init.size(), alloc)
         {
             std::copy(init.begin(), init.end(), this->data_);
         }
@@ -97,7 +97,7 @@ namespace lahva
         {
             if (this != &other)
             {
-                CPUTensor<T, Allocator>::operator=(other);
+                Tensor<T, Allocator>::operator=(other);
             }
             return *this;
         };
@@ -107,7 +107,7 @@ namespace lahva
         {
             if (this != &other)
             {
-                CPUTensor<T, Allocator>::operator=(std::move(other));
+                Tensor<T, Allocator>::operator=(std::move(other));
             }
             return *this;
         };

@@ -42,7 +42,7 @@ namespace lahva
         /// @param mat Matrix to compute the Frobenius norm of
         /// @return The Frobenius norm of the matrix
         template <typename T>
-        T FrobeniusNorm(const Tensor<T> &mat);
+        T FrobeniusNorm(const Tensor_<T> &mat);
 
         /// @brief Compute the Frobenius norm of the difference of two matrices
         /// @tparam T Numerical type of the matrix
@@ -50,7 +50,7 @@ namespace lahva
         /// @param mat2 Matrix to compute the Frobenius norm of
         /// @return The Frobenius norm of the difference of the two matrices
         template <typename T>
-        T FrobeniusNorm(const Tensor<T> &mat, const Tensor<T> &mat2);
+        T FrobeniusNorm(const Tensor_<T> &mat, const Tensor_<T> &mat2);
 
         /// @brief Compute the Frobenius norm of the difference of two matrices
         /// @tparam T Numerical type of the matrix
@@ -59,7 +59,7 @@ namespace lahva
         /// @param mat2 Matrix to compute the Frobenius norm of
         /// @return The Frobenius norm of the difference of the two matrices
         template <typename T>
-        T FrobeniusNorm(const CPURuntime &cpurt, const Tensor<T> &mat, const Tensor<T> &mat2)
+        T FrobeniusNorm(const CPURuntime &cpurt, const Tensor_<T> &mat, const Tensor_<T> &mat2)
         {
             return FrobeniusNorm(mat, mat2);
         };
@@ -70,7 +70,7 @@ namespace lahva
         /// @param mat Matrix to compute the Frobenius norm of
         /// @return The Frobenius norm of the matrix
         template <typename T>
-        T FrobeniusNorm(const CPURuntime &cpurt, const Tensor<T> &mat);
+        T FrobeniusNorm(const CPURuntime &cpurt, const Tensor_<T> &mat);
 
        
         template <typename T>
@@ -111,7 +111,7 @@ namespace lahva
         /// @param funcPtr Function pointer to the kernel
         /// @param mat Matrix to apply the kernel to
         template <typename T>
-        void ApplyKernel(func_t1D<T> funcPtr, Tensor<T> &mat)
+        void ApplyKernel(func_t1D<T> funcPtr, Tensor_<T> &mat)
         {
 #pragma omp parallel for collapse(1)
             for (size_t i = 0; i < mat.size(); i++)
@@ -129,7 +129,7 @@ namespace lahva
         /// @param funcPtr Function pointer to the kernel
         /// @param mat Matrix to apply the kernel to
         template <typename T>
-        void ApplyKernel(func_t0D<T> funcPtr, Tensor<T> &mat)
+        void ApplyKernel(func_t0D<T> funcPtr, Tensor_<T> &mat)
         {
 #pragma omp parallel for collapse(1)
             for (size_t i = 0; i < mat.size(); i++)
@@ -145,10 +145,10 @@ namespace lahva
             (ApplyKernel(args...));
         }
         template<typename T>
-        void HadamardProduct(const Tensor<T> &X, Tensor<T> &Y);
+        void HadamardProduct(const Tensor_<T> &X, Tensor_<T> &Y);
 
         template<typename T>
-        void HadamardProduct(const Tensor<T> &X, const Tensor<T> &Y, Tensor<T> &Z);
+        void HadamardProduct(const Tensor_<T> &X, const Tensor_<T> &Y, Tensor_<T> &Z);
 
         template<typename T>
         void HadamardProduct(const size_t ndim, const T* X, const T* Y, T* Z, bool increment = false);

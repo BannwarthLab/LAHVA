@@ -4,44 +4,44 @@
 
 namespace lahva{
     namespace cpu{
-    double InnerVectorProduct(const Tensor<double>& X, const Tensor<double>& Y);
-    float InnerVectorProduct(const Tensor<float>& X, const Tensor<float>& Y);
-    double InnerVectorProduct(const Tensor<double>& X, const size_t strideX, const Tensor<double>& Y, const size_t strideY);
-    float InnerVectorProduct(const Tensor<float>& X, const size_t strideX, const Tensor<float>& Y, const size_t strideY);
+    double InnerVectorProduct(const Tensor_<double>& X, const Tensor_<double>& Y);
+    float InnerVectorProduct(const Tensor_<float>& X, const Tensor_<float>& Y);
+    double InnerVectorProduct(const Tensor_<double>& X, const size_t strideX, const Tensor_<double>& Y, const size_t strideY);
+    float InnerVectorProduct(const Tensor_<float>& X, const size_t strideX, const Tensor_<float>& Y, const size_t strideY);
 
-    double InnerVectorProduct(const CPURuntime& rt_, const Tensor<double>& X, const Tensor<double>& Y);
-    float InnerVectorProduct(const CPURuntime& rt_, const Tensor<float>& X, const Tensor<float>& Y);
-    double InnerVectorProduct(const CPURuntime& rt_, const Tensor<double>& X, const size_t strideX, const Tensor<double>& Y, const size_t strideY);
-    float InnerVectorProduct(const CPURuntime& rt_, const Tensor<float>& X, const size_t strideX, const Tensor<float>& Y, const size_t strideY);
+    double InnerVectorProduct(const CPURuntime& rt_, const Tensor_<double>& X, const Tensor_<double>& Y);
+    float InnerVectorProduct(const CPURuntime& rt_, const Tensor_<float>& X, const Tensor_<float>& Y);
+    double InnerVectorProduct(const CPURuntime& rt_, const Tensor_<double>& X, const size_t strideX, const Tensor_<double>& Y, const size_t strideY);
+    float InnerVectorProduct(const CPURuntime& rt_, const Tensor_<float>& X, const size_t strideX, const Tensor_<float>& Y, const size_t strideY);
 
-    void AddVectors(const double a, const Tensor<double>& x, Tensor<double>& y);
-    void AddVectors(const float a, const Tensor<float>& x, Tensor<float>& y);
-    void AddVectors(const double a, const Tensor<double>& x, size_t ix, Tensor<double>& y, size_t iy);
-    void AddVectors(const float a, const Tensor<float>& x, size_t ix, Tensor<float>& y, size_t iy);
-    void AddVectors(const double a, const Tensor<double>& x, Tensor<float>& y);
-    void AddVectors(const double a, const Tensor<float>& x, Tensor<double>& y);
+    void AddVectors(const double a, const Tensor_<double>& x, Tensor_<double>& y);
+    void AddVectors(const float a, const Tensor_<float>& x, Tensor_<float>& y);
+    void AddVectors(const double a, const Tensor_<double>& x, size_t ix, Tensor_<double>& y, size_t iy);
+    void AddVectors(const float a, const Tensor_<float>& x, size_t ix, Tensor_<float>& y, size_t iy);
+    void AddVectors(const double a, const Tensor_<double>& x, Tensor_<float>& y);
+    void AddVectors(const double a, const Tensor_<float>& x, Tensor_<double>& y);
 
-    void CopyVectors(const Tensor<double>& X, Tensor<double>& Y);
-    void CopyVectors(const Tensor<float>& X, Tensor<float>& Y);
-    void CopyVectors(const Tensor<double>& X, const size_t strideX, Tensor<double>& Y, const size_t strideY);
-    void CopyVectors(const Tensor<float>& X, const size_t strideX, Tensor<float>& Y, const size_t strideY);
-    void CopyVectors(const Tensor<float>& X, Tensor<double>& Y);
-    void CopyVectors(const Tensor<double>& X, Tensor<float>& Y);
+    void CopyVectors(const Tensor_<double>& X, Tensor_<double>& Y);
+    void CopyVectors(const Tensor_<float>& X, Tensor_<float>& Y);
+    void CopyVectors(const Tensor_<double>& X, const size_t strideX, Tensor_<double>& Y, const size_t strideY);
+    void CopyVectors(const Tensor_<float>& X, const size_t strideX, Tensor_<float>& Y, const size_t strideY);
+    void CopyVectors(const Tensor_<float>& X, Tensor_<double>& Y);
+    void CopyVectors(const Tensor_<double>& X, Tensor_<float>& Y);
 
-    void SwapVectors(Tensor<double>& X, Tensor<double>& Y);
-    void SwapVectors(Tensor<float>& X, Tensor<float>& Y);
-    void SwapVectors(Tensor<double>& X, const size_t strideX, Tensor<double>& Y, const size_t strideY);
-    void SwapVectors(Tensor<float>& X, const size_t strideX, Tensor<float>& Y, const size_t strideY);
+    void SwapVectors(Tensor_<double>& X, Tensor_<double>& Y);
+    void SwapVectors(Tensor_<float>& X, Tensor_<float>& Y);
+    void SwapVectors(Tensor_<double>& X, const size_t strideX, Tensor_<double>& Y, const size_t strideY);
+    void SwapVectors(Tensor_<float>& X, const size_t strideX, Tensor_<float>& Y, const size_t strideY);
 
-    void ScaleVector(const double a, Tensor<double>& x);
-    void ScaleVector(const float a, Tensor<float>& x);
-    void ScaleVector(const double a, Tensor<double>& x, size_t ix);
-    void ScaleVector(const float a, Tensor<float>& x, size_t ix);
+    void ScaleVector(const double a, Tensor_<double>& x);
+    void ScaleVector(const float a, Tensor_<float>& x);
+    void ScaleVector(const double a, Tensor_<double>& x, size_t ix);
+    void ScaleVector(const float a, Tensor_<float>& x, size_t ix);
 
-    int IndexMaxFromVector(const Tensor<double>& x);
-    int IndexMaxFromVector(const Tensor<float>& x);
-    int IndexMaxFromVector(const Tensor<double>& x, const size_t ix);
-    int IndexMaxFromVector(const Tensor<float>& x, const size_t ix);
+    int IndexMaxFromVector(const Tensor_<double>& x);
+    int IndexMaxFromVector(const Tensor_<float>& x);
+    int IndexMaxFromVector(const Tensor_<double>& x, const size_t ix);
+    int IndexMaxFromVector(const Tensor_<float>& x, const size_t ix);
 
         template <typename... Args>
         void AddVectors(const CPURuntime &rt_, Args &&...args)

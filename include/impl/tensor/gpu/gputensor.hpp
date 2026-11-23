@@ -10,7 +10,7 @@ namespace lahva
     namespace gpu
     {
         template <typename T>
-        class GPUTensor_ : public virtual Tensor<T>
+        class Tensor_ : public virtual lahva::Tensor_<T>
         {
         public:
             /// @brief copy data to device, by allocating a pointer and copying over
@@ -30,20 +30,20 @@ namespace lahva
         };
 
         template <typename T, typename Allocator = CudaHostAllocator<T>, typename GPUAllocator = CudaDeviceAllocator<T>>
-        class GPUTensor : public CPUTensor<T, Allocator>, virtual public GPUTensor_<T>
+        class Tensor : public lahva::Tensor<T, Allocator>, virtual public Tensor_<T>
         {
             using alloc_ptr = CPUAllocator<T>;
             using gpualloc_t = GPUAllocator;
 
         public:
-            GPUTensor(size_t count, const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator()) 
-            : CPUTensor<T, Allocator>{count, cpualloc}, gpualloc_{alloc} {};
-            GPUTensor(const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator()) 
-            : CPUTensor<T, Allocator>{cpualloc}, gpualloc_{alloc} {};
-            GPUTensor(const GPUAllocator &alloc) : CPUTensor<T, Allocator>{}, gpualloc_{alloc}, gpu_buffer{true} 
+            Tensor(size_t count, const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator())
+                : lahva::Tensor<T, Allocator>{count, cpualloc}, gpualloc_{alloc} {};
+            Tensor(const alloc_ptr &cpualloc = Allocator(), const GPUAllocator &alloc = GPUAllocator())
+                : lahva::Tensor<T, Allocator>{cpualloc}, gpualloc_{alloc} {};
+            Tensor(const GPUAllocator &alloc) : lahva::Tensor<T, Allocator>{}, gpualloc_{alloc}, gpu_buffer{true} 
             {this->no_alloc= true;};
-            virtual ~GPUTensor() {this->device_ptr_.get_deleter() = this->gpualloc_;};
-            GPUTensor(const GPUTensor &other) : CPUTensor<T, Allocator>{other},
+            virtual ~Tensor() { this->device_ptr_.get_deleter() = this->gpualloc_; };
+            Tensor(const Tensor &other) : lahva::Tensor<T, Allocator>{other},
                                           gpualloc_{other.get_gpuallocator()},
                                           is_on_device_{other.is_on_device_}
             {
@@ -53,7 +53,7 @@ namespace lahva
                     CopyTensors(other.size(), other.gpu_data(), this->gpu_data());
                 }
             };
-            GPUTensor(GPUTensor &&other) : CPUTensor<T, Allocator>{std::move(other)}
+            Tensor(Tensor &&other) : lahva::Tensor<T, Allocator>{std::move(other)}
             {
                 this->gpualloc_ = other.get_gpuallocator();
                 if (this->size() == other.size())
@@ -70,14 +70,14 @@ namespace lahva
 
                 other.is_on_device_ = false;
             };
-            GPUTensor<T, Allocator, GPUAllocator> &operator=(const GPUTensor<T, Allocator, GPUAllocator> &other)
+            Tensor<T, Allocator, GPUAllocator> &operator=(const Tensor<T, Allocator, GPUAllocator> &other)
             {
                 if (this != &other)
                 {
                     this->gpualloc_ = other.get_gpuallocator();
                     if (!other.gpu_buffer)
                     {
-                        CPUTensor<T, Allocator>::operator=(other);
+                        lahva::Tensor<T, Allocator>::operator=(other);
                     }
                     this->is_on_device_ = other.is_on_device_;
                     this->gpu_buffer = other.gpu_buffer;
@@ -91,13 +91,13 @@ namespace lahva
                 return *this;
             };
 
-            GPUTensor<T, Allocator, GPUAllocator> &operator=(GPUTensor<T, Allocator, GPUAllocator> &&other)
+            Tensor<T, Allocator, GPUAllocator> &operator=(Tensor<T, Allocator, GPUAllocator> &&other)
             {
                 if (this != &other)
                 {
                     if (!other.gpu_buffer)
                     {
-                        CPUTensor<T, Allocator>::operator=(std::move(other));
+                        lahva::Tensor<T, Allocator>::operator=(std::move(other));
                     }
                     else
                     {
@@ -165,7 +165,7 @@ namespace lahva
         };
 
         template <typename T, typename Allocator, typename GPUAllocator>
-        void GPUTensor<T, Allocator, GPUAllocator>::allocateGPU(const CudaRuntime &cudart) const
+        void Tensor<T, Allocator, GPUAllocator>::allocateGPU(const CudaRuntime &cudart) const
         {
             this->gpualloc_.setDevice(cudart.device_id());
             this->gpualloc_.setStream(cudart.getStreamPtr());
@@ -174,7 +174,7 @@ namespace lahva
         };
 
         template <typename T, typename Allocator, typename GPUAllocator>
-        void GPUTensor<T, Allocator, GPUAllocator>::deallocateGPU(const CudaRuntime& cudart) const
+        void Tensor<T, Allocator, GPUAllocator>::deallocateGPU(const CudaRuntime &cudart) const
         {
             this->gpualloc_.setDevice(cudart.device_id());
             this->gpualloc_.setStream(cudart.getStreamPtr());
@@ -185,14 +185,14 @@ namespace lahva
         };
 
         template <typename T, typename Allocator, typename GPUAllocator>
-        void GPUTensor<T, Allocator, GPUAllocator>::updateGPUvalues(const CudaRuntime &cudart)
+        void Tensor<T, Allocator, GPUAllocator>::updateGPUvalues(const CudaRuntime &cudart)
         {
             this->is_on_device_ = false;
             this->copy2device(cudart);
         }
 
         template <typename T, typename Allocator, typename GPUAllocator>
-        void GPUTensor<T, Allocator, GPUAllocator>::copy2device(const CudaRuntime &cudart) const
+        void Tensor<T, Allocator, GPUAllocator>::copy2device(const CudaRuntime &cudart) const
         {
             if (!this->is_on_device_)
             {
@@ -217,7 +217,7 @@ namespace lahva
         };
 
         template <typename T, typename Allocator, typename GPUAllocator>
-        void GPUTensor<T, Allocator, GPUAllocator>::copy2host(const CudaRuntime &cudart)
+        void Tensor<T, Allocator, GPUAllocator>::copy2host(const CudaRuntime &cudart)
         {
             if (this->is_on_device_)
             {

@@ -8,15 +8,15 @@ namespace lahva
     namespace gpu
     {
         template <typename T>
-        void HadamardProduct(const CudaRuntime &cudart, const GPUTensor_<T> &vecin, GPUTensor_<T> &vecinout);
+        void HadamardProduct(const CudaRuntime &cudart, const Tensor_<T> &vecin, Tensor_<T> &vecinout);
         template <typename T>
-        void HadamardProduct(const CudaRuntime &cudart, const GPUTensor_<T> &vecin, const GPUTensor_<T> &vecin2, GPUTensor_<T> &vecout);
+        void HadamardProduct(const CudaRuntime &cudart, const Tensor_<T> &vecin, const Tensor_<T> &vecin2, Tensor_<T> &vecout);
 
         template <typename T>
         void TraceKernelDiag(const CudaRuntime &cudart, unsigned long long ndim, const T *diag, T *vec);
 
         template <typename U, typename V>
-        double ComputeTrace(const CudaRuntime &cudart, const GPUTensor<double, U, V> &diag)
+        double ComputeTrace(const CudaRuntime &cudart, const Tensor<double, U, V> &diag)
         {
             int gridS = cudart.gridSize(diag.size(), 1);
             Vector<double, U, V> v(gridS);
@@ -28,7 +28,7 @@ namespace lahva
         };
 
         template <typename U, typename V>
-        double ComputeTrace(const CudaRuntime &cudart, const GPUTensor<double, U, V> &diag, Vector<double, U, V> &v)
+        double ComputeTrace(const CudaRuntime &cudart, const Tensor<double, U, V> &diag, Vector<double, U, V> &v)
         {
             v.copy2device(cudart);
             TraceKernelDiag(cudart, diag.size(), diag.gpu_data(), v.gpu_data());
@@ -47,7 +47,7 @@ namespace lahva
         void FrobeniusKernel2(const CudaRuntime &cudart, const unsigned long long ndim, const T *mat1, const T *mat2, T *vec);
 
         template <typename T, typename U, typename V>
-        T FrobeniusNorm(const CudaRuntime &cudart, const GPUTensor<T, U, V> &mat)
+        T FrobeniusNorm(const CudaRuntime &cudart, const Tensor<T, U, V> &mat)
         {
             check_device_alloc(cudart, mat);
             Vector<T, U, V> vec(cudart.gridSize(mat.size(), 1));
@@ -60,7 +60,7 @@ namespace lahva
         };
 
         template <typename T, typename U, typename V>
-        T FrobeniusNorm(const CudaRuntime &cudart, const GPUTensor<T, U, V> &mat, const GPUTensor<T, U, V> &mat2)
+        T FrobeniusNorm(const CudaRuntime &cudart, const Tensor<T, U, V> &mat, const Tensor<T, U, V> &mat2)
         {
             // check_size_mm(mat, mat2);
             check_device_alloc(cudart, mat);
@@ -75,7 +75,7 @@ namespace lahva
         };
 
         template <typename T, typename U, typename V>
-        T FrobeniusNorm(const CudaRuntime &cudart, const GPUTensor<T, U, V> &mat, const GPUTensor<T, U, V> &mat2, Vector<T, U, V> &vec)
+        T FrobeniusNorm(const CudaRuntime &cudart, const Tensor<T, U, V> &mat, const Tensor<T, U, V> &mat2, Vector<T, U, V> &vec)
         {
             // check_size_mm(mat, mat2);
             check_device_alloc(cudart, mat);
@@ -91,7 +91,7 @@ namespace lahva
         };
 
         template <typename T, typename U, typename V>
-        T FrobeniusNorm(const CudaRuntime &cudart, const GPUTensor<T, U, V> &mat, Vector<T, U, V> &vec)
+        T FrobeniusNorm(const CudaRuntime &cudart, const Tensor<T, U, V> &mat, Vector<T, U, V> &vec)
         {
             check_device_alloc(cudart, mat);
             ScaleVector(cudart, 0.0, vec);
@@ -103,10 +103,10 @@ namespace lahva
         };
 
         template <typename T>
-        void GetDiagonal(const CudaRuntime &cudart, const Matrix_<T> &mat, GPUTensor_<T> &vec);
+        void GetDiagonal(const CudaRuntime &cudart, const Matrix_<T> &mat, Tensor_<T> &vec);
 
         template <typename T>
-        void SetDiagonal(const CudaRuntime &cudart, const GPUTensor_<T> &vec, Matrix_<T> &m);
+        void SetDiagonal(const CudaRuntime &cudart, const Tensor_<T> &vec, Matrix_<T> &m);
 
         template <typename T>
         void TraceKernel(const CudaRuntime &cudart, unsigned long long ndim, const T *diag, T *vec);
@@ -157,13 +157,13 @@ namespace lahva
         }
 
         template <typename inprec, typename outprec>
-        void DecomposeVector2MP(const CudaRuntime &cudart, const GPUTensor_<inprec> &in, GPUTensor_<outprec> &out1, GPUTensor_<outprec> &out2, GPUTensor_<int>& coeff);
+        void DecomposeVector2MP(const CudaRuntime &cudart, const Tensor_<inprec> &in, Tensor_<outprec> &out1, Tensor_<outprec> &out2, Tensor_<int>& coeff);
 
         template <typename inprec, typename outprec, typename Allocator, typename GPUAllocator>
-        void SplitMatrix(const CudaRuntime &cudart, Matrix_<inprec> &in, std::vector<Matrix<outprec, Allocator, GPUAllocator>> &out1, GPUTensor_<int> &split_exponents, int max_split);
+        void SplitMatrix(const CudaRuntime &cudart, Matrix_<inprec> &in, std::vector<Matrix<outprec, Allocator, GPUAllocator>> &out1, Tensor_<int> &split_exponents, int max_split);
 
         template <typename T, typename U, typename V, typename Tout>
-        void DecomposeMatrix(const CudaRuntime &cudart, const GPUTensor<T, U, V> &min, Vector<Tout, U, V> &mout1, Vector<Tout, U, V> &mout2)
+        void DecomposeMatrix(const CudaRuntime &cudart, const Tensor<T, U, V> &min, Vector<Tout, U, V> &mout1, Vector<Tout, U, V> &mout2)
         {
             if (min.size() != mout1.size())
                 Vector<Tout, U, V> mout1(min.size(), cudart);
@@ -175,19 +175,19 @@ namespace lahva
         }
 
         template <typename T, class op>
-        void ApplyKernel(const CudaRuntime &cudart, GPUTensor_<T> &in, op operation = op());
+        void ApplyKernel(const CudaRuntime &cudart, Tensor_<T> &in, op operation = op());
 
         template <typename T>
-        T Sum_(const CudaRuntime &cudart, const GPUTensor_<T> &in, GPUTensor_<T> &res);
+        T Sum_(const CudaRuntime &cudart, const Tensor_<T> &in, Tensor_<T> &res);
 
         template <typename T>
-        T MaxElement_(const CudaRuntime &cudart, const GPUTensor_<T> &in, GPUTensor_<T> &res);
+        T MaxElement_(const CudaRuntime &cudart, const Tensor_<T> &in, Tensor_<T> &res);
 
         template <typename T>
-        T MinElement_(const CudaRuntime &cudart, const GPUTensor_<T> &in, GPUTensor_<T> &res);
+        T MinElement_(const CudaRuntime &cudart, const Tensor_<T> &in, Tensor_<T> &res);
 
         template <typename T, typename U, typename V>
-        T Sum(const CudaRuntime &cudart, const GPUTensor<T, U, V> &in)
+        T Sum(const CudaRuntime &cudart, const Tensor<T, U, V> &in)
         {
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();
@@ -197,7 +197,7 @@ namespace lahva
         };
 
         template <typename T, typename U, typename V>
-        T Sum(const CudaRuntime &cudart, const GPUTensor<T, U, V> &in, Vector<T, U, V> &v)
+        T Sum(const CudaRuntime &cudart, const Tensor<T, U, V> &in, Vector<T, U, V> &v)
         {
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();
@@ -207,7 +207,7 @@ namespace lahva
         };
 
         template <typename T, typename U, typename V>
-        T MaxElement(const CudaRuntime &cudart, const GPUTensor<T, U, V> &in, Vector<T, U, V> &v)
+        T MaxElement(const CudaRuntime &cudart, const Tensor<T, U, V> &in, Vector<T, U, V> &v)
         {
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();
@@ -220,7 +220,7 @@ namespace lahva
         };
 
         template <typename T, typename U, typename V>
-        T MinElement(const CudaRuntime &cudart, const GPUTensor<T, U, V> &in, Vector<T, U, V> &v)
+        T MinElement(const CudaRuntime &cudart, const Tensor<T, U, V> &in, Vector<T, U, V> &v)
         {
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();
@@ -231,7 +231,7 @@ namespace lahva
         };
 
         template <typename T, typename U, typename V>
-        T MaxElement(const CudaRuntime &cudart, const GPUTensor<T, U, V> &in)
+        T MaxElement(const CudaRuntime &cudart, const Tensor<T, U, V> &in)
         {
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();
@@ -243,7 +243,7 @@ namespace lahva
         };
 
         template <typename T, typename U, typename V>
-        T MinElement(const CudaRuntime &cudart, const GPUTensor<T, U, V> &in)
+        T MinElement(const CudaRuntime &cudart, const Tensor<T, U, V> &in)
         {
             unsigned long long n = in.size();
             unsigned long long blockSize = cudart.blockSize();

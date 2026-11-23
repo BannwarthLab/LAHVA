@@ -11,7 +11,7 @@ namespace lahva
 
 
         template <typename T>
-    class LowTriMatrix_ : virtual public GPUTensor_<T>, virtual public cpu::LowTriMatrix_<T>
+        class LowTriMatrix_ : virtual public Tensor_<T>, virtual public cpu::LowTriMatrix_<T>
         {
         public:
             virtual Shape shape() const = 0;
@@ -27,7 +27,7 @@ namespace lahva
         };
 
         template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAllocator<T>>
-    class LowTriMatrix : virtual public GPUTensor<T, Allocator, GPUAllocator>, virtual public LowTriMatrix_<T>
+        class LowTriMatrix : virtual public Tensor<T, Allocator, GPUAllocator>, virtual public LowTriMatrix_<T>
         {
             using alloc_ptr = CPUAllocator<T>;
             using gpualloc_ptr = GPUAllocator_<T>;
@@ -118,8 +118,7 @@ namespace lahva
         }
 
         template <typename T, class Allocator, class GPUAllocator>
-    LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(size_t size, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc) : 
-    GPUTensor<T, Allocator, GPUAllocator>{data_size_(size), alloc, gpualloc}, n_{size}                                    
+        LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(size_t size, const alloc_ptr &alloc, const gpualloc_ptr &gpualloc) : Tensor<T, Allocator, GPUAllocator>{data_size_(size), alloc, gpualloc}, n_{size}
         {
             check_size_(size);
         }
@@ -163,7 +162,7 @@ namespace lahva
 
         template <typename T, class Allocator, class GPUAllocator>
         LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(size_t n, T *data, bool take_ownership, const alloc_ptr &cpualloc, const gpualloc_ptr &gpualloc)
-    :  GPUTensor<T, Allocator, GPUAllocator>{cpualloc, gpualloc}, n_{n}
+            : Tensor<T, Allocator, GPUAllocator>{cpualloc, gpualloc}, n_{n}
         {
             this->data_ = data;
             this->count_ = data_size_(n);
@@ -180,7 +179,7 @@ namespace lahva
         template <typename T, class Allocator, class GPUAllocator>
     LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(const LowTriMatrix<T, Allocator, GPUAllocator> &other) : 
     n_{other.n_}, 
-    GPUTensor<T, Allocator, GPUAllocator>(static_cast<const GPUTensor<T, Allocator, GPUAllocator>&>(other))
+    Tensor<T, Allocator, GPUAllocator>(static_cast<const Tensor<T, Allocator, GPUAllocator>&>(other))
         {
         }
 
@@ -189,7 +188,7 @@ namespace lahva
         {
             if (this != &other)
             {
-            GPUTensor<T, Allocator, GPUAllocator>::operator=(static_cast<const GPUTensor<T, Allocator, GPUAllocator>&>(other));
+                Tensor<T, Allocator, GPUAllocator>::operator=(static_cast<const Tensor<T, Allocator, GPUAllocator> &>(other));
                 n_ = other.size();
             }
             return *this;
@@ -198,7 +197,7 @@ namespace lahva
     // move operations
         template <typename T, class Allocator, class GPUAllocator>
     LowTriMatrix<T, Allocator, GPUAllocator>::LowTriMatrix(LowTriMatrix<T, Allocator, GPUAllocator> &&other) : 
-    n_{other.n_}, GPUTensor<T, Allocator, GPUAllocator>{static_cast<GPUTensor<T, Allocator, GPUAllocator>&&>(other)}
+    n_{other.n_}, Tensor<T, Allocator, GPUAllocator>{static_cast<Tensor<T, Allocator, GPUAllocator>&&>(other)}
         {
         }
 
@@ -207,7 +206,7 @@ namespace lahva
         {
             if (this != &other)
             {
-            GPUTensor<T, Allocator, GPUAllocator>::operator=(static_cast<GPUTensor<T, Allocator, GPUAllocator>&&>(other));
+                Tensor<T, Allocator, GPUAllocator>::operator=(static_cast<Tensor<T, Allocator, GPUAllocator> &&>(other));
                 n_ = other.size();
                 other.n_ = 0;
             }

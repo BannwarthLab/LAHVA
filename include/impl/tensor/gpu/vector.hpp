@@ -10,12 +10,12 @@ namespace lahva
     {
 
         template <typename T>
-    class Vector_ : public virtual GPUTensor_<T>, public virtual cpu::Vector_<T>
+        class Vector_ : public virtual Tensor_<T>, public virtual cpu::Vector_<T>
         {
         };
 
         template <class T, class Allocator = CudaHostAllocator<T>, class GPUAllocator = CudaDeviceAsyncAllocator<T>>
-    class Vector : public GPUTensor<T, Allocator, GPUAllocator>, public virtual Vector_<T>
+        class Vector : public Tensor<T, Allocator, GPUAllocator>, public virtual Vector_<T>
         {
 
         public:
@@ -23,16 +23,16 @@ namespace lahva
             using alloc_ptr = CPUAllocator<T>;
             using gpualloc_ptr = GPUAllocator;
 
-        Vector() : GPUTensor<T, Allocator, GPUAllocator>() {};
+            Vector() : Tensor<T, Allocator, GPUAllocator>() {};
             Vector(size_type count, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator());
             template <typename U, typename V>
             Vector(size_type count, const CPUAllocator<U> &alloc = Allocator(), const GPUAllocator_<V> &gpualloc = GPUAllocator())
-        : GPUTensor<T, Allocator, GPUAllocator>{count, static_cast<Allocator>(alloc), static_cast<GPUAllocator>(gpualloc)}  {};
+                : Tensor<T, Allocator, GPUAllocator>{count, static_cast<Allocator>(alloc), static_cast<GPUAllocator>(gpualloc)} {};
 
             Vector(size_type count, const CudaRuntime &cudart, const gpualloc_ptr &gpualloc = GPUAllocator());
             template <typename V>
             Vector(size_type count, const CudaRuntime &cudart, const GPUAllocator_<V> &gpualloc = GPUAllocator())
-        : GPUTensor<T, Allocator, GPUAllocator>{gpualloc} { std::cout << "Created here << std::endl";};
+                : Tensor<T, Allocator, GPUAllocator>{gpualloc} { std::cout << "Created here << std::endl"; };
             Vector(const Vector &x);
             Vector(Vector &&x);
             Vector(size_type count, const T &value, const alloc_ptr &alloc = Allocator(), const gpualloc_ptr &gpualloc = GPUAllocator());
@@ -54,13 +54,11 @@ namespace lahva
     // Vector class
     ///////////////////////////////////////////////////////////////////////////
         template <typename T, class Allocator, class GPUAllocator>
-    Vector<T, Allocator, GPUAllocator>::Vector(size_type count, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc ) :
-    Vector_<T>(),
-    GPUTensor<T, Allocator, GPUAllocator>{count, alloc, gpualloc} {};
-    
-    template <typename T, class Allocator, class GPUAllocator>
-    Vector<T, Allocator, GPUAllocator>::Vector(size_type count, const CudaRuntime &cudart, const gpualloc_ptr& gpualloc ) : 
-    GPUTensor<T, Allocator, GPUAllocator>{gpualloc}
+        Vector<T, Allocator, GPUAllocator>::Vector(size_type count, const alloc_ptr &alloc, const gpualloc_ptr &gpualloc) : Vector_<T>(),
+                                                                                                                            Tensor<T, Allocator, GPUAllocator>{count, alloc, gpualloc} {};
+
+        template <typename T, class Allocator, class GPUAllocator>
+        Vector<T, Allocator, GPUAllocator>::Vector(size_type count, const CudaRuntime &cudart, const gpualloc_ptr &gpualloc) : Tensor<T, Allocator, GPUAllocator>{gpualloc}
         {
             this->gpu_buffer = true;
             this->count_ = count;
@@ -75,8 +73,7 @@ namespace lahva
         };
 
         template <typename T, class Allocator, class GPUAllocator>
-    Vector<T, Allocator, GPUAllocator>::Vector(size_type count, T *ptr, bool take_ownership, const alloc_ptr& alloc , const gpualloc_ptr& gpualloc ) : 
-    GPUTensor<T, Allocator, GPUAllocator>{gpualloc}
+        Vector<T, Allocator, GPUAllocator>::Vector(size_type count, T *ptr, bool take_ownership, const alloc_ptr &alloc, const gpualloc_ptr &gpualloc) : Tensor<T, Allocator, GPUAllocator>{gpualloc}
         {
             this->data_ = ptr;
             this->count_ = count;
@@ -91,21 +88,17 @@ namespace lahva
 
         template <class T, class Allocator, class GPUAllocator>
         Vector<T, Allocator, GPUAllocator>::Vector(std::initializer_list<T> init, const alloc_ptr &alloc, const gpualloc_ptr &gpualloc)
-    : Vector_<T>(), GPUTensor<T, Allocator, GPUAllocator>(init.size(), alloc, gpualloc)
+            : Vector_<T>(), Tensor<T, Allocator, GPUAllocator>(init.size(), alloc, gpualloc)
         {
             std::copy(init.begin(), init.end(), this->data_);
         }
 
         template <typename T, class Allocator, class GPUAllocator>
-    Vector<T, Allocator, GPUAllocator>::Vector(const Vector &x) : 
-    GPUTensor<T, Allocator, GPUAllocator>{static_cast<const GPUTensor<T, Allocator, GPUAllocator>&>(x)}
-    {
+        Vector<T, Allocator, GPUAllocator>::Vector(const Vector &x) : Tensor<T, Allocator, GPUAllocator>{static_cast<const Tensor<T, Allocator, GPUAllocator> &>(x)} {
                                                                       };
 
         template <typename T, class Allocator, class GPUAllocator>
-    Vector<T, Allocator, GPUAllocator>::Vector(Vector &&x) : 
-    GPUTensor<T, Allocator, GPUAllocator>{static_cast<GPUTensor<T, Allocator, GPUAllocator>&&>(x)}
-    {
+        Vector<T, Allocator, GPUAllocator>::Vector(Vector &&x) : Tensor<T, Allocator, GPUAllocator>{static_cast<Tensor<T, Allocator, GPUAllocator> &&>(x)} {
                                                                  };
 
         template <typename T, class Allocator, class GPUAllocator>
@@ -113,7 +106,7 @@ namespace lahva
         {
             if (this != &other)
             {
-            GPUTensor<T, Allocator, GPUAllocator>::operator=(static_cast<const GPUTensor<T, Allocator, GPUAllocator>&>(other));
+                Tensor<T, Allocator, GPUAllocator>::operator=(static_cast<const Tensor<T, Allocator, GPUAllocator> &>(other));
             }
             return *this;
         };
@@ -123,7 +116,7 @@ namespace lahva
         {
             if (this != &other)
             {
-            GPUTensor<T, Allocator, GPUAllocator>::operator=(std::move(other));
+                Tensor<T, Allocator, GPUAllocator>::operator=(std::move(other));
             }
             return *this;
         };

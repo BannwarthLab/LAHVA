@@ -72,7 +72,7 @@ namespace lahva
             BetterSum<<<cudart.gridSize(ndim, 1), blockSize, 0, cudart.getStream()>>>(ndim, nsplit, alphas, as, b);
         }
 
-        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double alpha, const GPUTensor_<float>& a, GPUTensor_<double>& b)
+        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double alpha, const Tensor_<float>& a, Tensor_<double>& b)
         {
             check_device_alloc(cudart, a);
             check_device_alloc(cudart, b);
@@ -80,7 +80,7 @@ namespace lahva
             AddVector_<<<std::ceil(static_cast<double>(cudart.gridSize(ndim, 1)) / 4), blockSize, 0, cudart.getStream()>>>(ndim, alpha, a.gpu_data(), b.gpu_data());
         }
 
-        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double alpha, const GPUTensor_<double>& a, GPUTensor_<float>& b)
+        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double alpha, const Tensor_<double>& a, Tensor_<float>& b)
         {
             check_device_alloc(cudart, a);
             check_device_alloc(cudart, b);
@@ -88,7 +88,7 @@ namespace lahva
             AddVector_<<<cudart.gridSize(ndim, 1), blockSize, 0, cudart.getStream()>>>(ndim, alpha, a.gpu_data(), b.gpu_data());
         }
 
-        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double alpha, const GPUTensor_<__half>& a, GPUTensor_<double>& b)
+        void AddVector(const CudaRuntime& cudart, unsigned long long ndim, const double alpha, const Tensor_<__half>& a, Tensor_<double>& b)
         {
             check_device_alloc(cudart, a);
             check_device_alloc(cudart, b);
@@ -97,7 +97,7 @@ namespace lahva
         }
 
         template<typename T, class op>
-        void ApplyKernel(const CudaRuntime& cudart, GPUTensor_<T>& in, op operation)
+        void ApplyKernel(const CudaRuntime& cudart, Tensor_<T>& in, op operation)
         {
             check_device_alloc(cudart, in);
             ApplyKernel_<<<cudart.gridSize(in.size(), 1), cudart.blockSize(), 0, cudart.getStream()>>>(in.size(), in.gpu_data(), operation);
@@ -106,7 +106,7 @@ namespace lahva
         
 
         template<typename T>
-        T Sum_(const CudaRuntime& cudart, const GPUTensor_<T>& in, GPUTensor_<T>& res)
+        T Sum_(const CudaRuntime& cudart, const Tensor_<T>& in, Tensor_<T>& res)
         {
             check_device_alloc(cudart, in);
             check_device_alloc(cudart, res);
@@ -120,7 +120,7 @@ namespace lahva
         }
 
         template<typename T>
-        T MaxElement_(const CudaRuntime& cudart, const GPUTensor_<T>& in, GPUTensor_<T>& res)
+        T MaxElement_(const CudaRuntime& cudart, const Tensor_<T>& in, Tensor_<T>& res)
         {
             check_device_alloc(cudart, in);
             check_device_alloc(cudart, res);
@@ -132,7 +132,7 @@ namespace lahva
         }
 
         template<typename T>
-        T MinElement_(const CudaRuntime& cudart, const GPUTensor_<T>& in, GPUTensor_<T>& res)
+        T MinElement_(const CudaRuntime& cudart, const Tensor_<T>& in, Tensor_<T>& res)
         {
             check_device_alloc(cudart, in);
             check_device_alloc(cudart, res);
@@ -159,14 +159,14 @@ namespace lahva
             CopyTensors_<in, out><<<gridSize, blockSize, 0, 0>>>(size, d_in, d_out);
         }
 
-        template float MaxElement_<float>(const CudaRuntime& cudart, const GPUTensor_<float>& in, GPUTensor_<float>& res);
-        template double MaxElement_<double>(const CudaRuntime& cudart, const GPUTensor_<double>& in, GPUTensor_<double>& res);
-        template float MinElement_<float>(const CudaRuntime& cudart, const GPUTensor_<float>& in, GPUTensor_<float>& res);
-        template double MinElement_<double>(const CudaRuntime& cudart, const GPUTensor_<double>& in, GPUTensor_<double>& res);
-        template float Sum_<float>(const CudaRuntime& cudart, const GPUTensor_<float>& in, GPUTensor_<float>& res);
-        template double Sum_<double>(const CudaRuntime& cudart, const GPUTensor_<double>& in, GPUTensor_<double>& res);
-        template void ApplyKernel<float, fabs_gpu<float>>(const CudaRuntime& cudart, GPUTensor_<float>& in, fabs_gpu<float> operation);
-        template void ApplyKernel<double, fabs_gpu<double>>(const CudaRuntime& cudart, GPUTensor_<double>& in, fabs_gpu<double> operation);
+        template float MaxElement_<float>(const CudaRuntime& cudart, const Tensor_<float>& in, Tensor_<float>& res);
+        template double MaxElement_<double>(const CudaRuntime& cudart, const Tensor_<double>& in, Tensor_<double>& res);
+        template float MinElement_<float>(const CudaRuntime& cudart, const Tensor_<float>& in, Tensor_<float>& res);
+        template double MinElement_<double>(const CudaRuntime& cudart, const Tensor_<double>& in, Tensor_<double>& res);
+        template float Sum_<float>(const CudaRuntime& cudart, const Tensor_<float>& in, Tensor_<float>& res);
+        template double Sum_<double>(const CudaRuntime& cudart, const Tensor_<double>& in, Tensor_<double>& res);
+        template void ApplyKernel<float, fabs_gpu<float>>(const CudaRuntime& cudart, Tensor_<float>& in, fabs_gpu<float> operation);
+        template void ApplyKernel<double, fabs_gpu<double>>(const CudaRuntime& cudart, Tensor_<double>& in, fabs_gpu<double> operation);
         template void CopyTensors<double, double>(const unsigned long size, const double* d_in, double* d_out);
         template void CopyTensors<float, float>(const unsigned long size, const float* d_in, float* d_out);
         template void CopyTensors<double, float>(const unsigned long size, const double* d_in, float* d_out);
