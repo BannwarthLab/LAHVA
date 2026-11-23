@@ -11,48 +11,215 @@
 #include "const.h"
 #include "linalg.hpp"
 
+
+
 namespace lahva
 {
     namespace cpu
     {
-    double InnerVectorProduct(const Tensor_<double>& X, const Tensor_<double>& Y);
-    float InnerVectorProduct(const Tensor_<float>& X, const Tensor_<float>& Y);
-    double InnerVectorProduct(const Tensor_<double>& X, const size_t strideX, const Tensor_<double>& Y, const size_t strideY);
-    float InnerVectorProduct(const Tensor_<float>& X, const size_t strideX, const Tensor_<float>& Y, const size_t strideY);
+        /// @brief Computes the inner product of two tensors treated as vectors, wrapper to BLAS function <T>dot.
+        ///
+        /// Performs result = X^T * Y where X and Y are tensors with the same size.
+        ///
+        /// @tparam T Numerical element type (double, float, complex_double, complex_float).
+        /// @param X First input tensor (Tensor_<T>).
+        /// @param Y Second input tensor (Tensor_<T>).
+        /// @return The inner product of tensors X and Y.
+        template <typename T>
+        T InnerVectorProduct(const Tensor_<T> &X, const Tensor_<T> &Y);
 
-    double InnerVectorProduct(const CPURuntime& rt_, const Tensor_<double>& X, const Tensor_<double>& Y);
-    float InnerVectorProduct(const CPURuntime& rt_, const Tensor_<float>& X, const Tensor_<float>& Y);
-    double InnerVectorProduct(const CPURuntime& rt_, const Tensor_<double>& X, const size_t strideX, const Tensor_<double>& Y, const size_t strideY);
-    float InnerVectorProduct(const CPURuntime& rt_, const Tensor_<float>& X, const size_t strideX, const Tensor_<float>& Y, const size_t strideY);
+        /// @brief Computes the inner product of two tensors treated as vectors with strides, wrapper to BLAS function <T>dot.
+        ///
+        /// Performs result = X^T * Y where X and Y are tensors with the same size and specified strides.
+        ///
+        /// @tparam T Numerical element type (double, float, complex_double, complex_float).
+        /// @param X First input tensor (Tensor_<T>).
+        /// @param strideX Stride between consecutive elements in tensor X.
+        /// @param Y Second input tensor (Tensor_<T>).
+        /// @param strideY Stride between consecutive elements in tensor Y.
+        /// @return The inner product of tensors X and Y.
+        template <typename T>
+        T InnerVectorProduct(const Tensor_<T> &X, const size_t strideX, const Tensor_<T> &Y, const size_t strideY);
 
-    void AddVectors(const double a, const Tensor_<double>& x, Tensor_<double>& y);
-    void AddVectors(const float a, const Tensor_<float>& x, Tensor_<float>& y);
-    void AddVectors(const double a, const Tensor_<double>& x, size_t ix, Tensor_<double>& y, size_t iy);
-    void AddVectors(const float a, const Tensor_<float>& x, size_t ix, Tensor_<float>& y, size_t iy);
-    void AddVectors(const double a, const Tensor_<double>& x, Tensor_<float>& y);
-    void AddVectors(const double a, const Tensor_<float>& x, Tensor_<double>& y);
+        /// @brief Computes the addition of a scaled tensor treated as vector to another tensor, wrapper to BLAS function <T>axpy.
+        ///
+        /// Performs y = y + a * x where x and y are tensors with specified strides.
+        ///
+        /// @tparam T Numerical element type (double, float, complex_double, complex_float).
+        /// @param a Scalar multiplier for tensor x.
+        /// @param x Input tensor x (Tensor_<T>).
+        /// @param ix Stride between consecutive elements in tensor x.
+        /// @param y Output tensor y (destination / input-output, Tensor_<T>).
+        /// @param iy Stride between consecutive elements in tensor y.
+        template <typename T>
+        void AddVectors(const T a, const Tensor_<T> &x, const size_t ix, Tensor_<T> &y, const size_t iy);
 
-    void CopyVectors(const Tensor_<double>& X, Tensor_<double>& Y);
-    void CopyVectors(const Tensor_<float>& X, Tensor_<float>& Y);
-    void CopyVectors(const Tensor_<double>& X, const size_t strideX, Tensor_<double>& Y, const size_t strideY);
-    void CopyVectors(const Tensor_<float>& X, const size_t strideX, Tensor_<float>& Y, const size_t strideY);
-    void CopyVectors(const Tensor_<float>& X, Tensor_<double>& Y);
-    void CopyVectors(const Tensor_<double>& X, Tensor_<float>& Y);
+        /// @brief Computes the addition of a scaled tensor treated as vector to another tensor, convenience overload with scalar type conversion.
+        ///
+        /// Performs y = y + a * x where scalar type is converted to T. Useful for mixed-precision convenience calls.
+        ///
+        /// @tparam Scalar Scalar type for `a`.
+        /// @tparam T Numerical element type (double, float, complex_double, complex_float).
+        /// @param a Scalar multiplier for tensor x (will be cast to T).
+        /// @param x Input tensor x (Tensor_<T>).
+        /// @param ix Stride between consecutive elements in tensor x.
+        /// @param y Output tensor y (destination / input-output, Tensor_<T>).
+        /// @param iy Stride between consecutive elements in tensor y.
+        template <typename Scalar, typename T>
+        void AddVectors(const Scalar a, const Tensor_<T> &x, const size_t ix, Tensor_<T> &y, const size_t iy)
+        {
+            AddVectors((T)a, x, ix, y, iy);
+        };
 
-    void SwapVectors(Tensor_<double>& X, Tensor_<double>& Y);
-    void SwapVectors(Tensor_<float>& X, Tensor_<float>& Y);
-    void SwapVectors(Tensor_<double>& X, const size_t strideX, Tensor_<double>& Y, const size_t strideY);
-    void SwapVectors(Tensor_<float>& X, const size_t strideX, Tensor_<float>& Y, const size_t strideY);
+        /// @brief Computes the addition of a scaled tensor treated as vector to another tensor, mixed precision version.
+        ///
+        /// Performs y = y + a * x where tensors x and y may have different element types. When U == T,
+        /// dispatches to the appropriate single-precision or double-precision BLAS function.
+        ///
+        /// @tparam T Numerical element type for tensor x.
+        /// @tparam U Numerical element type for tensor y.
+        /// @param a Scalar multiplier for tensor x.
+        /// @param x Input tensor x (Tensor_<T>).
+        /// @param y Output tensor y (destination / input-output, Tensor_<U>).
+        template <typename T, typename U>
+        void AddVectors(const double a, const Tensor_<T> &x, Tensor_<U> &y);
 
-    void ScaleVector(const double a, Tensor_<double>& x);
-    void ScaleVector(const float a, Tensor_<float>& x);
-    void ScaleVector(const double a, Tensor_<double>& x, size_t ix);
-    void ScaleVector(const float a, Tensor_<float>& x, size_t ix);
+        /// @brief Copies elements from one tensor to another, mixed precision version.
+        ///
+        /// Performs Y = X (with type conversion) where tensors x and y may have different element types.
+        /// When U == T, dispatches to the appropriate single-precision or double-precision BLAS function.
+        ///
+        /// @tparam T Numerical element type for source tensor X.
+        /// @tparam U Numerical element type for destination tensor Y.
+        /// @param X Source tensor (Tensor_<T>).
+        /// @param Y Destination tensor (Tensor_<U>).
+        template <typename T, typename U>
+        void CopyVectors(const Tensor_<T> &X, Tensor_<U> &Y);
 
-    int IndexMaxFromVector(const Tensor_<double>& x);
-    int IndexMaxFromVector(const Tensor_<float>& x);
-    int IndexMaxFromVector(const Tensor_<double>& x, const size_t ix);
-    int IndexMaxFromVector(const Tensor_<float>& x, const size_t ix);
+        /// @brief Copies elements from one tensor to another with strides, wrapper to BLAS function <T>copy.
+        ///
+        /// Performs Y = X where tensors X and Y have the same size and specified strides.
+        ///
+        /// @tparam T Numerical element type (double, float, complex_double, complex_float).
+        /// @param X Source tensor (Tensor_<T>).
+        /// @param strideX Stride between consecutive elements in tensor X.
+        /// @param Y Destination tensor (Tensor_<T>).
+        /// @param strideY Stride between consecutive elements in tensor Y.
+        template <typename T>
+        void CopyVectors(const Tensor_<T> &X, const size_t strideX, Tensor_<T> &Y, const size_t strideY);
+
+        /// @brief Swaps elements between two tensors treated as vectors, wrapper to BLAS function <T>swap (unit stride version).
+        ///
+        /// Exchanges elements between tensors X and Y with the same size.
+        ///
+        /// @tparam T Numerical element type (double, float, complex_double, complex_float).
+        /// @param X First tensor (Tensor_<T>).
+        /// @param Y Second tensor (Tensor_<T>).
+        template <typename T>
+        void SwapVectors(Tensor_<T> &X, Tensor_<T> &Y);
+
+        /// @brief Swaps elements between two tensors treated as vectors with strides, wrapper to BLAS function <T>swap.
+        ///
+        /// Exchanges elements between tensors X and Y with the same size and specified strides.
+        ///
+        /// @tparam T Numerical element type (double, float, complex_double, complex_float).
+        /// @param X First tensor (Tensor_<T>).
+        /// @param strideX Stride between consecutive elements in tensor X.
+        /// @param Y Second tensor (Tensor_<T>).
+        /// @param strideY Stride between consecutive elements in tensor Y.
+        template <typename T>
+        void SwapVectors(Tensor_<T> &X, const size_t strideX, Tensor_<T> &Y, const size_t strideY);
+
+        /// @brief Scales a tensor treated as vector by a scalar multiplier, wrapper to BLAS function <T>scal.
+        ///
+        /// Performs x = a * x where x is a tensor.
+        ///
+        /// @tparam T Numerical element type (double, float, complex_double, complex_float).
+        /// @param a Scalar multiplier.
+        /// @param x Input tensor x (Tensor_<T>).
+        template <typename T>
+        void ScaleVector(const T a, Tensor_<T> &x);
+
+        /// @brief Scales a tensor treated as vector by a scalar multiplier, convenience overload with scalar type conversion.
+        ///
+        /// Performs x = a * x where scalar type is converted to T. Useful for mixed-precision convenience calls.
+        ///
+        /// @tparam Scalar Scalar type for `a`.
+        /// @tparam T Numerical element type (double, float, complex_double, complex_float).
+        /// @param a Scalar multiplier (will be cast to T).
+        /// @param x Input tensor x (Tensor_<T>).
+        template <typename Scalar, typename T>
+        void ScaleVector(const Scalar a, Tensor_<T> &x)
+        {
+            ScaleVector((T)a, x);
+        };
+
+        /// @brief Scales a tensor treated as vector by a scalar multiplier with stride, wrapper to BLAS function <T>scal.
+        ///
+        /// Performs x = a * x where x is a tensor with specified stride.
+        ///
+        /// @tparam T Numerical element type (double, float, complex_double, complex_float).
+        /// @param a Scalar multiplier.
+        /// @param x Input tensor x (Tensor_<T>).
+        /// @param ix Stride between consecutive elements in tensor x.
+        template <typename T>
+        void ScaleVector(const T a, Tensor_<T> &x, size_t ix);
+
+        /// @brief Scales a tensor treated as vector by a scalar multiplier with stride, convenience overload with scalar type conversion.
+        ///
+        /// Performs x = a * x where scalar type is converted to T. Useful for mixed-precision convenience calls.
+        ///
+        /// @tparam Scalar Scalar type for `a`.
+        /// @tparam T Numerical element type (double, float, complex_double, complex_float).
+        /// @param a Scalar multiplier (will be cast to T).
+        /// @param x Input tensor x (Tensor_<T>).
+        /// @param ix Stride between consecutive elements in tensor x.
+        template <typename Scalar, typename T>
+        void ScaleVector(const Scalar a, Tensor_<T> &x, size_t ix)
+        {
+            ScaleVector((T)a, x, ix);
+        };
+
+        /// @brief Finds the index of the maximum element in a tensor treated as vector, wrapper to BLAS function <T>iamax.
+        ///
+        /// Returns the index of the element with maximum absolute value in tensor x.
+        ///
+        /// @tparam T Numerical element type (double, float, complex_double, complex_float).
+        /// @param x Input tensor (Tensor_<T>).
+        /// @return Index (0-based) of the maximum element in tensor x.
+        template <typename T>
+        int IndexMaxFromVector(const Tensor_<T> &x);
+
+        /// @brief Finds the index of the maximum element in a tensor treated as vector with stride, wrapper to BLAS function <T>iamax.
+        ///
+        /// Returns the index of the element with maximum absolute value in tensor x with specified stride.
+        ///
+        /// @tparam T Numerical element type (double, float, complex_double, complex_float).
+        /// @param x Input tensor (Tensor_<T>).
+        /// @param ix Stride between consecutive elements in tensor x.
+        /// @return Index (0-based) of the maximum element in tensor x.
+        template <typename T>
+        int IndexMaxFromVector(const Tensor_<T> &x, const size_t ix);
+
+        /// @brief Runtime-dispatching overload that allows passing a CPURuntime first.
+        ///
+        /// The runtime parameter is ignored for CPU implementations but this overload
+        /// mirrors the signatures used for GPU/CUDA dispatching.
+        template <typename T>
+        T InnerVectorProduct(const CPURuntime &rt_, const Tensor_<T> &X, const Tensor_<T> &Y)
+        {
+            return InnerVectorProduct(X, Y);
+        };
+
+        /// @brief Runtime-dispatching overload that allows passing a CPURuntime first.
+        ///
+        /// The runtime parameter is ignored for CPU implementations but this overload
+        /// mirrors the signatures used for GPU/CUDA dispatching.
+        template <typename T>
+        T InnerVectorProduct(const CPURuntime &rt_, const Tensor_<T> &X, const size_t strideX, const Tensor_<T> &Y, const size_t strideY)
+        {
+            return InnerVectorProduct(X, strideX, Y, strideY);
+        };
 
         /// @brief Runtime-dispatching overload that allows passing a CPURuntime first.
         ///

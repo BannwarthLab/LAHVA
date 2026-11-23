@@ -27,49 +27,112 @@ namespace lahva{
     namespace cpu
     {
 
+    /// @brief Check that a vector holds n elements at the given stride.
+    ///
+    /// Without a stride the vector must have exactly n elements. With a stride it may be
+    /// longer, as long as the last element at that stride is within the vector.
+    ///
+    /// @param size Number of elements in the vector.
+    /// @param n Number of elements the operation accesses.
+    /// @param inc Stride between the accessed elements.
+    /// @return True if the vector is valid for the operation.
+    inline bool fits_stride(size_t size, size_t n, size_t inc){
+        if (inc == 1) return size == n;
+        return n == 0 || size >= 1 + (n - 1) * inc;
+    };
 
-
-    template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const Matrix_<T>& m, const Tensor_<T>& vmult, const Tensor_<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
+    /// @brief Validate matrix and vector dimensions for matrix-vector multiplication.
+    ///
+    /// Checks that the matrix and both vector operands have compatible dimensions
+    /// for matrix-vector multiplication y := op(A) * x. The validation depends on
+    /// whether the matrix is transposed: if not transposed, the matrix column count
+    /// must equal x size and row count must equal result vector size. If transposed,
+    /// the matrix row count must equal x size and column count must equal result size.
+    ///
+    /// @tparam T Element type of matrix and vectors.
+    /// @param m Matrix operand (MatrixType).
+    /// @param vmult Input vector x that is multiplied by the matrix.
+    /// @param vres Output/result vector y.
+    /// @param trans Transpose flag for the matrix (default: CblasNoTrans).
+    /// @param incx Stride of the input vector x (default: 1).
+    /// @param incy Stride of the output vector y (default: 1).
+    /// @return Tuple of (nrow, ncol) - row and column counts of the matrix.
+    /// @note MatrixType is either a Matrix_<T> or a BlockDiagMatrix_<T> type, which are compatible with the BLAS interface.
+    template<typename MatrixType, typename VectorType>
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const MatrixType& m, const VectorType& vmult, const VectorType& vres, CBLAS_TRANSPOSE trans = CblasNoTrans,
+        size_t incx = 1, size_t incy = 1){
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
         if (trans == CblasNoTrans) {
-            assert(nrow == (BLAS_INT)vres.size());
-            assert(ncol == (BLAS_INT)vmult.size());
+            assert(fits_stride(vres.size(), nrow, incy));
+            assert(fits_stride(vmult.size(), ncol, incx));
 
         }
         else {
-            assert(nrow == (BLAS_INT)vmult.size());
-            assert(ncol == (BLAS_INT)vres.size());
+            assert(fits_stride(vmult.size(), nrow, incx));
+            assert(fits_stride(vres.size(), ncol, incy));
 
         }
         
         return std::make_tuple(nrow, ncol);
     };
 
+    /// @brief Validate triangular matrix and vector dimensions for triangular matrix-vector multiplication.
+    ///
+    /// Checks that the triangular matrix and both vector operands have compatible dimensions
+    /// for triangular matrix-vector multiplication x := op(A) * x. The validation depends on
+    /// whether the matrix is transposed: if not transposed, the matrix column count must equal
+    /// input vector size and row count must equal result vector size. If transposed, the matrix
+    /// row count must equal input vector size and column count must equal result size.
+    ///
+    /// @tparam T Element type of matrix and vectors.
+    /// @param m Triangular matrix operand (LowTriMatrix_<T>) in packed storage format.
+    /// @param vmult Input vector that is multiplied by the matrix.
+    /// @param vres Output/result vector.
+    /// @param trans Transpose flag for the matrix (default: CblasNoTrans).
+    /// @param incx Stride of the input vector x (default: 1).
+    /// @param incy Stride of the output vector y (default: 1).
+    /// @return Tuple of (nrow, ncol) - row and column counts of the triangular matrix.
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor_<T>& vmult, const Tensor_<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans){
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor_<T>& vmult, const Tensor_<T>& vres, CBLAS_TRANSPOSE trans = CblasNoTrans,
+        size_t incx = 1, size_t incy = 1){
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
         if (trans == CblasNoTrans) {
-            assert(nrow == (BLAS_INT)vres.size());
-            assert(ncol == (BLAS_INT)vmult.size());
+            assert(fits_stride(vres.size(), nrow, incy));
+            assert(fits_stride(vmult.size(), ncol, incx));
 
         }
         else {
-            assert(nrow == (BLAS_INT)vmult.size());
-            assert(ncol == (BLAS_INT)vres.size());
+            assert(fits_stride(vmult.size(), nrow, incx));
+            assert(fits_stride(vres.size(), ncol, incy));
 
         }
         
         return std::make_tuple(nrow, ncol);
     };
 
-    template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT, BLAS_INT> check_size_mm(const Matrix_<T>& a, const Matrix_<T>& b, 
-        const Matrix_<T>& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
+    /// @brief Validate matrix dimensions for matrix-matrix multiplication.
+    ///
+    /// Checks that three matrices have compatible dimensions for the operation
+    /// C := op(A) * op(B) where op() indicates optional transpose. The validation
+    /// ensures that: dimensions of the output matrix C match the untracked transposed
+    /// dimensions of A and B, the inner dimension of op(A) matches the outer dimension
+    /// of op(B), and all assertions will fail if dimensions are incompatible.
+    ///
+    /// @tparam T Element type of all matrices.
+    /// @param a Left-hand matrix operand (MatrixTypeA).
+    /// @param b Right-hand matrix operand (MatrixTypeB).
+    /// @param c Output matrix (MatrixTypeC) to store the result.
+    /// @param transa Transpose flag for matrix A (default: CblasNoTrans).
+    /// @param transb Transpose flag for matrix B (default: CblasNoTrans).
+    /// @return Tuple of (m, n, k) where m and n are dimensions of C, and k is the inner dimension.
+    /// @note MatrixType is either a Matrix_<T> or a BlockDiagMatrix_<T> type, which are compatible with the BLAS interface.
+    template<typename MatrixTypeA, typename MatrixTypeB, typename MatrixTypeC>
+    std::tuple<BLAS_INT, BLAS_INT, BLAS_INT> check_size_mm(const MatrixTypeA& a, const MatrixTypeB& b, 
+        const MatrixTypeC& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
         
         Shape sa = a.shape();
         BLAS_INT nrowa = sa.first;
@@ -115,7 +178,7 @@ namespace lahva{
                 assert(nrowa == ncolb);
                 assert(ncola == nrowc);
                 assert(nrowb == ncolc);
-                k = ncola;
+                k = nrowa;
             }    
         }
         
@@ -123,9 +186,23 @@ namespace lahva{
         return std::make_tuple(nrowc, ncolc, k);
     };
 
-    template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_same_shape_mm(const Matrix_<T>& a, const Matrix_<T>& b, 
-        const Matrix_<T>& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
+    /// @brief Validate that matrices have the same shape for element-wise operations.
+    ///
+    /// Checks that three matrices have compatible dimensions for element-wise operations
+    /// like matrix addition where op(A) and op(B) must have the same dimensions, and C
+    /// must have the same dimensions as the results. This is stricter than matrix-matrix
+    /// multiplication as it requires element-wise compatibility.
+    ///
+    /// @tparam T Element type of all matrices.
+    /// @param a First input matrix (Matrix_<T>).
+    /// @param b Second input matrix (Matrix_<T>).
+    /// @param c Output matrix (Matrix_<T>).
+    /// @param transa Transpose flag for matrix A (default: CblasNoTrans).
+    /// @param transb Transpose flag for matrix B (default: CblasNoTrans).
+    /// @return Tuple of (nrow, ncol) - dimensions of the output matrix.
+    template<typename MatrixTypeA, typename MatrixTypeB, typename MatrixTypeC>
+    std::tuple<BLAS_INT, BLAS_INT> check_same_shape_mm(const MatrixTypeA& a, const MatrixTypeB& b, 
+        const MatrixTypeC& c, CBLAS_TRANSPOSE transa = CblasNoTrans, CBLAS_TRANSPOSE transb = CblasNoTrans){
         
         Shape sa = a.shape();
         BLAS_INT nrowa = sa.first;
@@ -177,14 +254,24 @@ namespace lahva{
         return std::make_tuple(nrowc, ncolc);
     };
 
+    /// @brief Validate triangular matrix and vector dimensions for triangular matrix-vector solve.
+    ///
+    /// Checks that a triangular matrix and input vector have compatible dimensions
+    /// for triangular matrix-vector solve operations x := op(A)^-1 * x.
+    ///
+    /// @tparam T Element type of matrix and vector.
+    /// @param m Triangular matrix operand (LowTriMatrix_<T>) in packed storage format.
+    /// @param vmult Input vector.
+    /// @param incx Stride of the input vector (default: 1).
+    /// @return Tuple of (nrow, ncol) - row and column counts of the triangular matrix.
     template<typename T>
-    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor_<T>& vmult)
+    std::tuple<BLAS_INT, BLAS_INT> check_size_mv(const LowTriMatrix_<T>& m, const Tensor_<T>& vmult, size_t incx = 1)
     {
         Shape s = m.shape();
         BLAS_INT nrow = s.first;
         BLAS_INT ncol = s.second;
 
-        assert(ncol == (BLAS_INT)vmult.size());
+        assert(fits_stride(vmult.size(), ncol, incx));
        
         return std::make_tuple(nrow, ncol);
     };

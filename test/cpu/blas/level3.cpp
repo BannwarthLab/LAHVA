@@ -102,6 +102,34 @@ int test_gemm_with_alpha_beta() {
     return TEST_PASS;
 }
 
+// Non-square operands
+template <typename T>
+int test_gemm_transpose(const char *Ta, const char *Tb) {
+    bool ta = Ta[0] == 'T';
+    bool tb = Tb[0] == 'T';
+
+    Matrix<T> A(ta ? Shape(K,M) : Shape(M,K));
+    Matrix<T> B(tb ? Shape(N,K) : Shape(K,N));
+    Matrix<T> C(Shape(M,N), (T)0.0);
+    for (size_t i = 0; i < A.size(); i++) A.data()[i] = (T)(1 + i);
+    for (size_t i = 0; i < B.size(); i++) B.data()[i] = (T)(1 + 2 * i);
+
+    MatrixMatrixProduct(Ta, Tb, (T)1.0, A, B, (T)0.0, C);
+
+    Matrix<T> expected(Shape(M,N), (T)0.0);
+    for (size_t i = 0; i < M; i++) {
+        for (size_t j = 0; j < N; j++) {
+            for (size_t l = 0; l < K; l++) {
+                expected(i,j) += (ta ? A(l,i) : A(i,l)) * (tb ? B(j,l) : B(l,j));
+            }
+        }
+    }
+
+    if (!check(C.data(), expected.data(), M*N, check_msg(get_type_name<T>(), std::string(Ta) + Tb))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
 // ============================================================================
 // SymMatrixMatrixProduct Tests
 // ============================================================================
@@ -330,6 +358,37 @@ int test_c_symm_with_beta_right() {
     return TEST_PASS;
 }
 
+inline Shape op_shape(const Shape &shape, const char *trans) {
+    return (trans[0] == 'N') ? shape : Shape{shape.second, shape.first};
+}
+
+template <typename T>
+Matrix<T> make_filled_matrix(const Shape &shape) {
+    Matrix<T> mat(shape);
+    for (size_t i = 0; i < shape.first * shape.second; i++) {
+        mat.data()[i] = static_cast<T>(1 + (i * 7) % 11);
+    }
+    return mat;
+}
+
+// Naive reference, independent of BLAS: C = alpha * op(A) * op(B) + beta * C
+template <typename T>
+void reference_gemm(const char *Ta, const char *Tb, const T alpha, const Matrix<T> &a, const Matrix<T> &b,
+                    const T beta, Matrix<T> &c) {
+    const size_t k = op_shape(a.shape(), Ta).second;
+    for (size_t i = 0; i < c.shape().first; i++) {
+        for (size_t j = 0; j < c.shape().second; j++) {
+            T sum = static_cast<T>(0);
+            for (size_t l = 0; l < k; l++) {
+                const T a_il = (Ta[0] == 'N') ? a(i, l) : a(l, i);
+                const T b_lj = (Tb[0] == 'N') ? b(l, j) : b(j, l);
+                sum += a_il * b_lj;
+            }
+            c(i, j) = alpha * sum + beta * c(i, j);
+        }
+    }
+}
+
 // ============================================================================
 // Main
 // ============================================================================
@@ -352,6 +411,14 @@ int main(){
     total_failures += test_gemm_with_beta<float>();
     total_failures += test_gemm_with_alpha_beta<double>();
     total_failures += test_gemm_with_alpha_beta<float>();
+
+    // Transpose tests with non-square operands
+    for (const char *Ta : {"N", "T"}) {
+        for (const char *Tb : {"N", "T"}) {
+            total_failures += test_gemm_transpose<double>(Ta, Tb);
+            total_failures += test_gemm_transpose<float>(Ta, Tb);
+        }
+    }
 
     // SymMatrixMatrixProduct tests
     total_failures += test_symm_left<double>();

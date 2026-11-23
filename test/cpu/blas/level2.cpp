@@ -17,6 +17,18 @@ template<> double* get_test_data<double>() { return pd; }
 template<> float* get_test_data<float>() { return pf; }
 
 template<typename T>
+T* make_lowtri_data() {
+    T* data = lahva::StdAllocator<T>().allocate(6);
+    const T values[6] = {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
+    std::copy(values, values + 6, data);
+    return data;
+}
+
+// ============================================================================
+// Basic GEMV Tests
+// ============================================================================
+
+template<typename T>
 int test_gemv_zero_v_cpp(){
     Shape s(M,N);
     Matrix<T> A(s, 1.0);
@@ -219,7 +231,7 @@ int test_symv_zero_lowtri_cpp(){
 
 template<typename T>
 int test_symv_lowtri_cpp(){
-    T* vdtri_ = new T[6] {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
+    T* vdtri_ = make_lowtri_data<T>();
     LowTriMatrix<T> A(3, vdtri_, std::is_same_v<T, float>);
     Vector<T> x({1.0, 2.0, 3.0});
     Vector<T> y(3, 0.0);
@@ -242,12 +254,15 @@ int test_symv_lowtri_cpp(){
 
     if (!check(y.data(), vres.data(), 3, check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
+    // A only owns the data for float
+    if (!std::is_same_v<T, float>) lahva::StdAllocator<T>().deallocate(vdtri_);
+
     return TEST_PASS;
 }
 
 template<typename T>
 int test_tpmv_cpp(){
-    T* vdtri_ = new T[6] {1.0, 4.0, 5.0, 2.0, 6.0, 3.0};
+    T* vdtri_ = make_lowtri_data<T>();
     LowTriMatrix<T> A(3, vdtri_);
     Vector<T> x({1.0, 2.0, 3.0});
 
@@ -436,16 +451,85 @@ int test_ger(){
     try {
         Matrix<T> A(Shape(4,2),0.0);
         OuterVectorProduct(x, y, A);
+        std::cerr << check_msg(get_type_name<T>(), "check 3") << std::endl;
         return TEST_FAIL; // Should not reach here
-        std::cerr << "Error: No exception thrown for dimension mismatch in outer product test." << std::endl;
     }
     catch (std::invalid_argument& e) {
         // Expected exception caught
     }
     catch (const std::exception& e) {
+        std::cerr << check_msg(get_type_name<T>(), "check 4") << std::endl;
         return TEST_FAIL; // Unexpected exception type
-        std::cerr << "Error: Unexpected exception type caught in outer product dimension mismatch test: " << e.what() << std::endl;
     }
+
+    return TEST_PASS;
+}
+
+// ============================================================================
+// Stride Tests, where the vectors are longer than the matrix dimensions
+// ============================================================================
+
+template<typename T>
+int check_strided_gemv_result(const Vector<T> &y) {
+    const T expected[4] = {5, 11, 39, 53};
+    for (int i = 0; i < 4; i++) {
+        if (!check(y[3 * i], expected[i], check_msg(get_type_name<T>(), "element at stride 3"))) return TEST_FAIL;
+    }
+    return TEST_PASS;
+}
+
+template<typename T>
+Vector<T> make_strided_input() {
+    Vector<T> x(8, static_cast<T>(0));
+    for (int i = 0; i < 4; i++) {
+        x[2 * i] = static_cast<T>(i + 1);
+    }
+    return x;
+}
+
+template<typename T>
+int test_gemv_strided() {
+    Matrix<T> A(Shape{4, 4}, static_cast<T>(0));
+    A(0, 0) = 1; A(1, 0) = 3; A(0, 1) = 2; A(1, 1) = 4;
+    A(2, 2) = 5; A(3, 2) = 7; A(2, 3) = 6; A(3, 3) = 8;
+
+    const Vector<T> x = make_strided_input<T>();
+    Vector<T> y(12, static_cast<T>(-1));
+
+    MatrixVectorProduct("N", static_cast<T>(1), A, x, 2, static_cast<T>(0), y, 3);
+
+    return check_strided_gemv_result(y);
+}
+
+template<typename T>
+int test_symv_strided() {
+    Matrix<T> A(Shape{3, 3}, get_test_data<T>(), false);
+
+    Vector<T> x(5, static_cast<T>(0));
+    x[0] = 1; x[2] = 2; x[4] = 3;
+    Vector<T> y(7, static_cast<T>(-1));
+
+    SymMatrixVectorProduct(static_cast<T>(1), A, x, 2, static_cast<T>(0), y, 3);
+
+    if (!check(y[0], static_cast<T>(24), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(y[3], static_cast<T>(26), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(y[6], static_cast<T>(26), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
+
+    return TEST_PASS;
+}
+
+template<typename T>
+int test_tpmv_strided() {
+    LowTriMatrix<T> A(3, make_lowtri_data<T>());
+
+    Vector<T> x(5, static_cast<T>(0));
+    x[0] = 1; x[2] = 2; x[4] = 3;
+
+    LowTriMatrixVectorProduct("N", CblasNonUnit, A, x, 2);
+
+    if (!check(x[0], static_cast<T>(1), check_msg(get_type_name<T>(), "check 1"))) return TEST_FAIL;
+    if (!check(x[2], static_cast<T>(8), check_msg(get_type_name<T>(), "check 2"))) return TEST_FAIL;
+    if (!check(x[4], static_cast<T>(26), check_msg(get_type_name<T>(), "check 3"))) return TEST_FAIL;
 
     return TEST_PASS;
 }
@@ -498,6 +582,12 @@ int main(){
     // Outer product tests
     total_failures += test_ger<double>();
     total_failures += test_ger<float>();
+    total_failures += test_gemv_strided<double>();
+    total_failures += test_gemv_strided<float>();
+    total_failures += test_symv_strided<double>();
+    total_failures += test_symv_strided<float>();
+    total_failures += test_tpmv_strided<double>();
+    total_failures += test_tpmv_strided<float>();
 
     if (total_failures > 0) {
         std::cerr << "cpu/blas/level2 tests: " << total_failures << " failures" << std::endl;
